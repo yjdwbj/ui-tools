@@ -17,6 +17,9 @@
 #include <QtCore/QFile>
 #include <QtCore/QFileDevice>
 #include <QTextStream>
+#include <QDebug>
+#include <QLabel>
+#include <QDir>
 
 namespace Ui {
 class MainWindow;
@@ -60,15 +63,17 @@ private:
     QString PROPERTY = "property";
     QString ITEM="item";
     QString RECT ="rect";
-    typedef struct {
+    typedef struct  ObjComt{
         QString objName;
         QString clsName;
         QString pixmap;
         QRect rect;
         QObject *obj;
-        QObject *parent;
-    }ObjComt;
-    QObject *HandleFrameObject(QJsonObject qjo);
+        QString parentName;
+    };
+    QList<ObjComt>  ComList;
+    void HandleFrameObject(QJsonObject qjo, QString ParentName);
+    QWidget *pWin;
 
 };
 

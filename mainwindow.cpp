@@ -10,9 +10,11 @@ static bool isWidget = true;
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     out(stdout, QIODevice::WriteOnly),
+
     ui(new Ui::MainWindow)
 {
     QDesktopWidget *pDwgt = QApplication::desktop();
+
     ui->setupUi(this);
     QRect desk_rect = pDwgt->screenGeometry(pDwgt->screenNumber(QCursor::pos()));
     int desk_x = desk_rect.width();
@@ -22,9 +24,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QString css = "*{  border: 2px solid gray;}";
     // ui->centralWidget->setStyleSheet(css);
-    QHBoxLayout *mainLayout = new QHBoxLayout();
-    ui->centralWidget->setLayout(mainLayout);
+   // QHBoxLayout *mainLayout = new QHBoxLayout();
+  //  ui->centralWidget->setLayout(mainLayout);
     ui->mainToolBar->addWidget(new QPushButton("test"));
+
 
     lDock = new QDockWidget(tr("left"));
     lDock->setAllowedAreas( Qt::LeftDockWidgetArea);
@@ -52,15 +55,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     rList->setFixedWidth(120);
     //QFrame *frame = new QFrame();
-    DragWidget *dw = new DragWidget();
-    dw->setFixedSize(320,480);
-    dw->autoFillBackground();
+  //  DragWidget *dw = new DragWidget();
+  //  dw->setFixedSize(320,480);
+   // dw->autoFillBackground();
     //mainLayout->addWidget(leftList,1,Qt::AlignLeft);
-    mainLayout->addWidget(dw);
+   // mainLayout->addWidget(dw);
     // mainLayout->addWidget(rightlist,1,Qt::AlignRight);
-    QWidget *mainWidget = new QWidget(dw);
+   // QWidget *mainWidget = new QWidget(dw);
 
-    dw->setStyleSheet(css);
+   // dw->setStyleSheet(css);
 
 
 
@@ -84,7 +87,63 @@ MainWindow::MainWindow(QWidget *parent) :
             {
 
              //   HandleObject( qd.object());
-                HandleFrameObject(qd.object());
+                HandleFrameObject(qd.object(),ui->centralWidget->objectName());
+                QListIterator<ObjComt> iterator(ComList);
+                while (iterator.hasNext()) {
+
+
+                    ObjComt oc = iterator.next();
+                    QString pName = oc.parentName;
+                //    qDebug() << "current Name " << oc.objName << "paraent Name " << pName;
+                    if(oc.clsName.compare("QFrame"))
+                    {
+                        QFrame *qf = new QFrame();
+
+                        qf->setObjectName(oc.objName);
+                        qf->setParent(ui->centralWidget);
+                      //  qf->setParent(findChild<QWidget*>(obj.parentName));
+                        qf->setEnabled(true);
+                        qf->setVisible(true);
+                        qf->setFrameShadow(QFrame::Raised);
+                        qf->setFrameShape(QFrame::StyledPanel);
+                    }
+                      qDebug() << oc.pixmap;
+
+                }
+                QWidgetList widgets = qApp->topLevelWidgets();
+                for(QWidgetList::iterator it = widgets.begin();it != widgets.end();it++)
+                {
+                   qDebug() <<  (*it)->objectName();
+                }
+                QListIterator<ObjComt> it(ComList);
+                while (it.hasNext()) {
+
+
+                    ObjComt oc = it.next();
+                    QString pName = oc.parentName;
+                    qDebug() << "current Name " << oc.objName << "paraent Name " << pName;
+                    if(oc.clsName.compare("QLabel"))
+                    {
+                        QFrame *f = this->findChild<QFrame*>(oc.parentName);
+                        if(f)
+                        {
+                            qDebug() << f->objectName() << f->geometry();
+                        }
+                        QLabel *lab  = new QLabel();
+                        lab->setParent(ui->centralWidget->findChild<QFrame*>(oc.parentName));
+                        lab->setObjectName(oc.objName);
+                        lab->setGeometry(oc.rect);
+                        qDebug() << oc.pixmap;
+                        lab->setPixmap(QPixmap("/usr/share/icons/mate/48x48/apps/calc.png"));
+                        lab->setVisible(true);
+                        lab->setText(oc.objName);
+                    }
+
+
+
+
+                }
+
 
                 // leftList->addItem(result.value(obj.toString()).toString());
 
@@ -110,10 +169,11 @@ void MainWindow::setWidget(QObject &oob)
     }*/
 }
 
-QObject* MainWindow::HandleFrameObject(QJsonObject qjo)
+void MainWindow::HandleFrameObject(QJsonObject qjo,QString ParentName)
 {
 
     ObjComt obj;
+    obj.parentName = ParentName;
     QObject *child;
     for(QJsonObject::iterator it = qjo.begin();it != qjo.end();++it)
     {
@@ -128,7 +188,7 @@ QObject* MainWindow::HandleFrameObject(QJsonObject qjo)
         {
             if(it.value().isObject())
             {
-               child =  HandleFrameObject(it.value().toObject());
+               HandleFrameObject(it.value().toObject(),obj.objName);
             }
             else if(it.value().isArray())
             {
@@ -138,7 +198,7 @@ QObject* MainWindow::HandleFrameObject(QJsonObject qjo)
                 {
                     if(qja[idx].isObject())
                     {
-                        child = HandleFrameObject(qja[idx].toObject());
+                        HandleFrameObject(qja[idx].toObject(),obj.objName);
                     }
                 }
             }
@@ -169,11 +229,8 @@ QObject* MainWindow::HandleFrameObject(QJsonObject qjo)
                        }else if(ooj.contains("pixmap"))
                        {
                            int p = ooj["pixmap"].type();
-                           obj.pixmap = ooj["pixmap"].toString();
+                           obj.pixmap = QDir::currentPath()+"/"+ ooj["pixmap"].toString();
                        }
-                      //  HandleFrameObject(qjv.toObject());
-                    }else if(qjv.isString())
-                    {
 
                     }
 
@@ -181,42 +238,12 @@ QObject* MainWindow::HandleFrameObject(QJsonObject qjo)
             }
         }
 
-
-        /*if(it.value().isString())
-        {
-            QString str = it.value().toString();
-            if(!str.compare(CLASS))
-            {
-                obj.clsName = str;
-
-            }else if(!str.compare(NAME))
-            {
-                obj.objName = str;
-            }else if(!str.compare(PROPERTY))
-            {
-
-
-            }else if(!str.compare(RECT))
-            {
-                obj.rect = QRect();
-            }
-        }else if(it.value().isObject())
-        {
-
-        }else if(it.value().isArray())
-        {
-
-        }
-        else if(it.value().isDouble())
-        {
-
-        }*/
     }
-    if(!obj.clsName.compare("QFrame"))
-    {
-        QFrame *qf = new QFrame();
 
-        qf->setObjectName(obj.objName);
+
+   /* if(!obj.clsName.compare("QFrame"))
+    {
+        v
         obj.obj = qf;
 
     }else if(!obj.clsName.compare("QWidget"))
@@ -228,13 +255,16 @@ QObject* MainWindow::HandleFrameObject(QJsonObject qjo)
     }else if(!obj.clsName.compare("QLabel"))
     {
         QLabel *lab  = new QLabel();
+        lab->setParent(QObject::findChild<QFrame*>(obj.parentName));
         lab->setObjectName(obj.objName);
         lab->setGeometry(obj.rect);
-        lab->setPixmap(QPixmap(obj.pixmap));
+        lab->setPixmap( QPixmap(obj.pixmap));
+        lab->setVisible(true);
+
         obj.obj = lab;
-    }
-    child->setParent(obj.obj);
-    return obj.obj;
+    }*/
+    ComList.append(obj);
+
 }
 
 void MainWindow::HandleObject(QJsonObject qjo)
