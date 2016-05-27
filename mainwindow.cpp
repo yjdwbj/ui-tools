@@ -1,0 +1,479 @@
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+
+#include "dragwidget.h"
+
+static QObject* mParent;
+static bool isWidget = true;
+
+
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow(parent),
+    out(stdout, QIODevice::WriteOnly),
+    ui(new Ui::MainWindow)
+{
+    QDesktopWidget *pDwgt = QApplication::desktop();
+    ui->setupUi(this);
+    QRect desk_rect = pDwgt->screenGeometry(pDwgt->screenNumber(QCursor::pos()));
+    int desk_x = desk_rect.width();
+    int desk_y = desk_rect.height();
+    ui->centralWidget->setFixedHeight(desk_y);
+    ui->centralWidget->setFixedWidth(desk_x-400);
+
+    QString css = "*{  border: 2px solid gray;}";
+    // ui->centralWidget->setStyleSheet(css);
+    QHBoxLayout *mainLayout = new QHBoxLayout();
+    ui->centralWidget->setLayout(mainLayout);
+    ui->mainToolBar->addWidget(new QPushButton("test"));
+
+    lDock = new QDockWidget(tr("left"));
+    lDock->setAllowedAreas( Qt::LeftDockWidgetArea);
+    lList = new QListWidget(lDock);
+    lDock->setWidget(lList);
+
+    lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/krfb.png")),tr("test")));
+    lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/kwin.png")),tr("kwin")));
+    lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/kuser.png")),tr("kuser")));
+    lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/calc.png")),tr("calc")));
+    addDockWidget(Qt::LeftDockWidgetArea, lDock);
+    lList->setFixedWidth(120);
+
+
+    rDock = new QDockWidget(tr("right"));
+    rDock->setAllowedAreas(Qt::RightDockWidgetArea);
+
+    rList = new QListWidget(rDock);
+    addDockWidget(Qt::RightDockWidgetArea, rDock);
+    rDock->setWidget(rList);
+   // rList->addItems(QStringList() << "111" << "222" << "333");
+
+
+
+
+    rList->setFixedWidth(120);
+    //QFrame *frame = new QFrame();
+    DragWidget *dw = new DragWidget();
+    dw->setFixedSize(320,480);
+    dw->autoFillBackground();
+    //mainLayout->addWidget(leftList,1,Qt::AlignLeft);
+    mainLayout->addWidget(dw);
+    // mainLayout->addWidget(rightlist,1,Qt::AlignRight);
+    QWidget *mainWidget = new QWidget(dw);
+
+    dw->setStyleSheet(css);
+
+
+
+    QJsonParseError json_error;
+    mParent = ui->centralWidget;
+
+    QFile data("/home/yjdwbj/pximap_frame.json");
+    if (data.open(QFile::ReadOnly|QIODevice::Text)) {
+        QByteArray qba = data.readAll();
+        QTextStream in(&data);
+        QString str;
+        int ans = 0;
+        in >> str >> ans;
+
+        // QJsonDocument qd = QJsonDocument::fromRawData(str,&ans);
+
+        QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
+        if(json_error.error == QJsonParseError::NoError)
+        {
+            if(qd.isObject())
+            {
+
+             //   HandleObject( qd.object());
+                HandleFrameObject(qd.object());
+
+                // leftList->addItem(result.value(obj.toString()).toString());
+
+            }
+
+        }
+
+    }
+
+
+
+}
+
+
+void MainWindow::setWidget(QObject &oob)
+{
+   /* if(isWidget)
+    {
+        qobject_cast<QWidget*>(oob)->setParent(qobject_cast<QWidget*>(mParent));
+    }else
+    {
+       qobject_cast<QBoxLayout*>(mParent)->addWidget(qobject_cast<QWidget*>(oob));
+    }*/
+}
+
+QObject* MainWindow::HandleFrameObject(QJsonObject qjo)
+{
+
+    ObjComt obj;
+    QObject *child;
+    for(QJsonObject::iterator it = qjo.begin();it != qjo.end();++it)
+    {
+        QString key = it.key();
+        if(!key.compare(NAME))
+        {
+            obj.objName = it.value().toString();
+        }else if(!key.compare(CLASS))
+        {
+            obj.clsName = it.value().toString();
+        }else if(!key.compare("widget"))
+        {
+            if(it.value().isObject())
+            {
+               child =  HandleFrameObject(it.value().toObject());
+            }
+            else if(it.value().isArray())
+            {
+                QJsonArray qja = it.value().toArray();
+
+                for(int idx = 0;idx < qja.size();idx++)
+                {
+                    if(qja[idx].isObject())
+                    {
+                        child = HandleFrameObject(qja[idx].toObject());
+                    }
+                }
+            }
+
+        }else if(!key.compare(PROPERTY))
+        {
+            if(it.value().isArray())
+            {
+                QJsonArray qja = it.value().toArray();
+
+                for(int idx = 0; idx < qja.size();idx++)
+                {
+                    QJsonValue qjv = qja[idx];
+                    if(qjv.isObject())
+                    {
+                       QJsonObject ooj = qjv.toObject();
+                       if(ooj.contains(RECT))
+                       {
+
+                           QJsonObject rect = ooj[RECT].toObject();
+                           int x,y,w,h;
+                           x = rect["x"].toString().toInt();
+                           y = rect["y"].toString().toInt();
+                           w = rect["width"].toString().toInt();
+                           h = rect["height"].toString().toInt();
+
+                           obj.rect.setRect(x,y,w,h);
+                       }else if(ooj.contains("pixmap"))
+                       {
+                           int p = ooj["pixmap"].type();
+                           obj.pixmap = ooj["pixmap"].toString();
+                       }
+                      //  HandleFrameObject(qjv.toObject());
+                    }else if(qjv.isString())
+                    {
+
+                    }
+
+                }
+            }
+        }
+
+
+        /*if(it.value().isString())
+        {
+            QString str = it.value().toString();
+            if(!str.compare(CLASS))
+            {
+                obj.clsName = str;
+
+            }else if(!str.compare(NAME))
+            {
+                obj.objName = str;
+            }else if(!str.compare(PROPERTY))
+            {
+
+
+            }else if(!str.compare(RECT))
+            {
+                obj.rect = QRect();
+            }
+        }else if(it.value().isObject())
+        {
+
+        }else if(it.value().isArray())
+        {
+
+        }
+        else if(it.value().isDouble())
+        {
+
+        }*/
+    }
+    if(!obj.clsName.compare("QFrame"))
+    {
+        QFrame *qf = new QFrame();
+
+        qf->setObjectName(obj.objName);
+        obj.obj = qf;
+
+    }else if(!obj.clsName.compare("QWidget"))
+    {
+        QWidget *wid = new QWidget();
+        wid->setObjectName(obj.objName);
+        obj.obj = wid;
+
+    }else if(!obj.clsName.compare("QLabel"))
+    {
+        QLabel *lab  = new QLabel();
+        lab->setObjectName(obj.objName);
+        lab->setGeometry(obj.rect);
+        lab->setPixmap(QPixmap(obj.pixmap));
+        obj.obj = lab;
+    }
+    child->setParent(obj.obj);
+    return obj.obj;
+}
+
+void MainWindow::HandleObject(QJsonObject qjo)
+{
+    if(qjo.contains(WIDGET))
+    {
+        QJsonValue qjv = qjo[WIDGET].toObject();
+        if(qjv.isObject())
+        {
+             HandleObject(qjv.toObject());
+        }
+        else if(qjv.isArray())
+        {
+           // HandleArrayObject(qjv.isArray());
+        }
+
+    }
+    else if(qjo.contains(CLASS))
+    {
+        QString cval = qjo[CLASS].toString();
+        if(!cval.compare("QWidget"))
+        {
+
+            QWidget *o = new QWidget();
+            if(isWidget)
+            {
+                o->setParent(qobject_cast<QWidget*>(mParent));
+            }else
+            {
+               qobject_cast<QBoxLayout*>(mParent)->addWidget(o);
+            }
+            //setWidget(o);
+            mParent = o;
+            isWidget = true;
+            if(qjo.contains(NAME))
+            {
+                o->setObjectName(qjo[NAME].toString());
+            }
+            if(qjo.contains(PROPERTY))
+            {
+                QJsonObject proj = qjo[PROPERTY].toObject();
+                if (proj.contains(RECT))
+                {
+                    o->setGeometry(QRect(proj["x"].toInt(),
+                                   proj["y"].toInt(),
+                                   proj["width"].toInt(),
+                                   proj["height"].toInt()));
+                }
+
+
+            }
+            if(qjo.contains(LAYOUT))
+            {
+                QJsonObject layoutobj = qjo[LAYOUT].toObject();
+                HandleObject(layoutobj);
+                mParent = o;
+                isWidget = true;
+
+            }
+        }else if(!cval.compare("QVBoxLayout"))
+        {
+            QVBoxLayout *vlay = new QVBoxLayout();
+            if(isWidget)
+            {
+                qobject_cast<QWidget*>(mParent)->setLayout(vlay);
+            }else
+            {
+               qobject_cast<QBoxLayout*>(mParent)->addLayout(vlay);
+            }
+
+            isWidget = false;
+            mParent = vlay;
+            if(qjo.contains(NAME))
+            {
+               vlay->setObjectName(qjo[NAME].toString());
+            }
+            if(qjo.contains(ITEM))
+            {
+                QJsonArray qja = qjo[ITEM].toArray();
+                HandleArrayObject(qja);
+               /* for(int x = 0; x < qja.size();x++)
+                {
+                        QJsonValue qija = qja[x];
+                        if(qija.isObject())
+                        {
+                            HandleObject(qija.toObject());
+                        }else if(qija.isString())
+                        {
+                            out << qija.toString() << "\n";
+                        }
+                }*/
+            }
+        }
+        else if(!cval.compare("QHBoxLayout"))
+        {
+                 QHBoxLayout *vlay = new QHBoxLayout();
+                 if(isWidget)
+                 {
+                     qobject_cast<QWidget*>(mParent)->setLayout(vlay);
+                 }else
+                 {
+                    qobject_cast<QBoxLayout*>(mParent)->addLayout(vlay);
+                 }
+                  isWidget = false;
+                  if(qjo.contains(NAME))
+                  {
+                     vlay->setObjectName(qjo[NAME].toString());
+                  }
+                  if(qjo.contains(ITEM))
+                  {
+                     HandleArrayObject(qjo[ITEM].toArray());
+                  }
+        }
+    }
+
+}
+
+void MainWindow::HandleArrayObject(QJsonArray array)
+{
+    int asize = array.size();
+    for(int x = 0; x < asize;x++)
+    {
+            QJsonValue qija = array[x];
+            if(qija.isObject())
+            {
+                HandleObject(qija.toObject());
+            }else if(qija.isString())
+            {
+                out << qija.toString() << "\n";
+            }
+    }
+}
+
+void MainWindow::getJsonValue(QJsonValue qjv)
+
+{
+
+    /*switch (qjv.type()) {
+    case QJsonValue::Array:
+    {//out << "\nkey " << key << " value  Array\n" ;
+        QJsonArray qja = qjv.toArray();
+        int qjas = qja.size();
+        for(int i = 0; i < qjas; i++)
+        {
+            QJsonValue sqjv = qja[i];
+
+            getJsonValue(sqjv);
+
+        }}
+        break;
+    case QJsonValue::Bool:
+        out << "key " << qjv.toBool() << " value  Bool\n" ;
+        break;
+    case QJsonValue::String:
+        out << "key " << qjv.toString() << " value  String\n" ;
+        break;
+    case QJsonValue::Object:
+    {
+        out << "key     value  Object\n" ;
+        // result =  qv.toVariant().toMap();
+        QJsonObject qjo = qjv.toObject();
+       if(qjo.contains(CLASS))
+       {
+           QString cval = qjo[CLASS].toString();
+           if(!cval.compare("QWidget"))
+           {
+               QWidget *o = new QWidget();
+               mParent = o;
+               if(qjo.contains(NAME))
+               {
+                   o->setObjectName(qjo[NAME].toString());
+               }
+               if(qjo.contains(PROPERTY))
+               {
+                   QJsonObject proj = qjo[PROPERTY].toObject();
+                   if (proj.contains(RECT))
+                   {
+                       o->setGeometry(QRect(proj["x"].toInt(),
+                                      proj["y"].toInt(),
+                                      proj["width"].toInt(),
+                                      proj["height"].toInt()));
+                   }
+
+
+               }
+               if(qjo.contains(LAYOUT))
+               {
+                   QJsonObject layoutobj = qjo[LAYOUT].toObject();
+
+               }
+           }else if(!cval.compare("QVBoxLayout"))
+           {
+               QVBoxLayout *vlay = new QVBoxLayout(mParent);
+               mParent->setLayout(vlay);
+               if(qjo.contains(NAME))
+               {
+                  vlay->setObjectName(qjo[NAME].toString());
+               }
+               if(qjo.contains(ITEM))
+               {
+                   QJsonArray qja = qjo[ITEM].toArray();
+                   for(int x = 0; x < qja.size();x++)
+                   {
+
+                   }
+               }
+           }
+       }
+
+
+        foreach (QVariant obj, result.keys()) {
+            QString key = obj.toString();
+            out << "\n key " << key;
+            //  QJsonValue qjv = qd.object().value(key);
+            getJsonValue(qjv.toObject().value(key)) ;
+        }
+
+    }
+        break;
+    case QJsonValue::Double:
+        out << "key " << qjv.toDouble() << " value  Double\n" ;
+        break;
+    case QJsonValue::Null:
+        out << "key null  value  Null\n" ;
+        break;
+    default:
+        break;
+
+
+    }
+    out << "\n";
+    */
+}
+
+
+
+
+
+MainWindow::~MainWindow()
+{
+    delete ui;
+}

@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/test/pic">
+        <file>bmp/A0002JL.bmp</file>
+        <file>bmp/A0027JL.bmp</file>
+        <file>bmp/A0026JL.bmp</file>
+        <file>bmp/A0025JL.bmp</file>
+        <file>bmp/A0024JL.bmp</file>
+        <file>bmp/A0023JL.bmp</file>
+        <file>bmp/A0022JL.bmp</file>
+        <file>bmp/A0008JL.bmp</file>
+        <file>bmp/A0006JL.bmp</file>
+        <file>bmp/A0005JL.bmp</file>
+        <file>bmp/A0004JL.bmp</file>
+        <file>bmp/A0003JL.bmp</file>
+        <file>bmp/A0028JL.bmp</file>
+    </qresource>
+</RCC>
