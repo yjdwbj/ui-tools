@@ -24,6 +24,7 @@
 #include <QtWidgets/QMdiArea>
 #include <QtCore/QMargins>
 #include <QMouseEvent>
+#include <QtWidgets/QStackedLayout>
 
 
 namespace Ui {
@@ -81,7 +82,7 @@ private:
     QWidget *pWin;
     QFrame *mCanvas;
 
-    void slot_framepressed(QMouseEvent *ev);
+
 
 };
 

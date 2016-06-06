@@ -15,34 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     QDesktopWidget *pDwgt = QApplication::desktop();
-
-
-
-
-
-
-
     ui->setupUi(this);
-
-  //  mCanvas->setStyleSheet("background-color: rgb(238, 238, 236);");
-  /*  ui->centralWidget->hide();
-    ui->centralWidget->deleteLater();
-
-    QMdiArea *qma = new QMdiArea();
-  // qma->setFixedSize(QSize(40,20));
-//    qma->setGeometry(QRect(100,100,300,300));
- //   ui->centralWidget->hide();
- //   ui->centralWidget->deleteLater();
-    setCentralWidget(qma);
-  //  ui->centralWidget->setGeometry(QRect(100,100,300,300));
-  //  setContentsMargins(100,100,0,0);
-    qma->setFixedSize(QSize(480,600));
-
-    QMdiSubWindow *midwin = new QMdiSubWindow;
-  //  midwin->setAttribute(Qt::WA_QuitOnClose);
-    midwin->setWindowFlags(Qt::FramelessWindowHint);
-    qma->addSubWindow(midwin);*/
-
 
 
     QRect desk_rect = pDwgt->screenGeometry(pDwgt->screenNumber(QCursor::pos()));
@@ -59,7 +32,7 @@ MainWindow::MainWindow(QWidget *parent) :
     mCanvas->move(cw/2,ch/2);
     mCanvas->setFixedSize(320,240);
 
-    QString css = "*{  border: 2px solid gray;}";
+  //  QString css = "*{  border: 2px solid gray;}";
     // ui->centralWidget->setStyleSheet(css);
    // QHBoxLayout *mainLayout = new QHBoxLayout();
   //  ui->centralWidget->setLayout(mainLayout);
@@ -68,15 +41,44 @@ MainWindow::MainWindow(QWidget *parent) :
 
     lDock = new QDockWidget(tr("left"));
     lDock->setAllowedAreas( Qt::LeftDockWidgetArea);
-    lList = new QListWidget(lDock);
-    lDock->setWidget(lList);
+    lDock->setFixedWidth(180);
+    lList = new QListWidget();
+   // lDock->setWidget(lList);
+
+    QWidget *lDockWidget = new QWidget(lDock);
+    lDock->setWidget(lDockWidget);
+
+
+    QVBoxLayout *leftLayout = new QVBoxLayout(lDock);
+   // lDock->setLayout(leftLayout);
+    lDockWidget->setLayout(leftLayout);
+
+    leftLayout->addWidget(lList);
+
+    QPushButton *firstPageWidget = new QPushButton(lDock);
+    firstPageWidget->setText("First Page");
+    QPushButton *secondPageWidget = new QPushButton(lDock);
+    secondPageWidget->setText("Second Page");
+    QPushButton *thirdPageWidget = new QPushButton(lDock);
+
+    thirdPageWidget->setText("ThirdPage");
+
+    QStackedLayout *stackedLayout = new QStackedLayout(leftLayout);
+    stackedLayout->addWidget(firstPageWidget);
+    stackedLayout->addWidget(secondPageWidget);
+    stackedLayout->addWidget(thirdPageWidget);
+
+    //QVBoxLayout *mainLayout = new QVBoxLayout;
+    //mainLayout->addLayout(stackedLayout);
+    leftLayout->addLayout(stackedLayout);
+
 
     lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/krfb.png")),tr("test")));
     lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/kwin.png")),tr("kwin")));
     lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/kuser.png")),tr("kuser")));
     lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/calc.png")),tr("calc")));
     addDockWidget(Qt::LeftDockWidgetArea, lDock);
-    lList->setFixedWidth(120);
+    lList->setFixedWidth(160);
 
 
     rDock = new QDockWidget(tr("right"));
@@ -85,12 +87,12 @@ MainWindow::MainWindow(QWidget *parent) :
     rList = new QListWidget(rDock);
     addDockWidget(Qt::RightDockWidgetArea, rDock);
     rDock->setWidget(rList);
-   // rList->addItems(QStringList() << "111" << "222" << "333");
 
 
 
 
-    rList->setFixedWidth(120);
+
+    rList->setFixedWidth(160);
 
 
 
@@ -150,26 +152,16 @@ MainWindow::MainWindow(QWidget *parent) :
                         int y = mCanvas->size().height()/2-20;
                         qf->move(QPoint(x,y));
                         qf->installEventFilter(this);
-
-
-                     //   qf->move(mapToParent(mCanvas->pos()-qf->pos()));
-
-                      //  qf->setFrameShadow(QFrame::Raised);
-                     // qf->setFrameShape(QFrame::StyledPanel);
-
                     }
-                   //   qDebug() << oc.pixmap;
+
 
                 }
 
 
                 QListIterator<ObjComt> it(ComList);
                 while (it.hasNext()) {
-
-
                     ObjComt oc = it.next();
-              //      QString pName = oc.parentName;
-                //    qDebug() << "current Name " << oc.objName << "paraent Name " << pName;
+
                     if(!oc.clsName.compare("QLabel"))
                     {
 
@@ -179,33 +171,20 @@ MainWindow::MainWindow(QWidget *parent) :
                         lab->setGeometry(oc.rect);
                         lab->setProperty("myname",oc.objName);
                        // lab->move(mapToGlobal(lab->pos()-mpos));
-                        QPoint cpos = lab->pos();
-                        QPoint ppos = mp->pos();
+
                         lab->setProperty("px",oc.rect.x());
                         lab->setProperty("py",oc.rect.y());
                         lab->setProperty("pw",oc.rect.width());
                         lab->setProperty("ph",oc.rect.height());
 
-
-
-
-                        QPoint ncpos = lab->mapFromParent(ppos);
-
-                        QPoint nppos = lab->mapToParent(ppos);
                         lab->installEventFilter(this);
-                      //  lab->move(lab->mapToParent(mpos-lab->pos()));
 
-                    //    qDebug() << oc.pixmap;
                         QPixmap img ;
                         img.load(oc.pixmap);
                         lab->setPixmap(img);
                         oc.obj = lab;
                         lab->setProperty("imgpath",oc.pixmap);
                         connect(lab,SIGNAL(Clicked()),lab,SLOT(onClieck()));
-
-                      //  connect(lab,SIGNAL(mouse),SLOT(slot_mousepressed()));
-
-                    //    lab->update();
 
 
 
@@ -215,11 +194,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
                 }
-            //    mp->update();
-           //     mp->adjustSize();
 
-
-                // leftList->addItem(result.value(obj.toString()).toString());
 
             }
 
@@ -231,10 +206,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 }
 
-void MainWindow::slot_framepressed(QMouseEvent *ev)
-{
-    qDebug() << "frame mose event";
-}
+
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
