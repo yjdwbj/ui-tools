@@ -14,10 +14,12 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    dragwidget.cpp
+    dragwidget.cpp \
+    module.cpp
 
 HEADERS  += mainwindow.h \
-    dragwidget.h
+    dragwidget.h \
+    module.h
 
 FORMS    += mainwindow.ui
 CONFIG += c++11

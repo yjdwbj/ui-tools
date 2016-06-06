@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 
 #include "dragwidget.h"
+#include "module.h"
 
 static QObject* mParent;
 static bool isWidget = true;
@@ -15,12 +16,48 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     QDesktopWidget *pDwgt = QApplication::desktop();
 
+
+
+
+
+
+
     ui->setupUi(this);
+
+  //  mCanvas->setStyleSheet("background-color: rgb(238, 238, 236);");
+  /*  ui->centralWidget->hide();
+    ui->centralWidget->deleteLater();
+
+    QMdiArea *qma = new QMdiArea();
+  // qma->setFixedSize(QSize(40,20));
+//    qma->setGeometry(QRect(100,100,300,300));
+ //   ui->centralWidget->hide();
+ //   ui->centralWidget->deleteLater();
+    setCentralWidget(qma);
+  //  ui->centralWidget->setGeometry(QRect(100,100,300,300));
+  //  setContentsMargins(100,100,0,0);
+    qma->setFixedSize(QSize(480,600));
+
+    QMdiSubWindow *midwin = new QMdiSubWindow;
+  //  midwin->setAttribute(Qt::WA_QuitOnClose);
+    midwin->setWindowFlags(Qt::FramelessWindowHint);
+    qma->addSubWindow(midwin);*/
+
+
+
     QRect desk_rect = pDwgt->screenGeometry(pDwgt->screenNumber(QCursor::pos()));
     int desk_x = desk_rect.width();
     int desk_y = desk_rect.height();
-    ui->centralWidget->setFixedHeight(desk_y);
-    ui->centralWidget->setFixedWidth(desk_x-400);
+   // ui->centralWidget->setFixedHeight(desk_y);
+   // ui->centralWidget->setFixedWidth(desk_x-400);
+    mCanvas = new QFrame(ui->centralWidget);
+    mCanvas->setFrameShadow(QFrame::Raised);
+    mCanvas->setFrameShape(QFrame::StyledPanel);
+    mCanvas->installEventFilter(this);
+    int ch = ui->centralWidget->height()+200;
+    int cw = ui->centralWidget->width()+300;
+    mCanvas->move(cw/2,ch/2);
+    mCanvas->setFixedSize(320,240);
 
     QString css = "*{  border: 2px solid gray;}";
     // ui->centralWidget->setStyleSheet(css);
@@ -54,23 +91,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     rList->setFixedWidth(120);
-    //QFrame *frame = new QFrame();
-  //  DragWidget *dw = new DragWidget();
-  //  dw->setFixedSize(320,480);
-   // dw->autoFillBackground();
-    //mainLayout->addWidget(leftList,1,Qt::AlignLeft);
-   // mainLayout->addWidget(dw);
-    // mainLayout->addWidget(rightlist,1,Qt::AlignRight);
-   // QWidget *mainWidget = new QWidget(dw);
 
-   // dw->setStyleSheet(css);
 
 
 
     QJsonParseError json_error;
     mParent = ui->centralWidget;
 
-    QFile data("/home/yjdwbj/pximap_frame.json");
+    //QFile data("/home/yjdwbj/pximap_frame.json");
+    QFile data("/home/yjdwbj/menu_strip.json");
     if (data.open(QFile::ReadOnly|QIODevice::Text)) {
         QByteArray qba = data.readAll();
         QTextStream in(&data);
@@ -83,66 +112,111 @@ MainWindow::MainWindow(QWidget *parent) :
         QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
         if(json_error.error == QJsonParseError::NoError)
         {
+            QWidget *mp = 0;
+            QPoint mpos;
             if(qd.isObject())
             {
 
              //   HandleObject( qd.object());
                 HandleFrameObject(qd.object(),ui->centralWidget->objectName());
+
                 QListIterator<ObjComt> iterator(ComList);
                 while (iterator.hasNext()) {
 
 
                     ObjComt oc = iterator.next();
                     QString pName = oc.parentName;
-                //    qDebug() << "current Name " << oc.objName << "paraent Name " << pName;
-                    if(oc.clsName.compare("QFrame"))
-                    {
-                        QFrame *qf = new QFrame();
 
+                    if(!oc.clsName.compare("QFrame"))
+                    //if(!oc.clsName.compare("QWidget"))
+                    {
+                        NewFrame *qf = new NewFrame(mCanvas);
+                        mp = (QWidget*)qf;
                         qf->setObjectName(oc.objName);
-                        qf->setParent(ui->centralWidget);
-                      //  qf->setParent(findChild<QWidget*>(obj.parentName));
                         qf->setEnabled(true);
                         qf->setVisible(true);
-                        qf->setFrameShadow(QFrame::Raised);
-                        qf->setFrameShape(QFrame::StyledPanel);
+                        qf->setGeometry(oc.rect);
+                        QPoint cpos = qf->pos();
+                        QPoint ppos = mCanvas->pos();
+
+
+                        QPoint ncpos = qf->mapFromParent(ppos);
+
+                        QPoint nppos = qf->mapToParent(ppos);
+                        QPoint nncpos = qf->mapFromGlobal(ppos);
+
+
+                        int x =mCanvas->size().width()/2-20;
+                        int y = mCanvas->size().height()/2-20;
+                        qf->move(QPoint(x,y));
+                        qf->installEventFilter(this);
+
+
+                     //   qf->move(mapToParent(mCanvas->pos()-qf->pos()));
+
+                      //  qf->setFrameShadow(QFrame::Raised);
+                     // qf->setFrameShape(QFrame::StyledPanel);
+
                     }
-                      qDebug() << oc.pixmap;
+                   //   qDebug() << oc.pixmap;
 
                 }
-                QWidgetList widgets = qApp->topLevelWidgets();
-                for(QWidgetList::iterator it = widgets.begin();it != widgets.end();it++)
-                {
-                   qDebug() <<  (*it)->objectName();
-                }
+
+
                 QListIterator<ObjComt> it(ComList);
                 while (it.hasNext()) {
 
 
                     ObjComt oc = it.next();
-                    QString pName = oc.parentName;
-                    qDebug() << "current Name " << oc.objName << "paraent Name " << pName;
-                    if(oc.clsName.compare("QLabel"))
+              //      QString pName = oc.parentName;
+                //    qDebug() << "current Name " << oc.objName << "paraent Name " << pName;
+                    if(!oc.clsName.compare("QLabel"))
                     {
-                        QFrame *f = this->findChild<QFrame*>(oc.parentName);
-                        if(f)
-                        {
-                            qDebug() << f->objectName() << f->geometry();
-                        }
-                        QLabel *lab  = new QLabel();
-                        lab->setParent(ui->centralWidget->findChild<QFrame*>(oc.parentName));
+
+                        NewLabel *lab  = new NewLabel(mp);
+                       // lab->setParent(ui->centralWidget->findChild<QFrame*>(oc.parentName));
                         lab->setObjectName(oc.objName);
                         lab->setGeometry(oc.rect);
-                        qDebug() << oc.pixmap;
-                        lab->setPixmap(QPixmap("/usr/share/icons/mate/48x48/apps/calc.png"));
-                        lab->setVisible(true);
-                        lab->setText(oc.objName);
+                        lab->setProperty("myname",oc.objName);
+                       // lab->move(mapToGlobal(lab->pos()-mpos));
+                        QPoint cpos = lab->pos();
+                        QPoint ppos = mp->pos();
+                        lab->setProperty("px",oc.rect.x());
+                        lab->setProperty("py",oc.rect.y());
+                        lab->setProperty("pw",oc.rect.width());
+                        lab->setProperty("ph",oc.rect.height());
+
+
+
+
+                        QPoint ncpos = lab->mapFromParent(ppos);
+
+                        QPoint nppos = lab->mapToParent(ppos);
+                        lab->installEventFilter(this);
+                      //  lab->move(lab->mapToParent(mpos-lab->pos()));
+
+                    //    qDebug() << oc.pixmap;
+                        QPixmap img ;
+                        img.load(oc.pixmap);
+                        lab->setPixmap(img);
+                        oc.obj = lab;
+                        lab->setProperty("imgpath",oc.pixmap);
+                        connect(lab,SIGNAL(Clicked()),lab,SLOT(onClieck()));
+
+                      //  connect(lab,SIGNAL(mouse),SLOT(slot_mousepressed()));
+
+                    //    lab->update();
+
+
+
                     }
 
 
 
 
                 }
+            //    mp->update();
+           //     mp->adjustSize();
 
 
                 // leftList->addItem(result.value(obj.toString()).toString());
@@ -157,6 +231,66 @@ MainWindow::MainWindow(QWidget *parent) :
 
 }
 
+void MainWindow::slot_framepressed(QMouseEvent *ev)
+{
+    qDebug() << "frame mose event";
+}
+
+bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+{
+
+
+        if(obj == mCanvas)
+        {
+            if(event->type() == QEvent::MouseButtonPress)
+            {
+                QList<QFrame*> lst = mCanvas->findChildren<QFrame*>();
+                QListIterator<QFrame*> it(lst);
+                while(it.hasNext())
+                {
+                    QFrame *qf = it.next();
+                    qf->setStyleSheet("");
+                }
+
+            }
+        }
+
+        if ( event->type() != QEvent::MouseButtonPress )
+            return false;
+
+
+            const QMouseEvent* const me = static_cast<const QMouseEvent*>( event );
+            int x = me->pos().rx();
+            int y = me->pos().ry();
+            QPoint xy = me->pos();
+            QPoint pxy = mapFromParent(xy);
+            QPoint gxy = mapFromGlobal(xy);
+
+
+            QString msg =  QString("mouse x:%1 , y:%2 ----- px : %3 , py : %4 ---- gx : %5, gy : %6")
+                    .arg(QString::number(xy.rx()))
+                    .arg(QString::number(xy.ry()))
+                    .arg(QString::number(pxy.rx()))
+                    .arg(QString::number(pxy.ry()))
+                    .arg(QString::number(gxy.rx()))
+                    .arg(QString::number(gxy.rx()));
+            ui->statusBar->showMessage( msg );
+
+
+            qDebug() << " mapto global or parent";
+
+            pxy = this->mapToParent(xy);
+            gxy = this->mapToGlobal(xy);
+
+            qDebug() << " px : " << pxy.x() << ",px : " << pxy.y()
+                     << " , gx : " << gxy.x() << ", gy : " << gxy.y() ;
+
+
+
+
+   // event->accept();
+    return false;
+}
 
 void MainWindow::setWidget(QObject &oob)
 {

@@ -20,6 +20,11 @@
 #include <QDebug>
 #include <QLabel>
 #include <QDir>
+#include <QtWidgets/QMdiSubWindow>
+#include <QtWidgets/QMdiArea>
+#include <QtCore/QMargins>
+#include <QMouseEvent>
+
 
 namespace Ui {
 class MainWindow;
@@ -37,7 +42,7 @@ public:
     void HandleObject(QJsonObject qjo);
     void HandleArrayObject(QJsonArray array);
     void setWidget(QObject &oob);
-
+    bool eventFilter(QObject *obj, QEvent *event);
 private:
     Ui::MainWindow *ui;
     QDockWidget* rDock;
@@ -74,6 +79,9 @@ private:
     QList<ObjComt>  ComList;
     void HandleFrameObject(QJsonObject qjo, QString ParentName);
     QWidget *pWin;
+    QFrame *mCanvas;
+
+    void slot_framepressed(QMouseEvent *ev);
 
 };
 
