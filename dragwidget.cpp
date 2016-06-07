@@ -9,4 +9,5 @@ DragWidget::DragWidget(QWidget *parent)
 
     setAcceptDrops(true);
 
+
 }

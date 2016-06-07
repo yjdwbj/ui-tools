@@ -11,12 +11,7 @@
 #include <QtWidgets/QWidget>
 #include <QtWidgets/QDockWidget>
 #include <QtWidgets/QListWidgetItem>
-#include <QtCore/QJsonDocument>
-#include <QtCore/QJsonObject>
-#include <QtCore/QJsonArray>
-#include <QtCore/QFile>
-#include <QtCore/QFileDevice>
-#include <QTextStream>
+
 #include <QDebug>
 #include <QLabel>
 #include <QDir>

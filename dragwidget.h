@@ -16,3 +16,4 @@ public:
 };
 
 #endif // DRAGWIDGET_H
+

@@ -49,7 +49,7 @@ MainWindow::MainWindow(QWidget *parent) :
     lDock->setWidget(lDockWidget);
 
 
-    QVBoxLayout *leftLayout = new QVBoxLayout(lDock);
+    QVBoxLayout *leftLayout = new QVBoxLayout();
    // lDock->setLayout(leftLayout);
     lDockWidget->setLayout(leftLayout);
 
@@ -63,7 +63,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     thirdPageWidget->setText("ThirdPage");
 
-    QStackedLayout *stackedLayout = new QStackedLayout(leftLayout);
+    QStackedLayout *stackedLayout = new QStackedLayout();
     stackedLayout->addWidget(firstPageWidget);
     stackedLayout->addWidget(secondPageWidget);
     stackedLayout->addWidget(thirdPageWidget);
@@ -332,10 +332,10 @@ void MainWindow::HandleFrameObject(QJsonObject qjo,QString ParentName)
                            h = rect["height"].toString().toInt();
 
                            obj.rect.setRect(x,y,w,h);
-                       }else if(ooj.contains("pixmap"))
+                       }else if(ooj.contains("image"))
                        {
-                           int p = ooj["pixmap"].type();
-                           obj.pixmap = QDir::currentPath()+"/"+ ooj["pixmap"].toString();
+                           int p = ooj["image"].type();
+                           obj.pixmap = QDir::currentPath()+"/"+ ooj["image"].toString();
                        }
 
                     }
