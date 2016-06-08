@@ -57,22 +57,7 @@ private:
         Object = 0x5,
         Undefined = 0x80
     };
-    QString NAME = "-name";
-    QString WIDGET ="widget";
-    QString CLASS = "-class";
-    QString LAYOUT ="layout";
-    QString PROPERTY = "property";
-    QString ITEM="item";
-    QString RECT ="rect";
-    typedef struct  ObjComt{
-        QString objName;
-        QString clsName;
-        QString pixmap;
-        QRect rect;
-        QObject *obj;
-        QString parentName;
-    };
-    QList<ObjComt>  ComList;
+
     void HandleFrameObject(QJsonObject qjo, QString ParentName);
     QWidget *pWin;
     QFrame *mCanvas;

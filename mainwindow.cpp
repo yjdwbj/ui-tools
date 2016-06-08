@@ -2,7 +2,8 @@
 #include "ui_mainwindow.h"
 
 #include "dragwidget.h"
-#include "module.h"
+//#include "module.h"
+#include "handlejson.h"
 
 static QObject* mParent;
 static bool isWidget = true;
@@ -87,17 +88,15 @@ MainWindow::MainWindow(QWidget *parent) :
     rList = new QListWidget(rDock);
     addDockWidget(Qt::RightDockWidgetArea, rDock);
     rDock->setWidget(rList);
-
-
-
-
-
     rList->setFixedWidth(160);
+    QString filename = "/home/yjdwbj/menu_strip.json";
+    HandleJson *hj = new HandleJson(filename);
+    QWidget *ww = (QWidget*)(hj->CreateObjectFromJson(hj->mJsonMap,mCanvas));
+    qDebug() << "New object Rect " << ww->geometry()
+             << " Pos " <<  ww->mapToParent(ww->pos());
+   // ww->move(ww->parentWidget()->mapFromGlobal(QPoint(200,200)));
 
-
-
-
-    QJsonParseError json_error;
+  /*  QJsonParseError json_error;
     mParent = ui->centralWidget;
 
     //QFile data("/home/yjdwbj/pximap_frame.json");
@@ -202,7 +201,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     }
 
-
+    */
 
 }
 
@@ -275,6 +274,8 @@ void MainWindow::setWidget(QObject &oob)
     }*/
 }
 
+
+/*
 void MainWindow::HandleFrameObject(QJsonObject qjo,QString ParentName)
 {
 
@@ -347,7 +348,7 @@ void MainWindow::HandleFrameObject(QJsonObject qjo,QString ParentName)
     }
 
 
-   /* if(!obj.clsName.compare("QFrame"))
+   if(!obj.clsName.compare("QFrame"))
     {
         v
         obj.obj = qf;
@@ -368,11 +369,13 @@ void MainWindow::HandleFrameObject(QJsonObject qjo,QString ParentName)
         lab->setVisible(true);
 
         obj.obj = lab;
-    }*/
+    }
     ComList.append(obj);
 
 }
+*/
 
+/*
 void MainWindow::HandleObject(QJsonObject qjo)
 {
     if(qjo.contains(WIDGET))
@@ -461,7 +464,7 @@ void MainWindow::HandleObject(QJsonObject qjo)
                         {
                             out << qija.toString() << "\n";
                         }
-                }*/
+                }
             }
         }
         else if(!cval.compare("QHBoxLayout"))
@@ -488,6 +491,10 @@ void MainWindow::HandleObject(QJsonObject qjo)
 
 }
 
+*/
+
+
+/*
 void MainWindow::HandleArrayObject(QJsonArray array)
 {
     int asize = array.size();
@@ -503,110 +510,7 @@ void MainWindow::HandleArrayObject(QJsonArray array)
             }
     }
 }
-
-void MainWindow::getJsonValue(QJsonValue qjv)
-
-{
-
-    /*switch (qjv.type()) {
-    case QJsonValue::Array:
-    {//out << "\nkey " << key << " value  Array\n" ;
-        QJsonArray qja = qjv.toArray();
-        int qjas = qja.size();
-        for(int i = 0; i < qjas; i++)
-        {
-            QJsonValue sqjv = qja[i];
-
-            getJsonValue(sqjv);
-
-        }}
-        break;
-    case QJsonValue::Bool:
-        out << "key " << qjv.toBool() << " value  Bool\n" ;
-        break;
-    case QJsonValue::String:
-        out << "key " << qjv.toString() << " value  String\n" ;
-        break;
-    case QJsonValue::Object:
-    {
-        out << "key     value  Object\n" ;
-        // result =  qv.toVariant().toMap();
-        QJsonObject qjo = qjv.toObject();
-       if(qjo.contains(CLASS))
-       {
-           QString cval = qjo[CLASS].toString();
-           if(!cval.compare("QWidget"))
-           {
-               QWidget *o = new QWidget();
-               mParent = o;
-               if(qjo.contains(NAME))
-               {
-                   o->setObjectName(qjo[NAME].toString());
-               }
-               if(qjo.contains(PROPERTY))
-               {
-                   QJsonObject proj = qjo[PROPERTY].toObject();
-                   if (proj.contains(RECT))
-                   {
-                       o->setGeometry(QRect(proj["x"].toInt(),
-                                      proj["y"].toInt(),
-                                      proj["width"].toInt(),
-                                      proj["height"].toInt()));
-                   }
-
-
-               }
-               if(qjo.contains(LAYOUT))
-               {
-                   QJsonObject layoutobj = qjo[LAYOUT].toObject();
-
-               }
-           }else if(!cval.compare("QVBoxLayout"))
-           {
-               QVBoxLayout *vlay = new QVBoxLayout(mParent);
-               mParent->setLayout(vlay);
-               if(qjo.contains(NAME))
-               {
-                  vlay->setObjectName(qjo[NAME].toString());
-               }
-               if(qjo.contains(ITEM))
-               {
-                   QJsonArray qja = qjo[ITEM].toArray();
-                   for(int x = 0; x < qja.size();x++)
-                   {
-
-                   }
-               }
-           }
-       }
-
-
-        foreach (QVariant obj, result.keys()) {
-            QString key = obj.toString();
-            out << "\n key " << key;
-            //  QJsonValue qjv = qd.object().value(key);
-            getJsonValue(qjv.toObject().value(key)) ;
-        }
-
-    }
-        break;
-    case QJsonValue::Double:
-        out << "key " << qjv.toDouble() << " value  Double\n" ;
-        break;
-    case QJsonValue::Null:
-        out << "key null  value  Null\n" ;
-        break;
-    default:
-        break;
-
-
-    }
-    out << "\n";
-    */
-}
-
-
-
+*/
 
 
 MainWindow::~MainWindow()

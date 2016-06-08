@@ -95,7 +95,7 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 
     this->setStyleSheet("QLabel{border: 1px solid red;}");
     /* here testing dyanmicProperty */
-
+    /* 这里测试打一下对像的所有动态性 */
     foreach(QByteArray qba, this->dynamicPropertyNames())
     {
         qDebug() << QString::fromLocal8Bit(qba) << this->property(qba);
