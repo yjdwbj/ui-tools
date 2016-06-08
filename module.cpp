@@ -1,6 +1,8 @@
 #include "module.h"
 #include <QtCore/QMetaProperty>
 #include <QtWidgets/QStatusBar>
+#include <QtWidgets/QStackedLayout>
+#include <QApplication>
 
 NewLabel::NewLabel(QWidget *parent)
     :QLabel(parent)
@@ -107,6 +109,31 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
     {
         const char *dname = dm->property(i).name();
         qDebug() << QString::fromLocal8Bit(dname) << this->property(dname);
+    }
+
+    QStackedLayout *stack;
+    QWidgetList allobj = QApplication::allWidgets();
+    for(QList<QWidget *>::iterator it = allobj.begin();
+        it != allobj.end();++it)
+    {
+
+        QWidget *qt = (*it);
+        if(!qt->objectName().compare("ObjProperty"))
+        {
+            stack =qobject_cast<QStackedLayout*>(qt);
+            break;
+        }
+    }
+    QObjectList ob = stack->children();
+    for(QObjectList::const_iterator it = ob.begin();
+        it != ob.end(); ++it)
+    {
+        QWidget *qw = (QWidget* )(*it);
+        if(!qw->objectName().compare(this->objectName()))
+        {
+            stack->setCurrentWidget(qw);
+            break;
+        }
     }
 
 

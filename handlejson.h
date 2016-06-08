@@ -11,6 +11,9 @@
 #include <QMapData>
 #include <QMapIterator>
 #include <QDebug>
+#include <QApplication>
+#include <QStackedLayout>
+#include <QtWidgets/QGroupBox>
 #include "module.h"
 
 

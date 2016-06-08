@@ -104,6 +104,35 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                         QObject *cobj = CreateObjectFromJson(qv.toMap(),nobj);
                         chlist.append(cobj->objectName());
                     }
+
+                }
+                QVariant qva = pobj->property("PropertyStack");
+
+                QStackedLayout *stack = qva.value<QStackedLayout*>();
+               /* QWidgetList allobj = QApplication::allWidgets();
+                for(QWidgetList::const_iterator wit = allobj.begin();
+                    wit != allobj.end();++wit)
+                {
+                    QWidget *qw = (*wit);
+                    if(!qw->objectName().compare("ObjProperty"))
+                    {
+                        stack =qobject_cast<QStackedLayout*>(qw);
+                        break;
+                    }
+                }
+                if(!stack)
+                {
+                    qDebug() << " Not found StackedLayout ";
+                    return 0;
+                }*/
+                QListIterator<QString> lit(chlist);
+                while(lit.hasNext())
+             //   for(QList<QString>::iterator lit = chlist;  lit != chlist.end();++lit )
+                {
+                    QString s = lit.next();
+                    QGroupBox *gb = new QGroupBox();
+                    gb->setTitle(s);
+                    stack->addWidget(gb);
                 }
                 pobj->setProperty("chlist",chlist);
 

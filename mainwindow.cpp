@@ -33,10 +33,7 @@ MainWindow::MainWindow(QWidget *parent) :
     mCanvas->move(cw/2,ch/2);
     mCanvas->setFixedSize(320,240);
 
-  //  QString css = "*{  border: 2px solid gray;}";
-    // ui->centralWidget->setStyleSheet(css);
-   // QHBoxLayout *mainLayout = new QHBoxLayout();
-  //  ui->centralWidget->setLayout(mainLayout);
+
     ui->mainToolBar->addWidget(new QPushButton("test"));
 
 
@@ -56,22 +53,23 @@ MainWindow::MainWindow(QWidget *parent) :
 
     leftLayout->addWidget(lList);
 
-    QPushButton *firstPageWidget = new QPushButton(lDock);
+    /*QPushButton *firstPageWidget = new QPushButton(lDock);
     firstPageWidget->setText("First Page");
     QPushButton *secondPageWidget = new QPushButton(lDock);
     secondPageWidget->setText("Second Page");
     QPushButton *thirdPageWidget = new QPushButton(lDock);
 
     thirdPageWidget->setText("ThirdPage");
-
-    QStackedLayout *stackedLayout = new QStackedLayout();
-    stackedLayout->addWidget(firstPageWidget);
+    */
+    QStackedLayout *propertyStack = new QStackedLayout();
+    propertyStack->setObjectName("ObjProperty");
+    /*stackedLayout->addWidget(firstPageWidget);
     stackedLayout->addWidget(secondPageWidget);
     stackedLayout->addWidget(thirdPageWidget);
-
+     */
     //QVBoxLayout *mainLayout = new QVBoxLayout;
     //mainLayout->addLayout(stackedLayout);
-    leftLayout->addLayout(stackedLayout);
+    leftLayout->addLayout(propertyStack);
 
 
     lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/krfb.png")),tr("test")));
@@ -91,6 +89,7 @@ MainWindow::MainWindow(QWidget *parent) :
     rList->setFixedWidth(160);
     QString filename = "/home/yjdwbj/menu_strip.json";
     HandleJson *hj = new HandleJson(filename);
+    mCanvas->setProperty("PropertyStack",QVariant::fromValue(propertyStack));
     QWidget *ww = (QWidget*)(hj->CreateObjectFromJson(hj->mJsonMap,mCanvas));
     qDebug() << "New object Rect " << ww->geometry()
              << " Pos " <<  ww->mapToParent(ww->pos());
