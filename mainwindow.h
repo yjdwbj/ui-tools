@@ -19,7 +19,12 @@
 #include <QtWidgets/QMdiArea>
 #include <QtCore/QMargins>
 #include <QMouseEvent>
-#include <QtWidgets/QStackedLayout>
+#include <QtWidgets/QStackedWidget>
+#include <QtWidgets/QGroupBox>
+
+
+
+
 
 
 namespace Ui {
@@ -40,6 +45,11 @@ public:
     void HandleArrayObject(QJsonArray array);
     void setWidget(QObject &oob);
     bool eventFilter(QObject *obj, QEvent *event);
+
+
+    QStackedWidget *propertyStack;
+    QGroupBox *propertyWidget;
+
 private:
     Ui::MainWindow *ui;
     QDockWidget* rDock;

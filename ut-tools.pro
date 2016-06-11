@@ -12,6 +12,8 @@ TARGET = ut-tools
 TEMPLATE = app
 
 
+
+
 SOURCES += main.cpp\
         mainwindow.cpp \
     dragwidget.cpp \
@@ -28,3 +30,4 @@ CONFIG += c++11
 
 RESOURCES += \
     ut-tools.qrc
+LIBS +=  -L /usr/local/lib -lglapi

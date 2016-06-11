@@ -27,6 +27,9 @@ public:
      void HandleJsonMap(QVariantMap qvm);
      QObject* CreateObjectFromJson(QVariantMap qvm, QObject *obj);
      QRect readRect(QVariantMap qvm);
+     QWidget *findQWidget(QObjectList objlist , QString widName);
+     QWidget *findQWidget(QWidgetList objlist , QString widName);
+
      QVariantMap mJsonMap;
 
 private:

@@ -3,6 +3,7 @@
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QStackedLayout>
 #include <QApplication>
+#include "mainwindow.h"
 
 NewLabel::NewLabel(QWidget *parent)
     :QLabel(parent)
@@ -16,8 +17,13 @@ NewLabel::NewLabel(QWidget *parent)
 void NewLabel::mousePressEvent(QMouseEvent *ev)
 {
 
+    /* 单击选中它的父对像 */
+
     NewFrame *p =(NewFrame*) (this->parentWidget());
     p->setStyleSheet("QFrame{border: 0.5px solid red;}");
+
+
+
 
     mOffset = ev->pos();
 
@@ -100,18 +106,19 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
     /* 这里测试打一下对像的所有动态性 */
     foreach(QByteArray qba, this->dynamicPropertyNames())
     {
-        qDebug() << QString::fromLocal8Bit(qba) << this->property(qba);
+       // qDebug() << QString::fromLocal8Bit(qba) << this->property(qba);
     }
 
-    qDebug() << "test index of property \n";
+  /*  qDebug() << "test index of property \n";
     static const QMetaObject *dm = this->metaObject();
     for(int i = 0 ; i < dm->propertyCount();i++)
     {
         const char *dname = dm->property(i).name();
         qDebug() << QString::fromLocal8Bit(dname) << this->property(dname);
     }
-
-    QStackedLayout *stack;
+    */
+    // QStackedLayout *stack;
+   /*
     QWidgetList allobj = QApplication::allWidgets();
     for(QList<QWidget *>::iterator it = allobj.begin();
         it != allobj.end();++it)
@@ -124,17 +131,44 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
             break;
         }
     }
-    QObjectList ob = stack->children();
+    */
+
+   // QStackedLayout *stack;
+
+
+    MainWindow *m ;
+    QWidgetList tlist = qApp->topLevelWidgets();
+    for(QWidgetList::iterator wit = tlist.begin();wit != tlist.end();++wit)
+    {
+        if((*wit)->objectName() == "MainWindow")
+        {
+            m = (MainWindow*)(*wit);
+            break;
+        }
+    }
+
+    m->propertyWidget->layout()->deleteLater();
+    QVBoxLayout *v = new QVBoxLayout();
+    m->propertyWidget->setLayout(v);
+    m->propertyWidget->setTitle(this->objectName());
+
+
+
+
+   /* QObjectList ob = m->propertyStack->children();
     for(QObjectList::const_iterator it = ob.begin();
         it != ob.end(); ++it)
     {
         QWidget *qw = (QWidget* )(*it);
+        qDebug() << " current name " << qw->objectName() << " clicked name " << this->objectName();
+
         if(!qw->objectName().compare(this->objectName()))
         {
-            stack->setCurrentWidget(qw);
+            qDebug() << "clicked Object Name " << this->objectName();
+            m->propertyStack->setCurrentWidget(qw);
             break;
         }
-    }
+    }*/
 
 
 }
@@ -158,13 +192,7 @@ void NewFrame::mousePressEvent(QMouseEvent *event)
     if(sb)
     {
 
-
-
-
-
         sb->showMessage(QString("mouse x:%1 , y:%2 ").arg(QString::number(event->pos().rx())).arg(QString::number(event->pos().ry()))  );
-
-
 
     }
     event->accept();

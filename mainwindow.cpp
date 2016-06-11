@@ -2,10 +2,12 @@
 #include "ui_mainwindow.h"
 
 #include "dragwidget.h"
-//#include "module.h"
-#include "handlejson.h"
 
-static QObject* mParent;
+#include "handlejson.h"
+#include <QStandardPaths>
+
+
+
 static bool isWidget = true;
 
 
@@ -13,7 +15,10 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     out(stdout, QIODevice::WriteOnly),
 
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    propertyStack(new QStackedWidget()),
+    propertyWidget(new QGroupBox())
+
 {
     QDesktopWidget *pDwgt = QApplication::desktop();
     ui->setupUi(this);
@@ -40,36 +45,36 @@ MainWindow::MainWindow(QWidget *parent) :
     lDock = new QDockWidget(tr("left"));
     lDock->setAllowedAreas( Qt::LeftDockWidgetArea);
     lDock->setFixedWidth(180);
+    lDock->setObjectName("LeftDock");
     lList = new QListWidget();
    // lDock->setWidget(lList);
 
     QWidget *lDockWidget = new QWidget(lDock);
+    lDockWidget->setObjectName("lDockWidget");
+
     lDock->setWidget(lDockWidget);
 
 
     QVBoxLayout *leftLayout = new QVBoxLayout();
    // lDock->setLayout(leftLayout);
+    leftLayout->setObjectName("leftLayout");
     lDockWidget->setLayout(leftLayout);
 
     leftLayout->addWidget(lList);
 
-    /*QPushButton *firstPageWidget = new QPushButton(lDock);
-    firstPageWidget->setText("First Page");
-    QPushButton *secondPageWidget = new QPushButton(lDock);
-    secondPageWidget->setText("Second Page");
-    QPushButton *thirdPageWidget = new QPushButton(lDock);
 
-    thirdPageWidget->setText("ThirdPage");
-    */
-    QStackedLayout *propertyStack = new QStackedLayout();
+
+    //QStackedLayout *propertyStack = new QStackedLayout();
+  //  this->rightStackedLayout()->setObjectName("ObjProperty");
     propertyStack->setObjectName("ObjProperty");
-    /*stackedLayout->addWidget(firstPageWidget);
-    stackedLayout->addWidget(secondPageWidget);
-    stackedLayout->addWidget(thirdPageWidget);
-     */
-    //QVBoxLayout *mainLayout = new QVBoxLayout;
-    //mainLayout->addLayout(stackedLayout);
-    leftLayout->addLayout(propertyStack);
+    //leftLayout->addLayout(propertyStack);
+    leftLayout->addWidget(propertyStack);
+    leftLayout->addWidget(propertyWidget);
+
+   // propertyStack->addWidget(new QGroupBox(tr("test333")));
+   // propertyStack->addWidget(new QPushButton(tr("test")));
+
+    //leftLayout->addLayout(this->rightStackedLayout());
 
 
     lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/krfb.png")),tr("test")));
@@ -81,15 +86,24 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     rDock = new QDockWidget(tr("right"));
+    rDock->setObjectName("RightDock");
     rDock->setAllowedAreas(Qt::RightDockWidgetArea);
 
     rList = new QListWidget(rDock);
+    rList->setObjectName("rDockListWidget");
     addDockWidget(Qt::RightDockWidgetArea, rDock);
     rDock->setWidget(rList);
     rList->setFixedWidth(160);
-    QString filename = "/home/yjdwbj/menu_strip.json";
+    QString filename =  QDir::currentPath() + "/menu_strip.json";
+    qDebug() << " json file name is : " << filename;
     HandleJson *hj = new HandleJson(filename);
-    mCanvas->setProperty("PropertyStack",QVariant::fromValue(propertyStack));
+  //  mCanvas->setProperty("PropertyStack",QVariant::fromValue(propertyStack));
+    QWidgetList qwlist = qApp->allWidgets();
+
+    for(QWidgetList::const_iterator it = qwlist.begin(); it != qwlist.end();++it )
+    {
+        qDebug() << " All Qwidget list object : " << (*it)->objectName();
+    }
     QWidget *ww = (QWidget*)(hj->CreateObjectFromJson(hj->mJsonMap,mCanvas));
     qDebug() << "New object Rect " << ww->geometry()
              << " Pos " <<  ww->mapToParent(ww->pos());
@@ -203,6 +217,9 @@ MainWindow::MainWindow(QWidget *parent) :
     */
 
 }
+
+
+
 
 
 
