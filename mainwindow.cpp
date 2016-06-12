@@ -16,13 +16,19 @@ MainWindow::MainWindow(QWidget *parent) :
     out(stdout, QIODevice::WriteOnly),
 
     ui(new Ui::MainWindow),
-    propertyStack(new QStackedWidget()),
     propertyWidget(new QGroupBox()),
     imgPropertyWidget(new QGroupBox())
 
 {
     QDesktopWidget *pDwgt = QApplication::desktop();
     ui->setupUi(this);
+    imgPropertyWidget->setTitle(tr("元素属性"));
+    imgPropertyWidget->setLayout(new QVBoxLayout());
+    propertyWidget->setTitle(tr("控件属性"));
+    propertyWidget->setLayout(new QVBoxLayout());
+
+    propertyWidget->setFlat(true);
+
 
 
     QRect desk_rect = pDwgt->screenGeometry(pDwgt->screenNumber(QCursor::pos()));
@@ -67,16 +73,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //QStackedLayout *propertyStack = new QStackedLayout();
   //  this->rightStackedLayout()->setObjectName("ObjProperty");
-    propertyStack->setObjectName("ObjProperty");
-    //leftLayout->addLayout(propertyStack);
-   // leftLayout->addWidget(propertyStack);
+    //propertyStack->setObjectName("ObjProperty");
+
     leftLayout->addWidget(propertyWidget);
     leftLayout->addWidget(imgPropertyWidget); /* 单个图片的属性组 */
-
-   // propertyStack->addWidget(new QGroupBox(tr("test333")));
-   // propertyStack->addWidget(new QPushButton(tr("test")));
-
-    //leftLayout->addLayout(this->rightStackedLayout());
 
 
     lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/krfb.png")),tr("test")));
@@ -118,112 +118,6 @@ MainWindow::MainWindow(QWidget *parent) :
              << " Pos " <<  ww->mapToParent(ww->pos());
    // ww->move(ww->parentWidget()->mapFromGlobal(QPoint(200,200)));
 
-  /*  QJsonParseError json_error;
-    mParent = ui->centralWidget;
-
-    //QFile data("/home/yjdwbj/pximap_frame.json");
-    QFile data("/home/yjdwbj/menu_strip.json");
-    if (data.open(QFile::ReadOnly|QIODevice::Text)) {
-        QByteArray qba = data.readAll();
-        QTextStream in(&data);
-        QString str;
-        int ans = 0;
-        in >> str >> ans;
-
-        // QJsonDocument qd = QJsonDocument::fromRawData(str,&ans);
-
-        QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
-        if(json_error.error == QJsonParseError::NoError)
-        {
-            QWidget *mp = 0;
-            QPoint mpos;
-            if(qd.isObject())
-            {
-
-             //   HandleObject( qd.object());
-                HandleFrameObject(qd.object(),ui->centralWidget->objectName());
-
-                QListIterator<ObjComt> iterator(ComList);
-                while (iterator.hasNext()) {
-
-
-                    ObjComt oc = iterator.next();
-                    QString pName = oc.parentName;
-
-                    if(!oc.clsName.compare("QFrame"))
-                    //if(!oc.clsName.compare("QWidget"))
-                    {
-                        NewFrame *qf = new NewFrame(mCanvas);
-                        mp = (QWidget*)qf;
-                        qf->setObjectName(oc.objName);
-                        qf->setEnabled(true);
-                        qf->setVisible(true);
-                        qf->setGeometry(oc.rect);
-                        QPoint cpos = qf->pos();
-                        QPoint ppos = mCanvas->pos();
-
-
-                        QPoint ncpos = qf->mapFromParent(ppos);
-
-                        QPoint nppos = qf->mapToParent(ppos);
-                        QPoint nncpos = qf->mapFromGlobal(ppos);
-
-
-                        int x =mCanvas->size().width()/2-20;
-                        int y = mCanvas->size().height()/2-20;
-                        qf->move(QPoint(x,y));
-                        qf->installEventFilter(this);
-                    }
-
-
-                }
-
-
-                QListIterator<ObjComt> it(ComList);
-                while (it.hasNext()) {
-                    ObjComt oc = it.next();
-
-                    if(!oc.clsName.compare("QLabel"))
-                    {
-
-                        NewLabel *lab  = new NewLabel(mp);
-                       // lab->setParent(ui->centralWidget->findChild<QFrame*>(oc.parentName));
-                        lab->setObjectName(oc.objName);
-                        lab->setGeometry(oc.rect);
-                        lab->setProperty("myname",oc.objName);
-                       // lab->move(mapToGlobal(lab->pos()-mpos));
-
-                        lab->setProperty("px",oc.rect.x());
-                        lab->setProperty("py",oc.rect.y());
-                        lab->setProperty("pw",oc.rect.width());
-                        lab->setProperty("ph",oc.rect.height());
-
-                        lab->installEventFilter(this);
-
-                        QPixmap img ;
-                        img.load(oc.pixmap);
-                        lab->setPixmap(img);
-                        oc.obj = lab;
-                        lab->setProperty("imgpath",oc.pixmap);
-                        connect(lab,SIGNAL(Clicked()),lab,SLOT(onClieck()));
-
-
-
-                    }
-
-
-
-
-                }
-
-
-            }
-
-        }
-
-    }
-
-    */
 
 }
 

@@ -11,6 +11,7 @@ ImageFileDialog::ImageFileDialog(QWidget *parent)
 
     QHBoxLayout *mh = new QHBoxLayout();
     this->setLayout(mh);
+    this->setWindowTitle(tr("图片编辑"));
 
 
 
@@ -54,7 +55,7 @@ ImageFileDialog::ImageFileDialog(QWidget *parent)
 
 
 
-    //flistview = new QListWidget();
+
     flistview->setModel(fileModel);
 
     connect(treefile,SIGNAL(clicked(QModelIndex)),SLOT(onTreeViewClicked(QModelIndex)));

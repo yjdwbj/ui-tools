@@ -11,6 +11,16 @@
 #include <QDialog>
 #include <QFileSystemModel>
 #include <QTreeView>
+#include <QSignalMapper>
+
+static QString X = "X:";
+static QString Y = "Y:";
+static QString W = "宽度:";
+static QString H = "高度:";
+static QString COMOBJ = "comObj";
+static QString IMGOBJ = "imgObj";
+static QString COMGRPLYT = "ComGpBLyt";
+static QString IMGGRPLYT = "ImgGpBLyt";
 
 NewLabel::NewLabel(QWidget *parent)
     :QLabel(parent)
@@ -30,7 +40,81 @@ NewLabel::NewLabel(QWidget *parent)
     // connect(this,SIGNAL(Clicked()),SLOT(onClieck()));
 }
 
+QGroupBox* NewLabel::CreateXYWHGBox(QWidget *p)
+{
+    QGridLayout *xywh = new QGridLayout();
+    xywh->setObjectName("xywhGrid");
 
+    QMap<QString,int> xymap;
+    xymap[X] = p->geometry().x();
+    xymap[Y] = p->geometry().y();
+    xymap[W] = p->geometry().width();
+    xymap[H] = p->geometry().height();
+
+    int index = 0;
+
+
+    for(QMap<QString,int>::iterator it = xymap.begin();it != xymap.end();++it)
+    {
+        xywh->addWidget(new QLabel(it.key()),index,0);
+        QSpinBox *xedit = new QSpinBox();
+
+        xedit->setObjectName(it.key());
+        xedit->setMaximum(1000);
+        xedit->setValue(it.value());
+        xywh->addWidget(xedit,index,1);
+        connect(xedit,SIGNAL(valueChanged(int)),SLOT(onXYWHChangedValue(int)));
+        index++;
+    }
+
+    QGroupBox *xygb = new QGroupBox(tr("坐标位置"));
+    xygb->setObjectName("xygb");
+    xygb->setLayout(xywh);
+    return xygb;
+}
+
+void NewLabel::onXYWHChangedValue(int v)
+{
+    /* 绑定坐标控件的更新 */
+    QWidget *sender =(QWidget *)(QObject::sender());
+
+    QWidget *p = this->parentWidget();
+
+  //  p->move(p->parentWidget()->mapFromGlobal(QCursor::pos()-mOffset));
+    if(!sender->objectName().compare(X))
+    {
+        //o.setX(v);
+        QPoint pos = p->pos();
+        pos.setX(v);
+        p->move(pos);
+
+    }else if(!sender->objectName().compare(Y))
+    {
+       // o.setY(v);
+     //   QPoint p = sender->pos();
+      //  p.setY(v);
+       // sender->move(p);
+        QPoint pos = p->pos();
+        pos.setY(v);
+        p->move(pos );
+
+    }else if(!sender->objectName().compare(W))
+    {
+        //o.setWidth(v);
+        sender->setFixedWidth(v);
+    }else if(!sender->objectName().compare(H))
+    {
+       // o.setHeight(v);
+        sender->setFixedHeight(v);
+    }
+    //sender->setGeometry(o);
+
+}
+
+void NewLabel::UpdateXYWHPos()
+{
+
+}
 
 void NewLabel::mousePressEvent(QMouseEvent *ev)
 {
@@ -40,10 +124,18 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
     NewFrame *p =(NewFrame*) (this->parentWidget());
     p->setStyleSheet("QFrame{border: 0.5px solid red;}");
 
-    mWindow->propertyWidget->layout()->deleteLater();
-    QVBoxLayout *v = new QVBoxLayout();
+
+    foreach (QWidget *w, mWindow->propertyWidget->layout()->findChildren<QWidget*>()) {
+        delete w;  /* 释放原来的控件 */
+    }
+    delete mWindow->propertyWidget->layout();
+    QVBoxLayout *v = new QVBoxLayout(mWindow->propertyWidget);
+    v->setObjectName(COMGRPLYT);
+    v->addSpacing(1);
     mWindow->propertyWidget->setLayout(v);
-    mWindow->propertyWidget->setTitle(p->objectName());
+    //  mWindow->propertyWidget->setTitle(p->objectName());
+
+    v->addWidget(CreateXYWHGBox(p));
 
 
     QVariantList qvl = p->property("dynProperty").toList();
@@ -110,13 +202,9 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
 
 
         }
-        qDebug() << "next qv is " << qv;
+        v->addStretch(1);
+       // qDebug() << "next qv is " << qv;
     }
-
-
-
-
-
 
 
     mOffset = ev->pos();
@@ -157,12 +245,44 @@ void NewLabel::mouseMoveEvent(QMouseEvent *event)
         //emit this->parentWidget()->mouseMoveEvent(event);
         // p->move(p->parentWidget()->mapFromGlobal(event->pos()));
         QSize psize = p->parentWidget()->size();
-        qDebug() << " parent size w: " << psize.width() << " h : " << psize.height();
-        qDebug() << " move pos x: " << event->pos().x() << " y: " << event->pos().y();
-        qDebug() << " move Global  pos x: " << event->globalPos().x() << " y: " << event->globalPos().y();
+       // qDebug() << " parent size w: " << psize.width() << " h : " << psize.height();
+       // qDebug() << " move pos x: " << event->pos().x() << " y: " << event->pos().y();
+       // qDebug() << " move Global  pos x: " << event->globalPos().x() << " y: " << event->globalPos().y();
 
         p->move(p->parentWidget()->mapFromGlobal(QCursor::pos()-mOffset));
         p->update();
+
+        /* 把新的位置更新到右边属性框 */
+        //QWidgetList wl = mWindow->propertyWidget->findChildren<QWidget*>();
+       // QWidget *ptest ;
+        QPoint nr = p->pos();
+        foreach (QWidget *w, mWindow->propertyWidget->findChildren<QWidget*>()) {
+           qDebug()  << " propertyWidget list object : " << w->objectName();
+           if(!w->objectName().compare(X))
+           {
+               QSpinBox *s = (QSpinBox*)w;
+
+               s->setValue(nr.x());
+           }
+           else if(!w->objectName().compare(Y))
+           {
+               QSpinBox *s = (QSpinBox*)w;
+
+               s->setValue(nr.y());
+           }
+
+       }
+
+        /*
+        foreach (QWidget *w, mWindow->propertyWidget->findChildren<QWidget*>()) {
+           //qDebug()  << " propertyWidget list object : " << w->objectName();
+           if(w->parentWidget() == ptest)
+           {
+              qDebug() << " Layout Children is :  " << w->objectName();
+            }
+       }*/
+
+
 
 
 
@@ -184,7 +304,7 @@ void NewFrame::mouseMoveEvent(QMouseEvent *event)
 
 void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 {
-    qDebug() << "label double clicked";
+
     NewFrame *p = (NewFrame *)this->parentWidget();
     QList<NewLabel*> list =  p->findChildren<NewLabel*>();
     QListIterator<NewLabel*> it(list);
@@ -207,14 +327,16 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 
 
     /* 这里要与主界面的一些控件做通信 */
-    mWindow->imgPropertyWidget->layout()->deleteLater();
+    foreach (QWidget *w, mWindow->imgPropertyWidget->layout()->findChildren<QWidget*>()) {
+        delete w;  /* 释放原来的控件 */
+    }
+    delete mWindow->imgPropertyWidget->layout();
     QVBoxLayout *v = new QVBoxLayout();
+    v->setObjectName(IMGGRPLYT);
+    v->addSpacing(1);
+
     mWindow->imgPropertyWidget->setLayout(v);
-    mWindow->imgPropertyWidget->setTitle(this->objectName());
-
-
-
-
+    //mWindow->imgPropertyWidget->setTitle(this->objectName());
 
     QVariantList qvl = this->property("dynProperty").toList();
     foreach(QVariant qv, qvl)
@@ -288,21 +410,6 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 
         }
     }
-    /* QObjectList ob = m->propertyStack->children();
-    for(QObjectList::const_iterator it = ob.begin();
-        it != ob.end(); ++it)
-    {
-        QWidget *qw = (QWidget* )(*it);
-        qDebug() << " current name " << qw->objectName() << " clicked name " << this->objectName();
-
-        if(!qw->objectName().compare(this->objectName()))
-        {
-            qDebug() << "clicked Object Name " << this->objectName();
-            m->propertyStack->setCurrentWidget(qw);
-            break;
-        }
-    }*/
-
 
 }
 

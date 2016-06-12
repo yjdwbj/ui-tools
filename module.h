@@ -33,9 +33,15 @@ protected:
 private slots:
     void onClieck();
     void onPictureDialog(bool );
+    void onXYWHChangedValue(int);
 
 
 private:
+
+    QGroupBox *CreateXYWHGBox(QWidget *p);
+    void UpdateXYWHPos();
+
+
     QPoint mOffset;
     MainWindow *mWindow;
 

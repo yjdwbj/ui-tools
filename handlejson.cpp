@@ -79,14 +79,14 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
             else if(!key.compare(NAME))
             {
                 // mParentObj->setObjectName(it.value().toString());
-                qDebug() << "Create new Label " << it.value().toString() ;
+               // qDebug() << "Create new Label " << it.value().toString() ;
                 nobj->setObjectName(it.value().toString());
                 //if(nobj)
                 //   nobj->setObjectName(it.value().toString());
 
             }
 
-            qDebug() << " Value is String : " << it.value().toString();
+           // qDebug() << " Value is String : " << it.value().toString();
             break;
         case QVariant::List:
         {
@@ -126,10 +126,10 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
     }
     nobj->setProperty("dynProperty",property);
     /*  处理每一个json对像的property部分 */
-    qDebug() << "Dynamic Property Count " << nobj->dynamicPropertyNames().count();
+   // qDebug() << "Dynamic Property Count " << nobj->dynamicPropertyNames().count();
     foreach(QByteArray qba,nobj->dynamicPropertyNames())
     {
-         qDebug() << " Property Key: "  << QString::fromLocal8Bit(qba);
+        // qDebug() << " Property Key: "  << QString::fromLocal8Bit(qba);
         // qDebug() << " Property Val type :" << nobj->property(qba).type();
         QVariantList qvl = nobj->property(qba).toList();
         foreach(QVariant qv, qvl)
@@ -176,7 +176,7 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                     }
                     else {
 
-                        qDebug() << "other property Key : " << key  << " Val : " << it.value();
+                      //  qDebug() << "other property Key : " << key  << " Val : " << it.value();
                     }
 
                 }
@@ -188,42 +188,7 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
     return nobj;
 }
 
-QWidget *HandleJson::findQWidget(QObjectList objlist , QString widName)
 
-{
-
-    for(QObjectList::const_iterator oit=objlist.begin();oit != objlist.end() ; ++oit)
-    {
-
-          qDebug() << " child of Name " << widName << (*oit)->objectName();
-
-        if(!(*oit)->objectName().compare(widName))
-
-        {
-            qDebug() << " Find object Name  " << (*oit)->objectName() << (*oit)->isWidgetType();
-
-            return   qobject_cast<QWidget*>(*oit);
-
-        }
-    }
-    return (QWidget*)0;
-}
-
-QWidget *HandleJson::findQWidget(QWidgetList objlist , QString widName)
-{
-    for(QWidgetList::const_iterator wit = objlist.begin();
-        wit != objlist.end();++wit)
-    {
-
-        if(!(*wit)->objectName().compare(widName))
-        {
-             qDebug() << " Find object Name  " << (*wit)->objectName();
-            return (*wit);
-
-        }
-    }
-    return (QWidget*)0;
-}
 
 
 
@@ -240,18 +205,6 @@ QRect HandleJson::readRect(QVariantMap qvm)
     x = it.value().toString().toInt();
     ++it;
     y = it.value().toString().toInt();
-    /* for(QVariantMap::const_iterator it = qvm.begin();it != qvm.end();++it)
-    {
-        QString key(it.key());
-        if(!key.compare("x"))
-        {
-            x = it.value().toString().number();
-        }else {
-    }*/
-
-
-
-
 
     return QRect(x,y,w,h);
 }

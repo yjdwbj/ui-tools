@@ -48,7 +48,6 @@ public:
     bool eventFilter(QObject *obj, QEvent *event);
 
 
-    QStackedWidget *propertyStack;
 
     QGroupBox *propertyWidget;
     QGroupBox *imgPropertyWidget;
