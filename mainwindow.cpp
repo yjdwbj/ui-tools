@@ -17,7 +17,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui(new Ui::MainWindow),
     propertyStack(new QStackedWidget()),
-    propertyWidget(new QGroupBox())
+    propertyWidget(new QGroupBox()),
+    imgPropertyWidget(new QGroupBox())
 
 {
     QDesktopWidget *pDwgt = QApplication::desktop();
@@ -68,8 +69,9 @@ MainWindow::MainWindow(QWidget *parent) :
   //  this->rightStackedLayout()->setObjectName("ObjProperty");
     propertyStack->setObjectName("ObjProperty");
     //leftLayout->addLayout(propertyStack);
-    leftLayout->addWidget(propertyStack);
+   // leftLayout->addWidget(propertyStack);
     leftLayout->addWidget(propertyWidget);
+    leftLayout->addWidget(imgPropertyWidget); /* 单个图片的属性组 */
 
    // propertyStack->addWidget(new QGroupBox(tr("test333")));
    // propertyStack->addWidget(new QPushButton(tr("test")));
@@ -95,6 +97,13 @@ MainWindow::MainWindow(QWidget *parent) :
     rDock->setWidget(rList);
     rList->setFixedWidth(160);
     QString filename =  QDir::currentPath() + "/menu_strip.json";
+    qDebug() << " json file name " << filename;
+    QFileInfo qfi(filename);
+    if(!qfi.exists())
+    {
+        QMessageBox::warning(this,tr("错误"),tr("找不到控件文件"));
+        return;
+    }
     qDebug() << " json file name is : " << filename;
     HandleJson *hj = new HandleJson(filename);
   //  mCanvas->setProperty("PropertyStack",QVariant::fromValue(propertyStack));

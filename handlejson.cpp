@@ -107,31 +107,7 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                     }
 
                 }
-                /*
-                MainWindow *m ;
-                QWidgetList tlist = qApp->topLevelWidgets();
-                for(QWidgetList::iterator wit = tlist.begin();wit != tlist.end();++wit)
-                {
-                    if((*wit)->objectName() == "MainWindow")
-                    {
-                        m = (MainWindow*)(*wit);
-                        break;
-                    }
-                }
 
-                QListIterator<QString> lit(chlist);
-                while(lit.hasNext())
-                    //   for(QList<QString>::iterator lit = chlist;  lit != chlist.end();++lit )
-                {
-                    QString s = lit.next();
-                    qDebug() << " List  items " << s;
-                    QGroupBox *gb = new QGroupBox(s);
-                    gb->setObjectName(s);
-
-
-                    m->propertyStack->addWidget(gb);
-                }
-                */
                 pobj->setProperty("chlist",chlist);
 
             }
@@ -150,9 +126,10 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
     }
     nobj->setProperty("dynProperty",property);
     /*  处理每一个json对像的property部分 */
+    qDebug() << "Dynamic Property Count " << nobj->dynamicPropertyNames().count();
     foreach(QByteArray qba,nobj->dynamicPropertyNames())
     {
-        //  qDebug() << " Property Key: "  << QString::fromLocal8Bit(qba);
+         qDebug() << " Property Key: "  << QString::fromLocal8Bit(qba);
         // qDebug() << " Property Val type :" << nobj->property(qba).type();
         QVariantList qvl = nobj->property(qba).toList();
         foreach(QVariant qv, qvl)
@@ -161,13 +138,14 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
             if(qv.type() == QVariant::Map)
             {
                 QVariantMap qvm = qv.toMap();
+
                 for(QVariantMap::const_iterator it = qvm.begin();it != qvm.end();++it)
                 {
                     QString key = it.key();
                     // qDebug() << "Property Val Map Key: " << key
                     //          << " Map Value:" << it.value();
 
-                    if(!key.compare(RECT))
+                    if(!key.compare(RECT)) /* 这里直接处理json "rect" 对像字段 */
                     {
                         QString clsName = nobj->property("clsName").toString();
                         QVariantMap rect = it.value().toMap();
@@ -195,6 +173,10 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                     else if(!key.compare("image"))
                     {
                         qobject_cast<NewLabel *>(nobj)->setPixmap(it.value().toString());
+                    }
+                    else {
+
+                        qDebug() << "other property Key : " << key  << " Val : " << it.value();
                     }
 
                 }
@@ -322,22 +304,7 @@ void HandleJson::HandleFrameObject(QJsonObject qjo,QString ParentName)
     for(QJsonObject::iterator it = qjo.begin();it != qjo.end();++it)
     {
 
-        switch (it.value().type()) {
-        case QJsonValue::Bool:
-            break;
-        case QJsonValue::String:
-            break;
-        case QJsonValue::Array:
-            break;
-        case QJsonValue::Object:
-            break;
-        case QJsonValue::Double:
-            break;
-        case QJsonValue::Null:
-        case QJsonValue::Undefined:
-        default:
-            break;
-        }
+
 
         QString key = it.key();
         qDebug() << it.value().type();

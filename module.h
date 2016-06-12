@@ -6,6 +6,8 @@
 #include <QDebug>
 #include <QtWidgets/QWidget>
 #include <QMouseEvent>
+#include "mainwindow.h"
+#include "imagefiledialog.h"
 
 class NewLabel :public QLabel
 {
@@ -15,6 +17,12 @@ signals:
     void Clicked();
 public:
     NewLabel(QWidget *parent=0);
+    enum widType {
+        Number =0x0,
+        Text = 0x1,
+        List = 0x2,
+        Enum = 0x3
+    };
 
 protected:
     void mousePressEvent(QMouseEvent *event) ;
@@ -24,9 +32,12 @@ protected:
 
 private slots:
     void onClieck();
+    void onPictureDialog(bool );
+
 
 private:
     QPoint mOffset;
+    MainWindow *mWindow;
 
 };
 

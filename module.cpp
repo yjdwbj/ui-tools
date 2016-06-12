@@ -2,12 +2,30 @@
 #include <QtCore/QMetaProperty>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QStackedLayout>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QSpinBox>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QSpacerItem>
+#include <QDateTime>
 #include <QApplication>
-#include "mainwindow.h"
+#include <QDialog>
+#include <QFileSystemModel>
+#include <QTreeView>
 
 NewLabel::NewLabel(QWidget *parent)
     :QLabel(parent)
 {
+
+    // MainWindow *m ;
+    QWidgetList tlist = qApp->topLevelWidgets();
+    for(QWidgetList::iterator wit = tlist.begin();wit != tlist.end();++wit)
+    {
+        if((*wit)->objectName() == "MainWindow")
+        {
+            mWindow = (MainWindow*)(*wit);
+            break;
+        }
+    }
 
     // connect(this,SIGNAL(Clicked()),SLOT(onClieck()));
 }
@@ -21,6 +39,82 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
 
     NewFrame *p =(NewFrame*) (this->parentWidget());
     p->setStyleSheet("QFrame{border: 0.5px solid red;}");
+
+    mWindow->propertyWidget->layout()->deleteLater();
+    QVBoxLayout *v = new QVBoxLayout();
+    mWindow->propertyWidget->setLayout(v);
+    mWindow->propertyWidget->setTitle(p->objectName());
+
+
+    QVariantList qvl = p->property("dynProperty").toList();
+    foreach(QVariant qv, qvl)
+    {
+
+        if(qv.type() == QVariant::Map)
+        {
+            QVariantMap qvm = qv.toMap();
+            QString uname =  qvm["-name"].toString();
+            if(qvm.contains("enum"))
+            {
+
+
+                QComboBox *cb = new QComboBox();
+                QVariantList qvlist = qvm["enum"].toList();
+                for(QVariantList::const_iterator it = qvlist.begin();
+                    it != qvlist.end();++it)
+                {
+
+                    cb->addItem((*it).toMap().firstKey());
+                }
+                v->addWidget(new QLabel(uname));
+                v->addWidget(cb);
+
+            }else if(qvm.contains("list"))
+            {
+
+                QComboBox *cb = new QComboBox();
+                //QString uname =  qvm["-name"].toString();
+                QVariantList qvlist = qvm["list"].toList();
+                for(QVariantList::const_iterator it = qvlist.begin();
+                    it != qvlist.end();++it)
+                {
+                    cb->addItem((*it).toString());
+                }
+                v->addWidget(new QLabel(uname));
+                v->addWidget(cb);
+
+            }
+            else{
+                if(uname.compare("geometry"))
+                {
+                    if(qvm["default"].type() == QVariant::Double)
+                    {
+                        QDateTime t;
+
+                        // QTextEdit *id = new QTextEdit(t.toLocalTime().toString());
+                        // id->setEnabled(false);
+
+                        v->addWidget(new QLabel(uname));
+                        v->addWidget(new QLabel(QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch())));
+                    }
+                    else{
+                        QTextEdit *txt = new QTextEdit(qvm["default"].toString());
+                        v->addWidget(new QLabel(uname));
+                        v->addWidget(txt);
+                        txt->setFixedHeight(25);
+                        //  v->addSpacerItem(new QSpacerItem(10,50));
+
+                    }
+                }
+            }
+
+
+        }
+        qDebug() << "next qv is " << qv;
+    }
+
+
+
 
 
 
@@ -38,7 +132,7 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
     }
     ev->accept();
 
-    emit Clicked();
+    //  emit Clicked();
 }
 
 void NewLabel::mouseReleaseEvent(QMouseEvent *ev)
@@ -106,56 +200,95 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
     /* 这里测试打一下对像的所有动态性 */
     foreach(QByteArray qba, this->dynamicPropertyNames())
     {
-       // qDebug() << QString::fromLocal8Bit(qba) << this->property(qba);
+        // qDebug() << QString::fromLocal8Bit(qba) << this->property(qba);
     }
 
-  /*  qDebug() << "test index of property \n";
-    static const QMetaObject *dm = this->metaObject();
-    for(int i = 0 ; i < dm->propertyCount();i++)
-    {
-        const char *dname = dm->property(i).name();
-        qDebug() << QString::fromLocal8Bit(dname) << this->property(dname);
-    }
-    */
-    // QStackedLayout *stack;
-   /*
-    QWidgetList allobj = QApplication::allWidgets();
-    for(QList<QWidget *>::iterator it = allobj.begin();
-        it != allobj.end();++it)
-    {
-
-        QWidget *qt = (*it);
-        if(!qt->objectName().compare("ObjProperty"))
-        {
-            stack =qobject_cast<QStackedLayout*>(qt);
-            break;
-        }
-    }
-    */
-
-   // QStackedLayout *stack;
 
 
-    MainWindow *m ;
-    QWidgetList tlist = qApp->topLevelWidgets();
-    for(QWidgetList::iterator wit = tlist.begin();wit != tlist.end();++wit)
-    {
-        if((*wit)->objectName() == "MainWindow")
-        {
-            m = (MainWindow*)(*wit);
-            break;
-        }
-    }
 
-    m->propertyWidget->layout()->deleteLater();
+    /* 这里要与主界面的一些控件做通信 */
+    mWindow->imgPropertyWidget->layout()->deleteLater();
     QVBoxLayout *v = new QVBoxLayout();
-    m->propertyWidget->setLayout(v);
-    m->propertyWidget->setTitle(this->objectName());
+    mWindow->imgPropertyWidget->setLayout(v);
+    mWindow->imgPropertyWidget->setTitle(this->objectName());
 
 
 
 
-   /* QObjectList ob = m->propertyStack->children();
+
+    QVariantList qvl = this->property("dynProperty").toList();
+    foreach(QVariant qv, qvl)
+    {
+        if(qv.type() == QVariant::Map)
+        {
+            QVariantMap qvm = qv.toMap();
+            QString uname = qvm["-name"].toString();
+            if(qvm.contains("enum"))
+            {
+
+
+                QComboBox *cb = new QComboBox();
+                QVariantList qvlist = qvm["enum"].toList();
+                for(QVariantList::const_iterator it = qvlist.begin();
+                    it != qvlist.end();++it)
+                {
+
+                    cb->addItem((*it).toMap().firstKey());
+                }
+                v->addWidget(new QLabel(uname));
+                v->addWidget(cb);
+
+            }else if(qvm.contains("list"))
+            {
+
+                QComboBox *cb = new QComboBox();
+                //QString uname =  qvm["-name"].toString();
+                QVariantList qvlist = qvm["list"].toList();
+                for(QVariantList::const_iterator it = qvlist.begin();
+                    it != qvlist.end();++it)
+                {
+                    cb->addItem((*it).toString());
+                }
+                // QHBoxLayout *h = new QHBoxLayout();
+
+                v->addWidget(new QLabel(uname));
+                //v->addLayout(h);
+                QPushButton *b = new QPushButton(tr("添加图片"));
+                connect(b,SIGNAL(clicked(bool)),SLOT(onPictureDialog(bool)));
+                v->addWidget(b);
+                v->addWidget(cb);
+
+
+            }
+            else{
+                if(uname.compare("geometry") &&
+                        uname.compare("image"))
+                {
+                    if(qvm["default"].type() == QVariant::Double)
+                    {
+                        QDateTime t;
+
+                        // QTextEdit *id = new QTextEdit(t.toLocalTime().toString());
+                        // id->setEnabled(false);
+
+                        v->addWidget(new QLabel(uname));
+                        v->addWidget(new QLabel(QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch())));
+                    }
+                    else{
+                        QTextEdit *txt = new QTextEdit(qvm["default"].toString());
+                        v->addWidget(new QLabel(uname));
+                        v->addWidget(txt);
+                        txt->setFixedHeight(25);
+                        //  v->addSpacerItem(new QSpacerItem(10,50));
+
+                    }
+                }
+            }
+
+
+        }
+    }
+    /* QObjectList ob = m->propertyStack->children();
     for(QObjectList::const_iterator it = ob.begin();
         it != ob.end(); ++it)
     {
@@ -172,6 +305,17 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 
 
 }
+
+
+
+void NewLabel::onPictureDialog(bool b)
+{
+    // QMessageBox::warning(this,"test","your clicked me: ");
+    ImageFileDialog *ifd = new ImageFileDialog(this);
+    ifd->show();
+}
+
+
 
 void NewLabel::onClieck()
 {

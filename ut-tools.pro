@@ -18,16 +18,18 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     dragwidget.cpp \
     module.cpp \
-    handlejson.cpp
+    handlejson.cpp \
+    imagefiledialog.cpp
 
 HEADERS  += mainwindow.h \
     dragwidget.h \
     module.h \
-    handlejson.h
+    handlejson.h \
+    imagefiledialog.h
 
 FORMS    += mainwindow.ui
 CONFIG += c++11
 
 RESOURCES += \
     ut-tools.qrc
-LIBS +=  -L /usr/local/lib -lglapi
+

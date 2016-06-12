@@ -21,6 +21,7 @@
 #include <QMouseEvent>
 #include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QGroupBox>
+#include <QtWidgets/QMessageBox>
 
 
 
@@ -48,7 +49,9 @@ public:
 
 
     QStackedWidget *propertyStack;
+
     QGroupBox *propertyWidget;
+    QGroupBox *imgPropertyWidget;
 
 private:
     Ui::MainWindow *ui;
