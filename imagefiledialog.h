@@ -10,6 +10,8 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QDebug>
+#include <QStringListModel>
+
 
 class ImageFileDialog: public QDialog
 {
@@ -20,6 +22,8 @@ public:
 
 private slots:
     void onTreeViewClicked(QModelIndex index);
+    void onListViewDoubleClicked(QModelIndex index);
+    void onSelListViewDoubleClicked(QModelIndex index);
 
 private:
     QFileSystemModel *dirModel;
@@ -29,6 +33,7 @@ private:
     QTreeView *treefile;
     QPushButton *add;
     QPushButton *del;
+    QStringListModel *strListMode;
 
 
 };

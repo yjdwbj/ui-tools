@@ -4,7 +4,8 @@ ImageFileDialog::ImageFileDialog(QWidget *parent)
     :QDialog(parent),
       sellist(new QListWidget()),
       treefile(new QTreeView()),
-      flistview(new QListView())
+      flistview(new QListView()),
+      strListMode(new QStringListModel())
 {
     this->setFixedSize(1000,600);
 
@@ -58,15 +59,29 @@ ImageFileDialog::ImageFileDialog(QWidget *parent)
 
     flistview->setModel(fileModel);
 
+    connect(sellist,SIGNAL(doubleClicked(QModelIndex)),SLOT(onSelListViewDoubleClicked(QModelIndex)));
+    connect(flistview,SIGNAL(doubleClicked(QModelIndex)),SLOT(onListViewDoubleClicked(QModelIndex)));
     connect(treefile,SIGNAL(clicked(QModelIndex)),SLOT(onTreeViewClicked(QModelIndex)));
 
     /* 主布局是水平布局,左(QListWidget),中(垂直布局),右(文件系统) */
+   // sellist->setModel(strListMode);
     mh->addWidget(sellist);
     mh->addLayout(v);
     mh->addWidget(flistview);
     mh->addWidget(treefile);
 
    this->setModal(true);
+}
+
+void ImageFileDialog::onListViewDoubleClicked(QModelIndex index)
+{
+    sellist->addItem(fileModel->data(index).toString());
+    fileModel->remove(index);
+}
+
+void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
+{
+
 }
 
 ImageFileDialog::~ImageFileDialog()
