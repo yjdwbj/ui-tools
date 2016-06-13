@@ -97,25 +97,26 @@ MainWindow::MainWindow(QWidget *parent) :
     rDock->setWidget(rList);
     rList->setFixedWidth(160);
     QString filename =  QDir::currentPath() + "/menu_strip.json";
-    qDebug() << " json file name " << filename;
+    //qDebug() << " json file name " << filename;
     QFileInfo qfi(filename);
     if(!qfi.exists())
     {
         QMessageBox::warning(this,tr("错误"),tr("找不到控件文件"));
         return;
     }
-    qDebug() << " json file name is : " << filename;
+    //qDebug() << " json file name is : " << filename;
     HandleJson *hj = new HandleJson(filename);
   //  mCanvas->setProperty("PropertyStack",QVariant::fromValue(propertyStack));
     QWidgetList qwlist = qApp->allWidgets();
 
-    for(QWidgetList::const_iterator it = qwlist.begin(); it != qwlist.end();++it )
+    /*for(QWidgetList::const_iterator it = qwlist.begin(); it != qwlist.end();++it )
     {
         qDebug() << " All Qwidget list object : " << (*it)->objectName();
-    }
+    }*/
     QWidget *ww = (QWidget*)(hj->CreateObjectFromJson(hj->mJsonMap,mCanvas));
     qDebug() << "New object Rect " << ww->geometry()
              << " Pos " <<  ww->mapToParent(ww->pos());
+    delete hj;
    // ww->move(ww->parentWidget()->mapFromGlobal(QPoint(200,200)));
 
 
@@ -182,254 +183,8 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
     return false;
 }
 
-void MainWindow::setWidget(QObject &oob)
-{
-   /* if(isWidget)
-    {
-        qobject_cast<QWidget*>(oob)->setParent(qobject_cast<QWidget*>(mParent));
-    }else
-    {
-       qobject_cast<QBoxLayout*>(mParent)->addWidget(qobject_cast<QWidget*>(oob));
-    }*/
-}
 
 
-/*
-void MainWindow::HandleFrameObject(QJsonObject qjo,QString ParentName)
-{
-
-    ObjComt obj;
-    obj.parentName = ParentName;
-    QObject *child;
-    for(QJsonObject::iterator it = qjo.begin();it != qjo.end();++it)
-    {
-        QString key = it.key();
-        if(!key.compare(NAME))
-        {
-            obj.objName = it.value().toString();
-        }else if(!key.compare(CLASS))
-        {
-            obj.clsName = it.value().toString();
-        }else if(!key.compare("widget"))
-        {
-            if(it.value().isObject())
-            {
-               HandleFrameObject(it.value().toObject(),obj.objName);
-            }
-            else if(it.value().isArray())
-            {
-                QJsonArray qja = it.value().toArray();
-
-                for(int idx = 0;idx < qja.size();idx++)
-                {
-                    if(qja[idx].isObject())
-                    {
-                        HandleFrameObject(qja[idx].toObject(),obj.objName);
-                    }
-                }
-            }
-
-        }else if(!key.compare(PROPERTY))
-        {
-            if(it.value().isArray())
-            {
-                QJsonArray qja = it.value().toArray();
-
-                for(int idx = 0; idx < qja.size();idx++)
-                {
-                    QJsonValue qjv = qja[idx];
-                    if(qjv.isObject())
-                    {
-                       QJsonObject ooj = qjv.toObject();
-                       if(ooj.contains(RECT))
-                       {
-
-                           QJsonObject rect = ooj[RECT].toObject();
-                           int x,y,w,h;
-                           x = rect["x"].toString().toInt();
-                           y = rect["y"].toString().toInt();
-                           w = rect["width"].toString().toInt();
-                           h = rect["height"].toString().toInt();
-
-                           obj.rect.setRect(x,y,w,h);
-                       }else if(ooj.contains("image"))
-                       {
-                           int p = ooj["image"].type();
-                           obj.pixmap = QDir::currentPath()+"/"+ ooj["image"].toString();
-                       }
-
-                    }
-
-                }
-            }
-        }
-
-    }
-
-
-   if(!obj.clsName.compare("QFrame"))
-    {
-        v
-        obj.obj = qf;
-
-    }else if(!obj.clsName.compare("QWidget"))
-    {
-        QWidget *wid = new QWidget();
-        wid->setObjectName(obj.objName);
-        obj.obj = wid;
-
-    }else if(!obj.clsName.compare("QLabel"))
-    {
-        QLabel *lab  = new QLabel();
-        lab->setParent(QObject::findChild<QFrame*>(obj.parentName));
-        lab->setObjectName(obj.objName);
-        lab->setGeometry(obj.rect);
-        lab->setPixmap( QPixmap(obj.pixmap));
-        lab->setVisible(true);
-
-        obj.obj = lab;
-    }
-    ComList.append(obj);
-
-}
-*/
-
-/*
-void MainWindow::HandleObject(QJsonObject qjo)
-{
-    if(qjo.contains(WIDGET))
-    {
-        QJsonValue qjv = qjo[WIDGET].toObject();
-        if(qjv.isObject())
-        {
-             HandleObject(qjv.toObject());
-        }
-        else if(qjv.isArray())
-        {
-           // HandleArrayObject(qjv.isArray());
-        }
-
-    }
-    else if(qjo.contains(CLASS))
-    {
-        QString cval = qjo[CLASS].toString();
-        if(!cval.compare("QWidget"))
-        {
-
-            QWidget *o = new QWidget();
-            if(isWidget)
-            {
-                o->setParent(qobject_cast<QWidget*>(mParent));
-            }else
-            {
-               qobject_cast<QBoxLayout*>(mParent)->addWidget(o);
-            }
-            //setWidget(o);
-            mParent = o;
-            isWidget = true;
-            if(qjo.contains(NAME))
-            {
-                o->setObjectName(qjo[NAME].toString());
-            }
-            if(qjo.contains(PROPERTY))
-            {
-                QJsonObject proj = qjo[PROPERTY].toObject();
-                if (proj.contains(RECT))
-                {
-                    o->setGeometry(QRect(proj["x"].toInt(),
-                                   proj["y"].toInt(),
-                                   proj["width"].toInt(),
-                                   proj["height"].toInt()));
-                }
-
-
-            }
-            if(qjo.contains(LAYOUT))
-            {
-                QJsonObject layoutobj = qjo[LAYOUT].toObject();
-                HandleObject(layoutobj);
-                mParent = o;
-                isWidget = true;
-
-            }
-        }else if(!cval.compare("QVBoxLayout"))
-        {
-            QVBoxLayout *vlay = new QVBoxLayout();
-            if(isWidget)
-            {
-                qobject_cast<QWidget*>(mParent)->setLayout(vlay);
-            }else
-            {
-               qobject_cast<QBoxLayout*>(mParent)->addLayout(vlay);
-            }
-
-            isWidget = false;
-            mParent = vlay;
-            if(qjo.contains(NAME))
-            {
-               vlay->setObjectName(qjo[NAME].toString());
-            }
-            if(qjo.contains(ITEM))
-            {
-                QJsonArray qja = qjo[ITEM].toArray();
-                HandleArrayObject(qja);
-               /* for(int x = 0; x < qja.size();x++)
-                {
-                        QJsonValue qija = qja[x];
-                        if(qija.isObject())
-                        {
-                            HandleObject(qija.toObject());
-                        }else if(qija.isString())
-                        {
-                            out << qija.toString() << "\n";
-                        }
-                }
-            }
-        }
-        else if(!cval.compare("QHBoxLayout"))
-        {
-                 QHBoxLayout *vlay = new QHBoxLayout();
-                 if(isWidget)
-                 {
-                     qobject_cast<QWidget*>(mParent)->setLayout(vlay);
-                 }else
-                 {
-                    qobject_cast<QBoxLayout*>(mParent)->addLayout(vlay);
-                 }
-                  isWidget = false;
-                  if(qjo.contains(NAME))
-                  {
-                     vlay->setObjectName(qjo[NAME].toString());
-                  }
-                  if(qjo.contains(ITEM))
-                  {
-                     HandleArrayObject(qjo[ITEM].toArray());
-                  }
-        }
-    }
-
-}
-
-*/
-
-
-/*
-void MainWindow::HandleArrayObject(QJsonArray array)
-{
-    int asize = array.size();
-    for(int x = 0; x < asize;x++)
-    {
-            QJsonValue qija = array[x];
-            if(qija.isObject())
-            {
-                HandleObject(qija.toObject());
-            }else if(qija.isString())
-            {
-                out << qija.toString() << "\n";
-            }
-    }
-}
-*/
 
 
 MainWindow::~MainWindow()

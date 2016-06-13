@@ -216,9 +216,9 @@ void HandleJson::HandleJsonMap(QVariantMap qvm)
     QList<QVariantList> objlist;
     for(QVariantMap::const_iterator it = qvm.begin();it != qvm.end();++it)
     {
-        qDebug() << " Key : " << it.key();
+      //  qDebug() << " Key : " << it.key();
         QVariant::Type qvt = it.value().type();
-        qDebug() << " values type is : "  << qvt;
+       /// qDebug() << " values type is : "  << qvt;
         if(qvt == QVariant::String)
         {
             qDebug() << " Value is : " << it.value().toString() ;
@@ -236,7 +236,7 @@ void HandleJson::HandleJsonMap(QVariantMap qvm)
 
         }else if(qvt == QVariant::Double)
         {
-            qDebug() << " number is " << it.value().toInt();
+         //   qDebug() << " number is " << it.value().toInt();
         }
         else if(qvt == QVariant::Map)
         {

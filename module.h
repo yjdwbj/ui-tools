@@ -34,6 +34,7 @@ private slots:
     void onClieck();
     void onPictureDialog(bool );
     void onXYWHChangedValue(int);
+    void onListImageChanged(QString );
 
 
 private:

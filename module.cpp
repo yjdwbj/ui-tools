@@ -21,6 +21,8 @@ static QString COMOBJ = "comObj";
 static QString IMGOBJ = "imgObj";
 static QString COMGRPLYT = "ComGpBLyt";
 static QString IMGGRPLYT = "ImgGpBLyt";
+static char * IMGIDX = "ImageIndex";
+static char * IMAGELST = "ImageList";
 
 NewLabel::NewLabel(QWidget *parent)
     :QLabel(parent)
@@ -226,16 +228,14 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
 void NewLabel::mouseReleaseEvent(QMouseEvent *ev)
 {
     NewFrame *p =(NewFrame*) (this->parentWidget());
-    qDebug() << " drop pos x: " << ev->pos().x() << " y:" << ev->pos().y();
-    qDebug() << " drop Global  pos x: " << ev->globalPos().x() << " y:" << ev->globalPos().y();
+ //   qDebug() << " drop pos x: " << ev->pos().x() << " y:" << ev->pos().y();
+  //  qDebug() << " drop Global  pos x: " << ev->globalPos().x() << " y:" << ev->globalPos().y();
 
 
 }
 
 void NewLabel::mouseMoveEvent(QMouseEvent *event)
 {
-
-
 
     if (event->buttons() & Qt::LeftButton)
     {
@@ -253,11 +253,9 @@ void NewLabel::mouseMoveEvent(QMouseEvent *event)
         p->update();
 
         /* 把新的位置更新到右边属性框 */
-        //QWidgetList wl = mWindow->propertyWidget->findChildren<QWidget*>();
-       // QWidget *ptest ;
+
         QPoint nr = p->pos();
         foreach (QWidget *w, mWindow->propertyWidget->findChildren<QWidget*>()) {
-           qDebug()  << " propertyWidget list object : " << w->objectName();
            if(!w->objectName().compare(X))
            {
                QSpinBox *s = (QSpinBox*)w;
@@ -273,21 +271,7 @@ void NewLabel::mouseMoveEvent(QMouseEvent *event)
 
        }
 
-        /*
-        foreach (QWidget *w, mWindow->propertyWidget->findChildren<QWidget*>()) {
-           //qDebug()  << " propertyWidget list object : " << w->objectName();
-           if(w->parentWidget() == ptest)
-           {
-              qDebug() << " Layout Children is :  " << w->objectName();
-            }
-       }*/
 
-
-
-
-
-
-        // qDebug() << "offset is " << offset.rx() << "  " << offset.ry() << " event pos " << event->pos().rx() << " " << event->pos().ry() ;
     }
     // event->accept();
     //  this->parentWidget()->update();
@@ -295,10 +279,7 @@ void NewLabel::mouseMoveEvent(QMouseEvent *event)
 
 void NewFrame::mouseMoveEvent(QMouseEvent *event)
 {
-
-
     event->accept();
-
 }
 
 
@@ -323,9 +304,6 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
         // qDebug() << QString::fromLocal8Bit(qba) << this->property(qba);
     }
 
-
-
-
     /* 这里要与主界面的一些控件做通信 */
     foreach (QWidget *w, mWindow->imgPropertyWidget->layout()->findChildren<QWidget*>()) {
         delete w;  /* 释放原来的控件 */
@@ -339,6 +317,7 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
     //mWindow->imgPropertyWidget->setTitle(this->objectName());
 
     QVariantList qvl = this->property("dynProperty").toList();
+    /* 根据JSON格式动态生成下面的控件 */
     foreach(QVariant qv, qvl)
     {
         if(qv.type() == QVariant::Map)
@@ -364,6 +343,8 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
             {
 
                 QComboBox *cb = new QComboBox();
+                cb->setObjectName("ListImage");
+                this->setProperty(IMGIDX,0); /* 当前选择的行号*/
                 //QString uname =  qvm["-name"].toString();
                 QVariantList qvlist = qvm["list"].toList();
                 for(QVariantList::const_iterator it = qvlist.begin();
@@ -371,7 +352,7 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
                 {
                     cb->addItem((*it).toString());
                 }
-                // QHBoxLayout *h = new QHBoxLayout();
+
 
                 v->addWidget(new QLabel(uname));
                 //v->addLayout(h);
@@ -379,6 +360,8 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
                 connect(b,SIGNAL(clicked(bool)),SLOT(onPictureDialog(bool)));
                 v->addWidget(b);
                 v->addWidget(cb);
+                /* 绑定QComoBox的更改信号,更改它的值就要在相应的画版控件更新图片 */
+                connect(cb,SIGNAL(currentTextChanged(QString)),SLOT(onListImageChanged(QString)));
 
 
             }
@@ -414,12 +397,47 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 }
 
 
+void NewLabel::onListImageChanged(QString img)
+{
+   //  selectedMap sMap = this->property(IMAGELST).toMap();
+   QStringList selList = this->property(IMAGELST).toStringList();
+   foreach (QString s, selList) {
+       QString k = s.section(":",0,0);
+       if(!k.compare(img))
+       {
+           this->setPixmap(QPixmap(s.section(":",1,1)));
+           break;
+       }
+   }
+   //  this->setPixmap(QPixmap(sMap[img].toString())); /* 更新图片 */
+}
+
 
 void NewLabel::onPictureDialog(bool b)
 {
     // QMessageBox::warning(this,"test","your clicked me: ");
     ImageFileDialog *ifd = new ImageFileDialog(this);
     ifd->show();
+    ifd->exec();
+    //selectedMap sMap  = ifd->getSelectedMap();
+    QStringList selList = ifd->getSelectedList();
+    ifd->deleteLater();
+    QComboBox *cb=0;
+    foreach (QWidget *w, mWindow->imgPropertyWidget->findChildren<QWidget*>())
+    {
+        if(!w->objectName().compare("ListImage"))
+        {
+          //  qDebug() << " found QComobox " << w->objectName();
+            cb = (QComboBox *)w;
+            break;
+        }
+    }
+    this->setProperty(IMAGELST,selList); /* 保存它的图片列表在它的动态属性中 */
+    foreach (QString s, selList) {
+       cb->addItem(s.section(":",0,0));
+    }
+   // cb->addItems(sMap.keys());
+    cb->setCurrentIndex(0);
 }
 
 

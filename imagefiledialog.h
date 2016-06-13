@@ -12,6 +12,7 @@
 #include <QDebug>
 #include <QStringListModel>
 
+typedef QMap<QString,QVariant> selectedMap;
 
 class ImageFileDialog: public QDialog
 {
@@ -20,10 +21,16 @@ public:
     explicit ImageFileDialog(QWidget *parent = 0);
     ~ImageFileDialog();
 
+    //const selectedMap getSelectedMap() const { return selMap;}
+    const QStringList getSelectedList() const { return selstrList;}
+
 private slots:
     void onTreeViewClicked(QModelIndex index);
     void onListViewDoubleClicked(QModelIndex index);
     void onSelListViewDoubleClicked(QModelIndex index);
+    void onDelSelectedItems();
+    void onAddSelectedItems();
+
 
 private:
     QFileSystemModel *dirModel;
@@ -33,7 +40,11 @@ private:
     QTreeView *treefile;
     QPushButton *add;
     QPushButton *del;
-    QStringListModel *strListMode;
+
+
+    QMap<QString,QModelIndex> hRows;
+    //selectedMap selMap;
+    QStringList selstrList;
 
 
 };
