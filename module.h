@@ -9,6 +9,10 @@
 #include "mainwindow.h"
 #include "imagefiledialog.h"
 
+
+
+
+
 class NewLabel :public QLabel
 {
     Q_OBJECT
@@ -24,11 +28,16 @@ public:
         Enum = 0x3
     };
 
+    Ui::MainWindow *ui;
+
 protected:
     void mousePressEvent(QMouseEvent *event) ;
     void mouseReleaseEvent(QMouseEvent *ev);
     void mouseDoubleClickEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *event);
+    QWidget* getQWidgetByName(QString name) const;
+    QGroupBox* CreateXYWHGBox(QWidget *p);
+    void removeWidFromLayout(QLayout* layout);
 
 private slots:
     void onClieck();
@@ -39,7 +48,7 @@ private slots:
 
 private:
 
-    QGroupBox *CreateXYWHGBox(QWidget *p);
+
     void UpdateXYWHPos();
 
 

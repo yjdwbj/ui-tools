@@ -1,22 +1,72 @@
+#include "compoentcontrols.h"
 #include "handlejson.h"
-#include <QtWidgets/QDesktopWidget>
 
-
-
-
-HandleJson::HandleJson(QString name)
-    :jsonName(name),
-      mParentObj(0)
-
+CompoentControls::CompoentControls(QWidget *parent) : QWidget(parent)
 {
+
+    // MainWindow *m ;
+    setStyleSheet("{border: 1px solid gray;}");
+    QWidgetList tlist = qApp->topLevelWidgets();
+    for(QWidgetList::iterator wit = tlist.begin();wit != tlist.end();++wit)
+    {
+        if((*wit)->objectName() == "MainWindow")
+        {
+            mWindow = (MainWindow*)(*wit);
+            break;
+        }
+    }
+
+    QGridLayout *mainLayout = new QGridLayout();
+    this->setLayout(mainLayout);
+
+
+    QPushButton *btnTest = new QPushButton(tr("test"));
+    mainLayout->addWidget(btnTest,0,0);
+    mainLayout->setContentsMargins(0,0,0,300);
+
+    connect(btnTest,SIGNAL(clicked(bool)),SLOT(onCreateCompoentToCanvas()));
+
+    mJsonFile =  QDir::currentPath() + "/menu_strip.json";
+    //qDebug() << " json file name " << filename;
+    QFileInfo qfi(mJsonFile);
+    if(!qfi.exists())
+    {
+        QMessageBox::warning(this,tr("错误"),tr("找不到控件文件"));
+        return;
+    }
+
+    // HandleJson *hj = new HandleJson(filename);
     ReadJsonFile();
+    //  mJsonMap = hj->getCompoentMap();
+    //  delete hj;
+
+    /*
+    QWidget *ww = (QWidget*)(hj->CreateObjectFromJson(hj->mJsonMap,mCanvas));
+    qDebug() << "New object Rect " << ww->geometry()
+             << " Pos " <<  ww->mapToParent(ww->pos());
+    delete hj;
+    */
 }
 
+QWidget *CompoentControls::getQWidgetByName(QString name) const
+{
+    QWidgetList tlist = qApp->topLevelWidgets();
+    QWidget *w = 0;
+    for(QWidgetList::iterator wit = tlist.begin();wit != tlist.end();++wit)
+    {
+        if((*wit)->objectName() == name)
+        {
+            return *wit;
+            break;
+        }
+    }
+    return (QWidget*)0;
+}
 
-void HandleJson::ReadJsonFile()
+void CompoentControls::ReadJsonFile()
 {
 
-    QFile data(jsonName);
+    QFile data(mJsonFile);
     if (data.open(QFile::ReadOnly|QIODevice::Text)) {
         QByteArray qba = data.readAll();
         QTextStream in(&data);
@@ -27,7 +77,7 @@ void HandleJson::ReadJsonFile()
         QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
         if(json_error.error == QJsonParseError::NoError)
         {
-            QWidget *mp = 0;
+
             QPoint mpos;
             if(qd.isObject())
             {
@@ -44,7 +94,22 @@ void HandleJson::ReadJsonFile()
 
 }
 
-QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
+void CompoentControls::onCreateCompoentToCanvas()
+{
+
+    QWidget* ww = (QWidget *)CreateObjectFromJson(mJsonMap,mWindow->mCanvas);
+    QString caption = ww->property(DKEY_CAPTION).toString();
+    ww->setObjectName(QString("%1_%2").arg(caption,QString::number(comList.size())));
+    comList.append(ww);
+
+
+    qDebug() << " clicked add QWidget " << ww->objectName() << ww->pos();
+    qDebug() << " Com List size " << comList.size();
+    ww->show();
+
+}
+
+QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
 {
     QObject *nobj;
     QVariant property;
@@ -76,18 +141,18 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
             else if(!key.compare(NAME))
             {
                 // mParentObj->setObjectName(it.value().toString());
-               // qDebug() << "Create new Label " << it.value().toString() ;
+                // qDebug() << "Create new Label " << it.value().toString() ;
                 nobj->setObjectName(it.value().toString());
                 //if(nobj)
                 //   nobj->setObjectName(it.value().toString());
 
             }
-            else if(!key.compare("caption")) /* 界面显示的名称 */
+            else if(!key.compare(CAPTION)) /* 界面显示的名称 */
             {
-                nobj->setProperty("caption",it.value().toString());
+                nobj->setProperty(DKEY_CAPTION,it.value().toString());
             }
 
-           // qDebug() << " Value is String : " << it.value().toString();
+            // qDebug() << " Value is String : " << it.value().toString();
             break;
         case QVariant::List:
         {
@@ -126,8 +191,9 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
         }
     }
     nobj->setProperty("dynProperty",property);
+    nobj->setProperty("uid",QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch()));
     /*  处理每一个json对像的property部分 */
-   // qDebug() << "Dynamic Property Count " << nobj->dynamicPropertyNames().count();
+    // qDebug() << "Dynamic Property Count " << nobj->dynamicPropertyNames().count();
     foreach(QByteArray qba,nobj->dynamicPropertyNames())
     {
         // qDebug() << " Property Key: "  << QString::fromLocal8Bit(qba);
@@ -159,12 +225,12 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                         {
 
                             QFrame *m = qobject_cast<QFrame*>(pobj);
-                            int x =m->size().width()/2-20;
-                            int y = m->size().height()/2-20;
+                            int x =m->size().width()/2;
+                            int y = m->size().height()/2;
 
 
                             qobject_cast<NewFrame *>(nobj)->setGeometry(r);
-                            qobject_cast<NewFrame *>(nobj)->move(QPoint(x,y));
+                             qobject_cast<NewFrame *>(nobj)->move(QPoint(x,y));
 
 
                         }else{
@@ -177,7 +243,7 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                     }
                     else {
 
-                      //  qDebug() << "other property Key : " << key  << " Val : " << it.value();
+                        //  qDebug() << "other property Key : " << key  << " Val : " << it.value();
                     }
 
                 }
@@ -188,145 +254,3 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
 
     return nobj;
 }
-
-
-
-
-
-QRect HandleJson::readRect(QVariantMap qvm)
-{
-    int x,y,w,h;
-    QVariantMap::const_iterator it = qvm.begin();
-    if(qvm.size() != 4)
-        return QRect();
-    h = it.value().toString().toInt();
-    ++it;
-    w = it.value().toString().toInt();
-    ++it;
-    x = it.value().toString().toInt();
-    ++it;
-    y = it.value().toString().toInt();
-
-    return QRect(x,y,w,h);
-}
-
-void HandleJson::HandleJsonMap(QVariantMap qvm)
-{
-    // QVariantMap qvm = qjo.toVariantMap();
-
-    QList<QVariantList> objlist;
-    for(QVariantMap::const_iterator it = qvm.begin();it != qvm.end();++it)
-    {
-      //  qDebug() << " Key : " << it.key();
-        QVariant::Type qvt = it.value().type();
-       /// qDebug() << " values type is : "  << qvt;
-        if(qvt == QVariant::String)
-        {
-            qDebug() << " Value is : " << it.value().toString() ;
-        }else if(qvt == QVariant::List)
-        {
-            QVariantList qvl = it.value().toList();
-            foreach(QVariant qv, qvl)
-            {
-                // qDebug() << qv.type();
-                if(qv.type() == QVariant::Map)
-                {
-                    HandleJsonMap(qv.toMap());
-                }
-            }
-
-        }else if(qvt == QVariant::Double)
-        {
-         //   qDebug() << " number is " << it.value().toInt();
-        }
-        else if(qvt == QVariant::Map)
-        {
-            HandleJsonMap(it.value().toMap());
-        }
-    }
-
-}
-
-/*
-void HandleJson::HandleFrameObject(QJsonObject qjo,QString ParentName)
-{
-
-    ObjComt obj;
-    obj.parentName = ParentName;
-
-
-    for(QJsonObject::iterator it = qjo.begin();it != qjo.end();++it)
-    {
-
-
-
-        QString key = it.key();
-        qDebug() << it.value().type();
-        if(!key.compare(NAME))
-        {
-            obj.objName = it.value().toString();
-        }else if(!key.compare(CLASS))
-        {
-            obj.clsName = it.value().toString();
-        }else if(!key.compare("widget"))
-        {
-            if(it.value().isObject())
-            {
-                HandleFrameObject(it.value().toObject(),obj.objName);
-            }
-            else if(it.value().isArray())
-            {
-                QJsonArray qja = it.value().toArray();
-
-                for(int idx = 0;idx < qja.size();idx++)
-                {
-                    if(qja[idx].isObject())
-                    {
-                        HandleFrameObject(qja[idx].toObject(),obj.objName);
-                    }
-                }
-            }
-
-        }else if(!key.compare(PROPERTY))
-        {
-            if(it.value().isArray())
-            {
-                QJsonArray qja = it.value().toArray();
-
-                for(int idx = 0; idx < qja.size();idx++)
-                {
-                    QJsonValue qjv = qja[idx];
-                    if(qjv.isObject())
-                    {
-                        QJsonObject ooj = qjv.toObject();
-                        if(ooj.contains(RECT))
-                        {
-
-                            QJsonObject rect = ooj[RECT].toObject();
-                            int x,y,w,h;
-                            x = rect["x"].toString().toInt();
-                            y = rect["y"].toString().toInt();
-                            w = rect["width"].toString().toInt();
-                            h = rect["height"].toString().toInt();
-
-                            // obj.rect.setRect(x,y,w,h);
-                        }else if(ooj.contains("image"))
-                        {
-                            //int p = ooj["image"].type();
-                            //  obj.pixmap = QDir::currentPath()+"/"+ ooj["image"].toString();
-                        }
-
-                    }
-
-                }
-            }
-        }
-
-    }
-
-
-
-    ComList.append(obj);
-
-}
-*/

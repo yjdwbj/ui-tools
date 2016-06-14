@@ -22,6 +22,7 @@
 #include <QtWidgets/QStackedWidget>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QMessageBox>
+#include <QScrollArea>
 
 
 
@@ -51,9 +52,12 @@ public:
 
     QGroupBox *propertyWidget;
     QGroupBox *imgPropertyWidget;
+     QFrame *mCanvas;
 
 private:
-    Ui::MainWindow *ui;
+     void mousePressEvent(QMouseEvent *ev);
+     Ui::MainWindow *ui;
+
     QDockWidget* rDock;
     QDockWidget* lDock;
     QListWidget* rList;
@@ -73,7 +77,7 @@ private:
 
     void HandleFrameObject(QJsonObject qjo, QString ParentName);
     QWidget *pWin;
-    QFrame *mCanvas;
+
 
 
 

@@ -6,7 +6,7 @@
 #include <QtWidgets/QSpinBox>
 #include <QtWidgets/QTextEdit>
 #include <QtWidgets/QSpacerItem>
-#include <QDateTime>
+
 #include <QApplication>
 #include <QDialog>
 #include <QFileSystemModel>
@@ -23,6 +23,8 @@ static QString COMGRPLYT = "ComGpBLyt";
 static QString IMGGRPLYT = "ImgGpBLyt";
 static char * IMGIDX = "ImageIndex";
 static char * IMAGELST = "ImageList";
+
+
 
 NewLabel::NewLabel(QWidget *parent)
     :QLabel(parent)
@@ -113,10 +115,26 @@ void NewLabel::onXYWHChangedValue(int v)
 
 }
 
-void NewLabel::UpdateXYWHPos()
-{
 
+void NewLabel::removeWidFromLayout(QLayout* layout)
+{
+    QLayoutItem* child;
+    while(layout->count()!=0)
+    {
+        child = layout->takeAt(0);
+        if(child->layout() != 0)
+        {
+            removeWidFromLayout(child->layout());
+        }
+        else if(child->widget() != 0)
+        {
+            delete child->widget();
+        }
+
+        delete child;
+    }
 }
+
 
 void NewLabel::mousePressEvent(QMouseEvent *ev)
 {
@@ -124,12 +142,25 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
     /* 单击选中它的父对像 */
 
     NewFrame *p =(NewFrame*) (this->parentWidget());
-    p->setStyleSheet("QFrame{border: 0.5px solid red;}");
+    p->setStyleSheet("QFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
 
-
-    foreach (QWidget *w, mWindow->propertyWidget->layout()->findChildren<QWidget*>()) {
-        delete w;  /* 释放原来的控件 */
+    QList<NewFrame*> nflist =  mWindow->mCanvas->findChildren<NewFrame*>();
+    foreach(NewFrame *x,nflist)
+    {
+        if(x != p)
+        {
+           x->setStyleSheet("");
+        }
     }
+
+     qDebug () << " propertyWidget children size: "
+               << mWindow->propertyWidget->findChildren<QWidget*>().size();
+     qDebug () << " propertyWidget layout children size: "
+               << mWindow->propertyWidget->layout()->findChildren<QWidget*>().size();
+      qDebug () << " propertyWidget  layout widget children size: "
+                << mWindow->propertyWidget->layout()->widget()->findChildren<QWidget*>().size();
+    removeWidFromLayout(mWindow->propertyWidget->layout());
+
     delete mWindow->propertyWidget->layout();
     QVBoxLayout *v = new QVBoxLayout(mWindow->propertyWidget);
     v->setObjectName(COMGRPLYT);
@@ -181,15 +212,28 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
             else{
                 if(uname.compare("geometry"))
                 {
+
+                    if(qvm.contains("id"))
+                    {
+                        v->addWidget(new QLabel(uname));
+                        v->addWidget(new QLabel(this->property("uid").toString()));
+                         // 这里是一个特殊属性,唯一序号
+                    }
+
                     if(qvm["default"].type() == QVariant::Double)
                     {
-                        QDateTime t;
+
 
                         // QTextEdit *id = new QTextEdit(t.toLocalTime().toString());
                         // id->setEnabled(false);
-
                         v->addWidget(new QLabel(uname));
-                        v->addWidget(new QLabel(QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch())));
+                        QSpinBox *s = new QSpinBox();
+                        v->addWidget(s);
+                        s->setValue(qvm["default"].toInt());
+
+
+                        //v->addWidget(new QLabel(QString::number(this->property("uid").toDouble())));
+                       // v->addWidget(new QLabel(QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch())));
                     }
                     else{
                         QTextEdit *txt = new QTextEdit(qvm["default"].toString());
@@ -212,17 +256,44 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
     mOffset = ev->pos();
 
     QWidget *mCanvas  = p->parentWidget();
-    QStatusBar *sb = mCanvas->parentWidget()->findChild<QStatusBar*>();
+    QTextEdit *sb = mCanvas->parentWidget()->findChild<QTextEdit*>("debugEdit");
     if(sb)
     {
-        sb->showMessage(QString("mouse x:%1 , y:%2 ")
+
+        /*mWindow->ui.debugEdit.setText(QString("mouse x:%1 , y:%2 ")
                         .arg(QString::number(ev->pos().rx()))
                         .arg(QString::number(ev->pos().ry()))  );
+                        */
 
     }
+
+     QTextEdit *et = (QTextEdit *)(getQWidgetByName("debugEdit"));
+     if(et != 0 )
+     {
+         et->setText(QString("mouse x:%1 , y:%2 ")
+                     .arg(QString::number(ev->pos().rx()))
+                     .arg(QString::number(ev->pos().ry())));
+     }
     ev->accept();
 
+
     //  emit Clicked();
+}
+
+QWidget *NewLabel::getQWidgetByName(QString name) const
+{
+    QWidgetList tlist = qApp->topLevelWidgets();
+    QWidget *w = 0;
+    for(QWidgetList::iterator wit = tlist.begin();wit != tlist.end();++wit)
+    {
+       // qDebug() << "find object by name :" << (*wit)->objectName();
+        if((*wit)->objectName() == name)
+        {
+            return *wit;
+            break;
+        }
+    }
+    return (QWidget*)0;
 }
 
 void NewLabel::mouseReleaseEvent(QMouseEvent *ev)
@@ -305,13 +376,18 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
     }
 
     /* 这里要与主界面的一些控件做通信 */
+
+
+    /*
     foreach (QWidget *w, mWindow->imgPropertyWidget->layout()->findChildren<QWidget*>()) {
-        delete w;  /* 释放原来的控件 */
-    }
+        delete w;  // 释放原来的控件
+    }*/
+
+    removeWidFromLayout(mWindow->imgPropertyWidget->layout());
     delete mWindow->imgPropertyWidget->layout();
     QVBoxLayout *v = new QVBoxLayout();
     v->setObjectName(IMGGRPLYT);
-    v->addSpacing(1);
+
 
     mWindow->imgPropertyWidget->setLayout(v);
     //mWindow->imgPropertyWidget->setTitle(this->objectName());
@@ -369,15 +445,25 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
                 if(uname.compare("geometry") &&
                         uname.compare("image"))
                 {
+                    if(qvm.contains("id"))
+                    {
+                        v->addWidget(new QLabel(uname));
+                        v->addWidget(new QLabel(this->property("uid").toString()));
+
+                    } /* 这里是一个特殊属性,唯一序号 */
+
                     if(qvm["default"].type() == QVariant::Double)
                     {
-                        QDateTime t;
+                       // QDateTime t;
 
                         // QTextEdit *id = new QTextEdit(t.toLocalTime().toString());
                         // id->setEnabled(false);
-
+                        /* 这里要区分ID 还是数字属性 */
                         v->addWidget(new QLabel(uname));
-                        v->addWidget(new QLabel(QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch())));
+                        QSpinBox *s = new QSpinBox();
+                        v->addWidget(s);
+                        s->setValue(qvm["default"].toInt());
+                      //  v->addWidget(new QLabel(QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch())));
                     }
                     else{
                         QTextEdit *txt = new QTextEdit(qvm["default"].toString());
@@ -393,6 +479,7 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 
         }
     }
+    v->addSpacerItem(new QSpacerItem(100,300));
 
 }
 

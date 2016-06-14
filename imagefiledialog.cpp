@@ -21,8 +21,6 @@ ImageFileDialog::ImageFileDialog(QWidget *parent)
     this->setWindowTitle(tr("图片编辑"));
 
 
-
-
     add = new QPushButton(tr("<--"));
     del =new QPushButton(tr("-->"));
     QVBoxLayout *v = new QVBoxLayout();
@@ -75,6 +73,7 @@ ImageFileDialog::ImageFileDialog(QWidget *parent)
 
 void ImageFileDialog::onListViewDoubleClicked(QModelIndex index)
 {
+    /* 双击添加到右框*/
     //  QString sstr = fileModel->data(index).toString();
     //qDebug() << " here is dir or file " << sstr;
     // fileModel->fileInfo(index).absolutePath();
@@ -103,11 +102,12 @@ void ImageFileDialog::onListViewDoubleClicked(QModelIndex index)
 
 void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
 {
+    /* 双击从右框删除 */
     // sellist->takeItem(index.row())->text();
     QString selstr = sellist->takeItem(index.row())->text();
     QModelIndex qmi = fileModel->index(selstr);
-    QString f = fileModel->fileInfo(fileModel->index(selstr)).absoluteFilePath();
-    qDebug() << " will show the " << f << " selected str: " << selstr;
+    QString fpath = fileModel->fileInfo(fileModel->index(selstr)).absoluteFilePath();
+    qDebug() << " will show the " << fpath << " selected str: " << selstr;
 
     //sellist->setRowHidden(index.row(),true);
     delete sellist->takeItem(index.row());
@@ -115,7 +115,8 @@ void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
     flistview->setRowHidden(hRows[selstr].row(),false);
    // selMap.remove(selstr);
 
-    int i = selstrList.indexOf( QString("%1:%2").arg(selstr,f));
+    /* 从列表删除 */
+   int i = selstrList.indexOf( QString("%1:%2").arg(selstr,fpath));
    if( -1 != i )
        selstrList.removeAt(i);
 }
@@ -125,12 +126,16 @@ void ImageFileDialog::onDelSelectedItems()
     QList<QListWidgetItem*> items = sellist->selectedItems();
     foreach(QListWidgetItem * item, items)
     {
+        QString selstr = item->text();
 
-
-        flistview->setRowHidden(hRows[item->text()].row(),false);
+        flistview->setRowHidden(hRows[selstr].row(),false);
 
         delete sellist->takeItem(sellist->row(item));
        // selMap.remove(item->text());
+        QString fpath = fileModel->fileInfo(hRows[selstr]).absoluteFilePath();
+        int i = selstrList.indexOf( QString("%1:%2").arg(selstr,fpath));
+        if( -1 != i )
+            selstrList.removeAt(i);
     }
     sellist->clearSelection();
 }

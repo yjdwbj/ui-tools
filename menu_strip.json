@@ -1,5 +1,6 @@
 {
     "-name":"frame",
+    "caption":"菜单",
     "widget":[
         {
             "-name":"label",

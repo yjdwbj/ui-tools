@@ -1,15 +1,15 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
-#include "dragwidget.h"
-
 #include "handlejson.h"
+#include "compoentcontrols.h"
 #include <QStandardPaths>
 
 
 
 static bool isWidget = true;
 
+static int CanvasW  = 320;
+static int CanvasH  = 240;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -20,37 +20,57 @@ MainWindow::MainWindow(QWidget *parent) :
     imgPropertyWidget(new QGroupBox())
 
 {
-    QDesktopWidget *pDwgt = QApplication::desktop();
+
     ui->setupUi(this);
+
+
+    //this->showFullScreen();
+
     imgPropertyWidget->setTitle(tr("元素属性"));
     imgPropertyWidget->setLayout(new QVBoxLayout());
     propertyWidget->setTitle(tr("控件属性"));
     propertyWidget->setLayout(new QVBoxLayout());
 
-    propertyWidget->setFlat(true);
+    //propertyWidget->setFlat(true);
 
 
-
+    /*QDesktopWidget *pDwgt = QApplication::desktop();
     QRect desk_rect = pDwgt->screenGeometry(pDwgt->screenNumber(QCursor::pos()));
+    qDebug() << "desk rect is " << desk_rect;
     int desk_x = desk_rect.width();
     int desk_y = desk_rect.height();
-   // ui->centralWidget->setFixedHeight(desk_y);
+
+    this->setMaximumSize(desk_rect.size());
+
+    ui->centralWidget->setMaximumSize(desk_rect.width(),desk_rect.height() -35);
+    this->showMaximized();
+    this->centralWidget()->showMaximized();
+    */
+    //ui->centralWidget->setFixedHeight(desk_y);
    // ui->centralWidget->setFixedWidth(desk_x-400);
     mCanvas = new QFrame(ui->centralWidget);
     mCanvas->setFrameShadow(QFrame::Raised);
     mCanvas->setFrameShape(QFrame::StyledPanel);
     mCanvas->installEventFilter(this);
-    int ch = ui->centralWidget->height()+200;
-    int cw = ui->centralWidget->width()+300;
-    mCanvas->move(cw/2,ch/2);
-    mCanvas->setFixedSize(320,240);
+
+    //mCanvas->move((this->size().width()/2) - CanvasW,(this->size().height()/2)-CanvasH);
+    mCanvas->move((this->size().width()/2) - CanvasW /2  ,(this->size().height()/2)-200 / 2);
+    //mCanvas->move(QPoint(100,100));
+    //mCanvas->move(ch/2,cw/2);
+   // mCanvas->move(this->mapFromGlobal(QPoint(ch/2,cw/2)));
+
+    mCanvas->setFixedSize(CanvasW,CanvasH);
+    qDebug() << " this size " << this->geometry();
+    qDebug() << " this centralWidget size " << ui->centralWidget->geometry();
+    qDebug() << "mCanvas pos " << mCanvas->pos();
 
 
     ui->mainToolBar->addWidget(new QPushButton("test"));
 
-
-    lDock = new QDockWidget(tr("left"));
+    /* 左边属性框 */
+    lDock = new QDockWidget();
     lDock->setAllowedAreas( Qt::LeftDockWidgetArea);
+    lDock->setFeatures(QDockWidget::NoDockWidgetFeatures);
     lDock->setFixedWidth(180);
     lDock->setObjectName("LeftDock");
     lList = new QListWidget();
@@ -62,12 +82,19 @@ MainWindow::MainWindow(QWidget *parent) :
     lDock->setWidget(lDockWidget);
 
 
+
     QVBoxLayout *leftLayout = new QVBoxLayout();
+
    // lDock->setLayout(leftLayout);
     leftLayout->setObjectName("leftLayout");
     lDockWidget->setLayout(leftLayout);
+    lDockWidget->setStyleSheet("QGroupBox{border: 1px solid gray;top: 18px; padding: 6px}");
 
-    leftLayout->addWidget(lList);
+   // leftLayout->addWidget(lList);
+    CompoentControls *cc = new  CompoentControls(lDockWidget);
+    leftLayout->addWidget(cc);
+
+    lList->setFixedHeight((lDock->size().height() -50) / 2);
 
 
 
@@ -76,6 +103,10 @@ MainWindow::MainWindow(QWidget *parent) :
     //propertyStack->setObjectName("ObjProperty");
 
     leftLayout->addWidget(propertyWidget);
+   // propertyWidget->setStyleSheet("{top: 12px; padding: 1px;}");
+
+   // leftLayout->addSpacerItem(new QSpacerItem(10,10));
+    //propertyWidget->setStyleSheet("QGroupBox{border: 1px solid gray;}");
     leftLayout->addWidget(imgPropertyWidget); /* 单个图片的属性组 */
 
 
@@ -85,9 +116,12 @@ MainWindow::MainWindow(QWidget *parent) :
     lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/calc.png")),tr("calc")));
     addDockWidget(Qt::LeftDockWidgetArea, lDock);
     lList->setFixedWidth(160);
+    QScrollArea *defcom = new QScrollArea();
 
 
-    rDock = new QDockWidget(tr("right"));
+
+
+    /*rDock = new QDockWidget(tr("right"));
     rDock->setObjectName("RightDock");
     rDock->setAllowedAreas(Qt::RightDockWidgetArea);
 
@@ -95,7 +129,9 @@ MainWindow::MainWindow(QWidget *parent) :
     rList->setObjectName("rDockListWidget");
     addDockWidget(Qt::RightDockWidgetArea, rDock);
     rDock->setWidget(rList);
-    rList->setFixedWidth(160);
+    rList->setFixedWidth(160);*/
+
+    /*
     QString filename =  QDir::currentPath() + "/menu_strip.json";
     //qDebug() << " json file name " << filename;
     QFileInfo qfi(filename);
@@ -104,19 +140,17 @@ MainWindow::MainWindow(QWidget *parent) :
         QMessageBox::warning(this,tr("错误"),tr("找不到控件文件"));
         return;
     }
-    //qDebug() << " json file name is : " << filename;
+
     HandleJson *hj = new HandleJson(filename);
   //  mCanvas->setProperty("PropertyStack",QVariant::fromValue(propertyStack));
     QWidgetList qwlist = qApp->allWidgets();
 
-    /*for(QWidgetList::const_iterator it = qwlist.begin(); it != qwlist.end();++it )
-    {
-        qDebug() << " All Qwidget list object : " << (*it)->objectName();
-    }*/
+
     QWidget *ww = (QWidget*)(hj->CreateObjectFromJson(hj->mJsonMap,mCanvas));
     qDebug() << "New object Rect " << ww->geometry()
              << " Pos " <<  ww->mapToParent(ww->pos());
     delete hj;
+            */
    // ww->move(ww->parentWidget()->mapFromGlobal(QPoint(200,200)));
 
 
@@ -165,7 +199,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                     .arg(QString::number(pxy.ry()))
                     .arg(QString::number(gxy.rx()))
                     .arg(QString::number(gxy.rx()));
-            ui->statusBar->showMessage( msg );
+            ui->debugEdit->setText( msg );
 
 
             qDebug() << " mapto global or parent";
@@ -183,6 +217,13 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
     return false;
 }
 
+
+void MainWindow::mousePressEvent(QMouseEvent *ev)
+{
+     ui->statusBar->showMessage(QString("mouse x:%1 , y:%2 ")
+                    .arg(QString::number(ev->pos().rx()))
+                    .arg(QString::number(ev->pos().ry()))  );
+}
 
 
 

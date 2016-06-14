@@ -22,11 +22,12 @@ class HandleJson{
 
 public:
      HandleJson(QString name);
-     void HandleFrameObject(QJsonObject qjo,QString ParentName);
+     //void HandleFrameObject(QJsonObject qjo,QString ParentName);
      void ReadJsonFile();
      void HandleJsonMap(QVariantMap qvm);
      QObject* CreateObjectFromJson(QVariantMap qvm, QObject *obj);
      QRect readRect(QVariantMap qvm);
+     QVariantMap getCompoentMap() const { return mJsonMap;}
 
 
      QVariantMap mJsonMap;
@@ -41,15 +42,8 @@ private:
     QString RECT ="rect";
     QString QFRAME = "QFrame";
     QString QLABEL = "QLabel";
-    typedef struct  ObjComt{
-        QString objName;
-        QString clsName;
-        QVariantMap  property;
-        QVariantMap  child;
-        QObject *obj;
-        QString parentName;
-    };
-    QList<ObjComt>  ComList;
+
+    //QList<ObjComt>  ComList;
     QString jsonName ;
     NewFrame *mParentObj;
 

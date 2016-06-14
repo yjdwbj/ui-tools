@@ -16,16 +16,16 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    dragwidget.cpp \
     module.cpp \
     handlejson.cpp \
-    imagefiledialog.cpp
+    imagefiledialog.cpp \
+    compoentcontrols.cpp
 
 HEADERS  += mainwindow.h \
-    dragwidget.h \
     module.h \
     handlejson.h \
-    imagefiledialog.h
+    imagefiledialog.h \
+    compoentcontrols.h
 
 FORMS    += mainwindow.ui
 CONFIG += c++11
