@@ -8,7 +8,7 @@ static QString HeadCol = "结点,属性";
 
 TreeDock::TreeDock(MainWindow *mw, QWidget *parent)
     :QDockWidget(parent),
-      mWindow(mw)
+      mWindow(mw), tree(new QTreeWidget())
 {
 
     /*
@@ -85,7 +85,7 @@ TreeDock::TreeDock(MainWindow *mw, QWidget *parent)
         }\
         ";
 
-    QTreeWidget *tree = new QTreeWidget();
+    //QTreeWidget *tree = new QTreeWidget();
     tree->setColumnCount(2);
 
 
@@ -118,6 +118,13 @@ TreeDock::TreeDock(MainWindow *mw, QWidget *parent)
    // tree->setFixedHeight(size().height()-50);
   //  setStyleSheet("QTreeView{}");
    // show();
+}
+
+void TreeDock::addItemToRoot(QString node, QString property)
+{
+    QTreeWidgetItem *root =  tree->topLevelItem(0);
+    QTreeWidgetItem *child = new QTreeWidgetItem(QStringList() << node << property);
+    root->addChild(child);
 }
 
 /*

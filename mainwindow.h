@@ -24,9 +24,11 @@
 #include <QtWidgets/QMessageBox>
 #include <QScrollArea>
 #include <QTreeWidget>
+#include "treedock.h"
 
 
 
+class TreeDock;
 
 
 
@@ -52,6 +54,7 @@ public:
     QGroupBox *propertyWidget;
     QGroupBox *imgPropertyWidget;
      QFrame *mCanvas;
+      TreeDock *tree;
 
 
 private:
@@ -77,6 +80,7 @@ private:
 
     void HandleFrameObject(QJsonObject qjo, QString ParentName);
     QWidget *pWin;
+
 
 };
 

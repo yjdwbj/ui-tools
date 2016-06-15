@@ -16,10 +16,12 @@ class TreeDock : public QDockWidget
     Q_OBJECT
 public:
     explicit TreeDock(MainWindow *mw, QWidget *parent=Q_NULLPTR);
+    void addItemToRoot(QString node,QString property);
 
 
 private:
     MainWindow *mWindow;
+      QTreeWidget *tree;
 };
 
 /*

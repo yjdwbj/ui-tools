@@ -13,6 +13,7 @@ TEMPLATE = app
 
 
 
+QMAKE_LIBS_OPENGL -= -lGL
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -31,6 +32,7 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui
 CONFIG += c++11
+
 
 RESOURCES += \
     ut-tools.qrc

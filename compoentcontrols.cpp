@@ -28,7 +28,7 @@ CompoentControls::CompoentControls(QWidget *parent) : QWidget(parent)
     connect(btnTest,SIGNAL(clicked(bool)),SLOT(onCreateCompoentToCanvas()));
       */
     mJsonFile =  QDir::currentPath() + "/menu_strip.json";
-    //qDebug() << " json file name " << filename;
+    qDebug() << " json file name " << mJsonFile;
     QFileInfo qfi(mJsonFile);
     if(!qfi.exists())
     {
@@ -170,6 +170,7 @@ void CompoentControls::onCreateCompoentToCanvas()
 
     ww->setObjectName(QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
     comList.append(ww);
+    mWindow->tree->addItemToRoot(btn->text(),"Layer");
 
 
     qDebug() << " clicked add QWidget " << ww->objectName() << ww->pos();

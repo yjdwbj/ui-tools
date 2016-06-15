@@ -2,7 +2,7 @@
 #include "ui_mainwindow.h"
 #include "handlejson.h"
 #include "compoentcontrols.h"
-#include "treedock.h"
+
 #include <QStandardPaths>
 
 
@@ -131,9 +131,10 @@ MainWindow::MainWindow(QWidget *parent) :
     lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/kuser.png")),tr("kuser")));
     lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/calc.png")),tr("calc")));
     addDockWidget(Qt::LeftDockWidgetArea, lDock);
+    tree = new TreeDock(this,this);
 
    // addDockWidget(Qt::LeftDockWidgetArea,new TreeDock(this));
-    splitDockWidget(lDock,new TreeDock(this,this),Qt::Horizontal);
+    splitDockWidget(lDock,tree,Qt::Horizontal);
     lList->setFixedWidth(160);
     QScrollArea *defcom = new QScrollArea();
 
