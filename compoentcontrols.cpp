@@ -18,14 +18,15 @@ CompoentControls::CompoentControls(QWidget *parent) : QWidget(parent)
 
     QGridLayout *mainLayout = new QGridLayout();
     this->setLayout(mainLayout);
+    this->setFixedHeight(200);
 
 
-    QPushButton *btnTest = new QPushButton(tr("test"));
+    /* QPushButton *btnTest = new QPushButton(tr("test"));
     mainLayout->addWidget(btnTest,0,0);
     mainLayout->setContentsMargins(0,0,0,300);
 
     connect(btnTest,SIGNAL(clicked(bool)),SLOT(onCreateCompoentToCanvas()));
-
+      */
     mJsonFile =  QDir::currentPath() + "/menu_strip.json";
     //qDebug() << " json file name " << filename;
     QFileInfo qfi(mJsonFile);
@@ -37,6 +38,7 @@ CompoentControls::CompoentControls(QWidget *parent) : QWidget(parent)
 
     // HandleJson *hj = new HandleJson(filename);
     ReadJsonFile();
+    CreateButtonList();
     //  mJsonMap = hj->getCompoentMap();
     //  delete hj;
 
@@ -81,7 +83,18 @@ void CompoentControls::ReadJsonFile()
             QPoint mpos;
             if(qd.isObject())
             {
-                mJsonMap = qd.object().toVariantMap();
+                if(qd.object().contains("compoents"))
+                {
+                    comJsonArr =  qd.object()["compoents"].toArray();
+
+                    /* foreach (QJsonValue qjv, qja) {
+
+                        qDebug() << " compoents : " << qjv;
+                        qDebug() << " compoents type" << qjv.type();
+                    }
+                    */
+                }
+                //  mJsonMap = qd.object().toVariantMap();
 
             }
         }else{
@@ -94,12 +107,68 @@ void CompoentControls::ReadJsonFile()
 
 }
 
-void CompoentControls::onCreateCompoentToCanvas()
+void CompoentControls::CreateButtonList()
 {
 
-    QWidget* ww = (QWidget *)CreateObjectFromJson(mJsonMap,mWindow->mCanvas);
-    QString caption = ww->property(DKEY_CAPTION).toString();
-    ww->setObjectName(QString("%1_%2").arg(caption,QString::number(comList.size())));
+    this->setStyleSheet("QPushButton:hover:!pressed\
+    {\
+                            border: 1px solid red;\
+                            background-color: #729FCF;\
+                        }\
+                        QPushButton:open {  \
+                            background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\
+                            stop: 0 #dadbde, stop: 1 #f6f7fa);\
+                        }\
+                        QPushButton::menu-indicator {\
+                            image: url(menu_indicator.png);\
+                            subcontrol-origin: padding;\
+                            subcontrol-position: bottom right;\
+                        }\
+                        QPushButton::menu-indicator:pressed, QPushButton::menu-indicator:open {\
+                            position: relative;\
+                            top: 2px; left: 2px; \
+                        }"\
+                        );
+
+    QSignalMapper *qsm = new QSignalMapper(this);
+
+
+    int mindex = 0;
+    int n = 0;
+    foreach (QJsonValue qjv, comJsonArr)
+    {
+        QVariantMap  qjm = qjv.toObject().toVariantMap();
+        if( qjm.contains("caption"))
+        {
+
+            QString uname = qjm["caption"].toString();
+            comMap[uname] = qjm;
+         //   qDebug() << " uname is : " << uname ;
+            QPushButton *btnTest = new QPushButton(uname);
+          //  qsm->setMapping(btnTest,mindex++);
+            ((QGridLayout*)(this->layout()))->addWidget(btnTest,n++,0);
+            // mainLayout->setContentsMargins(0,0,0,300);
+
+           // connect(btnTest,SIGNAL(clicked(bool)),qsm,SLOT(map()));
+           // connect(qsm,SIGNAL(mapped(int)),this,SLOT(onCreateCompoentToCanvas(int)));
+            connect(btnTest,SIGNAL(clicked(bool)),this,SLOT(onCreateCompoentToCanvas()));
+        }
+    }
+}
+
+void CompoentControls::onCreateCompoentToCanvas()
+{
+   // QObject *sender = QObject::sender(); /* 确定的那一个按钮被点击了 */
+
+    QPushButton *btn = (QPushButton*)(QObject::sender());
+  //  qDebug() << " clicked index " << index;
+
+    QWidget* ww = (QWidget *)CreateObjectFromJson(comMap[btn->text()],mWindow->mCanvas);
+    //QJsonObject qjo = comJsonArr.at(index).toObject();
+   // QWidget* ww = (QWidget *)CreateObjectFromJson(qjo.toVariantMap(),mWindow->mCanvas);
+    //QString caption = ww->property(DKEY_CAPTION).toString();
+
+    ww->setObjectName(QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
     comList.append(ww);
 
 
@@ -224,14 +293,14 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                         if(!clsName.compare(QFRAME))
                         {
 
-                            QFrame *m = qobject_cast<QFrame*>(pobj);
+                           /* NewFrame *m = qobject_cast<NewFrame*>(pobj);
                             int x =m->size().width()/2;
                             int y = m->size().height()/2;
 
 
                             qobject_cast<NewFrame *>(nobj)->setGeometry(r);
-                             qobject_cast<NewFrame *>(nobj)->move(QPoint(x,y));
-
+                            qobject_cast<NewFrame *>(nobj)->move(QPoint(x,y));
+                            */
 
                         }else{
                             qobject_cast<NewLabel *>(nobj)->setGeometry(r);

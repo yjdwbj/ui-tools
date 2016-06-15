@@ -23,6 +23,7 @@
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QMessageBox>
 #include <QScrollArea>
+#include <QTreeWidget>
 
 
 
@@ -48,11 +49,10 @@ public:
     void setWidget(QObject &oob);
     bool eventFilter(QObject *obj, QEvent *event);
 
-
-
     QGroupBox *propertyWidget;
     QGroupBox *imgPropertyWidget;
      QFrame *mCanvas;
+
 
 private:
      void mousePressEvent(QMouseEvent *ev);
@@ -77,9 +77,6 @@ private:
 
     void HandleFrameObject(QJsonObject qjo, QString ParentName);
     QWidget *pWin;
-
-
-
 
 };
 

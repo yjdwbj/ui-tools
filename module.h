@@ -38,9 +38,10 @@ protected:
     QWidget* getQWidgetByName(QString name) const;
     QGroupBox* CreateXYWHGBox(QWidget *p);
     void removeWidFromLayout(QLayout* layout);
+    void clearOtherObjectStyleSheet(QWidget *);
 
 private slots:
-    void onClieck();
+
     void onPictureDialog(bool );
     void onXYWHChangedValue(int);
     void onListImageChanged(QString );

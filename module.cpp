@@ -21,8 +21,11 @@ static QString COMOBJ = "comObj";
 static QString IMGOBJ = "imgObj";
 static QString COMGRPLYT = "ComGpBLyt";
 static QString IMGGRPLYT = "ImgGpBLyt";
-static char * IMGIDX = "ImageIndex";
-static char * IMAGELST = "ImageList";
+static char * DKEY_IMGIDX = "ImageIndex";
+static char * DKEY_IMAGELST = "ImageList";
+
+const int labHeight = 25;
+const QMargins propertyMarg = QMargins(2,12,2,50);
 
 
 
@@ -60,8 +63,11 @@ QGroupBox* NewLabel::CreateXYWHGBox(QWidget *p)
 
     for(QMap<QString,int>::iterator it = xymap.begin();it != xymap.end();++it)
     {
-        xywh->addWidget(new QLabel(it.key()),index,0);
+        QLabel *s = new QLabel(it.key());
+        s->setFixedWidth(35);
+        xywh->addWidget(s,index,0);
         QSpinBox *xedit = new QSpinBox();
+        xedit->setFixedWidth(40);
 
         xedit->setObjectName(it.key());
         xedit->setMaximum(1000);
@@ -72,6 +78,8 @@ QGroupBox* NewLabel::CreateXYWHGBox(QWidget *p)
     }
 
     QGroupBox *xygb = new QGroupBox(tr("坐标位置"));
+    //xywh->setSizeConstraint(QLayout::SetFixedSize);
+    xywh->setContentsMargins(2,10,2,20);
     xygb->setObjectName("xygb");
     xygb->setLayout(xywh);
     return xygb;
@@ -136,6 +144,27 @@ void NewLabel::removeWidFromLayout(QLayout* layout)
 }
 
 
+void NewLabel::clearOtherObjectStyleSheet(QWidget *p)
+{
+    /* 清除控件的红线框 */
+    QList<NewFrame*> nflist =  mWindow->mCanvas->findChildren<NewFrame*>();
+    foreach(NewFrame *x,nflist)
+    {
+        if(x != p)
+        {
+            QList<NewLabel*> list =  x->findChildren<NewLabel*>();
+            QListIterator<NewLabel*> it(list);
+            while(it.hasNext())
+            {
+                NewLabel *nl = it.next();
+                nl->setStyleSheet("");
+            }
+
+           x->setStyleSheet("");
+        }
+    }
+}
+
 void NewLabel::mousePressEvent(QMouseEvent *ev)
 {
 
@@ -143,7 +172,8 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
 
     NewFrame *p =(NewFrame*) (this->parentWidget());
     p->setStyleSheet("QFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
-
+    clearOtherObjectStyleSheet(p);
+/*
     QList<NewFrame*> nflist =  mWindow->mCanvas->findChildren<NewFrame*>();
     foreach(NewFrame *x,nflist)
     {
@@ -152,19 +182,22 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
            x->setStyleSheet("");
         }
     }
-
+    */
+    /*
      qDebug () << " propertyWidget children size: "
                << mWindow->propertyWidget->findChildren<QWidget*>().size();
      qDebug () << " propertyWidget layout children size: "
                << mWindow->propertyWidget->layout()->findChildren<QWidget*>().size();
       qDebug () << " propertyWidget  layout widget children size: "
                 << mWindow->propertyWidget->layout()->widget()->findChildren<QWidget*>().size();
+    */
     removeWidFromLayout(mWindow->propertyWidget->layout());
 
     delete mWindow->propertyWidget->layout();
     QVBoxLayout *v = new QVBoxLayout(mWindow->propertyWidget);
     v->setObjectName(COMGRPLYT);
     v->addSpacing(1);
+    mWindow->propertyWidget->setTitle(p->objectName());
     mWindow->propertyWidget->setLayout(v);
     //  mWindow->propertyWidget->setTitle(p->objectName());
 
@@ -215,12 +248,17 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
 
                     if(qvm.contains("id"))
                     {
-                        v->addWidget(new QLabel(uname));
-                        v->addWidget(new QLabel(this->property("uid").toString()));
+                        QLabel *title = new QLabel(uname);
+                        title->setFixedHeight(labHeight);
+                        v->addWidget(title);
+                        QLabel *id = new QLabel(this->property("uid").toString());
+                        id->setStyleSheet("*{border: 0.5px solid gray;}");
+                        id->setFixedHeight(labHeight);
+                        v->addWidget(id);
                          // 这里是一个特殊属性,唯一序号
                     }
 
-                    if(qvm["default"].type() == QVariant::Double)
+                    else if(qvm["default"].type() == QVariant::Double)
                     {
 
 
@@ -248,7 +286,10 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
 
 
         }
-        v->addStretch(1);
+       // v->addStretch(1);
+       // v->setContentsMargins(2,20,2,50);
+        v->setContentsMargins(propertyMarg);
+       // v->setSizeConstraint(QLayout::SetFixedSize);
        // qDebug() << "next qv is " << qv;
     }
 
@@ -320,7 +361,11 @@ void NewLabel::mouseMoveEvent(QMouseEvent *event)
        // qDebug() << " move pos x: " << event->pos().x() << " y: " << event->pos().y();
        // qDebug() << " move Global  pos x: " << event->globalPos().x() << " y: " << event->globalPos().y();
 
+      //  p->move(p->parentWidget()->mapFromGlobal(QCursor::pos()-mOffset));
+        qDebug() << " click pos  : " << mOffset << " Cursor pos :" << QCursor::pos() ;
+        QPoint t = QPoint(this->size().width(),this->size().height());
         p->move(p->parentWidget()->mapFromGlobal(QCursor::pos()-mOffset));
+      //  p->move(p->mapFromGlobal(QCursor::pos()));
         p->update();
 
         /* 把新的位置更新到右边属性框 */
@@ -358,6 +403,7 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 {
 
     NewFrame *p = (NewFrame *)this->parentWidget();
+    /*
     QList<NewLabel*> list =  p->findChildren<NewLabel*>();
     QListIterator<NewLabel*> it(list);
     while(it.hasNext())
@@ -366,6 +412,17 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
         nl->setStyleSheet("");
     }
     p->setStyleSheet("");
+    */
+    clearOtherObjectStyleSheet(p);
+    p->setStyleSheet("");
+    QList<NewLabel*> list =  p->findChildren<NewLabel*>();
+    QListIterator<NewLabel*> it(list);
+    while(it.hasNext())
+    {
+        NewLabel *nl = it.next();
+        qDebug() << "  label style sheet "  << nl->styleSheet();
+        nl->setStyleSheet("");
+    }
 
     this->setStyleSheet("QLabel{border: 1px solid red;}");
     /* here testing dyanmicProperty */
@@ -420,7 +477,7 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 
                 QComboBox *cb = new QComboBox();
                 cb->setObjectName("ListImage");
-                this->setProperty(IMGIDX,0); /* 当前选择的行号*/
+                this->setProperty(DKEY_IMGIDX,0); /* 当前选择的行号*/
                 //QString uname =  qvm["-name"].toString();
                 QVariantList qvlist = qvm["list"].toList();
                 for(QVariantList::const_iterator it = qvlist.begin();
@@ -452,7 +509,7 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 
                     } /* 这里是一个特殊属性,唯一序号 */
 
-                    if(qvm["default"].type() == QVariant::Double)
+                    else if(qvm["default"].type() == QVariant::Double)
                     {
                        // QDateTime t;
 
@@ -479,7 +536,8 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 
         }
     }
-    v->addSpacerItem(new QSpacerItem(100,300));
+    //v->addSpacerItem(new QSpacerItem(100,300));
+    v->setContentsMargins(propertyMarg);
 
 }
 
@@ -487,7 +545,7 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 void NewLabel::onListImageChanged(QString img)
 {
    //  selectedMap sMap = this->property(IMAGELST).toMap();
-   QStringList selList = this->property(IMAGELST).toStringList();
+   QStringList selList = this->property(DKEY_IMAGELST).toStringList();
    foreach (QString s, selList) {
        QString k = s.section(":",0,0);
        if(!k.compare(img))
@@ -519,7 +577,7 @@ void NewLabel::onPictureDialog(bool b)
             break;
         }
     }
-    this->setProperty(IMAGELST,selList); /* 保存它的图片列表在它的动态属性中 */
+    this->setProperty(DKEY_IMAGELST,selList); /* 保存它的图片列表在它的动态属性中 */
     foreach (QString s, selList) {
        cb->addItem(s.section(":",0,0));
     }
@@ -527,12 +585,6 @@ void NewLabel::onPictureDialog(bool b)
     cb->setCurrentIndex(0);
 }
 
-
-
-void NewLabel::onClieck()
-{
-    qDebug() << " On Clicked";
-}
 
 NewFrame::NewFrame(QWidget *parent)
     :QWidget(parent)

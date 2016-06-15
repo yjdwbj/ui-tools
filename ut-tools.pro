@@ -19,13 +19,15 @@ SOURCES += main.cpp\
     module.cpp \
     handlejson.cpp \
     imagefiledialog.cpp \
-    compoentcontrols.cpp
+    compoentcontrols.cpp \
+    treedock.cpp
 
 HEADERS  += mainwindow.h \
     module.h \
     handlejson.h \
     imagefiledialog.h \
-    compoentcontrols.h
+    compoentcontrols.h \
+    treedock.h
 
 FORMS    += mainwindow.ui
 CONFIG += c++11

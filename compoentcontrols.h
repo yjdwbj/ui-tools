@@ -6,6 +6,7 @@
 #include <QtCore/QJsonObject>
 #include <QtCore/QJsonArray>
 #include <QDateTime>
+#include <QSignalMapper>
 #include "mainwindow.h"
 
 static QString NAME = "-name";
@@ -35,11 +36,15 @@ private:
      void ReadJsonFile();
      QString mJsonFile;
      QWidgetList comList;
+     QJsonArray comJsonArr;
+     QMap<QString,QVariantMap> comMap;
+     void CreateButtonList();
 
 signals:
 
 public slots:
      void onCreateCompoentToCanvas();
+
 };
 
 #endif // COMPOENTCONTROLS_H

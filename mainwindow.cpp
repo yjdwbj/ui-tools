@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "handlejson.h"
 #include "compoentcontrols.h"
+#include "treedock.h"
 #include <QStandardPaths>
 
 
@@ -30,6 +31,13 @@ MainWindow::MainWindow(QWidget *parent) :
     imgPropertyWidget->setLayout(new QVBoxLayout());
     propertyWidget->setTitle(tr("控件属性"));
     propertyWidget->setLayout(new QVBoxLayout());
+    propertyWidget->setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");
+    imgPropertyWidget->setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");
+
+
+
+
+
 
     //propertyWidget->setFlat(true);
 
@@ -94,6 +102,7 @@ MainWindow::MainWindow(QWidget *parent) :
     CompoentControls *cc = new  CompoentControls(lDockWidget);
     leftLayout->addWidget(cc);
 
+
     lList->setFixedHeight((lDock->size().height() -50) / 2);
 
 
@@ -101,13 +110,20 @@ MainWindow::MainWindow(QWidget *parent) :
     //QStackedLayout *propertyStack = new QStackedLayout();
   //  this->rightStackedLayout()->setObjectName("ObjProperty");
     //propertyStack->setObjectName("ObjProperty");
+    QFrame *qcl = new QFrame();
 
-    leftLayout->addWidget(propertyWidget);
+    QVBoxLayout *propertyLayout = new QVBoxLayout(qcl);
+    propertyLayout->addWidget(propertyWidget);
+    propertyLayout->addWidget(imgPropertyWidget);
+
+
+    leftLayout->addWidget(qcl);
+   // leftLayout->addWidget(propertyWidget);
    // propertyWidget->setStyleSheet("{top: 12px; padding: 1px;}");
 
    // leftLayout->addSpacerItem(new QSpacerItem(10,10));
     //propertyWidget->setStyleSheet("QGroupBox{border: 1px solid gray;}");
-    leftLayout->addWidget(imgPropertyWidget); /* 单个图片的属性组 */
+    //leftLayout->addWidget(imgPropertyWidget); /* 单个图片的属性组 */
 
 
     lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/krfb.png")),tr("test")));
@@ -115,6 +131,9 @@ MainWindow::MainWindow(QWidget *parent) :
     lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/kuser.png")),tr("kuser")));
     lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/calc.png")),tr("calc")));
     addDockWidget(Qt::LeftDockWidgetArea, lDock);
+
+   // addDockWidget(Qt::LeftDockWidgetArea,new TreeDock(this));
+    splitDockWidget(lDock,new TreeDock(this,this),Qt::Horizontal);
     lList->setFixedWidth(160);
     QScrollArea *defcom = new QScrollArea();
 
