@@ -13,19 +13,7 @@
 #include <QTreeView>
 #include <QSignalMapper>
 
-static QString X = "X:";
-static QString Y = "Y:";
-static QString W = "宽度:";
-static QString H = "高度:";
-static QString COMOBJ = "comObj";
-static QString IMGOBJ = "imgObj";
-static QString COMGRPLYT = "ComGpBLyt";
-static QString IMGGRPLYT = "ImgGpBLyt";
-static char * DKEY_IMGIDX = "ImageIndex";
-static char * DKEY_IMAGELST = "ImageList";
-
-const int labHeight = 25;
-const QMargins propertyMarg = QMargins(2,12,2,50);
+#include "config.h"
 
 
 
@@ -85,6 +73,12 @@ QGroupBox* NewLabel::CreateXYWHGBox(QWidget *p)
     return xygb;
 }
 
+
+void NewLabel::addPropertyBoxSignal(QSpinBox *b)
+{
+    connect(b,SIGNAL(valueChanged(int)),this,SLOT(onXYWHChangedValue(int)));
+}
+
 void NewLabel::onXYWHChangedValue(int v)
 {
     /* 绑定坐标控件的更新 */
@@ -126,6 +120,9 @@ void NewLabel::onXYWHChangedValue(int v)
 
 void NewLabel::removeWidFromLayout(QLayout* layout)
 {
+
+    if(!layout)
+        return;
     QLayoutItem* child;
     while(layout->count()!=0)
     {
@@ -165,166 +162,11 @@ void NewLabel::clearOtherObjectStyleSheet(QWidget *p)
     }
 }
 
-void NewLabel::mousePressEvent(QMouseEvent *ev)
-{
-
-    /* 单击选中它的父对像 */
-
-    NewFrame *p =(NewFrame*) (this->parentWidget());
-    p->setStyleSheet("QFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
-    clearOtherObjectStyleSheet(p);
-/*
-    QList<NewFrame*> nflist =  mWindow->mCanvas->findChildren<NewFrame*>();
-    foreach(NewFrame *x,nflist)
-    {
-        if(x != p)
-        {
-           x->setStyleSheet("");
-        }
-    }
-    */
-    /*
-     qDebug () << " propertyWidget children size: "
-               << mWindow->propertyWidget->findChildren<QWidget*>().size();
-     qDebug () << " propertyWidget layout children size: "
-               << mWindow->propertyWidget->layout()->findChildren<QWidget*>().size();
-      qDebug () << " propertyWidget  layout widget children size: "
-                << mWindow->propertyWidget->layout()->widget()->findChildren<QWidget*>().size();
-    */
-    removeWidFromLayout(mWindow->propertyWidget->layout());
-
-    delete mWindow->propertyWidget->layout();
-    QVBoxLayout *v = new QVBoxLayout(mWindow->propertyWidget);
-    v->setObjectName(COMGRPLYT);
-    v->addSpacing(1);
-    mWindow->propertyWidget->setTitle(p->objectName());
-    mWindow->propertyWidget->setLayout(v);
-    //  mWindow->propertyWidget->setTitle(p->objectName());
-
-    v->addWidget(CreateXYWHGBox(p));
-
-
-    QVariantList qvl = p->property("dynProperty").toList();
-    foreach(QVariant qv, qvl)
-    {
-
-        if(qv.type() == QVariant::Map)
-        {
-            QVariantMap qvm = qv.toMap();
-            QString uname =  qvm["-name"].toString();
-            if(qvm.contains("enum"))
-            {
-
-
-                QComboBox *cb = new QComboBox();
-                QVariantList qvlist = qvm["enum"].toList();
-                for(QVariantList::const_iterator it = qvlist.begin();
-                    it != qvlist.end();++it)
-                {
-
-                    cb->addItem((*it).toMap().firstKey());
-                }
-                v->addWidget(new QLabel(uname));
-                v->addWidget(cb);
-
-            }else if(qvm.contains("list"))
-            {
-
-                QComboBox *cb = new QComboBox();
-                //QString uname =  qvm["-name"].toString();
-                QVariantList qvlist = qvm["list"].toList();
-                for(QVariantList::const_iterator it = qvlist.begin();
-                    it != qvlist.end();++it)
-                {
-                    cb->addItem((*it).toString());
-                }
-                v->addWidget(new QLabel(uname));
-                v->addWidget(cb);
-
-            }
-            else{
-                if(uname.compare("geometry"))
-                {
-
-                    if(qvm.contains("id"))
-                    {
-                        QLabel *title = new QLabel(uname);
-                        title->setFixedHeight(labHeight);
-                        v->addWidget(title);
-                        QLabel *id = new QLabel(this->property("uid").toString());
-                        id->setStyleSheet("*{border: 0.5px solid gray;}");
-                        id->setFixedHeight(labHeight);
-                        v->addWidget(id);
-                         // 这里是一个特殊属性,唯一序号
-                    }
-
-                    else if(qvm["default"].type() == QVariant::Double)
-                    {
-
-
-                        // QTextEdit *id = new QTextEdit(t.toLocalTime().toString());
-                        // id->setEnabled(false);
-                        v->addWidget(new QLabel(uname));
-                        QSpinBox *s = new QSpinBox();
-                        v->addWidget(s);
-                        s->setValue(qvm["default"].toInt());
-
-
-                        //v->addWidget(new QLabel(QString::number(this->property("uid").toDouble())));
-                       // v->addWidget(new QLabel(QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch())));
-                    }
-                    else{
-                        QTextEdit *txt = new QTextEdit(qvm["default"].toString());
-                        v->addWidget(new QLabel(uname));
-                        v->addWidget(txt);
-                        txt->setFixedHeight(25);
-                        //  v->addSpacerItem(new QSpacerItem(10,50));
-
-                    }
-                }
-            }
-
-
-        }
-       // v->addStretch(1);
-       // v->setContentsMargins(2,20,2,50);
-        v->setContentsMargins(propertyMarg);
-       // v->setSizeConstraint(QLayout::SetFixedSize);
-       // qDebug() << "next qv is " << qv;
-    }
-
-
-    mOffset = ev->pos();
-
-    QWidget *mCanvas  = p->parentWidget();
-    QTextEdit *sb = mCanvas->parentWidget()->findChild<QTextEdit*>("debugEdit");
-    if(sb)
-    {
-
-        /*mWindow->ui.debugEdit.setText(QString("mouse x:%1 , y:%2 ")
-                        .arg(QString::number(ev->pos().rx()))
-                        .arg(QString::number(ev->pos().ry()))  );
-                        */
-
-    }
-
-     QTextEdit *et = (QTextEdit *)(getQWidgetByName("debugEdit"));
-     if(et != 0 )
-     {
-         et->setText(QString("mouse x:%1 , y:%2 ")
-                     .arg(QString::number(ev->pos().rx()))
-                     .arg(QString::number(ev->pos().ry())));
-     }
-    ev->accept();
-
-
-    //  emit Clicked();
-}
 
 QWidget *NewLabel::getQWidgetByName(QString name) const
 {
     QWidgetList tlist = qApp->topLevelWidgets();
-    QWidget *w = 0;
+
     for(QWidgetList::iterator wit = tlist.begin();wit != tlist.end();++wit)
     {
        // qDebug() << "find object by name :" << (*wit)->objectName();
@@ -337,11 +179,65 @@ QWidget *NewLabel::getQWidgetByName(QString name) const
     return (QWidget*)0;
 }
 
+
+
+
+void NewLabel::mousePressEvent(QMouseEvent *ev)
+{
+
+    /* 单击选中它的父对像 */
+
+    NewFrame *p =(NewFrame*) (this->parentWidget());
+    p->setStyleSheet("QFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
+    clearOtherObjectStyleSheet(p);
+    mWindow->propertyWidget->createPropertyBox(p);
+
+
+     QTextEdit *et = (QTextEdit *)(getQWidgetByName("debugEdit"));
+     if(et != 0 )
+     {
+         et->setText(QString("mouse x:%1 , y:%2 ")
+                     .arg(QString::number(ev->pos().rx()))
+                     .arg(QString::number(ev->pos().ry())));
+     }
+    ev->accept();
+    mOffset = ev->pos();
+    setCursor(Qt::ClosedHandCursor);
+}
+
+
 void NewLabel::mouseReleaseEvent(QMouseEvent *ev)
 {
+
+    /* 放开鼠标时检查它的是否出了边界要 */
     NewFrame *p =(NewFrame*) (this->parentWidget());
- //   qDebug() << " drop pos x: " << ev->pos().x() << " y:" << ev->pos().y();
-  //  qDebug() << " drop Global  pos x: " << ev->globalPos().x() << " y:" << ev->globalPos().y();
+    QPoint pos = p->pos();
+    if(p->x() < 0)
+    {
+        pos.setX(0);
+        p->move(pos);
+
+    }
+    if(p->y() < 0 )
+    {
+        pos.setY(0);
+        p->move(pos);
+
+    }
+
+    QSize ms = mWindow->mCanvas->size();
+    if((p->x() + p->size().width()) > ms.width())
+    {
+        pos.setX( ms.width() - p->size().width() );
+        p->move(pos);
+    }
+
+    if((p->y() + p->size().height()) > ms.height())
+    {
+        pos.setY(ms.height() - p->size().height());
+        p->move(pos);
+    }
+    qDebug() << " parent Widget pos " << p->pos() << "size : " << p->size() << " geomerty " << p->geometry();
 
 
 }
@@ -352,21 +248,9 @@ void NewLabel::mouseMoveEvent(QMouseEvent *event)
     if (event->buttons() & Qt::LeftButton)
     {
         NewFrame *p =(NewFrame*) (this->parentWidget());
-        //  qDebug() << "checked move event " << p->objectName() ;
-        // emit p->mouseMoveEvent(event);
-        //emit this->parentWidget()->mouseMoveEvent(event);
-        // p->move(p->parentWidget()->mapFromGlobal(event->pos()));
         QSize psize = p->parentWidget()->size();
-       // qDebug() << " parent size w: " << psize.width() << " h : " << psize.height();
-       // qDebug() << " move pos x: " << event->pos().x() << " y: " << event->pos().y();
-       // qDebug() << " move Global  pos x: " << event->globalPos().x() << " y: " << event->globalPos().y();
-
-      //  p->move(p->parentWidget()->mapFromGlobal(QCursor::pos()-mOffset));
-        qDebug() << " click pos  : " << mOffset << " Cursor pos :" << QCursor::pos() ;
-        QPoint t = QPoint(this->size().width(),this->size().height());
-        p->move(p->parentWidget()->mapFromGlobal(QCursor::pos()-mOffset));
-      //  p->move(p->mapFromGlobal(QCursor::pos()));
-        p->update();
+        p->move( p->pos() + (event->pos() - mOffset));
+      //  p->update();
 
         /* 把新的位置更新到右边属性框 */
 
@@ -393,10 +277,7 @@ void NewLabel::mouseMoveEvent(QMouseEvent *event)
     //  this->parentWidget()->update();
 }
 
-void NewFrame::mouseMoveEvent(QMouseEvent *event)
-{
-    event->accept();
-}
+
 
 
 void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
@@ -426,15 +307,9 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 
     this->setStyleSheet("QLabel{border: 1px solid red;}");
     /* here testing dyanmicProperty */
-    /* 这里测试打一下对像的所有动态性 */
-    foreach(QByteArray qba, this->dynamicPropertyNames())
-    {
-        // qDebug() << QString::fromLocal8Bit(qba) << this->property(qba);
-    }
+
 
     /* 这里要与主界面的一些控件做通信 */
-
-
     /*
     foreach (QWidget *w, mWindow->imgPropertyWidget->layout()->findChildren<QWidget*>()) {
         delete w;  // 释放原来的控件
@@ -449,7 +324,7 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
     mWindow->imgPropertyWidget->setLayout(v);
     //mWindow->imgPropertyWidget->setTitle(this->objectName());
 
-    QVariantList qvl = this->property("dynProperty").toList();
+    QVariantList qvl = this->property(DKEY_DYN).toList();
     /* 根据JSON格式动态生成下面的控件 */
     foreach(QVariant qv, qvl)
     {
@@ -550,11 +425,11 @@ void NewLabel::onListImageChanged(QString img)
        QString k = s.section(":",0,0);
        if(!k.compare(img))
        {
-           this->setPixmap(QPixmap(s.section(":",1,1)));
+           this->setPixmap(QPixmap(s.section(":",1,1)));/* 更新图片 */
            break;
        }
    }
-   //  this->setPixmap(QPixmap(sMap[img].toString())); /* 更新图片 */
+
 }
 
 
@@ -589,57 +464,100 @@ void NewLabel::onPictureDialog(bool b)
 NewFrame::NewFrame(QWidget *parent)
     :QWidget(parent)
 {
-
+    //connect(this,SIGNAL(Clicked()),SLOT(onSelectMe()));
 }
 
 void NewFrame::mousePressEvent(QMouseEvent *event)
 {
 
-    QWidget *mCanvas  = this->parentWidget();
-    QStatusBar *sb = mCanvas->parentWidget()->findChild<QStatusBar*>();
-    if(sb)
-    {
+}
 
-        sb->showMessage(QString("mouse x:%1 , y:%2 ").arg(QString::number(event->pos().rx())).arg(QString::number(event->pos().ry()))  );
-
-    }
-    event->accept();
-    // emit Clicked();
+void NewFrame::mouseMoveEvent(QMouseEvent *event)
+{
+   // event->accept();
 }
 
 
+void NewFrame::onSelectMe()
+{
+
+
+
+    setStyleSheet("QFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
+    clearOtherObjectStyleSheet(this);
+    mWindow->propertyWidget->createPropertyBox(this);
+}
+
+void NewFrame::addMainWindow(QObject *mw)
+{
+    mWindow = (MainWindow*)mw;
+}
+
+void NewFrame::clearOtherObjectStyleSheet(QWidget *p)
+{
+    /* 清除控件的红线框 */
+    QList<NewFrame*> nflist =  mWindow->mCanvas->findChildren<NewFrame*>();
+    foreach(NewFrame *x,nflist)
+    {
+        if(x != p)
+        {
+            QList<NewLabel*> list =  x->findChildren<NewLabel*>();
+            QListIterator<NewLabel*> it(list);
+            while(it.hasNext())
+            {
+                NewLabel *nl = it.next();
+                nl->setStyleSheet("");
+            }
+
+           x->setStyleSheet("");
+        }
+    }
+}
+
+void NewFrame::onXYWHChangedValue(int v)
+{
+    /* 绑定坐标控件的更新 */
+    QWidget *sender =(QWidget *)(QObject::sender());
+
+   // QWidget *p = this->parentWidget();
+
+  //  p->move(p->parentWidget()->mapFromGlobal(QCursor::pos()-mOffset));
+    if(!sender->objectName().compare(X))
+    {
+
+        QPoint pos = this->pos();
+        pos.setX(v);
+        move(pos);
+
+    }else if(!sender->objectName().compare(Y))
+    {
+
+        QPoint pos = this->pos();
+        pos.setY(v);
+        move(pos );
+
+    }else if(!sender->objectName().compare(W))
+    {
+
+        sender->setFixedWidth(v);
+    }else if(!sender->objectName().compare(H))
+    {
+
+        sender->setFixedHeight(v);
+    }
+    //sender->setGeometry(o);
+
+}
 
 bool NewFrame::eventFilter(QObject *obj, QEvent *event)
 {
-    QWidget *mCanvas  = this->parentWidget();
-    QStatusBar *sb = mCanvas->parentWidget()->findChild<QStatusBar*>();
-    if(sb)
-    {
-        if ( event->type() != QEvent::MouseMove )
-            return false;
 
-        const QMouseEvent* const me = static_cast<const QMouseEvent*>( event );
-        sb->showMessage(QString("mouse x:%1 , y:%2 ").arg(QString::number(me->pos().rx())).arg(QString::number(me->pos().ry()))  );
-    }
-    // event->accept();
     return false;
 }
 
 void NewFrame::enterEvent(QEvent *event)
 {
-    QWidget *mCanvas  = this->parentWidget();
-    QStatusBar *sb = mCanvas->parentWidget()->findChild<QStatusBar*>();
-    if(sb)
-    {
 
-        if ( event->type() == QEvent::MouseButtonPress )
-        {
-            const QMouseEvent* const me = static_cast<const QMouseEvent*>( event );
-            sb->showMessage(QString("mouse x:%1 , y:%2 ").arg(QString::number(me->pos().rx())).arg(QString::number(me->pos().ry()))  );
-        }
-
-    }
-    event->accept();
 
 }
 

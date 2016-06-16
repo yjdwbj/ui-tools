@@ -1,6 +1,6 @@
 #include "handlejson.h"
 #include <QtWidgets/QDesktopWidget>
-
+#include "config.h"
 
 
 
@@ -125,7 +125,7 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
             break;
         }
     }
-    nobj->setProperty("dynProperty",property);
+    nobj->setProperty(DKEY_DYN,property);
     /*  处理每一个json对像的property部分 */
    // qDebug() << "Dynamic Property Count " << nobj->dynamicPropertyNames().count();
     foreach(QByteArray qba,nobj->dynamicPropertyNames())

@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "handlejson.h"
 #include "compoentcontrols.h"
+#include "propertybox.h"
 
 #include <QStandardPaths>
 
@@ -17,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
     out(stdout, QIODevice::WriteOnly),
 
     ui(new Ui::MainWindow),
-    propertyWidget(new QGroupBox()),
+    propertyWidget(new PropertyBox()),
     imgPropertyWidget(new QGroupBox())
 
 {
@@ -29,9 +30,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     imgPropertyWidget->setTitle(tr("元素属性"));
     imgPropertyWidget->setLayout(new QVBoxLayout());
-    propertyWidget->setTitle(tr("控件属性"));
-    propertyWidget->setLayout(new QVBoxLayout());
-    propertyWidget->setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");
+    //propertyWidget->setTitle(tr("控件属性"));
+   // propertyWidget->setLayout(new QVBoxLayout());
+   // propertyWidget->setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");
     imgPropertyWidget->setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");
 
 
@@ -68,9 +69,9 @@ MainWindow::MainWindow(QWidget *parent) :
    // mCanvas->move(this->mapFromGlobal(QPoint(ch/2,cw/2)));
 
     mCanvas->setFixedSize(CanvasW,CanvasH);
-    qDebug() << " this size " << this->geometry();
-    qDebug() << " this centralWidget size " << ui->centralWidget->geometry();
-    qDebug() << "mCanvas pos " << mCanvas->pos();
+   // qDebug() << " this size " << this->geometry();
+   //qDebug() << " this centralWidget size " << ui->centralWidget->geometry();
+   // qDebug() << "mCanvas pos " << mCanvas->pos();
 
 
     ui->mainToolBar->addWidget(new QPushButton("test"));
@@ -113,6 +114,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QFrame *qcl = new QFrame();
 
     QVBoxLayout *propertyLayout = new QVBoxLayout(qcl);
+    // 控件属性框
+    //*pb = new PropertyBox();
+    //propertyLayout->addWidget(pb);
     propertyLayout->addWidget(propertyWidget);
     propertyLayout->addWidget(imgPropertyWidget);
 
@@ -132,6 +136,8 @@ MainWindow::MainWindow(QWidget *parent) :
     lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/calc.png")),tr("calc")));
     addDockWidget(Qt::LeftDockWidgetArea, lDock);
     tree = new TreeDock(this,this);
+    tree->addCompoentControls(cc);
+    tree->addPropBox(propertyWidget);
 
    // addDockWidget(Qt::LeftDockWidgetArea,new TreeDock(this));
     splitDockWidget(lDock,tree,Qt::Horizontal);

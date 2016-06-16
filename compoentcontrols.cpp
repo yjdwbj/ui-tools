@@ -1,5 +1,6 @@
 #include "compoentcontrols.h"
 #include "handlejson.h"
+#include "config.h"
 
 CompoentControls::CompoentControls(QWidget *parent) : QWidget(parent)
 {
@@ -53,7 +54,7 @@ CompoentControls::CompoentControls(QWidget *parent) : QWidget(parent)
 QWidget *CompoentControls::getQWidgetByName(QString name) const
 {
     QWidgetList tlist = qApp->topLevelWidgets();
-    QWidget *w = 0;
+
     for(QWidgetList::iterator wit = tlist.begin();wit != tlist.end();++wit)
     {
         if((*wit)->objectName() == name)
@@ -98,7 +99,7 @@ void CompoentControls::ReadJsonFile()
 
             }
         }else{
-            qDebug() << " read Json file error";
+           // qDebug() << " read Json file error";
             qDebug() << json_error.errorString();
         }
 
@@ -130,7 +131,7 @@ void CompoentControls::CreateButtonList()
                         }"\
                         );
 
-    QSignalMapper *qsm = new QSignalMapper(this);
+    //QSignalMapper *qsm = new QSignalMapper(this);
 
 
     int mindex = 0;
@@ -163,18 +164,20 @@ void CompoentControls::onCreateCompoentToCanvas()
     QPushButton *btn = (QPushButton*)(QObject::sender());
   //  qDebug() << " clicked index " << index;
 
-    QWidget* ww = (QWidget *)CreateObjectFromJson(comMap[btn->text()],mWindow->mCanvas);
-    //QJsonObject qjo = comJsonArr.at(index).toObject();
-   // QWidget* ww = (QWidget *)CreateObjectFromJson(qjo.toVariantMap(),mWindow->mCanvas);
-    //QString caption = ww->property(DKEY_CAPTION).toString();
+    QWidget* ww = (QWidget *)CreateObjectFromJson(comMap[btn->text()],
+            mWindow->mCanvas);
+
 
     ww->setObjectName(QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
     comList.append(ww);
-    mWindow->tree->addItemToRoot(btn->text(),"Layer");
+    ((NewFrame*)ww)->addMainWindow(mWindow);
+    //mWindow->tree->addItemToRoot(btn->text(),"Layer");
+    mWindow->tree->addItemToRoot(ww->objectName(),btn->text());
 
 
-    qDebug() << " clicked add QWidget " << ww->objectName() << ww->pos();
-    qDebug() << " Com List size " << comList.size();
+  //  qDebug() << " clicked add QWidget " << ww->objectName() << ww->pos()  << " size is " << ww->size();
+   // qDebug() << "  geomerty " << ww->geometry();
+   // qDebug() << " Com List size " << comList.size();
     ww->show();
 
 }
@@ -198,7 +201,10 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                 if(!cval.compare(QFRAME))
                 {
                     //mParentObj = new NewFrame();
-                    nobj =qobject_cast<QObject*>(new NewFrame((QWidget *)pobj));
+                    //创建父控件
+                    NewFrame  *n = new NewFrame((QWidget *)pobj);
+                  //  n->addMainWindow(pobj->parent());
+                    nobj =qobject_cast<QObject*>(n);
                     nobj->setProperty("clsName",cval);
                 }
                 else if(!cval.compare(QLABEL))
@@ -260,14 +266,12 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
             break;
         }
     }
-    nobj->setProperty("dynProperty",property);
-    nobj->setProperty("uid",QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch()));
+    nobj->setProperty(DKEY_DYN,property);
+    nobj->setProperty(DKEY_UID,QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch()));
     /*  处理每一个json对像的property部分 */
     // qDebug() << "Dynamic Property Count " << nobj->dynamicPropertyNames().count();
     foreach(QByteArray qba,nobj->dynamicPropertyNames())
     {
-        // qDebug() << " Property Key: "  << QString::fromLocal8Bit(qba);
-        // qDebug() << " Property Val type :" << nobj->property(qba).type();
         QVariantList qvl = nobj->property(qba).toList();
         foreach(QVariant qv, qvl)
         {
@@ -279,9 +283,6 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                 for(QVariantMap::const_iterator it = qvm.begin();it != qvm.end();++it)
                 {
                     QString key = it.key();
-                    // qDebug() << "Property Val Map Key: " << key
-                    //          << " Map Value:" << it.value();
-
                     if(!key.compare(RECT)) /* 这里直接处理json "rect" 对像字段 */
                     {
                         QString clsName = nobj->property("clsName").toString();
@@ -294,14 +295,15 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                         if(!clsName.compare(QFRAME))
                         {
 
-                           /* NewFrame *m = qobject_cast<NewFrame*>(pobj);
-                            int x =m->size().width()/2;
-                            int y = m->size().height()/2;
+                         //   NewFrame *m = qobject_cast<NewFrame*>(pobj);
+                          //  int x =m->size().width()/2;
+                          //  int y = m->size().height()/2;
 
 
-                            qobject_cast<NewFrame *>(nobj)->setGeometry(r);
-                            qobject_cast<NewFrame *>(nobj)->move(QPoint(x,y));
-                            */
+                           qobject_cast<NewFrame *>(nobj)->setGeometry(r);
+                          //  qobject_cast<NewFrame *>(nobj)->move(QPoint(101,101));
+                          qDebug() << "create Frame geometry " << r << qobject_cast<NewFrame *>(nobj)->geometry();
+
 
                         }else{
                             qobject_cast<NewLabel *>(nobj)->setGeometry(r);

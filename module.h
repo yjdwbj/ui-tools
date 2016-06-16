@@ -9,12 +9,14 @@
 #include "mainwindow.h"
 #include "imagefiledialog.h"
 
+#include "propertybox.h"
 
 
-
-
+class MainWindow;
 class NewLabel :public QLabel
 {
+    friend class PropertyBox;
+
     Q_OBJECT
 
 signals:
@@ -28,7 +30,9 @@ public:
         Enum = 0x3
     };
 
-    Ui::MainWindow *ui;
+
+    void createPropertyBox();
+    void addPropertyBoxSignal(QSpinBox *b);
 
 protected:
     void mousePressEvent(QMouseEvent *event) ;
@@ -39,6 +43,7 @@ protected:
     QGroupBox* CreateXYWHGBox(QWidget *p);
     void removeWidFromLayout(QLayout* layout);
     void clearOtherObjectStyleSheet(QWidget *);
+
 
 private slots:
 
@@ -67,17 +72,25 @@ public:
     void mouseMoveEvent(QMouseEvent *event);
     void enterEvent(QEvent *event);
     bool eventFilter(QObject *obj, QEvent *event);
+    void addMainWindow(QObject *mw);
+    void onSelectMe();
+
+private:
+    MainWindow *mWindow;
 
 signals:
    void Clicked();
 private slots:
     void onClick();
+    void onXYWHChangedValue(int v);
+
 
 
 
 
 protected:
     void mousePressEvent(QMouseEvent *event) ;
+    void clearOtherObjectStyleSheet(QWidget *p);
 
    // void mouseDoubleClickEvent(QMouseEvent *event);
 

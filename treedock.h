@@ -6,22 +6,35 @@
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QHeaderView>
+#include "compoentcontrols.h"
+#include "propertybox.h"
 
 class MainWindow;
+class PropertyBox;
+class CompoentControls;
 
 
 class TreeDock : public QDockWidget
 {
-    friend class MainWindow;
     Q_OBJECT
 public:
     explicit TreeDock(MainWindow *mw, QWidget *parent=Q_NULLPTR);
     void addItemToRoot(QString node,QString property);
+    void addCompoentControls(CompoentControls *cc);
+    void addPropBox(PropertyBox *p);
+
+
+
+public slots:
+    void onItemPressed(QTreeWidgetItem *item, int col);
+
 
 
 private:
     MainWindow *mWindow;
-      QTreeWidget *tree;
+    QTreeWidget *tree;
+    CompoentControls *comC;
+    PropertyBox *pb;
 };
 
 /*

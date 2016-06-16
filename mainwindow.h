@@ -25,10 +25,11 @@
 #include <QScrollArea>
 #include <QTreeWidget>
 #include "treedock.h"
-
+#include "propertybox.h"
 
 
 class TreeDock;
+class PropertyBox;
 
 
 
@@ -38,6 +39,8 @@ class MainWindow;
 
 class MainWindow : public QMainWindow
 {
+
+    friend class NewLabel;
     Q_OBJECT
 
 
@@ -51,7 +54,9 @@ public:
     void setWidget(QObject &oob);
     bool eventFilter(QObject *obj, QEvent *event);
 
-    QGroupBox *propertyWidget;
+    //QGroupBox *propertyWidget;
+
+    PropertyBox *propertyWidget;
     QGroupBox *imgPropertyWidget;
      QFrame *mCanvas;
       TreeDock *tree;

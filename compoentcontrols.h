@@ -8,22 +8,16 @@
 #include <QDateTime>
 #include <QSignalMapper>
 #include "mainwindow.h"
+#include "propertybox.h"
+#include "treedock.h"
 
-static QString NAME = "-name";
-static QString WIDGET ="widget";
-static QString CLASS = "-class";
-static QString LAYOUT ="layout";
-static QString PROPERTY = "property";
-static QString ITEM="item";
-static QString RECT ="rect";
-static QString QFRAME = "QFrame";
-static QString QLABEL = "QLabel";
-static QString CAPTION = "caption";
 
-static const char* DKEY_CAPTION = "caption";
-
+class TreeDock;
+class MainWindow;
 class CompoentControls : public QWidget
 {
+    friend class PropertyBox;
+    friend class TreeDock;
     Q_OBJECT
 public:
     explicit CompoentControls(QWidget *parent = 0);
