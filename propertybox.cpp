@@ -4,7 +4,7 @@
 
 // 控件属性的框
 
-PropertyBox::PropertyBox(QWidget *parent) : QGroupBox(parent),
+PropertyBox::PropertyBox(QString title, QWidget *parent) : QGroupBox(parent),
     mainLayout(new QVBoxLayout())
 {
 
@@ -20,9 +20,13 @@ PropertyBox::PropertyBox(QWidget *parent) : QGroupBox(parent),
     }
 
    // setLayout(mainLayout);
+   // setTitle(tr("控件属性"));
+    setTitle(title);
     mainLayout->setObjectName(COMGRPLYT);
-    mainLayout->addSpacing(1);
+   // mainLayout->addSpacing(1);
+    mainLayout->setContentsMargins(0,50,0,0);
     setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");
+    setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
 
 }
 
@@ -61,23 +65,19 @@ QGroupBox* PropertyBox::CreateXYWHGBox(QWidget *p)
     }
 
     QGroupBox *xygb = new QGroupBox(tr("坐标位置"));
+    xygb->setSizePolicy(mSizePolicy);
     //xywh->setSizeConstraint(QLayout::SetFixedSize);
-    xywh->setContentsMargins(2,10,2,20);
+    xywh->setContentsMargins(0,15,0,0);
+
     xygb->setObjectName("xygb");
     xygb->setLayout(xywh);
     return xygb;
 }
 
-void PropertyBox::createPropertyBox(QWidget *p)
+void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
 {
-  //  delete mWindow->propertyWidget->layout();
-  //  QVBoxLayout *v = new QVBoxLayout(mWindow->propertyWidget);
-   // QVBoxLayout *mainLayout = new QVBoxLayout(this);
 
-   // mWindow->propertyWidget->setTitle(p->objectName());
-   // mWindow->propertyWidget->setLayout(v);
     // 删除之前的重新画一个新的.
-
   //  qDebug()  << " object name " << mainLayout->objectName()
     //          << "object uid  " << p->property(DKEY_UID).toString();
 
@@ -97,9 +97,14 @@ void PropertyBox::createPropertyBox(QWidget *p)
     mainLayout->addSpacing(1);
     setTitle(p->objectName());
 
+
     //  mWindow->propertyWidget->setTitle(p->objectName());
 
-    mainLayout->addWidget(CreateXYWHGBox(p));
+    if(!isImage)
+    {
+        mainLayout->addWidget(CreateXYWHGBox(p));
+    }
+
 
 
     QVariantList qvl = p->property(DKEY_DYN).toList();
@@ -112,8 +117,6 @@ void PropertyBox::createPropertyBox(QWidget *p)
             QString uname =  qvm[NAME].toString();
             if(qvm.contains(ENUM))
             {
-
-
                 QComboBox *cb = new QComboBox();
                 QVariantList qvlist = qvm[ENUM].toList();
                 for(QVariantList::const_iterator it = qvlist.begin();
@@ -128,7 +131,7 @@ void PropertyBox::createPropertyBox(QWidget *p)
             }else if(qvm.contains(LIST))
             {
 
-                QComboBox *cb = new QComboBox();
+                /*QComboBox *cb = new QComboBox();
 
                 QVariantList qvlist = qvm[LIST].toList();
                 for(QVariantList::const_iterator it = qvlist.begin();
@@ -138,6 +141,40 @@ void PropertyBox::createPropertyBox(QWidget *p)
                 }
                 mainLayout->addWidget(new QLabel(uname));
                 mainLayout->addWidget(cb);
+                */
+
+                //qDebug() << " class name " << p->metaObject()->className();
+
+                QComboBox *cb = new QComboBox();
+                cb->setObjectName(LISTIMAGE);  // 这里假设一个NewLabel只有这样一个QComoBox
+                p->setProperty(DKEY_IMGIDX,0); // 当前选择的行号
+                //QString uname =  qvm["-name"].toString();
+                QString className = p->metaObject()->className();
+                if(!className.compare("NewLabel"))
+                {
+                    NewLabel *nl = (NewLabel*)p;
+                    if(!nl->disDefaultList)
+                    {
+                        QVariantList qvlist = qvm[LIST].toList();
+                        for(QVariantList::const_iterator it = qvlist.begin();
+                            it != qvlist.end();++it)
+                        {
+                            cb->addItem((*it).toString());//添加默认的列表到Combobox
+
+                        }
+                    }else{
+                        nl->updateComboItems(cb);
+                    }
+                }
+
+                mainLayout->addWidget(new QLabel(uname));
+                //v->addLayout(h);
+                QPushButton *b = new QPushButton(tr("添加图片"));
+                connect(b,SIGNAL(clicked(bool)),p,SLOT(onPictureDialog(bool)));
+                mainLayout->addWidget(b);
+                mainLayout->addWidget(cb);
+                // 绑定QComoBox的更改信号,更改它的值就要在相应的画版控件更新图片
+                connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onListImageChanged(QString)));
 
             }
             else{
@@ -166,6 +203,15 @@ void PropertyBox::createPropertyBox(QWidget *p)
                         QSpinBox *s = new QSpinBox();
                         mainLayout->addWidget(s);
                         s->setValue(qvm[DEFAULT].toInt());
+
+                        if(qvm.contains(MAX))
+                        {
+                            s->setMaximum(qvm[MAX].toInt());
+                        }
+                        if(qvm.contains(MIN))
+                        {
+                            s->setMinimum(qvm[MIN].toInt());
+                        }
                     }
                     else{
                         QTextEdit *txt = new QTextEdit(qvm[DEFAULT].toString());
@@ -182,10 +228,14 @@ void PropertyBox::createPropertyBox(QWidget *p)
         }
        // v->addStretch(1);
        // v->setContentsMargins(2,20,2,50);
-       mainLayout->setContentsMargins(propertyMarg);
+     //  mainLayout->setContentsMargins(propertyMarg);
        // v->setSizeConstraint(QLayout::SetFixedSize);
        // qDebug() << "next qv is " << qv;
     }
+
+    QSpacerItem *verticalSpacer = new QSpacerItem(20, 50, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    mainLayout->addItem(verticalSpacer);
+    mainLayout->setContentsMargins(0,20,0,0);
 
 
 }

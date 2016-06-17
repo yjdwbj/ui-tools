@@ -14,25 +14,31 @@
 
 class TreeDock;
 class MainWindow;
-class CompoentControls : public QWidget
+class CompoentControls : public QGroupBox
 {
     friend class PropertyBox;
     friend class TreeDock;
     Q_OBJECT
 public:
     explicit CompoentControls(QWidget *parent = 0);
+    QObject* CreateObjectFromJson(QVariantMap qvm, QObject *pobj);
 
 private:
      MainWindow *mWindow;
      QVariantMap mJsonMap;
-     QObject* CreateObjectFromJson(QVariantMap qvm, QObject *pobj);
-     QWidget *getQWidgetByName(QString name) const;
-     void ReadJsonFile();
+     //QGridLayout* mainLayout;
+     QHBoxLayout* mainLayout;
      QString mJsonFile;
      QWidgetList comList;
      QJsonArray comJsonArr;
      QMap<QString,QVariantMap> comMap;
+     QSizePolicy mSizePolicy;
+
+
      void CreateButtonList();
+
+     QWidget *getQWidgetByName(QString name) const;
+     void ReadJsonFile();
 
 signals:
 

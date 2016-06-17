@@ -41,6 +41,7 @@ class MainWindow : public QMainWindow
 {
 
     friend class NewLabel;
+    friend class ImageLayer;
     Q_OBJECT
 
 
@@ -57,7 +58,8 @@ public:
     //QGroupBox *propertyWidget;
 
     PropertyBox *propertyWidget;
-    QGroupBox *imgPropertyWidget;
+    //QGroupBox *imgPropertyWidget;
+    PropertyBox *imgPropertyWidget;
      QFrame *mCanvas;
       TreeDock *tree;
 

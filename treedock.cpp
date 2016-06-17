@@ -108,7 +108,7 @@ this->setWidget(tree);
 
 
 this->setFeatures(DockWidgetMovable|DockWidgetFloatable);
-tree->setStyleSheet(style);
+//tree->setStyleSheet(style);
 // tree->adjustSize();
 
 //  qDebug() << "  mWindow Size: "  << mWindow->size() ;

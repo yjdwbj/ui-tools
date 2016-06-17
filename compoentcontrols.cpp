@@ -2,7 +2,7 @@
 #include "handlejson.h"
 #include "config.h"
 
-CompoentControls::CompoentControls(QWidget *parent) : QWidget(parent)
+CompoentControls::CompoentControls(QWidget *parent) : QGroupBox(parent),mainLayout(new QHBoxLayout())
 {
 
     // MainWindow *m ;
@@ -16,10 +16,16 @@ CompoentControls::CompoentControls(QWidget *parent) : QWidget(parent)
             break;
         }
     }
+    setTitle(tr("控件列表"));
+    setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");
 
-    QGridLayout *mainLayout = new QGridLayout();
+    //QGridLayout *mainLayout = new QGridLayout();
     this->setLayout(mainLayout);
+    mainLayout->setContentsMargins(0,50,0,0);
+    mainLayout->setSpacing(0);
     this->setFixedHeight(200);
+
+    mSizePolicy.setVerticalPolicy(QSizePolicy::Preferred);
 
 
     /* QPushButton *btnTest = new QPushButton(tr("test"));
@@ -40,15 +46,7 @@ CompoentControls::CompoentControls(QWidget *parent) : QWidget(parent)
     // HandleJson *hj = new HandleJson(filename);
     ReadJsonFile();
     CreateButtonList();
-    //  mJsonMap = hj->getCompoentMap();
-    //  delete hj;
 
-    /*
-    QWidget *ww = (QWidget*)(hj->CreateObjectFromJson(hj->mJsonMap,mCanvas));
-    qDebug() << "New object Rect " << ww->geometry()
-             << " Pos " <<  ww->mapToParent(ww->pos());
-    delete hj;
-    */
 }
 
 QWidget *CompoentControls::getQWidgetByName(QString name) const
@@ -87,15 +85,7 @@ void CompoentControls::ReadJsonFile()
                 if(qd.object().contains("compoents"))
                 {
                     comJsonArr =  qd.object()["compoents"].toArray();
-
-                    /* foreach (QJsonValue qjv, qja) {
-
-                        qDebug() << " compoents : " << qjv;
-                        qDebug() << " compoents type" << qjv.type();
-                    }
-                    */
                 }
-                //  mJsonMap = qd.object().toVariantMap();
 
             }
         }else{
@@ -131,30 +121,54 @@ void CompoentControls::CreateButtonList()
                         }"\
                         );
 
-    //QSignalMapper *qsm = new QSignalMapper(this);
-
 
     int mindex = 0;
     int n = 0;
+    QGridLayout *comLayout = new QGridLayout();
+    mainLayout->addLayout(comLayout);
+   // mainLayout->addWidget(new QPushButton());
+    QVBoxLayout *v = new QVBoxLayout();
+    mainLayout->addLayout(v);
+
+    comLayout->setVerticalSpacing(1);
+    comLayout->setHorizontalSpacing(1);
+
+
+    int row,col = 0;
+
+
+    QPushButton *l = new QPushButton("Layer");
+    l->setSizePolicy(mSizePolicy);
+    v->addWidget(l);
+
+
     foreach (QJsonValue qjv, comJsonArr)
     {
         QVariantMap  qjm = qjv.toObject().toVariantMap();
-        if( qjm.contains("caption"))
+        if( qjm.contains(CAPTION))
         {
 
-            QString uname = qjm["caption"].toString();
+            QString uname = qjm[CAPTION].toString();
             comMap[uname] = qjm;
-         //   qDebug() << " uname is : " << uname ;
             QPushButton *btnTest = new QPushButton(uname);
-          //  qsm->setMapping(btnTest,mindex++);
-            ((QGridLayout*)(this->layout()))->addWidget(btnTest,n++,0);
-            // mainLayout->setContentsMargins(0,0,0,300);
+            btnTest->setSizePolicy(mSizePolicy);
 
-           // connect(btnTest,SIGNAL(clicked(bool)),qsm,SLOT(map()));
-           // connect(qsm,SIGNAL(mapped(int)),this,SLOT(onCreateCompoentToCanvas(int)));
+            btnTest->setFixedSize(40,40);
+
+
+            if(col == 2)
+            {
+                 col = 0;
+                 row++;
+            }
+
+            comLayout->addWidget(btnTest,row,col++,1,1);
             connect(btnTest,SIGNAL(clicked(bool)),this,SLOT(onCreateCompoentToCanvas()));
         }
     }
+  //  comLayout->setRowStretch(row,0);
+    QSpacerItem *verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+    comLayout->addItem(verticalSpacer,++row,0,1,1);
 }
 
 void CompoentControls::onCreateCompoentToCanvas()
@@ -162,23 +176,22 @@ void CompoentControls::onCreateCompoentToCanvas()
    // QObject *sender = QObject::sender(); /* 确定的那一个按钮被点击了 */
 
     QPushButton *btn = (QPushButton*)(QObject::sender());
-  //  qDebug() << " clicked index " << index;
 
-    QWidget* ww = (QWidget *)CreateObjectFromJson(comMap[btn->text()],
+    NewFrame* ww = (NewFrame *)CreateObjectFromJson(comMap[btn->text()],
+           // mWindow->centralWidget());
             mWindow->mCanvas);
-
-
     ww->setObjectName(QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
     comList.append(ww);
-    ((NewFrame*)ww)->addMainWindow(mWindow);
-    //mWindow->tree->addItemToRoot(btn->text(),"Layer");
+   // ((NewFrame*)ww)->addMainWindow(mWindow);
+   // ((NewFrame*)ww)->onSelectMe();
+    ww->addMainWindow(mWindow);
+    ww->onSelectMe();
+
     mWindow->tree->addItemToRoot(ww->objectName(),btn->text());
 
-
-  //  qDebug() << " clicked add QWidget " << ww->objectName() << ww->pos()  << " size is " << ww->size();
-   // qDebug() << "  geomerty " << ww->geometry();
-   // qDebug() << " Com List size " << comList.size();
     ww->show();
+
+
 
 }
 
@@ -200,17 +213,17 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
 
                 if(!cval.compare(QFRAME))
                 {
-                    //mParentObj = new NewFrame();
+
                     //创建父控件
-                    NewFrame  *n = new NewFrame((QWidget *)pobj);
+                    NewFrame  *n = new NewFrame((QWidget*)pobj);
                   //  n->addMainWindow(pobj->parent());
                     nobj =qobject_cast<QObject*>(n);
-                    nobj->setProperty("clsName",cval);
+                    nobj->setProperty(DKEY_CLSNAME,cval);
                 }
                 else if(!cval.compare(QLABEL))
                 {
                     nobj =qobject_cast<QObject*>(new NewLabel((QWidget *)pobj));
-                    nobj->setProperty("clsName",cval);
+                    nobj->setProperty(DKEY_CLSNAME,cval);
 
                 }
             }
@@ -227,8 +240,6 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
             {
                 nobj->setProperty(DKEY_CAPTION,it.value().toString());
             }
-
-            // qDebug() << " Value is String : " << it.value().toString();
             break;
         case QVariant::List:
         {
@@ -285,7 +296,7 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                     QString key = it.key();
                     if(!key.compare(RECT)) /* 这里直接处理json "rect" 对像字段 */
                     {
-                        QString clsName = nobj->property("clsName").toString();
+                        QString clsName = nobj->property(DKEY_CLSNAME).toString();
                         QVariantMap rect = it.value().toMap();
                         QRect r = QRect(rect["x"].toString().toInt(),
                                 rect["y"].toString().toInt(),
@@ -295,23 +306,22 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                         if(!clsName.compare(QFRAME))
                         {
 
-                         //   NewFrame *m = qobject_cast<NewFrame*>(pobj);
-                          //  int x =m->size().width()/2;
-                          //  int y = m->size().height()/2;
-
-
                            qobject_cast<NewFrame *>(nobj)->setGeometry(r);
-                          //  qobject_cast<NewFrame *>(nobj)->move(QPoint(101,101));
-                          qDebug() << "create Frame geometry " << r << qobject_cast<NewFrame *>(nobj)->geometry();
+                          // qobject_cast<NewFrame *>(nobj)->move(QPoint(501,501));
+                          //qDebug() << "create Frame geometry " << r << qobject_cast<NewFrame *>(nobj)->geometry();
 
 
                         }else{
                             qobject_cast<NewLabel *>(nobj)->setGeometry(r);
+                            qDebug() << " label geometry " << qobject_cast<NewLabel *>(nobj)->geometry();
                         }
                     }
-                    else if(!key.compare("image"))
+                    else if(!key.compare(IMAGE))
                     {
-                        qobject_cast<NewLabel *>(nobj)->setPixmap(it.value().toString());
+                        QPixmap p;
+                        p.load(it.value().toString());
+                        qobject_cast<NewLabel *>(nobj)->setPixmap(p);
+                        qobject_cast<NewLabel *>(nobj)->setFixedSize(p.size());
                     }
                     else {
 

@@ -53,7 +53,6 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
         QString key = it.key();
         QVariant::Type qvt = it.value().type();
 
-
         switch (qvt) {
         case QVariant::String:
             if(!key.compare(CLASS))
@@ -64,36 +63,31 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                 {
                     //mParentObj = new NewFrame();
                     nobj =qobject_cast<QObject*>(new NewFrame((QWidget *)pobj));
-                    nobj->setProperty("clsName",cval);
+                    nobj->setProperty(DKEY_CLSNAME,cval);
                 }
                 else if(!cval.compare(QLABEL))
                 {
                     nobj =qobject_cast<QObject*>(new NewLabel((QWidget *)pobj));
-                    nobj->setProperty("clsName",cval);
+                    nobj->setProperty(DKEY_CLSNAME,cval);
 
                 }
             }
             else if(!key.compare(NAME))
             {
-                // mParentObj->setObjectName(it.value().toString());
-               // qDebug() << "Create new Label " << it.value().toString() ;
+
                 nobj->setObjectName(it.value().toString());
-                //if(nobj)
-                //   nobj->setObjectName(it.value().toString());
 
             }
-            else if(!key.compare("caption")) /* 界面显示的名称 */
+            else if(!key.compare(CAPTION)) /* 界面显示的名称 */
             {
-                nobj->setProperty("caption",it.value().toString());
+                nobj->setProperty(DKEY_CAPTION,it.value().toString());
             }
 
-           // qDebug() << " Value is String : " << it.value().toString();
             break;
         case QVariant::List:
         {
             if(!key.compare(PROPERTY))
             {
-                // nobj->setProperty("dynProperty",it.value());
                 property = it.value();
             }else {
                 QVariantList qvl = it.value().toList();
@@ -127,11 +121,9 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
     }
     nobj->setProperty(DKEY_DYN,property);
     /*  处理每一个json对像的property部分 */
-   // qDebug() << "Dynamic Property Count " << nobj->dynamicPropertyNames().count();
+
     foreach(QByteArray qba,nobj->dynamicPropertyNames())
     {
-        // qDebug() << " Property Key: "  << QString::fromLocal8Bit(qba);
-        // qDebug() << " Property Val type :" << nobj->property(qba).type();
         QVariantList qvl = nobj->property(qba).toList();
         foreach(QVariant qv, qvl)
         {
@@ -148,7 +140,7 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
 
                     if(!key.compare(RECT)) /* 这里直接处理json "rect" 对像字段 */
                     {
-                        QString clsName = nobj->property("clsName").toString();
+                        QString clsName = nobj->property(DKEY_CLSNAME).toString();
                         QVariantMap rect = it.value().toMap();
                         QRect r = QRect(rect["x"].toString().toInt(),
                                 rect["y"].toString().toInt(),
@@ -171,7 +163,7 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                             qobject_cast<NewLabel *>(nobj)->setGeometry(r);
                         }
                     }
-                    else if(!key.compare("image"))
+                    else if(!key.compare(IMAGE))
                     {
                         qobject_cast<NewLabel *>(nobj)->setPixmap(it.value().toString());
                     }
@@ -247,86 +239,3 @@ void HandleJson::HandleJsonMap(QVariantMap qvm)
 
 }
 
-/*
-void HandleJson::HandleFrameObject(QJsonObject qjo,QString ParentName)
-{
-
-    ObjComt obj;
-    obj.parentName = ParentName;
-
-
-    for(QJsonObject::iterator it = qjo.begin();it != qjo.end();++it)
-    {
-
-
-
-        QString key = it.key();
-        qDebug() << it.value().type();
-        if(!key.compare(NAME))
-        {
-            obj.objName = it.value().toString();
-        }else if(!key.compare(CLASS))
-        {
-            obj.clsName = it.value().toString();
-        }else if(!key.compare("widget"))
-        {
-            if(it.value().isObject())
-            {
-                HandleFrameObject(it.value().toObject(),obj.objName);
-            }
-            else if(it.value().isArray())
-            {
-                QJsonArray qja = it.value().toArray();
-
-                for(int idx = 0;idx < qja.size();idx++)
-                {
-                    if(qja[idx].isObject())
-                    {
-                        HandleFrameObject(qja[idx].toObject(),obj.objName);
-                    }
-                }
-            }
-
-        }else if(!key.compare(PROPERTY))
-        {
-            if(it.value().isArray())
-            {
-                QJsonArray qja = it.value().toArray();
-
-                for(int idx = 0; idx < qja.size();idx++)
-                {
-                    QJsonValue qjv = qja[idx];
-                    if(qjv.isObject())
-                    {
-                        QJsonObject ooj = qjv.toObject();
-                        if(ooj.contains(RECT))
-                        {
-
-                            QJsonObject rect = ooj[RECT].toObject();
-                            int x,y,w,h;
-                            x = rect["x"].toString().toInt();
-                            y = rect["y"].toString().toInt();
-                            w = rect["width"].toString().toInt();
-                            h = rect["height"].toString().toInt();
-
-                            // obj.rect.setRect(x,y,w,h);
-                        }else if(ooj.contains("image"))
-                        {
-                            //int p = ooj["image"].type();
-                            //  obj.pixmap = QDir::currentPath()+"/"+ ooj["image"].toString();
-                        }
-
-                    }
-
-                }
-            }
-        }
-
-    }
-
-
-
-    ComList.append(obj);
-
-}
-*/

@@ -18,11 +18,12 @@ class ImageFileDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit ImageFileDialog(QWidget *parent = 0);
+    explicit ImageFileDialog(QStringList old,QWidget *parent = 0);
     ~ImageFileDialog();
 
     //const selectedMap getSelectedMap() const { return selMap;}
     const QStringList getSelectedList() const { return selstrList;}
+   // void setSelectedList(QStringList b) const { selstrList = b;}
 
 private slots:
     void onTreeViewClicked(QModelIndex index);

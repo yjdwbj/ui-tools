@@ -26,8 +26,11 @@ class PropertyBox : public QGroupBox
 public:
 
 
-    explicit PropertyBox(QWidget *parent = 0);
-    void createPropertyBox(QWidget *p);
+    explicit PropertyBox(QString title,QWidget *parent = 0);
+    void createPropertyBox(QWidget *p,bool isImage = false);
+    //void onListImageChanged(QString img);
+    //void onPictureDialog(bool b);
+
 
 signals:
 
@@ -40,6 +43,7 @@ private:
     QVBoxLayout *mainLayout;
     MainWindow *mw;
     NewLabel *comT;
+    QSizePolicy mSizePolicy;
 };
 
 #endif // PROPERTYBOX_H

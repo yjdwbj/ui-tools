@@ -2,7 +2,7 @@
 #include <QtCore/QMetaProperty>
 #include <QtWidgets/QStatusBar>
 #include <QtWidgets/QStackedLayout>
-#include <QtWidgets/QComboBox>
+
 #include <QtWidgets/QSpinBox>
 #include <QtWidgets/QTextEdit>
 #include <QtWidgets/QSpacerItem>
@@ -18,7 +18,8 @@
 
 
 NewLabel::NewLabel(QWidget *parent)
-    :QLabel(parent)
+    :QLabel(parent),
+     selIndex(0),disDefaultList(false)
 {
 
     // MainWindow *m ;
@@ -31,6 +32,7 @@ NewLabel::NewLabel(QWidget *parent)
             break;
         }
     }
+    this->setLineWidth(0);
 
     // connect(this,SIGNAL(Clicked()),SLOT(onClieck()));
 }
@@ -107,11 +109,11 @@ void NewLabel::onXYWHChangedValue(int v)
     }else if(!sender->objectName().compare(W))
     {
         //o.setWidth(v);
-        sender->setFixedWidth(v);
+        //sender->setFixedWidth(v);
     }else if(!sender->objectName().compare(H))
     {
        // o.setHeight(v);
-        sender->setFixedHeight(v);
+       // sender->setFixedHeight(v);
     }
     //sender->setGeometry(o);
 
@@ -190,7 +192,7 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
     NewFrame *p =(NewFrame*) (this->parentWidget());
     p->setStyleSheet("QFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
     clearOtherObjectStyleSheet(p);
-    mWindow->propertyWidget->createPropertyBox(p);
+    mWindow->propertyWidget->createPropertyBox(p,false);
 
 
      QTextEdit *et = (QTextEdit *)(getQWidgetByName("debugEdit"));
@@ -248,7 +250,7 @@ void NewLabel::mouseMoveEvent(QMouseEvent *event)
     if (event->buttons() & Qt::LeftButton)
     {
         NewFrame *p =(NewFrame*) (this->parentWidget());
-        QSize psize = p->parentWidget()->size();
+       // QSize psize = p->parentWidget()->size();
         p->move( p->pos() + (event->pos() - mOffset));
       //  p->update();
 
@@ -284,135 +286,11 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 {
 
     NewFrame *p = (NewFrame *)this->parentWidget();
-    /*
-    QList<NewLabel*> list =  p->findChildren<NewLabel*>();
-    QListIterator<NewLabel*> it(list);
-    while(it.hasNext())
-    {
-        NewLabel *nl = it.next();
-        nl->setStyleSheet("");
-    }
-    p->setStyleSheet("");
-    */
+
     clearOtherObjectStyleSheet(p);
     p->setStyleSheet("");
-    QList<NewLabel*> list =  p->findChildren<NewLabel*>();
-    QListIterator<NewLabel*> it(list);
-    while(it.hasNext())
-    {
-        NewLabel *nl = it.next();
-        qDebug() << "  label style sheet "  << nl->styleSheet();
-        nl->setStyleSheet("");
-    }
-
-    this->setStyleSheet("QLabel{border: 1px solid red;}");
-    /* here testing dyanmicProperty */
-
-
-    /* 这里要与主界面的一些控件做通信 */
-    /*
-    foreach (QWidget *w, mWindow->imgPropertyWidget->layout()->findChildren<QWidget*>()) {
-        delete w;  // 释放原来的控件
-    }*/
-
-    removeWidFromLayout(mWindow->imgPropertyWidget->layout());
-    delete mWindow->imgPropertyWidget->layout();
-    QVBoxLayout *v = new QVBoxLayout();
-    v->setObjectName(IMGGRPLYT);
-
-
-    mWindow->imgPropertyWidget->setLayout(v);
-    //mWindow->imgPropertyWidget->setTitle(this->objectName());
-
-    QVariantList qvl = this->property(DKEY_DYN).toList();
-    /* 根据JSON格式动态生成下面的控件 */
-    foreach(QVariant qv, qvl)
-    {
-        if(qv.type() == QVariant::Map)
-        {
-            QVariantMap qvm = qv.toMap();
-            QString uname = qvm["-name"].toString();
-            if(qvm.contains("enum"))
-            {
-
-
-                QComboBox *cb = new QComboBox();
-                QVariantList qvlist = qvm["enum"].toList();
-                for(QVariantList::const_iterator it = qvlist.begin();
-                    it != qvlist.end();++it)
-                {
-
-                    cb->addItem((*it).toMap().firstKey());
-                }
-                v->addWidget(new QLabel(uname));
-                v->addWidget(cb);
-
-            }else if(qvm.contains("list"))
-            {
-
-                QComboBox *cb = new QComboBox();
-                cb->setObjectName("ListImage");
-                this->setProperty(DKEY_IMGIDX,0); /* 当前选择的行号*/
-                //QString uname =  qvm["-name"].toString();
-                QVariantList qvlist = qvm["list"].toList();
-                for(QVariantList::const_iterator it = qvlist.begin();
-                    it != qvlist.end();++it)
-                {
-                    cb->addItem((*it).toString());
-                }
-
-
-                v->addWidget(new QLabel(uname));
-                //v->addLayout(h);
-                QPushButton *b = new QPushButton(tr("添加图片"));
-                connect(b,SIGNAL(clicked(bool)),SLOT(onPictureDialog(bool)));
-                v->addWidget(b);
-                v->addWidget(cb);
-                /* 绑定QComoBox的更改信号,更改它的值就要在相应的画版控件更新图片 */
-                connect(cb,SIGNAL(currentTextChanged(QString)),SLOT(onListImageChanged(QString)));
-
-
-            }
-            else{
-                if(uname.compare("geometry") &&
-                        uname.compare("image"))
-                {
-                    if(qvm.contains("id"))
-                    {
-                        v->addWidget(new QLabel(uname));
-                        v->addWidget(new QLabel(this->property("uid").toString()));
-
-                    } /* 这里是一个特殊属性,唯一序号 */
-
-                    else if(qvm["default"].type() == QVariant::Double)
-                    {
-                       // QDateTime t;
-
-                        // QTextEdit *id = new QTextEdit(t.toLocalTime().toString());
-                        // id->setEnabled(false);
-                        /* 这里要区分ID 还是数字属性 */
-                        v->addWidget(new QLabel(uname));
-                        QSpinBox *s = new QSpinBox();
-                        v->addWidget(s);
-                        s->setValue(qvm["default"].toInt());
-                      //  v->addWidget(new QLabel(QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch())));
-                    }
-                    else{
-                        QTextEdit *txt = new QTextEdit(qvm["default"].toString());
-                        v->addWidget(new QLabel(uname));
-                        v->addWidget(txt);
-                        txt->setFixedHeight(25);
-                        //  v->addSpacerItem(new QSpacerItem(10,50));
-
-                    }
-                }
-            }
-
-
-        }
-    }
-    //v->addSpacerItem(new QSpacerItem(100,300));
-    v->setContentsMargins(propertyMarg);
+    setStyleSheet("QLabel{border: 1px solid red;}");
+    mWindow->imgPropertyWidget->createPropertyBox(this,true);
 
 }
 
@@ -420,51 +298,74 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 void NewLabel::onListImageChanged(QString img)
 {
    //  selectedMap sMap = this->property(IMAGELST).toMap();
-   QStringList selList = this->property(DKEY_IMAGELST).toStringList();
-   foreach (QString s, selList) {
+  // QStringList selList = this->property(DKEY_IMAGELST).toStringList();
+   foreach (QString s, myImageList) {
        QString k = s.section(":",0,0);
        if(!k.compare(img))
        {
            this->setPixmap(QPixmap(s.section(":",1,1)));/* 更新图片 */
+           selIndex = myImageList.indexOf(s);
            break;
        }
    }
 
 }
 
+void NewLabel::updatePixmap(QString imgpath)
+{
+    this->setPixmap(QPixmap(imgpath));
+}
 
 void NewLabel::onPictureDialog(bool b)
 {
     // QMessageBox::warning(this,"test","your clicked me: ");
-    ImageFileDialog *ifd = new ImageFileDialog(this);
+    ImageFileDialog *ifd = new ImageFileDialog(myImageList,this);
     ifd->show();
     ifd->exec();
     //selectedMap sMap  = ifd->getSelectedMap();
-    QStringList selList = ifd->getSelectedList();
+    myImageList = ifd->getSelectedList();
+
+    disDefaultList = myImageList.size() ? true : false;
     ifd->deleteLater();
     QComboBox *cb=0;
     foreach (QWidget *w, mWindow->imgPropertyWidget->findChildren<QWidget*>())
     {
-        if(!w->objectName().compare("ListImage"))
+        if(!w->objectName().compare(LISTIMAGE))
         {
           //  qDebug() << " found QComobox " << w->objectName();
             cb = (QComboBox *)w;
+            cb->clear();
             break;
         }
     }
-    this->setProperty(DKEY_IMAGELST,selList); /* 保存它的图片列表在它的动态属性中 */
-    foreach (QString s, selList) {
+    updateComboItems(cb);
+ //   this->setProperty(DKEY_IMAGELST,selList); /* 保存它的图片列表在它的动态属性中 */
+    /*
+    foreach (QString s, myImageList) {
        cb->addItem(s.section(":",0,0));
     }
    // cb->addItems(sMap.keys());
-    cb->setCurrentIndex(0);
+    cb->setCurrentIndex(this->property(DKEY_IMGIDX).toInt());
+    */
+}
+
+void NewLabel::updateComboItems(QComboBox *cb)
+{
+    foreach (QString s, myImageList) {
+       cb->addItem(s.section(":",0,0));
+    }
+    cb->setCurrentIndex(this->property(DKEY_IMGIDX).toInt());
 }
 
 
+
 NewFrame::NewFrame(QWidget *parent)
-    :QWidget(parent)
+    :QFrame(parent)
 {
+    qDebug() << " property " ;
     //connect(this,SIGNAL(Clicked()),SLOT(onSelectMe()));
+    this->setLineWidth(0);
+    setFrameShape(QFrame::NoFrame);
 }
 
 void NewFrame::mousePressEvent(QMouseEvent *event)

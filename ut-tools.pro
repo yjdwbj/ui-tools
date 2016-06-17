@@ -22,7 +22,9 @@ SOURCES += main.cpp\
     imagefiledialog.cpp \
     compoentcontrols.cpp \
     treedock.cpp \
-    propertybox.cpp
+    propertybox.cpp \
+    imagelayer.cpp \
+    scenesscreen.cpp
 
 HEADERS  += mainwindow.h \
     module.h \
@@ -31,7 +33,9 @@ HEADERS  += mainwindow.h \
     compoentcontrols.h \
     treedock.h \
     propertybox.h \
-    config.h
+    config.h \
+    imagelayer.h \
+    scenesscreen.h
 
 FORMS    += mainwindow.ui
 CONFIG += c++11

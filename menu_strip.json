@@ -11,8 +11,8 @@
                 {
                     "-name":"geometry",
                     "rect":{
-                        "y":"3",
-                        "x":"3",
+                        "y":"0",
+                        "x":"0",
                         "height":"32",
                         "width":"95"
                     }
@@ -39,8 +39,8 @@
                 {
                     "-name":"geometry",
                     "rect":{
-                        "y":"36",
-                        "x":"82",
+                        "y":"48",
+                        "x":"113",
                         "height":"81",
                         "width":"16"
                     }
@@ -67,8 +67,8 @@
                 {
                     "-name":"geometry",
                     "rect":{
-                        "y":"36",
-                        "x":"22",
+                        "y":"32",
+                        "x":"16",
                         "height":"81",
                         "width":"60"
                     }
@@ -96,8 +96,8 @@
                 {
                     "-name":"geometry",
                     "rect":{
-                        "y":"101",
-                        "x":"5",
+                        "y":"96",
+                        "x":"0",
                         "height":"16",
                         "width":"16"
                     }
@@ -124,8 +124,8 @@
                 {
                     "-name":"geometry",
                     "rect":{
-                        "y":"85",
-                        "x":"5",
+                        "y":"80",
+                        "x":"0",
                         "height":"16",
                         "width":"16"
                     }
@@ -151,8 +151,8 @@
                 {
                     "-name":"geometry",
                     "rect":{
-                        "y":"69",
-                        "x":"5",
+                        "y":"64",
+                        "x":"0",
                         "height":"16",
                         "width":"16"
                     }
@@ -178,8 +178,8 @@
                 {
                     "-name":"geometry",
                     "rect":{
-                        "y":"53",
-                        "x":"5",
+                        "y":"48",
+                        "x":"0",
                         "height":"16",
                         "width":"16"
                     }
@@ -205,8 +205,121 @@
                 {
                     "-name":"geometry",
                     "rect":{
-                        "y":"37",
-                        "x":"5",
+                        "y":"32",
+                        "x":"0",
+                        "height":"16",
+                        "width":"16"
+                    }
+                },
+                {
+                    "-name":"text",
+                     "default": "第二张"
+                },
+                {
+                    "-name":"image",
+                    "image":"bmp/A0027JL.bmp"
+                },
+                {
+                    "-name":"图片列表",
+                    "list":[""]
+                    	
+                }
+            ],
+            "-class":"QLabel"
+        },
+         {
+            "-name":"label_2",
+            "property":[
+                {
+                    "-name":"geometry",
+                    "rect":{
+                        "y":"112",
+                        "x":"0",
+                        "height":"16",
+                        "width":"16"
+                    }
+                },
+                {
+                    "-name":"text",
+                     "default": "第二张"
+                },
+                {
+                    "-name":"image",
+                    "image":"bmp/A0027JL.bmp"
+                },
+                {
+                    "-name":"图片列表",
+                    "list":[""]
+                    	
+                }
+            ],
+            "-class":"QLabel"
+        },
+         {
+            "-name":"label_2",
+            "property":[
+                {
+                    "-name":"geometry",
+                    "rect":{
+                        "y":"128",
+                        "x":"0",
+                        "height":"16",
+                        "width":"16"
+                    }
+                },
+                {
+                    "-name":"text",
+                     "default": "第二张"
+                },
+                {
+                    "-name":"image",
+                    "image":"bmp/A0027JL.bmp"
+                },
+                {
+                    "-name":"图片列表",
+                    "list":[""]
+                    	
+                }
+            ],
+            "-class":"QLabel"
+        },
+         {
+            "-name":"label_2",
+            "property":[
+                {
+                    "-name":"geometry",
+                    "rect":{
+                        "y":"144",
+                        "x":"0",
+                        "height":"16",
+                        "width":"16"
+                    }
+                },
+                {
+                    "-name":"text",
+                     "default": "第二张"
+                },
+                {
+                    "-name":"image",
+                    "image":"bmp/A0027JL.bmp"
+                },
+                {
+                    "-name":"图片列表",
+                    "list":[""]
+                    	
+                }
+            ],
+            "-class":"QLabel"
+        }
+        ,
+         {
+            "-name":"label_2",
+            "property":[
+                {
+                    "-name":"geometry",
+                    "rect":{
+                        "y":"160",
+                        "x":"0",
                         "height":"16",
                         "width":"16"
                     }
@@ -233,30 +346,25 @@
             	  "-name": "序号",
             	  "id": 0
         },
-        {	"-name": "数字",
-        	"default": 0,
-        	"min":0,
-        	"max":1000
-        }
         {
             "-name":"geometry",
             "rect":{
                 "y":"0",
                 "x":"0",
-                "height":"121",
-                "width":"101"
+                "height":"184",
+                "width":"128"
             }
         },
         { "-name": "按钮事件",
           "enum": [
             	  {
-            	  "BTN_ACTIONA": 5
+            	  "BTN_ACTIONA": 0
             	  },
             	  {
-            	  "BTN_ACTIONB" : 6
+            	  "BTN_ACTIONB" : 1
             	  },
             	  {
-            	  "BTN_ACTIONC" : 7
+            	  "BTN_ACTIONC" : 2
             	  }
             	 ],
           "default" : "BTN_ACTIONA"
@@ -536,14 +644,6 @@
         { 
             "-name":"按钮文本",
             "default" : "按钮"
-        },
-        {
-        	"-name": "图片列表",
-        	"list": [
-        		"test1",
-        		"test2",
-        		"test3"
-        		] 
         }
     ],
     "-class":"QFrame"
@@ -558,8 +658,8 @@
                 {
                     "-name":"geometry",
                     "rect":{
-                        "y":"81",
-                        "x":"100",
+                        "y":"0",
+                        "x":"0",
                         "height":"16",
                         "width":"9"
                     }
@@ -583,8 +683,8 @@
                 {
                     "-name":"geometry",
                     "rect":{
-                        "y":"81",
-                        "x":"109",
+                        "y":"0",
+                        "x":"9",
                         "height":"16",
                         "width":"9"
                     }
@@ -607,8 +707,8 @@
                 {
                     "-name":"geometry",
                     "rect":{
-                        "y":"81",
-                        "x":"118",
+                        "y":"0",
+                        "x":"18",
                         "height":"16",
                         "width":"12"
                     }
@@ -631,8 +731,8 @@
                 {
                     "-name":"geometry",
                     "rect":{
-                        "y":"81",
-                        "x":"130",
+                        "y":"0",
+                        "x":"30",
                         "height":"16",
                         "width":"9"
                     }
@@ -655,8 +755,8 @@
                 {
                     "-name":"geometry",
                     "rect":{
-                        "y":"81",
-                        "x":"139",
+                        "y":"0",
+                        "x":"39",
                         "height":"16",
                         "width":"9"
                     }
@@ -680,8 +780,8 @@
         "rect":{
             "x":"0",
             "y":"0",
-            "width":"20",
-            "height":"0"
+            "width":"48",
+            "height":"16"
         }
     },
     { "-name": "按钮事件",

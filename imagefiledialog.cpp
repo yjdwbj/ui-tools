@@ -1,12 +1,14 @@
 #include "imagefiledialog.h"
 
-ImageFileDialog::ImageFileDialog(QWidget *parent)
+ImageFileDialog::ImageFileDialog(QStringList old, QWidget *parent)
     :QDialog(parent),
       sellist(new QListWidget()),
       treefile(new QTreeView()),
-      flistview(new QListView())
+      flistview(new QListView()),
+      selstrList(old)
 {
 
+     /* 填弃上一次的数据 */
     dirModel = new QFileSystemModel(this);
     fileModel = new QFileSystemModel(this);
     this->setFixedSize(1000,600);
@@ -93,6 +95,7 @@ void ImageFileDialog::onListViewDoubleClicked(QModelIndex index)
     QString s = fileModel->data(index).toString();
     sellist->addItem(s);
     //selMap[s] = fileModel->fileInfo(index).absoluteFilePath();
+    // 这里的每一条数据必需是下面格式:　　文件名:文件名的绝对完全路径
     selstrList << QString("%1:%2").arg(s,fileModel->fileInfo(index).absoluteFilePath());
     flistview->setRowHidden(index.row(),true);
     hRows[s] = index;

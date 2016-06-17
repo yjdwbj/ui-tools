@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QtWidgets/QWidget>
 #include <QMouseEvent>
+#include <QComboBox>
 #include "mainwindow.h"
 #include "imagefiledialog.h"
 
@@ -33,6 +34,9 @@ public:
 
     void createPropertyBox();
     void addPropertyBoxSignal(QSpinBox *b);
+    void updatePixmap(QString imgpath);
+    void updateComboItems(QComboBox *cb);
+
 
 protected:
     void mousePressEvent(QMouseEvent *event) ;
@@ -45,11 +49,13 @@ protected:
     void clearOtherObjectStyleSheet(QWidget *);
 
 
+
 private slots:
 
     void onPictureDialog(bool );
     void onXYWHChangedValue(int);
-    void onListImageChanged(QString );
+    void onListImageChanged(QString);
+
 
 
 private:
@@ -60,10 +66,13 @@ private:
 
     QPoint mOffset;
     MainWindow *mWindow;
+    QStringList myImageList;
+    int selIndex; /* 选中的当前的图片号 */
+    bool disDefaultList; /* 屏闭默认的图片列表　*/
 
 };
 
-class NewFrame :public QWidget
+class NewFrame :public QFrame
 {
     Q_OBJECT
 public:

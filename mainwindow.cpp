@@ -5,6 +5,7 @@
 #include "propertybox.h"
 
 #include <QStandardPaths>
+#include <QStyleFactory>
 
 
 
@@ -18,60 +19,32 @@ MainWindow::MainWindow(QWidget *parent) :
     out(stdout, QIODevice::WriteOnly),
 
     ui(new Ui::MainWindow),
-    propertyWidget(new PropertyBox()),
-    imgPropertyWidget(new QGroupBox())
+    propertyWidget(new PropertyBox(tr("控件属性"))),
+    imgPropertyWidget(new PropertyBox(tr("元素属性")))
 
 {
 
     ui->setupUi(this);
+    QStringList sflist = QStyleFactory::keys();
+    //qDebug() << " list " << sflist;
+    this->setStyle(QStyleFactory::create("GTK+"));
 
+  //  imgPropertyWidget->setTitle(tr("元素属性"));
+   // imgPropertyWidget->setLayout(new QVBoxLayout());
 
-    //this->showFullScreen();
+  //  imgPropertyWidget->setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");
+   // imgPropertyWidget->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
 
-    imgPropertyWidget->setTitle(tr("元素属性"));
-    imgPropertyWidget->setLayout(new QVBoxLayout());
-    //propertyWidget->setTitle(tr("控件属性"));
-   // propertyWidget->setLayout(new QVBoxLayout());
-   // propertyWidget->setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");
-    imgPropertyWidget->setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");
-
-
-
-
-
-
-    //propertyWidget->setFlat(true);
-
-
-    /*QDesktopWidget *pDwgt = QApplication::desktop();
-    QRect desk_rect = pDwgt->screenGeometry(pDwgt->screenNumber(QCursor::pos()));
-    qDebug() << "desk rect is " << desk_rect;
-    int desk_x = desk_rect.width();
-    int desk_y = desk_rect.height();
-
-    this->setMaximumSize(desk_rect.size());
-
-    ui->centralWidget->setMaximumSize(desk_rect.width(),desk_rect.height() -35);
-    this->showMaximized();
-    this->centralWidget()->showMaximized();
-    */
-    //ui->centralWidget->setFixedHeight(desk_y);
-   // ui->centralWidget->setFixedWidth(desk_x-400);
     mCanvas = new QFrame(ui->centralWidget);
     mCanvas->setFrameShadow(QFrame::Raised);
     mCanvas->setFrameShape(QFrame::StyledPanel);
     mCanvas->installEventFilter(this);
 
-    //mCanvas->move((this->size().width()/2) - CanvasW,(this->size().height()/2)-CanvasH);
-    mCanvas->move((this->size().width()/2) - CanvasW /2  ,(this->size().height()/2)-200 / 2);
-    //mCanvas->move(QPoint(100,100));
-    //mCanvas->move(ch/2,cw/2);
-   // mCanvas->move(this->mapFromGlobal(QPoint(ch/2,cw/2)));
+
+    mCanvas->move(this->width() * 0.25 ,this->height() * 0.25);
+
 
     mCanvas->setFixedSize(CanvasW,CanvasH);
-   // qDebug() << " this size " << this->geometry();
-   //qDebug() << " this centralWidget size " << ui->centralWidget->geometry();
-   // qDebug() << "mCanvas pos " << mCanvas->pos();
 
 
     ui->mainToolBar->addWidget(new QPushButton("test"));
@@ -80,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent) :
     lDock = new QDockWidget();
     lDock->setAllowedAreas( Qt::LeftDockWidgetArea);
     lDock->setFeatures(QDockWidget::NoDockWidgetFeatures);
-    lDock->setFixedWidth(180);
+    lDock->setFixedWidth(this->size().width() * 0.15);
     lDock->setObjectName("LeftDock");
     lList = new QListWidget();
    // lDock->setWidget(lList);
@@ -105,12 +78,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     lList->setFixedHeight((lDock->size().height() -50) / 2);
-
-
-
-    //QStackedLayout *propertyStack = new QStackedLayout();
-  //  this->rightStackedLayout()->setObjectName("ObjProperty");
-    //propertyStack->setObjectName("ObjProperty");
+;
     QFrame *qcl = new QFrame();
 
     QVBoxLayout *propertyLayout = new QVBoxLayout(qcl);
@@ -119,6 +87,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //propertyLayout->addWidget(pb);
     propertyLayout->addWidget(propertyWidget);
     propertyLayout->addWidget(imgPropertyWidget);
+
 
 
     leftLayout->addWidget(qcl);
@@ -202,6 +171,9 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
                     QFrame *qf = it.next();
                     qf->setStyleSheet("");
                 }
+
+            }else if(event->type() == QEvent::MouseMove)
+            {
 
             }
         }
