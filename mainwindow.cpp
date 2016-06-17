@@ -3,6 +3,7 @@
 #include "handlejson.h"
 #include "compoentcontrols.h"
 #include "propertybox.h"
+#include "scenesscreen.h"
 
 #include <QStandardPaths>
 #include <QStyleFactory>
@@ -21,7 +22,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     propertyWidget(new PropertyBox(tr("控件属性"))),
     imgPropertyWidget(new PropertyBox(tr("元素属性")))
-
 {
 
     ui->setupUi(this);
@@ -29,19 +29,18 @@ MainWindow::MainWindow(QWidget *parent) :
     //qDebug() << " list " << sflist;
     this->setStyle(QStyleFactory::create("GTK+"));
 
-  //  imgPropertyWidget->setTitle(tr("元素属性"));
-   // imgPropertyWidget->setLayout(new QVBoxLayout());
 
-  //  imgPropertyWidget->setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");
-   // imgPropertyWidget->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
 
-    mCanvas = new QFrame(ui->centralWidget);
+    Scenes = new ScenesScreen(ui->centralWidget);
+    Scenes->move(this->width() * 0.12,this->height()* 0.3);
+
+    mCanvas = new QFrame(Scenes);
     mCanvas->setFrameShadow(QFrame::Raised);
     mCanvas->setFrameShape(QFrame::StyledPanel);
     mCanvas->installEventFilter(this);
 
 
-    mCanvas->move(this->width() * 0.25 ,this->height() * 0.25);
+   // mCanvas->move(this->width() * 0.25 ,this->height() * 0.25);
 
 
     mCanvas->setFixedSize(CanvasW,CanvasH);

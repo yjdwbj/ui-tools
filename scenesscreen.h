@@ -3,8 +3,11 @@
 
 #include <QObject>
 #include <QWidget>
+#include <QFrame>
 
-class ScenesScreen : public QWidget
+//#include "mainwindow.h"
+class MainWindow;
+class ScenesScreen : public QFrame
 {
     Q_OBJECT
 public:
@@ -13,6 +16,10 @@ public:
 signals:
 
 public slots:
+
+private:
+   MainWindow* mWindow;
+
 };
 
 #endif // SCENESSCREEN_H

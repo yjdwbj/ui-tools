@@ -88,24 +88,13 @@ QTreeView::branch:open:has-children:!has-siblings {\
 //QTreeWidget *tree = new QTreeWidget();
 tree->setColumnCount(2);
 
-
-
-
-
 tree->setHeaderLabels(HeadCol.split(","));
 connect(tree,SIGNAL(itemClicked(QTreeWidgetItem*,int)),SLOT(onItemPressed(QTreeWidgetItem*,int)));
-
-
-
-
 QTreeWidgetItem *root = new QTreeWidgetItem(tree);
 root->setText(0,"根结点");
 root->setText(1,"画布");
 
-
-
 this->setWidget(tree);
-
 
 this->setFeatures(DockWidgetMovable|DockWidgetFloatable);
 //tree->setStyleSheet(style);
@@ -116,9 +105,6 @@ setFixedHeight(mWindow->size().height()-50);
 setFixedWidth(200);
 tree->setFixedHeight(mWindow->size().height()-80);
 
-// tree->setFixedHeight(size().height()-50);
-//  setStyleSheet("QTreeView{}");
-// show();
 }
 
 void TreeDock::addCompoentControls(CompoentControls *cc)
@@ -161,20 +147,3 @@ void TreeDock::addItemToRoot(QString node, QString property)
     root->addChild(child);
 }
 
-/*
-QVariant CompoentTreeModel::data(const QModelIndex &index, int role) const
-{
-    if(role != Qt::DisplayRole && role != Qt::DecorationRole)
-        return QVariant();
-
-
-}
-
-void CompoentTreeModel::setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role)
-{
-    if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
-        return rootItem->data(section);
-
-    return QVariant();
-}
-*/

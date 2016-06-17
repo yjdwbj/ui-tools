@@ -97,9 +97,6 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
     mainLayout->addSpacing(1);
     setTitle(p->objectName());
 
-
-    //  mWindow->propertyWidget->setTitle(p->objectName());
-
     if(!isImage)
     {
         mainLayout->addWidget(CreateXYWHGBox(p));
@@ -131,20 +128,7 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
             }else if(qvm.contains(LIST))
             {
 
-                /*QComboBox *cb = new QComboBox();
-
-                QVariantList qvlist = qvm[LIST].toList();
-                for(QVariantList::const_iterator it = qvlist.begin();
-                    it != qvlist.end();++it)
-                {
-                    cb->addItem((*it).toString());
-                }
-                mainLayout->addWidget(new QLabel(uname));
-                mainLayout->addWidget(cb);
-                */
-
                 //qDebug() << " class name " << p->metaObject()->className();
-
                 QComboBox *cb = new QComboBox();
                 cb->setObjectName(LISTIMAGE);  // 这里假设一个NewLabel只有这样一个QComoBox
                 p->setProperty(DKEY_IMGIDX,0); // 当前选择的行号
@@ -176,6 +160,9 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
                 // 绑定QComoBox的更改信号,更改它的值就要在相应的画版控件更新图片
                 connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onListImageChanged(QString)));
 
+            }else if(qvm.contains(IMAGE)) /* 跳过这一行.*/
+            {
+
             }
             else{
                 if(uname.compare(GEOMETRY))
@@ -195,8 +182,6 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
 
                     else if(qvm[DEFAULT].type() == QVariant::Double)
                     {
-
-
                         // QTextEdit *id = new QTextEdit(t.toLocalTime().toString());
                         // id->setEnabled(false);
                         mainLayout->addWidget(new QLabel(uname));
@@ -226,11 +211,7 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
 
 
         }
-       // v->addStretch(1);
-       // v->setContentsMargins(2,20,2,50);
-     //  mainLayout->setContentsMargins(propertyMarg);
-       // v->setSizeConstraint(QLayout::SetFixedSize);
-       // qDebug() << "next qv is " << qv;
+
     }
 
     QSpacerItem *verticalSpacer = new QSpacerItem(20, 50, QSizePolicy::Minimum, QSizePolicy::Expanding);

@@ -372,15 +372,8 @@
         { 
             "-name":"按钮文本",
             "default" : "按钮"
-        },
-        {
-        	"-name": "图片列表",
-        	"list": [
-        		"test1",
-        		"test2",
-        		"test3"
-        		] 
         }
+       
     ],
     "-class":"QFrame"
 },

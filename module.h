@@ -36,6 +36,8 @@ public:
     void addPropertyBoxSignal(QSpinBox *b);
     void updatePixmap(QString imgpath);
     void updateComboItems(QComboBox *cb);
+    QString *defaultImg;
+
 
 
 protected:

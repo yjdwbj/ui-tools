@@ -30,6 +30,7 @@
 
 class TreeDock;
 class PropertyBox;
+class ScenesScreen;
 
 
 
@@ -60,13 +61,14 @@ public:
     PropertyBox *propertyWidget;
     //QGroupBox *imgPropertyWidget;
     PropertyBox *imgPropertyWidget;
-     QFrame *mCanvas;
-      TreeDock *tree;
+    QFrame *mCanvas;
+    TreeDock *tree;
+    ScenesScreen *Scenes;
 
 
 private:
-     void mousePressEvent(QMouseEvent *ev);
-     Ui::MainWindow *ui;
+    void mousePressEvent(QMouseEvent *ev);
+    Ui::MainWindow *ui;
 
     QDockWidget* rDock;
     QDockWidget* lDock;

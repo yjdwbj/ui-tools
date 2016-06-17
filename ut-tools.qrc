@@ -13,5 +13,6 @@
         <file>bmp/A0004JL.bmp</file>
         <file>bmp/A0003JL.bmp</file>
         <file>bmp/A0028JL.bmp</file>
+        <file>bmp/backgroud-color.png</file>
     </qresource>
 </RCC>

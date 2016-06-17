@@ -190,7 +190,15 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
     /* 单击选中它的父对像 */
 
     NewFrame *p =(NewFrame*) (this->parentWidget());
-    p->setStyleSheet("QFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
+
+    p->setStyleSheet("QFrame#NewFrame{border: 0.5px solid red;}");
+//    p->setStyleSheet("QFrame#NewFrame{border: 2.5px;"\
+//                     "border-style: outset;"\
+//                     "border-color: red;"\
+//                     "border-width: 10px;"\
+//"subcontrol-position: top left;"\
+//"padding:2 13px;"\
+//                     "padding: 10px;}"); // 把本图片的父控件设置的红框
     clearOtherObjectStyleSheet(p);
     mWindow->propertyWidget->createPropertyBox(p,false);
 
@@ -202,7 +210,7 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
                      .arg(QString::number(ev->pos().rx()))
                      .arg(QString::number(ev->pos().ry())));
      }
-    ev->accept();
+  //  ev->accept();
     mOffset = ev->pos();
     setCursor(Qt::ClosedHandCursor);
 }
@@ -289,7 +297,14 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 
     clearOtherObjectStyleSheet(p);
     p->setStyleSheet("");
-    setStyleSheet("QLabel{border: 1px solid red;}");
+    QList<NewLabel*> nlist =  p->findChildren<NewLabel*>();
+    foreach (NewLabel *n, nlist) {
+        if(n != this)
+            n->setStyleSheet("");
+
+    }
+
+    setStyleSheet("QLabel{border: 1px solid red;border-style: outset;}");
     mWindow->imgPropertyWidget->createPropertyBox(this,true);
 
 }
@@ -363,6 +378,7 @@ NewFrame::NewFrame(QWidget *parent)
     :QFrame(parent)
 {
     qDebug() << " property " ;
+    setObjectName("NewFrame");
     //connect(this,SIGNAL(Clicked()),SLOT(onSelectMe()));
     this->setLineWidth(0);
     setFrameShape(QFrame::NoFrame);
@@ -384,7 +400,7 @@ void NewFrame::onSelectMe()
 
 
 
-    setStyleSheet("QFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
+    setStyleSheet("QFrame#NewFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
     clearOtherObjectStyleSheet(this);
     mWindow->propertyWidget->createPropertyBox(this);
 }
