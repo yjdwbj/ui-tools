@@ -14,6 +14,7 @@
 #include <QSignalMapper>
 
 #include "config.h"
+#include "scenesscreen.h"
 
 
 
@@ -375,13 +376,13 @@ void NewLabel::updateComboItems(QComboBox *cb)
 
 
 NewFrame::NewFrame(QWidget *parent)
-    :QFrame(parent)
+    :QWidget(parent)
 {
     qDebug() << " property " ;
     setObjectName("NewFrame");
     //connect(this,SIGNAL(Clicked()),SLOT(onSelectMe()));
-    this->setLineWidth(0);
-    setFrameShape(QFrame::NoFrame);
+   // this->setLineWidth(0);
+   // setFrameShape(QFrame::NoFrame);
 }
 
 void NewFrame::mousePressEvent(QMouseEvent *event)
@@ -456,11 +457,11 @@ void NewFrame::onXYWHChangedValue(int v)
     }else if(!sender->objectName().compare(W))
     {
 
-        sender->setFixedWidth(v);
+      //  sender->setFixedWidth(v);
     }else if(!sender->objectName().compare(H))
     {
 
-        sender->setFixedHeight(v);
+      //  sender->setFixedHeight(v);
     }
     //sender->setGeometry(o);
 
@@ -484,5 +485,131 @@ void NewFrame::onClick()
     qDebug() << "frame clicked";
 }
 
+NewLayer::NewLayer(QSize nsize,QWidget *parent):QFrame(parent)
+{
+    setFixedSize(nsize);
+    setObjectName("NewLayer");
+    setStyleSheet("QWidget#NewLayer{border: 0.5px solid red;}");
+    setFrameShape(QFrame::NoFrame);
+    setLineWidth(0);
+    show();
+}
 
+void NewLayer::SelectLayer()
+{
+
+
+
+
+        setStyleSheet("*{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
+       // clearOtherObjectStyleSheet(this);
+      // mWindow->propertyWidget->createPropertyBox(this);
+
+
+}
+
+void NewLayer::onXYWHChangedValue(int v)
+{
+    /* 绑定坐标控件的更新 */
+    QWidget *sender =(QWidget *)(QObject::sender());
+
+   // QWidget *p = this->parentWidget();
+
+  //  p->move(p->parentWidget()->mapFromGlobal(QCursor::pos()-mOffset));
+    if(!sender->objectName().compare(X))
+    {
+
+        QPoint pos = this->pos();
+        pos.setX(v);
+        move(pos);
+
+    }else if(!sender->objectName().compare(Y))
+    {
+
+        QPoint pos = this->pos();
+        pos.setY(v);
+        move(pos );
+
+    }else if(!sender->objectName().compare(W))
+    {
+        if((this->pos().x() + v )> this->parentWidget()->size().width())
+            return;
+        sender->setFixedWidth(v);
+    }else if(!sender->objectName().compare(H))
+    {
+        if((this->pos().y() + v )> this->parentWidget()->size().height())
+            return;
+
+        sender->setFixedHeight(v);
+    }
+}
+
+void NewLayer::mousePressEvent(QMouseEvent *event)
+{
+    mOffset = event->pos();
+    setCursor(Qt::ClosedHandCursor);
+}
+void NewLayer::mouseMoveEvent(QMouseEvent *event)
+{
+    if (event->buttons() & Qt::LeftButton)
+    {
+
+       // QSize psize = p->parentWidget()->size();
+        move(pos() + (event->pos() - mOffset));
+
+        /* 把新的位置更新到右边属性框 */
+
+        QPoint nr = pos();
+        foreach (QWidget *w, mWindow->propertyWidget->findChildren<QWidget*>()) {
+           if(!w->objectName().compare(X))
+           {
+               QSpinBox *s = (QSpinBox*)w;
+
+               s->setValue(nr.x());
+           }
+           else if(!w->objectName().compare(Y))
+           {
+               QSpinBox *s = (QSpinBox*)w;
+
+               s->setValue(nr.y());
+           }
+
+       }
+
+
+    }
+
+}
+
+void NewLayer::mouseReleaseEvent(QMouseEvent *event)
+{
+    /* 放开鼠标时检查它的是否出了边界要 */
+    QWidget *p = this->parentWidget();
+    QPoint pos = this->pos();
+    if(this->x() < 0)
+    {
+        pos.setX(0);
+        move(pos);
+
+    }
+    if(this->y() < 0 )
+    {
+        pos.setY(0);
+        move(pos);
+
+    }
+
+    QSize ms = p->size();
+    if((this->x()  + this->size().width()) > ms.width())
+    {
+        pos.setX( ms.width() - this->size().width() );
+        move(pos);
+    }
+
+    if((this->y() + this->size().height()) > ms.height())
+    {
+        pos.setY(ms.height() - this->size().height());
+        move(pos);
+    }
+}
 

@@ -1,6 +1,7 @@
 #include "compoentcontrols.h"
 #include "handlejson.h"
 #include "config.h"
+#include "scenesscreen.h"
 
 CompoentControls::CompoentControls(QWidget *parent) : QGroupBox(parent),mainLayout(new QHBoxLayout())
 {
@@ -28,12 +29,7 @@ CompoentControls::CompoentControls(QWidget *parent) : QGroupBox(parent),mainLayo
     mSizePolicy.setVerticalPolicy(QSizePolicy::Preferred);
 
 
-    /* QPushButton *btnTest = new QPushButton(tr("test"));
-    mainLayout->addWidget(btnTest,0,0);
-    mainLayout->setContentsMargins(0,0,0,300);
 
-    connect(btnTest,SIGNAL(clicked(bool)),SLOT(onCreateCompoentToCanvas()));
-      */
     mJsonFile =  QDir::currentPath() + "/menu_strip.json";
     qDebug() << " json file name " << mJsonFile;
     QFileInfo qfi(mJsonFile);
@@ -137,8 +133,9 @@ void CompoentControls::CreateButtonList()
     int row,col = 0;
 
 
-    QPushButton *l = new QPushButton("Layer");
+    QPushButton *l = new QPushButton(tr("布局"));
     l->setSizePolicy(mSizePolicy);
+    connect(l,SIGNAL(clicked(bool)),SLOT(onCreateNewLayer()));
     v->addWidget(l);
 
 
@@ -335,4 +332,10 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
     }
 
     return nobj;
+}
+
+
+void CompoentControls::onCreateNewLayer()
+{
+    mWindow->Scenes->createNewLayer();
 }

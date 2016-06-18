@@ -12,8 +12,8 @@
 
 static bool isWidget = true;
 
-static int CanvasW  = 320;
-static int CanvasH  = 240;
+static int Width  = 480;
+static int Height  = 320;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -31,19 +31,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
 
-    Scenes = new ScenesScreen(ui->centralWidget);
+    Scenes = new ScenesScreen(QSize(Width,Height),ui->centralWidget);
+    Scenes->addMainWindow(this);
     Scenes->move(this->width() * 0.12,this->height()* 0.3);
 
-    mCanvas = new QFrame(Scenes);
-    mCanvas->setFrameShadow(QFrame::Raised);
-    mCanvas->setFrameShape(QFrame::StyledPanel);
-    mCanvas->installEventFilter(this);
-
-
-   // mCanvas->move(this->width() * 0.25 ,this->height() * 0.25);
-
-
-    mCanvas->setFixedSize(CanvasW,CanvasH);
+//    mCanvas = new QFrame(Scenes);
+//    mCanvas->setFrameShadow(QFrame::Raised);
+//    mCanvas->setFrameShape(QFrame::StyledPanel);
+//    mCanvas->installEventFilter(this);
+//    mCanvas->setFixedSize(CanvasW,CanvasH);
 
 
     ui->mainToolBar->addWidget(new QPushButton("test"));
@@ -90,18 +86,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     leftLayout->addWidget(qcl);
-   // leftLayout->addWidget(propertyWidget);
-   // propertyWidget->setStyleSheet("{top: 12px; padding: 1px;}");
-
-   // leftLayout->addSpacerItem(new QSpacerItem(10,10));
-    //propertyWidget->setStyleSheet("QGroupBox{border: 1px solid gray;}");
-    //leftLayout->addWidget(imgPropertyWidget); /* 单个图片的属性组 */
 
 
-    lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/krfb.png")),tr("test")));
-    lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/kwin.png")),tr("kwin")));
-    lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/kuser.png")),tr("kuser")));
-    lList->addItem(new QListWidgetItem(QIcon(tr("/usr/share/icons/mate/48x48/apps/calc.png")),tr("calc")));
     addDockWidget(Qt::LeftDockWidgetArea, lDock);
     tree = new TreeDock(this,this);
     tree->addCompoentControls(cc);
@@ -109,44 +95,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
    // addDockWidget(Qt::LeftDockWidgetArea,new TreeDock(this));
     splitDockWidget(lDock,tree,Qt::Horizontal);
-    lList->setFixedWidth(160);
-    QScrollArea *defcom = new QScrollArea();
-
-
-
-
-    /*rDock = new QDockWidget(tr("right"));
-    rDock->setObjectName("RightDock");
-    rDock->setAllowedAreas(Qt::RightDockWidgetArea);
-
-    rList = new QListWidget(rDock);
-    rList->setObjectName("rDockListWidget");
-    addDockWidget(Qt::RightDockWidgetArea, rDock);
-    rDock->setWidget(rList);
-    rList->setFixedWidth(160);*/
-
-    /*
-    QString filename =  QDir::currentPath() + "/menu_strip.json";
-    //qDebug() << " json file name " << filename;
-    QFileInfo qfi(filename);
-    if(!qfi.exists())
-    {
-        QMessageBox::warning(this,tr("错误"),tr("找不到控件文件"));
-        return;
-    }
-
-    HandleJson *hj = new HandleJson(filename);
-  //  mCanvas->setProperty("PropertyStack",QVariant::fromValue(propertyStack));
-    QWidgetList qwlist = qApp->allWidgets();
-
-
-    QWidget *ww = (QWidget*)(hj->CreateObjectFromJson(hj->mJsonMap,mCanvas));
-    qDebug() << "New object Rect " << ww->geometry()
-             << " Pos " <<  ww->mapToParent(ww->pos());
-    delete hj;
-            */
-   // ww->move(ww->parentWidget()->mapFromGlobal(QPoint(200,200)));
-
+  //  lList->setFixedWidth(160);
 
 }
 

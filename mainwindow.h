@@ -66,6 +66,8 @@ public:
     ScenesScreen *Scenes;
 
 
+
+
 private:
     void mousePressEvent(QMouseEvent *ev);
     Ui::MainWindow *ui;

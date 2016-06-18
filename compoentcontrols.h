@@ -14,6 +14,7 @@
 
 class TreeDock;
 class MainWindow;
+class ScenesScreen;
 class CompoentControls : public QGroupBox
 {
     friend class PropertyBox;
@@ -44,7 +45,7 @@ signals:
 
 public slots:
      void onCreateCompoentToCanvas();
-
+     void onCreateNewLayer();
 };
 
 #endif // COMPOENTCONTROLS_H

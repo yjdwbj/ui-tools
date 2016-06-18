@@ -51,14 +51,18 @@ QGroupBox* PropertyBox::CreateXYWHGBox(QWidget *p)
         s->setFixedWidth(35);
         xywh->addWidget(s,index,0);
         QSpinBox *xedit = new QSpinBox();
+
+        if(it.key() == H || it.key() == W)
+        {
+            xedit->setEnabled(false); // 大小不能调整
+        }
         xedit->setFixedWidth(40);
 
         xedit->setObjectName(it.key());
+        //  检查它的值不能超上层控件边界.
         xedit->setMaximum(1000);
         xedit->setValue(it.value());
         xywh->addWidget(xedit,index,1);
-        //connect(xedit,SIGNAL(valueChanged(int)),SLOT(onXYWHChangedValue(int)));
-       // comT->addPropertyBoxSignal(xedit);
         connect(xedit,SIGNAL(valueChanged(int)),p,SLOT(onXYWHChangedValue(int)));
 
         index++;

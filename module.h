@@ -14,6 +14,7 @@
 
 
 class MainWindow;
+class ScenesScreen;
 class NewLabel :public QLabel
 {
     friend class PropertyBox;
@@ -37,6 +38,7 @@ public:
     void updatePixmap(QString imgpath);
     void updateComboItems(QComboBox *cb);
     QString *defaultImg;
+    MainWindow *mWindow;
 
 
 
@@ -67,14 +69,14 @@ private:
 
 
     QPoint mOffset;
-    MainWindow *mWindow;
+
     QStringList myImageList;
     int selIndex; /* 选中的当前的图片号 */
     bool disDefaultList; /* 屏闭默认的图片列表　*/
 
 };
 
-class NewFrame :public QFrame
+class NewFrame :public QWidget
 {
     Q_OBJECT
 public:
@@ -85,9 +87,10 @@ public:
     bool eventFilter(QObject *obj, QEvent *event);
     void addMainWindow(QObject *mw);
     void onSelectMe();
+    MainWindow *mWindow;
 
 private:
-    MainWindow *mWindow;
+
 
 signals:
    void Clicked();
@@ -95,15 +98,39 @@ private slots:
     void onClick();
     void onXYWHChangedValue(int v);
 
-
-
-
-
 protected:
     void mousePressEvent(QMouseEvent *event) ;
     void clearOtherObjectStyleSheet(QWidget *p);
 
    // void mouseDoubleClickEvent(QMouseEvent *event);
+
+};
+
+class NewLayer :public QFrame
+{
+    Q_OBJECT
+public:
+    explicit NewLayer(QSize nsize, QWidget *parent=0);
+    NewLayer (int width,int height,QWidget *parent=0);
+    void SelectLayer();
+    void addMainWindow(MainWindow *m) { mWindow = m;}
+    MainWindow *mWindow;
+
+
+private:
+    QPoint mOffset;
+    QWidgetList mNewFrameList;
+
+
+public slots:
+    void onXYWHChangedValue(int v);
+
+
+protected:
+
+    void mouseMoveEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
 
 };
 
