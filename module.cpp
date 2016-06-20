@@ -147,7 +147,7 @@ void NewLabel::removeWidFromLayout(QLayout* layout)
 void NewLabel::clearOtherObjectStyleSheet(QWidget *p)
 {
     /* 清除控件的红线框 */
-    QList<NewFrame*> nflist =  mWindow->mCanvas->findChildren<NewFrame*>();
+    QList<NewFrame*> nflist =  p->parentWidget()->findChildren<NewFrame*>();
     foreach(NewFrame *x,nflist)
     {
         if(x != p)
@@ -192,7 +192,7 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
 
     NewFrame *p =(NewFrame*) (this->parentWidget());
 
-    p->setStyleSheet("QFrame#NewFrame{border: 0.5px solid red;}");
+    p->setStyleSheet("NewFrame{border: 0.5px solid red;}");
 //    p->setStyleSheet("QFrame#NewFrame{border: 2.5px;"\
 //                     "border-style: outset;"\
 //                     "border-color: red;"\
@@ -236,7 +236,7 @@ void NewLabel::mouseReleaseEvent(QMouseEvent *ev)
 
     }
 
-    QSize ms = mWindow->mCanvas->size();
+    QSize ms = p->parentWidget()->size();
     if((p->x() + p->size().width()) > ms.width())
     {
         pos.setX( ms.width() - p->size().width() );
@@ -248,9 +248,9 @@ void NewLabel::mouseReleaseEvent(QMouseEvent *ev)
         pos.setY(ms.height() - p->size().height());
         p->move(pos);
     }
-    qDebug() << " parent Widget pos " << p->pos() << "size : " << p->size() << " geomerty " << p->geometry();
+    //qDebug() << " parent Widget pos " << p->pos() << "size : " << p->size() << " geomerty " << p->geometry();
 
-
+    qDebug() << " new pos from Frame : " << p->pos();
 }
 
 void NewLabel::mouseMoveEvent(QMouseEvent *event)
@@ -259,9 +259,9 @@ void NewLabel::mouseMoveEvent(QMouseEvent *event)
     if (event->buttons() & Qt::LeftButton)
     {
         NewFrame *p =(NewFrame*) (this->parentWidget());
-       // QSize psize = p->parentWidget()->size();
+
         p->move( p->pos() + (event->pos() - mOffset));
-      //  p->update();
+
 
         /* 把新的位置更新到右边属性框 */
 
@@ -286,6 +286,7 @@ void NewLabel::mouseMoveEvent(QMouseEvent *event)
     }
     // event->accept();
     //  this->parentWidget()->update();
+    qDebug() << " new pos from Layer : "  << pos() ;
 }
 
 
@@ -306,7 +307,9 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
     }
 
     setStyleSheet("QLabel{border: 1px solid red;border-style: outset;}");
+    mWindow->propertyWidget->createPropertyBox(p,false);
     mWindow->imgPropertyWidget->createPropertyBox(this,true);
+    qDebug() << " Frame pos is " << p->pos();
 
 }
 
@@ -355,14 +358,7 @@ void NewLabel::onPictureDialog(bool b)
         }
     }
     updateComboItems(cb);
- //   this->setProperty(DKEY_IMAGELST,selList); /* 保存它的图片列表在它的动态属性中 */
-    /*
-    foreach (QString s, myImageList) {
-       cb->addItem(s.section(":",0,0));
-    }
-   // cb->addItems(sMap.keys());
-    cb->setCurrentIndex(this->property(DKEY_IMGIDX).toInt());
-    */
+
 }
 
 void NewLabel::updateComboItems(QComboBox *cb)
@@ -378,7 +374,7 @@ void NewLabel::updateComboItems(QComboBox *cb)
 NewFrame::NewFrame(QWidget *parent)
     :QWidget(parent)
 {
-    qDebug() << " property " ;
+
     setObjectName("NewFrame");
     //connect(this,SIGNAL(Clicked()),SLOT(onSelectMe()));
    // this->setLineWidth(0);
@@ -392,6 +388,8 @@ void NewFrame::mousePressEvent(QMouseEvent *event)
 
 void NewFrame::mouseMoveEvent(QMouseEvent *event)
 {
+   event->accept();
+   qDebug() << " new pos from New FRame " << pos();
    // event->accept();
 }
 
@@ -401,7 +399,7 @@ void NewFrame::onSelectMe()
 
 
 
-    setStyleSheet("QFrame#NewFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
+    setStyleSheet("NewFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
     clearOtherObjectStyleSheet(this);
     mWindow->propertyWidget->createPropertyBox(this);
 }
@@ -414,7 +412,7 @@ void NewFrame::addMainWindow(QObject *mw)
 void NewFrame::clearOtherObjectStyleSheet(QWidget *p)
 {
     /* 清除控件的红线框 */
-    QList<NewFrame*> nflist =  mWindow->mCanvas->findChildren<NewFrame*>();
+    QList<NewFrame*> nflist =  p->parentWidget()->findChildren<NewFrame*>();
     foreach(NewFrame *x,nflist)
     {
         if(x != p)
@@ -436,10 +434,6 @@ void NewFrame::onXYWHChangedValue(int v)
 {
     /* 绑定坐标控件的更新 */
     QWidget *sender =(QWidget *)(QObject::sender());
-
-   // QWidget *p = this->parentWidget();
-
-  //  p->move(p->parentWidget()->mapFromGlobal(QCursor::pos()-mOffset));
     if(!sender->objectName().compare(X))
     {
 
@@ -467,41 +461,31 @@ void NewFrame::onXYWHChangedValue(int v)
 
 }
 
-bool NewFrame::eventFilter(QObject *obj, QEvent *event)
-{
-
-    return false;
-}
-
-void NewFrame::enterEvent(QEvent *event)
-{
 
 
-}
-
-
-void NewFrame::onClick()
-{
-    qDebug() << "frame clicked";
-}
 
 NewLayer::NewLayer(QSize nsize,QWidget *parent):QFrame(parent)
 {
     setFixedSize(nsize);
-    setObjectName("NewLayer");
-    setStyleSheet("QWidget#NewLayer{border: 0.5px solid red;}");
+    this->setObjectName("NewLayer");
+    this->setStyleSheet("NewLayer{border: 0.5px solid blue;}");
     setFrameShape(QFrame::NoFrame);
     setLineWidth(0);
+    setMouseTracking(true);
+
     show();
 }
 
+void NewLayer::paintEvent(QPaintEvent *)
+{
+    QPainter p(this);
+    p.setPen(Qt::blue);
+    p.drawRect(0,0,width() -1,height() -1);
+}
 void NewLayer::SelectLayer()
 {
 
-
-
-
-        setStyleSheet("*{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
+        setStyleSheet("NewLayer{border: 0.5px solid blue;}"); // 把本图片的父控件设置的红框
        // clearOtherObjectStyleSheet(this);
       // mWindow->propertyWidget->createPropertyBox(this);
 
@@ -512,23 +496,19 @@ void NewLayer::onXYWHChangedValue(int v)
 {
     /* 绑定坐标控件的更新 */
     QWidget *sender =(QWidget *)(QObject::sender());
-
-   // QWidget *p = this->parentWidget();
-
-  //  p->move(p->parentWidget()->mapFromGlobal(QCursor::pos()-mOffset));
     if(!sender->objectName().compare(X))
     {
 
         QPoint pos = this->pos();
         pos.setX(v);
-        move(pos);
+        this->move(pos);
 
     }else if(!sender->objectName().compare(Y))
     {
 
         QPoint pos = this->pos();
         pos.setY(v);
-        move(pos );
+        this->move(pos );
 
     }else if(!sender->objectName().compare(W))
     {
@@ -546,20 +526,27 @@ void NewLayer::onXYWHChangedValue(int v)
 
 void NewLayer::mousePressEvent(QMouseEvent *event)
 {
+
+    qDebug() << " grab NewLayer is " << this->objectName();
     mOffset = event->pos();
     setCursor(Qt::ClosedHandCursor);
+    mWindow->propertyWidget->createPropertyBox(this,false);
+
+    foreach (NewFrame *n , this->findChildren<NewFrame*>()) {
+        qDebug() << " my child is " << n->objectName() << " pos " << n->pos();
+        n->setStyleSheet("");
+
+    }
 }
 void NewLayer::mouseMoveEvent(QMouseEvent *event)
 {
     if (event->buttons() & Qt::LeftButton)
     {
-
-       // QSize psize = p->parentWidget()->size();
-        move(pos() + (event->pos() - mOffset));
+        move(this->pos() + (event->pos() - mOffset));
 
         /* 把新的位置更新到右边属性框 */
 
-        QPoint nr = pos();
+        QPoint nr = this->pos();
         foreach (QWidget *w, mWindow->propertyWidget->findChildren<QWidget*>()) {
            if(!w->objectName().compare(X))
            {
@@ -578,6 +565,11 @@ void NewLayer::mouseMoveEvent(QMouseEvent *event)
 
 
     }
+    QList<NewFrame*> list = this->findChildren<NewFrame*>();
+    foreach (NewFrame *n , list) {
+        qDebug() << " my child is " << n->objectName() << " pos " << n->pos();
+
+    }
 
 }
 
@@ -589,13 +581,13 @@ void NewLayer::mouseReleaseEvent(QMouseEvent *event)
     if(this->x() < 0)
     {
         pos.setX(0);
-        move(pos);
+        this->move(pos);
 
     }
     if(this->y() < 0 )
     {
         pos.setY(0);
-        move(pos);
+        this->move(pos);
 
     }
 
@@ -603,13 +595,17 @@ void NewLayer::mouseReleaseEvent(QMouseEvent *event)
     if((this->x()  + this->size().width()) > ms.width())
     {
         pos.setX( ms.width() - this->size().width() );
-        move(pos);
+        this->move(pos);
     }
 
     if((this->y() + this->size().height()) > ms.height())
     {
         pos.setY(ms.height() - this->size().height());
-        move(pos);
+        this->move(pos);
     }
+    qDebug() << " new pos from Layer " << this->pos() ;
+    NewFrame *nf = this->findChild<NewFrame*>("NewFrame");
+    if(nf)
+        qDebug() << " new pos from Frame : " << nf->pos();
 }
 

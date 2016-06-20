@@ -7,6 +7,8 @@
 #include <QtWidgets/QWidget>
 #include <QMouseEvent>
 #include <QComboBox>
+#include <QPainter>
+#include <QPaintEvent>:q
 #include "mainwindow.h"
 #include "imagefiledialog.h"
 
@@ -83,8 +85,6 @@ public:
      QPoint mOffset;
     NewFrame(QWidget *parent=0);
     void mouseMoveEvent(QMouseEvent *event);
-    void enterEvent(QEvent *event);
-    bool eventFilter(QObject *obj, QEvent *event);
     void addMainWindow(QObject *mw);
     void onSelectMe();
     MainWindow *mWindow;
@@ -95,7 +95,7 @@ private:
 signals:
    void Clicked();
 private slots:
-    void onClick();
+
     void onXYWHChangedValue(int v);
 
 protected:
@@ -131,6 +131,8 @@ protected:
     void mouseMoveEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
+    void paintEvent(QPaintEvent *);
+
 
 };
 

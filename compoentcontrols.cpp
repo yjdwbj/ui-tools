@@ -172,15 +172,23 @@ void CompoentControls::onCreateCompoentToCanvas()
 {
    // QObject *sender = QObject::sender(); /* 确定的那一个按钮被点击了 */
 
+    if(!mWindow->Scenes->activeLayer())
+    {
+        QMessageBox::warning(this,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
+        return;
+    }
+
     QPushButton *btn = (QPushButton*)(QObject::sender());
 
+
     NewFrame* ww = (NewFrame *)CreateObjectFromJson(comMap[btn->text()],
-           // mWindow->centralWidget());
-            mWindow->mCanvas);
+            mWindow->Scenes->activeLayer());
     ww->setObjectName(QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
     comList.append(ww);
    // ((NewFrame*)ww)->addMainWindow(mWindow);
    // ((NewFrame*)ww)->onSelectMe();
+    qDebug() << " parent  object name " << ww->parentWidget()->objectName();
+    this->parentWidget()->move(50,50);
     ww->addMainWindow(mWindow);
     ww->onSelectMe();
 

@@ -99,7 +99,7 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
     setLayout( mainLayout);
     mainLayout->setObjectName(COMGRPLYT);
     mainLayout->addSpacing(1);
-    setTitle(p->objectName());
+  // setTitle(p->objectName());
 
     if(!isImage)
     {

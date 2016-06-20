@@ -15,7 +15,9 @@ class ScenesScreen : public QFrame
     Q_OBJECT
 public:
     explicit ScenesScreen(QSize size,QWidget *parent = 0);
-    NewLayer *activeLayer() { return (NewLayer*)(LayerList.at(mActiveIdx));}
+    NewLayer *activeLayer() {
+        return mActiveIdx == -1 ? (NewLayer*)0 :
+                                  (NewLayer*)(LayerList.at(mActiveIdx));}
     void createNewLayer();
     void addMainWindow(MainWindow* m) { mWindow = m;}
     MainWindow* mWindow;
