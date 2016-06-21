@@ -31,6 +31,7 @@ CompoentControls::CompoentControls(QWidget *parent) : QGroupBox(parent),mainLayo
 
 
     mJsonFile =  QDir::currentPath() + "/menu_strip.json";
+   // mJsonFile = QDir::currentPath() + "/control.json";
     qDebug() << " json file name " << mJsonFile;
     QFileInfo qfi(mJsonFile);
     if(!qfi.exists())
@@ -139,29 +140,31 @@ void CompoentControls::CreateButtonList()
     v->addWidget(l);
 
 
+    qDebug() << " compoents size " << comJsonArr.size();
     foreach (QJsonValue qjv, comJsonArr)
     {
         QVariantMap  qjm = qjv.toObject().toVariantMap();
-        if( qjm.contains(CAPTION))
+
+
+
+        QString uname = qjv.toObject()[CAPTION].toString();
+        qDebug() << " json key is " << uname;
+        comMap[uname] = qjm;
+        QPushButton *btnTest = new QPushButton(uname);
+        btnTest->setSizePolicy(mSizePolicy);
+
+        btnTest->setFixedSize(40,40);
+
+
+        if(col == 2)
         {
-
-            QString uname = qjm[CAPTION].toString();
-            comMap[uname] = qjm;
-            QPushButton *btnTest = new QPushButton(uname);
-            btnTest->setSizePolicy(mSizePolicy);
-
-            btnTest->setFixedSize(40,40);
-
-
-            if(col == 2)
-            {
-                 col = 0;
-                 row++;
-            }
-
-            comLayout->addWidget(btnTest,row,col++,1,1);
-            connect(btnTest,SIGNAL(clicked(bool)),this,SLOT(onCreateCompoentToCanvas()));
+            col = 0;
+            row++;
         }
+
+        comLayout->addWidget(btnTest,row,col++,1,1);
+        connect(btnTest,SIGNAL(clicked(bool)),this,SLOT(onCreateCompoentToCanvas()));
+
     }
   //  comLayout->setRowStretch(row,0);
     QSpacerItem *verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
@@ -207,6 +210,7 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
     for(QVariantMap::const_iterator it = qvm.begin();it != qvm.end();++it)
     {
         QString key = it.key();
+        qDebug() << "json key is " << key;
         QVariant::Type qvt = it.value().type();
 
 

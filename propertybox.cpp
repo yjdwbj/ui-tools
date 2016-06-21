@@ -43,8 +43,6 @@ QGroupBox* PropertyBox::CreateXYWHGBox(QWidget *p)
     xymap[H] = p->geometry().height();
 
     int index = 0;
-
-
     for(QMap<QString,int>::iterator it = xymap.begin();it != xymap.end();++it)
     {
         QLabel *s = new QLabel(it.key());
@@ -115,7 +113,7 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
         if(qv.type() == QVariant::Map)
         {
             QVariantMap qvm = qv.toMap();
-            QString uname =  qvm[NAME].toString();
+            QString uname =  qvm[CAPTION].toString();
             if(qvm.contains(ENUM))
             {
                 QComboBox *cb = new QComboBox();
@@ -164,7 +162,7 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
                 // 绑定QComoBox的更改信号,更改它的值就要在相应的画版控件更新图片
                 connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onListImageChanged(QString)));
 
-            }else if(qvm.contains(IMAGE)) /* 跳过这一行.*/
+            }else if(qvm.contains(IMAGE) ) /* 跳过这一行.*/
             {
 
             }
@@ -172,6 +170,7 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
                 if(uname.compare(GEOMETRY))
                 {
 
+                    QVariant::Type t = qvm[DEFAULT].type();
                     if(qvm.contains("id"))
                     {
                         QLabel *title = new QLabel(uname);
@@ -184,7 +183,7 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
                          // 这里是一个特殊属性,唯一序号
                     }
 
-                    else if(qvm[DEFAULT].type() == QVariant::Double)
+                    else if(t == QVariant::Double)
                     {
                         // QTextEdit *id = new QTextEdit(t.toLocalTime().toString());
                         // id->setEnabled(false);
@@ -202,7 +201,7 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
                             s->setMinimum(qvm[MIN].toInt());
                         }
                     }
-                    else{
+                    else if(t == QVariant::String ){
                         QTextEdit *txt = new QTextEdit(qvm[DEFAULT].toString());
                         mainLayout->addWidget(new QLabel(uname));
                         mainLayout->addWidget(txt);
