@@ -28,6 +28,7 @@ static QString CAPTION = "caption";
 static QString MAX = "max";
 static QString MIN = "min";
 static QString LISTIMAGE = "ListImage";
+static QString ICON = "icon";
 
 static const char* DKEY_CAPTION = "caption";
 

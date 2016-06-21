@@ -30,8 +30,8 @@ CompoentControls::CompoentControls(QWidget *parent) : QGroupBox(parent),mainLayo
 
 
 
-    mJsonFile =  QDir::currentPath() + "/menu_strip.json";
-   // mJsonFile = QDir::currentPath() + "/control.json";
+   //mJsonFile =  QDir::currentPath() + "/menu_strip.json";
+    mJsonFile = QDir::currentPath() + "/control.json";
     qDebug() << " json file name " << mJsonFile;
     QFileInfo qfi(mJsonFile);
     if(!qfi.exists())
@@ -152,6 +152,8 @@ void CompoentControls::CreateButtonList()
         comMap[uname] = qjm;
         QPushButton *btnTest = new QPushButton(uname);
         btnTest->setSizePolicy(mSizePolicy);
+        if(qjm.contains(ICON))
+            btnTest->setIcon(QIcon(qjv.toObject()[ICON].toString()));
 
         btnTest->setFixedSize(40,40);
 
@@ -328,7 +330,12 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                     else if(!key.compare(IMAGE))
                     {
                         QPixmap p;
-                        p.load(it.value().toString());
+                        QString path = it.value().toString();
+                        if(path.contains("\\"))
+                        {
+                            path.replace("\\","/");
+                        }
+                        p.load(path);
                         qobject_cast<NewLabel *>(nobj)->setPixmap(p);
                         qobject_cast<NewLabel *>(nobj)->setFixedSize(p.size());
                     }
