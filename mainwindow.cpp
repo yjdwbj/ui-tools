@@ -131,8 +131,8 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 
 
             const QMouseEvent* const me = static_cast<const QMouseEvent*>( event );
-            int x = me->pos().rx();
-            int y = me->pos().ry();
+//            int x = me->pos().rx();
+//            int y = me->pos().ry();
             QPoint xy = me->pos();
             QPoint pxy = mapFromParent(xy);
             QPoint gxy = mapFromGlobal(xy);

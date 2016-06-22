@@ -30,16 +30,25 @@ static QString MIN = "min";
 static QString LISTIMAGE = "ListImage";
 static QString ICON = "icon";
 
-static const char* DKEY_CAPTION = "caption";
+static const char  DKEY_CAPTION[] = "caption";
 
-static const char * DKEY_IMGIDX = "ImageIndex";
-static const char * DKEY_IMAGELST = "ImageList";
-static const char * DKEY_UID= "uid";
-static const char * DKEY_DYN= "dynProperty";
-static const char *DKEY_PRONAME = "PropertyOwner";
-static const char *DKEY_CLSNAME = "clsName";
+static const char DKEY_IMGIDX[] = "ImageIndex";
+static const char DKEY_IMAGELST[] = "ImageList";
+static const char DKEY_UID[] = "uid";
+static const char DKEY_DYN[]= "dynProperty";
+static const char DKEY_PRONAME[] = "PropertyOwner";
+static const char DKEY_CLSNAME[] = "clsName";
 const QMargins propertyMarg = QMargins(2,12,2,50);
 
 const int labHeight = 25;
+
+
+enum { SELECTION_HANDLE_SIZE = 6, SELECTION_MARGIN = 10 };
+enum SelectionHandleState { SelectionHandleOff, SelectionHandleInactive, SelectionHandleActive };
+
+
+
+
+
 
 #endif // CONFIG_H

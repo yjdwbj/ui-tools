@@ -119,8 +119,8 @@ void CompoentControls::CreateButtonList()
                         );
 
 
-    int mindex = 0;
-    int n = 0;
+
+
     QGridLayout *comLayout = new QGridLayout();
     mainLayout->addLayout(comLayout);
    // mainLayout->addWidget(new QPushButton());
@@ -187,7 +187,7 @@ void CompoentControls::onCreateCompoentToCanvas()
 
 
     NewFrame* ww = (NewFrame *)CreateObjectFromJson(comMap[btn->text()],
-            mWindow->Scenes->activeLayer());
+            mWindow->Scenes->activeLayer()->m_frame);
     ww->setObjectName(QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
     comList.append(ww);
    // ((NewFrame*)ww)->addMainWindow(mWindow);

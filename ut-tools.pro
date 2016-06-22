@@ -24,7 +24,9 @@ SOURCES += main.cpp\
     treedock.cpp \
     propertybox.cpp \
     imagelayer.cpp \
-    scenesscreen.cpp
+    scenesscreen.cpp \
+    sizehandlerect.cpp \
+    formresizer.cpp
 
 HEADERS  += mainwindow.h \
     module.h \
@@ -35,7 +37,9 @@ HEADERS  += mainwindow.h \
     propertybox.h \
     config.h \
     imagelayer.h \
-    scenesscreen.h
+    scenesscreen.h \
+    sizehandlerect.h \
+    formresizer.h
 
 FORMS    += mainwindow.ui
 CONFIG += c++11

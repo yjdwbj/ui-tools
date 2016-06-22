@@ -6,10 +6,8 @@
         {
             "-name":"label",
             "property":[
-            	
-            	
                 {
-                    "-name":"geometry",
+                    
                     "rect":{
                         "y":"0",
                         "x":"0",
@@ -18,15 +16,16 @@
                     }
                 },
                 {
-                     "-name":"图片名",
-                    "default": "第一张"
+                     "-name":"fff",
+                     "caption":"图片号",
+                     "default": "第一张"
                 },
                 {
-                    "-name":"image",
                     "image":"bmp/A0006JL.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    "-name":"fff",
+                    "caption":"图片列表",
                     "list":[""]
                 }
                
@@ -37,7 +36,7 @@
             "-name":"label_7",
             "property":[
                 {
-                    "-name":"geometry",
+                   
                     "rect":{
                         "y":"48",
                         "x":"113",
@@ -46,16 +45,18 @@
                     }
                 },
                 {
-                     "-name":"图片名",
+                     "-name":"ddde",
+                     "caption": "图片号",
                     "default": "第七张"
                 },
                 {
-                    "-name":"image",
+                   
                     "image":"bmp/A0008JL.bmp"
                 }
                 ,
                 {
-                    "-name":"图片列表",
+                    "-name":"list",
+                    "caption": "图片列表",
                     "list":[""]
                 }
             ],
@@ -65,7 +66,7 @@
             "-name":"label_6",
             "property":[
                 {
-                    "-name":"geometry",
+                   
                     "rect":{
                         "y":"32",
                         "x":"16",
@@ -74,16 +75,18 @@
                     }
                 },
                 {
-                     "-name":"图片名",
+                     "-name":"gggg",
+                     "caption": "图片号",
                     "default": "第六张"
                 },
                 {
-                    "-name":"image",
+                  
                     "image":"bmp/A0004JL.bmp"
                 }
                 ,
                 {
-                    "-name":"图片列表",
+                    "-name":"list",
+                    "caption": "图片列表",
                     "list":[""]
                     
                 }
@@ -94,7 +97,7 @@
             "-name":"label_8",
             "property":[
                 {
-                    "-name":"geometry",
+                   
                     "rect":{
                         "y":"96",
                         "x":"0",
@@ -103,15 +106,17 @@
                     }
                 },
                 {
-                   "-name":"图片名",
+                   "-name":"dwewt",
+                   "caption": "图片号",
                    "default": "第八张"
                 },
                 {
-                    "-name":"image",
+                    
                     "image":"bmp/A0024JL.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    "-name":"liddddst",
+                    "caption": "图片列表",
                     "list":[""]
                    
                 }
@@ -122,7 +127,7 @@
             "-name":"label_5",
             "property":[
                 {
-                    "-name":"geometry",
+                   
                     "rect":{
                         "y":"80",
                         "x":"0",
@@ -131,15 +136,17 @@
                     }
                 },
                 {
-                     "-name":"图片名",
+                     "-name":"eeee",
+                     "caption": "图片号",
                     "default": "第五张"
                 },
                 {
-                    "-name":"image",
+                   
                     "image":"bmp/A0026JL.bmp"
                 },
                 {
-                   "-name":"图片列表",
+                   "-name":"kkk",
+                   "caption": "图片列表",
                     "list":[""]
                 }
             ],
@@ -158,15 +165,17 @@
                     }
                 },
                 {
-                     "-name":"图片名",
+                     "-name":"ddd",
+                     "caption": "属性四",
                     "default": "第四张"
                 },
                 {
-                    "-name":"image",
+                   
                     "image":"bmp/A0025JL.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    "-name":"dddkke",
+                    "caption": "图片列表",
                     "list":[""]
                 }
             ],
@@ -176,7 +185,7 @@
             "-name":"label_3",
             "property":[
                 {
-                    "-name":"geometry",
+                   
                     "rect":{
                         "y":"48",
                         "x":"0",
@@ -185,15 +194,17 @@
                     }
                 },
                 {
-                    "-name":"图片名",
+                    "-name":"dddw3",
+                    "caption": "属性四",
                     "default": "第三张"
                 },
                 {
-                    "-name":"image",
+                    
                     "image":"bmp/A0022JL.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    "-name":"hhhj",
+                    "caption": "图片列表",
                     "list":[""]
                 }
             ],
@@ -213,14 +224,21 @@
                 },
                 {
                     "-name":"text",
+                    "caption": "图片ddd",
                      "default": "第二张"
                 },
                 {
-                    "-name":"image",
+                    "-name":"ddddd",
+                    "caption": "点击数量",
+                     "default": 0
+                },
+                {
+                    
                     "image":"bmp/A0027JL.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    "-name":"oeeoo",
+                    "caption": "图片列表",
                     "list":[""]
                     	
                 }
@@ -241,14 +259,16 @@
                 },
                 {
                     "-name":"text",
+                    "caption": "图片列表",
                      "default": "第二张"
                 },
                 {
-                    "-name":"image",
+                    
                     "image":"bmp/A0027JL.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    "-name":"lst",
+                    "caption": "图片列表",
                     "list":[""]
                     	
                 }
@@ -269,14 +289,17 @@
                 },
                 {
                     "-name":"text",
+                    "caption": "图片列表",
                      "default": "第二张"
                 },
                 {
-                    "-name":"image",
+                    
                     "image":"bmp/A0027JL.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    
+                    "-name":"ddfff",
+                    "caption": "图片列表",
                     "list":[""]
                     	
                 }
@@ -297,14 +320,16 @@
                 },
                 {
                     "-name":"text",
+                    "caption": "图片列表",
                      "default": "第二张"
                 },
                 {
-                    "-name":"image",
+                    
                     "image":"bmp/A0027JL.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    "-name":"bk_image",
+                    "caption": "图片列表",
                     "list":[""]
                     	
                 }
@@ -326,14 +351,16 @@
                 },
                 {
                     "-name":"text",
+                    "caption": "图片列表",
                      "default": "第二张"
                 },
                 {
-                    "-name":"image",
+                    
                     "image":"bmp/A0027JL.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    "-name":"bk_image",
+                    "caption": "图片列表",
                     "list":[""]
                     	
                 }
@@ -343,7 +370,8 @@
     ],
     "property":[
         { 
-            	  "-name": "序号",
+            	  "-name": "id",
+            	  "caption": "序号",
             	  "id": 0
         },
         {
@@ -355,7 +383,8 @@
                 "width":"128"
             }
         },
-        { "-name": "按钮事件",
+        { "-name": "enum",
+          "caption": "按钮事件",
           "enum": [
             	  {
             	  "BTN_ACTIONA": 0
@@ -370,10 +399,19 @@
           "default" : "BTN_ACTIONA"
         },
         { 
-            "-name":"按钮文本",
+            "-name":"button",
+            "caption": "按钮文本１",
+            "default" : "按钮"
+        },{ 
+            "-name":"button",
+            "caption": "按钮文本１",
+            "default" : "按钮"
+        },
+        { 
+            "-name":"button",
+            "caption": "按钮文本１",
             "default" : "按钮"
         }
-       
     ],
     "-class":"QFrame"
 },
@@ -396,15 +434,17 @@
                     }
                 },
                 {
-                     "-name":"图片名",
-                    "default": "第一张"
+                     "-name":"eeee",
+                     "caption": "图片号",
+                     "default": "第一张"
                 },
                 {
-                    "-name":"image",
+                  
                     "image":"bmp/A0006JL.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    "-name":"bk_image",
+                    "caption": "图片列表",
                     "list":[""]
                 }
                
@@ -424,16 +464,18 @@
                     }
                 },
                 {
-                     "-name":"图片名",
+                     "-name":"eee",
+                     "caption": "图片ddd",
                     "default": "第七张"
                 },
                 {
-                    "-name":"image",
+                  
                     "image":"bmp/A0008JL.bmp"
                 }
                 ,
                 {
-                    "-name":"图片列表",
+                    "-name":"bbbb",
+                    "caption": "图片列表",
                     "list":[""]
                 }
             ],
@@ -452,11 +494,12 @@
                     }
                 },
                 {
-                     "-name":"图片名",
+                     "-name":"ddsf",
+                      "caption": "图片ddd",
                     "default": "第六张"
                 },
                 {
-                    "-name":"image",
+                    
                     "image":"bmp/A0004JL.bmp"
                 }
                 ,
@@ -481,15 +524,17 @@
                     }
                 },
                 {
-                   "-name":"图片名",
+                   "-name":"dddd",
+                    "caption": "图片www",
                    "default": "第八张"
                 },
                 {
-                    "-name":"image",
+                    
                     "image":"bmp/A0024JL.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    "-name":"list",
+                     "caption": "图片列表",
                     "list":[""]
                    
                 }
@@ -509,15 +554,17 @@
                     }
                 },
                 {
-                     "-name":"图片名",
+                     "-name":"txt",
+                      "caption": "图片ddd",
                     "default": "第五张"
                 },
                 {
-                    "-name":"image",
+                   
                     "image":"bmp/A0026JL.bmp"
                 },
                 {
-                   "-name":"图片列表",
+                   "-name":"dddw",
+                    "caption": "图片列表",
                     "list":[""]
                 }
             ],
@@ -536,15 +583,17 @@
                     }
                 },
                 {
-                     "-name":"图片名",
+                     "-name":"ddd",
+                      "caption": "图片dd",
                     "default": "第四张"
                 },
                 {
-                    "-name":"image",
+                    
                     "image":"bmp/A0025JL.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    "-name":"ttttt",
+                     "caption": "图片ddd",
                     "list":[""]
                 }
             ],
@@ -563,15 +612,17 @@
                     }
                 },
                 {
-                    "-name":"图片名",
+                    "-name":"getet",
+                     "caption": "图片ddd",
                     "default": "第三张"
                 },
                 {
-                    "-name":"image",
+                    
                     "image":"bmp/A0022JL.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    "-name":"list",
+                     "caption": "图片列表",
                     "list":[""]
                 }
             ],
@@ -591,14 +642,16 @@
                 },
                 {
                     "-name":"text",
+                     "caption": "图片列表",
                      "default": "第二张"
                 },
                 {
-                    "-name":"image",
+                    
                     "image":"bmp/A0027JL.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    "-name":"dddd",
+                     "caption": "图片列表",
                     "list":[""]
                     	
                 }
@@ -608,11 +661,12 @@
     ],
     "property":[
         { 
-            	  "-name": "序号",
+            	  "-name": "id",
+            	  "caption": "序号",
             	  "id": 0
         },
         {
-            "-name":"geometry",
+           
             "rect":{
                 "y":"0",
                 "x":"0",
@@ -620,7 +674,8 @@
                 "width":"101"
             }
         },
-        { "-name": "按钮事件",
+        { "-name": "enum",
+          "caption": "按键事件",
           "enum": [
             	  {
             	  "BTN_ACTIONA": 0
@@ -635,7 +690,8 @@
           "default" : "BTN_ACTIONA"
         },
         { 
-            "-name":"按钮文本",
+            "-name":"button",
+             "caption": "按钮文本",
             "default" : "按钮"
         }
     ],
@@ -658,12 +714,13 @@
                     }
                 },
                 {
-                    "-name":"image",
+                  
                     "image":"bmp/A0010JL0.bmp"
                 }
                 ,
                 {
-                    "-name":"图片列表",
+                    "-name":"list",
+                    "caption": "图片列表",
                     "list":[""]
                    
                 }
@@ -683,11 +740,12 @@
                     }
                 },
                 {
-                    "-name":"image",
+                    
                     "image":"bmp/A0010JL0.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    "-name":"list",
+                    "caption": "图片列表",
                     "list":[""]
                    
                 }
@@ -707,11 +765,12 @@
                     }
                 },
                 {
-                    "-name":"image",
+                    
                     "image":"bmp/A0021JL.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    "-name":"ddd",
+                    "caption": "图片列表",
                     "list":[""]
                    
                 }
@@ -731,11 +790,12 @@
                     }
                 },
                 {
-                    "-name":"image",
+                    
                     "image":"bmp/A0010JL0.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    "-name":"dddw",
+                    "caption": "图片列表",
                     "list":[""]
                    
                 }
@@ -759,7 +819,8 @@
                     "image":"bmp/A0010JL0.bmp"
                 },
                 {
-                    "-name":"图片列表",
+                    "-name":"ddweww",
+                    "caption": "图片列表",
                     "list":[""]
                    
                 }
@@ -768,6 +829,11 @@
         }
     ],
     "property":[
+    { 
+            	  "-name": "id",
+            	  "caption": "序号",
+            	  "id": 0
+    },
     {
         "-name":"geometry",
         "rect":{
@@ -777,22 +843,24 @@
             "height":"16"
         }
     },
-    { "-name": "按钮事件",
+    {    "-name": "enum",
+         "caption": "事件列表",
           "enum": [
             	  {
-            	  "BTN_ACTIONA": 0
+            	  "BTN_ACTIONA": 4
             	  },
             	  {
-            	  "BTN_ACTIONB" : 1
+            	  "BTN_ACTIONB" : 5
             	  },
             	  {
-            	  "BTN_ACTIONC" : 2
+            	  "BTN_ACTIONC" : 10
             	  }
             	 ],
           "default" : "BTN_ACTIONA"
         },
      { 
-            "-name":"按钮文本",
+            "-name":"eee",
+            "caption": "图片列表",
             "default" : "按钮"
      }
     ],

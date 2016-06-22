@@ -17,20 +17,12 @@ void ScenesScreen::createNewLayer()
 {
     NewLayer *nl = new NewLayer(QSize(150,200),this);
 
-    QSizeGrip *sg = new QSizeGrip(nl);
-    sg->setVisible(true);
-    qDebug() << " QSize Grip Size Hint " << sg->sizeHint();
-    sg->show();
-
-
     nl->SelectLayer();
     nl->addMainWindow(mWindow);
     LayerList.append(nl);
     mActiveIdx = LayerList.size() - 1;
 
-    QRegion *qr = new QRegion(nl->geometry(),QRegion::Rectangle);
-    qDebug() << "create new layer  index " << mActiveIdx;
-    nl->setMask(*qr);
+
 
 }
 

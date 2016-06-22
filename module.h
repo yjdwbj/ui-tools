@@ -8,11 +8,13 @@
 #include <QMouseEvent>
 #include <QComboBox>
 #include <QPainter>
-#include <QPaintEvent>:q
+#include <QPaintEvent>
+#include <QGraphicsItem>
 #include "mainwindow.h"
 #include "imagefiledialog.h"
 
 #include "propertybox.h"
+#include "formresizer.h"
 
 
 class MainWindow;
@@ -106,7 +108,8 @@ protected:
 
 };
 
-class NewLayer :public QFrame
+//class NewLayer :public QFrame
+class NewLayer :public FormResizer
 {
     Q_OBJECT
 public:
@@ -115,7 +118,6 @@ public:
     void SelectLayer();
     void addMainWindow(MainWindow *m) { mWindow = m;}
     MainWindow *mWindow;
-
 
 private:
     QPoint mOffset;
@@ -131,7 +133,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
-    void paintEvent(QPaintEvent *);
+ //   void paintEvent(QPaintEvent *);
 
 
 };

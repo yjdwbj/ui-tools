@@ -464,28 +464,33 @@ void NewFrame::onXYWHChangedValue(int v)
 
 
 
-NewLayer::NewLayer(QSize nsize,QWidget *parent):QFrame(parent)
+NewLayer::NewLayer(QSize nsize,QWidget *parent):
+    FormResizer(parent)
 {
-    setFixedSize(nsize);
+   // setFixedSize(nsize);
+    setMinimumSize(nsize );
+    setMaximumSize(parent->size());
     this->setObjectName("NewLayer");
     this->setStyleSheet("NewLayer{border: 0.5px solid blue;}");
-    setFrameShape(QFrame::NoFrame);
-    setLineWidth(0);
-    setMouseTracking(true);
+    //setFrameShape(QFrame::NoFrame);
+   // setLineWidth(0);
+    //setMouseTracking(true);
+    //setFlag(QGraphicsItem::ItemIsMovable, true);
+   // setFlag(QGraphicsItem::ItemIgnoresTransformations, true);
 
     show();
 }
 
-void NewLayer::paintEvent(QPaintEvent *)
-{
-    QPainter p(this);
-    p.setPen(Qt::blue);
-    p.drawRect(0,0,width() -1,height() -1);
-}
+//void NewLayer::paintEvent(QPaintEvent *)
+//{
+//    QPainter p(this);
+//    p.setPen(Qt::blue);
+//    p.drawRect(0,0,width() -1,height() -1);
+//}
 void NewLayer::SelectLayer()
 {
 
-        setStyleSheet("NewLayer{border: 0.5px solid blue;}"); // 把本图片的父控件设置的红框
+       // setStyleSheet("NewLayer{border: 0.5px solid blue;}"); // 把本图片的父控件设置的红框
        // clearOtherObjectStyleSheet(this);
       // mWindow->propertyWidget->createPropertyBox(this);
 
@@ -524,8 +529,12 @@ void NewLayer::onXYWHChangedValue(int v)
     }
 }
 
+
 void NewLayer::mousePressEvent(QMouseEvent *event)
 {
+    if (event->button() != Qt::LeftButton)
+        return;
+    setFocus(Qt::MouseFocusReason);
 
     qDebug() << " grab NewLayer is " << this->objectName();
     mOffset = event->pos();
