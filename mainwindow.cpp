@@ -8,10 +8,6 @@
 #include <QStandardPaths>
 #include <QStyleFactory>
 
-
-
-static bool isWidget = true;
-
 static int Width  = 480;
 static int Height  = 320;
 
@@ -27,7 +23,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     QStringList sflist = QStyleFactory::keys();
     //qDebug() << " list " << sflist;
-    this->setStyle(QStyleFactory::create("GTK+"));
+  //  this->setStyle(QStyleFactory::create("GTK+"));
 
 
 

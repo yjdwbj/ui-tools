@@ -58,6 +58,7 @@ void SizeHandleRect::paintEvent(QPaintEvent *)
         QPainter p(this);
         p.setPen(Qt::blue);
         p.drawRect(0, 0, width() - 1, height() - 1);
+
     }
         break;
     }

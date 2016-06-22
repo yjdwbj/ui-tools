@@ -80,7 +80,7 @@ private:
 
 };
 
-class NewFrame :public QWidget
+class NewFrame :public FormResizer
 {
     Q_OBJECT
 public:

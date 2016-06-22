@@ -30,8 +30,8 @@ CompoentControls::CompoentControls(QWidget *parent) : QGroupBox(parent),mainLayo
 
 
 
-   //mJsonFile =  QDir::currentPath() + "/menu_strip.json";
-    mJsonFile = QDir::currentPath() + "/control.json";
+   mJsonFile =  QDir::currentPath() + "/menu_strip.json";
+   // mJsonFile = QDir::currentPath() + "/control.json";
     qDebug() << " json file name " << mJsonFile;
     QFileInfo qfi(mJsonFile);
     if(!qfi.exists())
@@ -233,7 +233,8 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                 }
                 else if(!cval.compare(QLABEL))
                 {
-                    nobj =qobject_cast<QObject*>(new NewLabel((QWidget *)pobj));
+                    NewFrame *np = (NewFrame*)pobj;
+                    nobj =qobject_cast<QObject*>(new NewLabel(np->m_frame));
                     nobj->setProperty(DKEY_CLSNAME,cval);
 
                 }
@@ -318,13 +319,16 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                         {
 
                            qobject_cast<NewFrame *>(nobj)->setGeometry(r);
+                           ((NewFrame*)nobj)->m_frame->setGeometry(r);
+                           ((NewFrame*)nobj)->updateGeometry();
+                            ((NewFrame*)nobj)->setFixedSize(r.size()+QSize(20,20));
                           // qobject_cast<NewFrame *>(nobj)->move(QPoint(501,501));
-                          //qDebug() << "create Frame geometry " << r << qobject_cast<NewFrame *>(nobj)->geometry();
+                          qDebug() << "create Frame geometry " << r << qobject_cast<NewFrame *>(nobj)->geometry();
 
 
                         }else{
                             qobject_cast<NewLabel *>(nobj)->setGeometry(r);
-                            qDebug() << " label geometry " << qobject_cast<NewLabel *>(nobj)->geometry();
+                          //  qDebug() << " label geometry " << qobject_cast<NewLabel *>(nobj)->geometry();
                         }
                     }
                     else if(!key.compare(IMAGE))

@@ -23,11 +23,12 @@ FormResizer::FormResizer(QWidget *parent) :
 
     QVBoxLayout *handleLayout = new QVBoxLayout(this);
     handleLayout->setMargin(SELECTION_MARGIN);
+    //handleLayout->setMargin(1);
     handleLayout->addWidget(m_frame);
 
     m_frame->setFrameStyle(QFrame::Panel | QFrame::Raised);
-    QVBoxLayout *layout = new QVBoxLayout(m_frame);
-    layout->setMargin(0);
+//    QVBoxLayout *layout = new QVBoxLayout(m_frame);
+//    layout->setMargin(0);
     // handles
     m_handles.reserve(SizeHandleRect::Left);
     for (int i = SizeHandleRect::LeftTop; i <= SizeHandleRect::Left; ++i) {

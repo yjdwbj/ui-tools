@@ -34,6 +34,7 @@ NewLabel::NewLabel(QWidget *parent)
         }
     }
     this->setLineWidth(0);
+    setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
 
     // connect(this,SIGNAL(Clicked()),SLOT(onClieck()));
 }
@@ -190,7 +191,8 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
 
     /* 单击选中它的父对像 */
 
-    NewFrame *p =(NewFrame*) (this->parentWidget());
+    NewFrame *p =(NewFrame*) (this->parentWidget()->parentWidget());
+    p->setState(SelectionHandleActive);
 
     p->setStyleSheet("NewFrame{border: 0.5px solid red;}");
 //    p->setStyleSheet("QFrame#NewFrame{border: 2.5px;"\
@@ -236,7 +238,7 @@ void NewLabel::mouseReleaseEvent(QMouseEvent *ev)
 
     }
 
-    QSize ms = p->parentWidget()->size();
+    QSize ms = p->parentWidget()->parentWidget()->size();
     if((p->x() + p->size().width()) > ms.width())
     {
         pos.setX( ms.width() - p->size().width() );
@@ -258,7 +260,7 @@ void NewLabel::mouseMoveEvent(QMouseEvent *event)
 
     if (event->buttons() & Qt::LeftButton)
     {
-        NewFrame *p =(NewFrame*) (this->parentWidget());
+        NewFrame *p =(NewFrame*) (this->parentWidget()->parentWidget());
 
         p->move( p->pos() + (event->pos() - mOffset));
 
@@ -295,7 +297,8 @@ void NewLabel::mouseMoveEvent(QMouseEvent *event)
 void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 {
 
-    NewFrame *p = (NewFrame *)this->parentWidget();
+    NewFrame *p = (NewFrame *)this->parentWidget()->parentWidget();
+    p->setState(SelectionHandleOff);
 
     clearOtherObjectStyleSheet(p);
     p->setStyleSheet("");
@@ -372,13 +375,15 @@ void NewLabel::updateComboItems(QComboBox *cb)
 
 
 NewFrame::NewFrame(QWidget *parent)
-    :QWidget(parent)
+    :FormResizer(parent)
 {
 
     setObjectName("NewFrame");
     //connect(this,SIGNAL(Clicked()),SLOT(onSelectMe()));
    // this->setLineWidth(0);
    // setFrameShape(QFrame::NoFrame);
+
+    setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
 }
 
 void NewFrame::mousePressEvent(QMouseEvent *event)
