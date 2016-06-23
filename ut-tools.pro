@@ -27,7 +27,8 @@ SOURCES += main.cpp\
     scenesscreen.cpp \
     sizehandlerect.cpp \
     formresizer.cpp \
-    canvasmanager.cpp
+    canvasmanager.cpp \
+    pageview.cpp
 
 HEADERS  += mainwindow.h \
     module.h \
@@ -41,7 +42,8 @@ HEADERS  += mainwindow.h \
     scenesscreen.h \
     sizehandlerect.h \
     formresizer.h \
-    canvasmanager.h
+    canvasmanager.h \
+    pageview.h
 
 FORMS    += mainwindow.ui
 CONFIG += c++11

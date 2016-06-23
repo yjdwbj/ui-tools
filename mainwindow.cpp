@@ -10,8 +10,7 @@
 #include <QStyleFactory>
 #include <QRegion>
 
-static int Width  = 480;
-static int Height  = 320;
+
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -49,6 +48,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // 左边属性框
     lDock = new QDockWidget();
+    lDock->setEnabled(false);
     lDock->setAllowedAreas( Qt::LeftDockWidgetArea);
     lDock->setFeatures(QDockWidget::NoDockWidgetFeatures);
     lDock->setFixedWidth(this->size().width() * 0.15);
@@ -72,6 +72,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // leftLayout->addWidget(lList);
     CompoentControls *cc = new  CompoentControls(lDockWidget);
+ //   cc->setEnabled(false);
     leftLayout->addWidget(cc);
 
 

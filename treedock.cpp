@@ -118,7 +118,7 @@ void TreeDock::addPropBox(PropertyBox *p)
 
 void TreeDock::setSelectTreeItem(QWidget *obj)
 {
-    int index = comC->comList.indexOf(obj);
+
     qDebug() << " selected object name " << obj->objectName();
     QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(obj->objectName(),Qt::MatchFixedString | Qt::MatchRecursive);
     qDebug() << " list size for Tree " << qwilist.size();

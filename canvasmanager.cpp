@@ -22,6 +22,7 @@ void CanvasManager::createNewCanvas()
 
     ssList.append(Scenes);
     currentSS = Scenes;
+    mWindow->lDock->setEnabled(true);
 }
 
 ScenesScreen *CanvasManager::activeSS()

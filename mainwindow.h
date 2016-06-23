@@ -68,6 +68,7 @@ public:
 
     QWidgetList *ssList;
     CanvasManager *cManager;
+    QDockWidget* lDock;
 
 
 private slots:
@@ -79,7 +80,7 @@ private:
     Ui::MainWindow *ui;
 
     QDockWidget* rDock;
-    QDockWidget* lDock;
+
     QListWidget* rList;
     QListWidget* lList;
     QTextStream out;
