@@ -7,19 +7,23 @@
 
 //#include "mainwindow.h"
 class MainWindow;
-class NewLayer;
+class NewLayout;
 class Compoentcontrol;
+class FormResizer;
 class ScenesScreen : public QFrame
 {
     friend class Compoentcontrol;
     Q_OBJECT
 public:
     explicit ScenesScreen(QSize size,QWidget *parent = 0);
-    NewLayer *activeLayer() {
-        return mActiveIdx == -1 ? (NewLayer*)0 :
-                                  (NewLayer*)(LayerList.at(mActiveIdx));}
-    void createNewLayer();
+    NewLayout *activeLayer() {
+        return mActiveIdx == -1 ? (NewLayout*)0 :
+                                  (NewLayout*)(LayerList.at(mActiveIdx));}
+    int getActiveIndex() { return mActiveIdx;}
+    void createNewLayout();
     void addMainWindow(MainWindow* m) { mWindow = m;}
+    void setActiveIdx(int index) { mActiveIdx = index;}
+    void setSelectObject(FormResizer *obj);
     MainWindow* mWindow;
 
 signals:
@@ -27,9 +31,7 @@ signals:
 public slots:
 
 private:
-
-   QWidgetList LayerList;
-
+    QWidgetList LayerList;
    int mActiveIdx; //  当前激活的图层.
 
 

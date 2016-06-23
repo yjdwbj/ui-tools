@@ -15,6 +15,7 @@ public:
     void updateCursor();
     void setState(SelectionHandleState st);
 
+
 signals:
 
     void mouseButtonReleased(const QRect &, const QRect &);
@@ -23,7 +24,7 @@ protected:
     void paintEvent(QPaintEvent *e) override;
     void mousePressEvent(QMouseEvent *e) override;
     void mouseMoveEvent(QMouseEvent *e) override;
-    void mouseReleaseEvent(QMouseEvent *e) override;
+//    void mouseReleaseEvent(QMouseEvent *e) override;
 
 private:
     void tryResize(const QSize &delta);

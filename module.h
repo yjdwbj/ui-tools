@@ -54,9 +54,7 @@ protected:
     QWidget* getQWidgetByName(QString name) const;
     QGroupBox* CreateXYWHGBox(QWidget *p);
     void removeWidFromLayout(QLayout* layout);
-    void clearOtherObjectStyleSheet(QWidget *);
-
-
+    void clearOtherObjectStyleSheet();
 
 private slots:
 
@@ -64,14 +62,8 @@ private slots:
     void onXYWHChangedValue(int);
     void onListImageChanged(QString);
 
-
-
 private:
-
-
     void UpdateXYWHPos();
-
-
     QPoint mOffset;
 
     QStringList myImageList;
@@ -86,46 +78,48 @@ class NewFrame :public FormResizer
 public:
      QPoint mOffset;
     NewFrame(QWidget *parent=0);
-    void mouseMoveEvent(QMouseEvent *event);
+
     void addMainWindow(QObject *mw);
     void onSelectMe();
     MainWindow *mWindow;
-
-private:
-
-
-signals:
-   void Clicked();
 private slots:
 
     void onXYWHChangedValue(int v);
 
 protected:
-    void mousePressEvent(QMouseEvent *event) ;
-    void clearOtherObjectStyleSheet(QWidget *p);
+//    void mouseMoveEvent(QMouseEvent *event);
+//    void mousePressEvent(QMouseEvent *event) ;
+    void clearOtherObjectStyleSheet();
 
    // void mouseDoubleClickEvent(QMouseEvent *event);
 
 };
 
-//class NewLayer :public QFrame
-class NewLayer :public FormResizer
+//class NewLayout :public QFrame
+class NewLayout :public FormResizer
 {
     Q_OBJECT
 public:
-    explicit NewLayer(QSize nsize, QWidget *parent=0);
-    NewLayer (int width,int height,QWidget *parent=0);
-    void SelectLayer();
+    explicit NewLayout(QSize nsize, QWidget *parent=0);
+    NewLayout (int width,int height,QWidget *parent=0);
+    //void SelectLayer();
+    void onSelectMe();
     void addMainWindow(MainWindow *m) { mWindow = m;}
     MainWindow *mWindow;
+    void clearOtherSelectHandler();
 
 private:
     QPoint mOffset;
+    QSize m_startSize;
+    QSize m_curSize;
     QWidgetList mNewFrameList;
+
+    void clearOtherObjectStyleSheet();
 
 
 public slots:
     void onXYWHChangedValue(int v);
+    void onSizeChanged(const QRect &oldGeo, const QRect &newGeo);
 
 
 protected:

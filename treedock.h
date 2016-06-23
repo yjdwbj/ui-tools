@@ -22,6 +22,10 @@ public:
     void addItemToRoot(QString node,QString property);
     void addCompoentControls(CompoentControls *cc);
     void addPropBox(PropertyBox *p);
+    QTreeWidgetItem *getRoot()const { return root;}
+
+    void setSelectTreeItem(QWidget *);
+    QTreeWidget *treeWidget;
 
 
 
@@ -30,28 +34,14 @@ public slots:
 
 
 
+
 private:
     MainWindow *mWindow;
-    QTreeWidget *tree;
+
     CompoentControls *comC;
     PropertyBox *pb;
+    QTreeWidgetItem *root;
 };
 
-/*
-class CompoentTreeModel : public QAbstractItemModel
-{
-    Q_OBJECT
-public:
-    explicit CompoentTreeModel(QWidget *parent=Q_NULLPTR);
-    int rowCount(const QModelIndex &parent) const;
-    int columnCount(const QModelIndex &parent) const;
-    QVariant data(const QModelIndex &index, int role) const;
 
-    QVariant headerData(int section, Qt::Orientation orientation, int role) const;
-    void setHeaderData(int section, Qt::Orientation orientation, const QVariant &value, int role);
-
-private:
-
-};
-*/
 #endif // TREEDOCK_H

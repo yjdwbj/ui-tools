@@ -34,6 +34,7 @@ public:
     void updateGeometry();
     void setState(SelectionHandleState st);
     void update();
+    virtual void onSelectMe() =0;
 
    // void setFormWindow(QDesignerFormWindowInterface *fw);
     QFrame *m_frame;
@@ -43,9 +44,9 @@ signals:
 protected:
     void resizeEvent(QResizeEvent *event) override;
 
-    void mouseMoveEvent(QMouseEvent *);
-    void mousePressEvent(QMouseEvent *);
-    void mouseReleaseEvent(QMouseEvent *);
+//    void mouseMoveEvent(QMouseEvent *);
+//    void mousePressEvent(QMouseEvent *);
+//    void mouseReleaseEvent(QMouseEvent *);
 
 private slots:
    // void mainContainerChanged();

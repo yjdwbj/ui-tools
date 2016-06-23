@@ -2,7 +2,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 
-enum { debugSizeHandle = 1 };
+enum { debugSizeHandle = 0 };
 
 SizeHandleRect::SizeHandleRect(QWidget *parent, Direction d, QWidget *resizable) :
     QWidget(parent),
@@ -20,8 +20,6 @@ SizeHandleRect::SizeHandleRect(QWidget *parent, Direction d, QWidget *resizable)
 
 void SizeHandleRect::updateCursor()
 {
-    // lcy
-    qDebug() << " update Cursor at " << __FILE__;
     switch (m_dir) {
     case Right:
     case RightTop:
@@ -53,8 +51,6 @@ void SizeHandleRect::paintEvent(QPaintEvent *)
     }
         break;
     case SelectionHandleActive: {
-        // lcy
-       // qDebug() << " select widget painter blue " << __FILE__;
         QPainter p(this);
         p.setPen(Qt::blue);
         p.drawRect(0, 0, width() - 1, height() - 1);
@@ -109,20 +105,20 @@ void SizeHandleRect::mouseMoveEvent(QMouseEvent *e)
         tryResize(delta);
 }
 
-void SizeHandleRect::mouseReleaseEvent(QMouseEvent *e)
-{
-    if (e->button() != Qt::LeftButton)
-        return;
+//void SizeHandleRect::mouseReleaseEvent(QMouseEvent *e)
+//{
+//    if (e->button() != Qt::LeftButton)
+//        return;
 
-    e->accept();
-    if (m_startSize != m_curSize) {
-        const QRect startRect = QRect(0, 0, m_startPos.x(), m_startPos.y());
-        const QRect newRect = QRect(0, 0, m_curPos.x(), m_curPos.y());
-        if (debugSizeHandle)
-            qDebug() << "SizeHandleRect::mouseReleaseEvent" << startRect << newRect;
-        emit mouseButtonReleased(startRect, newRect);
-    }
-}
+//    e->accept();
+//    if (m_startSize != m_curSize) {
+//        const QRect startRect = QRect(0, 0, m_startPos.x(), m_startPos.y());
+//        const QRect newRect = QRect(0, 0, m_curPos.x(), m_curPos.y());
+//        if (debugSizeHandle)
+//            qDebug() << "SizeHandleRect::mouseReleaseEvent" << startRect << newRect;
+//        emit mouseButtonReleased(startRect, newRect);
+//    }
+//}
 
 void SizeHandleRect::tryResize(const QSize &delta)
 {

@@ -41,6 +41,7 @@ QGroupBox* PropertyBox::CreateXYWHGBox(QWidget *p)
     xymap[Y] = p->geometry().y();
     xymap[W] = p->geometry().width();
     xymap[H] = p->geometry().height();
+    QSize psize = p->parentWidget()->size();
 
     int index = 0;
     for(QMap<QString,int>::iterator it = xymap.begin();it != xymap.end();++it)
@@ -50,15 +51,20 @@ QGroupBox* PropertyBox::CreateXYWHGBox(QWidget *p)
         xywh->addWidget(s,index,0);
         QSpinBox *xedit = new QSpinBox();
 
-        if(it.key() == H || it.key() == W)
+        if( (it.key() == H || it.key() == W))
         {
-            xedit->setEnabled(false); // 大小不能调整
+            xedit->setEnabled(!CN_NEWLAYOUT.compare(p->metaObject()->className()) ); // 非NewLayout控件大小不能调整
         }
         xedit->setFixedWidth(40);
+        if(it.key() == H)
+            xedit->setMaximum(psize.height());
+
+        if(it.key() == W)
+            xedit->setMaximum(psize.width());
 
         xedit->setObjectName(it.key());
         //  检查它的值不能超上层控件边界.
-        xedit->setMaximum(1000);
+      //  xedit->setMaximum(1000);
         xedit->setValue(it.value());
         xywh->addWidget(xedit,index,1);
         connect(xedit,SIGNAL(valueChanged(int)),p,SLOT(onXYWHChangedValue(int)));
@@ -76,24 +82,46 @@ QGroupBox* PropertyBox::CreateXYWHGBox(QWidget *p)
     return xygb;
 }
 
+
+
+
 void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
 {
 
     // 删除之前的重新画一个新的.
-  //  qDebug()  << " object name " << mainLayout->objectName()
-    //          << "object uid  " << p->property(DKEY_UID).toString();
 
-    if(!mainLayout->property(DKEY_UID).toString().compare(p->property(DKEY_UID).toString()))
+    QString className = p->metaObject()->className();
+    QString nkeyuid ;
+    if(!CN_NEWLAYOUT.compare(className))
     {
-        //qDebug() << " press at same return ";
-        return;
-    }
+        nkeyuid = p->objectName();
+        if(!mainLayout->property(DKEY_UID).toString().compare(nkeyuid))
+        {
+            //qDebug() << " press at same return ";
+            return;
+        }
 
+
+    }else if(!CN_NEWFRAME.compare(className))
+    {
+        nkeyuid = p->property(DKEY_UID).toString();
+        if(!mainLayout->property(DKEY_UID).toString().compare(nkeyuid))
+        {
+            //qDebug() << " press at same return ";
+            return;
+        }
+
+
+    }else if(!CN_NEWLABEL.compare(className))
+    {
+
+    }
     removeWidFromLayout(mainLayout);
     delete mainLayout;
     mainLayout = new QVBoxLayout();
+    mainLayout->setProperty(DKEY_UID,nkeyuid);
 
-    mainLayout->setProperty(DKEY_UID,p->property(DKEY_UID).toString());
+
     setLayout( mainLayout);
     mainLayout->setObjectName(COMGRPLYT);
     mainLayout->addSpacing(1);
@@ -103,8 +131,6 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
     {
         mainLayout->addWidget(CreateXYWHGBox(p));
     }
-
-
 
     QVariantList qvl = p->property(DKEY_DYN).toList();
     foreach(QVariant qv, qvl)

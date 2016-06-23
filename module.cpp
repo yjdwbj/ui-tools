@@ -15,6 +15,7 @@
 
 #include "config.h"
 #include "scenesscreen.h"
+#include "canvasmanager.h"
 
 
 
@@ -108,16 +109,15 @@ void NewLabel::onXYWHChangedValue(int v)
         pos.setY(v);
         p->move(pos );
 
-    }else if(!sender->objectName().compare(W))
-    {
-        //o.setWidth(v);
-        //sender->setFixedWidth(v);
-    }else if(!sender->objectName().compare(H))
-    {
-       // o.setHeight(v);
-       // sender->setFixedHeight(v);
     }
-    //sender->setGeometry(o);
+//    else if(!sender->objectName().compare(W))
+//    {
+
+//    }else if(!sender->objectName().compare(H))
+//    {
+
+//    }
+
 
 }
 
@@ -145,24 +145,22 @@ void NewLabel::removeWidFromLayout(QLayout* layout)
 }
 
 
-void NewLabel::clearOtherObjectStyleSheet(QWidget *p)
+void NewLabel::clearOtherObjectStyleSheet()
 {
     /* 清除控件的红线框 */
-    QList<NewFrame*> nflist =  p->parentWidget()->findChildren<NewFrame*>();
-    foreach(NewFrame *x,nflist)
+    QList<NewLabel*> nflist =  this->parentWidget()->findChildren<NewLabel*>();
+    foreach(NewLabel *x,nflist)
     {
-        if(x != p)
-        {
-            QList<NewLabel*> list =  x->findChildren<NewLabel*>();
-            QListIterator<NewLabel*> it(list);
-            while(it.hasNext())
-            {
-                NewLabel *nl = it.next();
-                nl->setStyleSheet("");
-            }
 
+//            QList<NewLabel*> list =  x->findChildren<NewLabel*>();
+//            QListIterator<NewLabel*> it(list);
+//            while(it.hasNext())
+//            {
+//                NewLabel *nl = it.next();
+//                nl->setStyleSheet("");
+//            }
            x->setStyleSheet("");
-        }
+
     }
 }
 
@@ -192,17 +190,12 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
     /* 单击选中它的父对像 */
 
     NewFrame *p =(NewFrame*) (this->parentWidget()->parentWidget());
-    p->setState(SelectionHandleActive);
+   // p->setState(SelectionHandleActive);
+    mWindow->cManager->activeSS()->setSelectObject(p);
 
-    p->setStyleSheet("NewFrame{border: 0.5px solid red;}");
-//    p->setStyleSheet("QFrame#NewFrame{border: 2.5px;"\
-//                     "border-style: outset;"\
-//                     "border-color: red;"\
-//                     "border-width: 10px;"\
-//"subcontrol-position: top left;"\
-//"padding:2 13px;"\
-//                     "padding: 10px;}"); // 把本图片的父控件设置的红框
-    clearOtherObjectStyleSheet(p);
+  //  p->setStyleSheet("NewFrame{border: 0.5px solid red;}");
+
+    clearOtherObjectStyleSheet();
     mWindow->propertyWidget->createPropertyBox(p,false);
 
 
@@ -223,7 +216,7 @@ void NewLabel::mouseReleaseEvent(QMouseEvent *ev)
 {
 
     /* 放开鼠标时检查它的是否出了边界要 */
-    NewFrame *p =(NewFrame*) (this->parentWidget());
+    NewFrame *p =(NewFrame*) (this->parentWidget()->parentWidget());
     QPoint pos = p->pos();
     if(p->x() < 0)
     {
@@ -291,17 +284,15 @@ void NewLabel::mouseMoveEvent(QMouseEvent *event)
     qDebug() << " new pos from Layer : "  << pos() ;
 }
 
-
-
-
 void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 {
 
     NewFrame *p = (NewFrame *)this->parentWidget()->parentWidget();
     p->setState(SelectionHandleOff);
 
-    clearOtherObjectStyleSheet(p);
-    p->setStyleSheet("");
+
+    clearOtherObjectStyleSheet();
+   // p->setStyleSheet("");
     QList<NewLabel*> nlist =  p->findChildren<NewLabel*>();
     foreach (NewLabel *n, nlist) {
         if(n != this)
@@ -377,36 +368,32 @@ void NewLabel::updateComboItems(QComboBox *cb)
 NewFrame::NewFrame(QWidget *parent)
     :FormResizer(parent)
 {
-
-    setObjectName("NewFrame");
-    //connect(this,SIGNAL(Clicked()),SLOT(onSelectMe()));
-   // this->setLineWidth(0);
-   // setFrameShape(QFrame::NoFrame);
-
+    setObjectName(CN_NEWFRAME);
     setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
 }
 
-void NewFrame::mousePressEvent(QMouseEvent *event)
-{
+//void NewFrame::mousePressEvent(QMouseEvent *event)
+//{
 
-}
+//}
 
-void NewFrame::mouseMoveEvent(QMouseEvent *event)
-{
-   event->accept();
-   qDebug() << " new pos from New FRame " << pos();
-   // event->accept();
-}
+//void NewFrame::mouseMoveEvent(QMouseEvent *event)
+//{
+//   event->accept();
+//   qDebug() << " new pos from New FRame " << pos();
+//   // event->accept();
+//}
 
 
 void NewFrame::onSelectMe()
 {
-
-
-
-    setStyleSheet("NewFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
-    clearOtherObjectStyleSheet(this);
+  //  setStyleSheet("NewFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
+    clearOtherObjectStyleSheet();
+    mWindow->cManager->activeSS()->setSelectObject(this);
+   // ((NewLayout*)this->parentWidget())->clearOtherSelectHandler();
+    this->setState(SelectionHandleActive);
     mWindow->propertyWidget->createPropertyBox(this);
+    this->blockSignals(true);
 }
 
 void NewFrame::addMainWindow(QObject *mw)
@@ -414,24 +401,23 @@ void NewFrame::addMainWindow(QObject *mw)
     mWindow = (MainWindow*)mw;
 }
 
-void NewFrame::clearOtherObjectStyleSheet(QWidget *p)
+void NewFrame::clearOtherObjectStyleSheet()
 {
     /* 清除控件的红线框 */
-    QList<NewFrame*> nflist =  p->parentWidget()->findChildren<NewFrame*>();
+    QList<NewFrame*> nflist =  this->parentWidget()->findChildren<NewFrame*>();
     foreach(NewFrame *x,nflist)
     {
-        if(x != p)
-        {
-            QList<NewLabel*> list =  x->findChildren<NewLabel*>();
-            QListIterator<NewLabel*> it(list);
-            while(it.hasNext())
-            {
-                NewLabel *nl = it.next();
-                nl->setStyleSheet("");
-            }
+
+//            QList<NewLabel*> list =  x->findChildren<NewLabel*>();
+//            QListIterator<NewLabel*> it(list);
+//            while(it.hasNext())
+//            {
+//                NewLabel *nl = it.next();
+//               // nl->setStyleSheet("");
+//            }
 
            x->setStyleSheet("");
-        }
+
     }
 }
 
@@ -469,40 +455,64 @@ void NewFrame::onXYWHChangedValue(int v)
 
 
 
-NewLayer::NewLayer(QSize nsize,QWidget *parent):
+NewLayout::NewLayout(QSize nsize,QWidget *parent):
     FormResizer(parent)
 {
    // setFixedSize(nsize);
     setMinimumSize(nsize );
     setMaximumSize(parent->size());
-    this->setObjectName("NewLayer");
-    this->setStyleSheet("NewLayer{border: 0.5px solid blue;}");
+    this->setObjectName(this->metaObject()->className());
+  //  this->setStyleSheet("NewLayout{border: 0.5px solid blue;}");
     //setFrameShape(QFrame::NoFrame);
    // setLineWidth(0);
     //setMouseTracking(true);
     //setFlag(QGraphicsItem::ItemIsMovable, true);
    // setFlag(QGraphicsItem::ItemIgnoresTransformations, true);
+  //  connect(this,SIGNAL(formWindowSizeChanged(QRect,QRect)),SLOT(onSizeChanged(QRect,QRect)));
 
     show();
 }
 
-//void NewLayer::paintEvent(QPaintEvent *)
+//void NewLayout::paintEvent(QPaintEvent *)
 //{
 //    QPainter p(this);
 //    p.setPen(Qt::blue);
 //    p.drawRect(0,0,width() -1,height() -1);
 //}
-void NewLayer::SelectLayer()
+void NewLayout::onSelectMe()
 {
 
-       // setStyleSheet("NewLayer{border: 0.5px solid blue;}"); // 把本图片的父控件设置的红框
-       // clearOtherObjectStyleSheet(this);
-      // mWindow->propertyWidget->createPropertyBox(this);
+
+   // setStyleSheet("NewFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
+    clearOtherObjectStyleSheet();
+    mWindow->cManager->activeSS()->setSelectObject(this);
+    mWindow->propertyWidget->createPropertyBox(this);
+    this->blockSignals(true);
 
 
 }
 
-void NewLayer::onXYWHChangedValue(int v)
+
+void NewLayout::onSizeChanged(const QRect &oldGeo, const QRect &newGeo)
+{
+//    qDebug() << " oldGeo " << oldGeo << " new Geo " << newGeo;
+//    foreach (QWidget *w, mWindow->propertyWidget->findChildren<QWidget*>()) {
+//       if(!w->objectName().compare(W))
+//       {
+//            QSpinBox *s = (QSpinBox*)w;
+//            emit s->valueChanged(newGeo.size().width());
+//          //  s->setValue(newGeo.size().width());
+//       }else if(!w->objectName().compare(H))
+//       {
+//           QSpinBox *s = (QSpinBox*)w;
+//           emit s->valueChanged(newGeo.size().width());
+//           //s->setValue(newGeo.size().height());
+//       }
+//   }
+
+}
+
+void NewLayout::onXYWHChangedValue(int v)
 {
     /* 绑定坐标控件的更新 */
     QWidget *sender =(QWidget *)(QObject::sender());
@@ -524,35 +534,31 @@ void NewLayer::onXYWHChangedValue(int v)
     {
         if((this->pos().x() + v )> this->parentWidget()->size().width())
             return;
-        sender->setFixedWidth(v);
+        QSize n(this->size());
+        n.setWidth(v);
+        this->resize(n);
     }else if(!sender->objectName().compare(H))
     {
         if((this->pos().y() + v )> this->parentWidget()->size().height())
             return;
-
-        sender->setFixedHeight(v);
+        QSize n(this->size());
+        n.setHeight(v);
+        this->resize(n);
     }
 }
 
 
-void NewLayer::mousePressEvent(QMouseEvent *event)
+void NewLayout::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() != Qt::LeftButton)
         return;
-    setFocus(Qt::MouseFocusReason);
-
-    qDebug() << " grab NewLayer is " << this->objectName();
     mOffset = event->pos();
+    m_curSize = m_startSize = this->size();
     setCursor(Qt::ClosedHandCursor);
-    mWindow->propertyWidget->createPropertyBox(this,false);
-
-    foreach (NewFrame *n , this->findChildren<NewFrame*>()) {
-        qDebug() << " my child is " << n->objectName() << " pos " << n->pos();
-        n->setStyleSheet("");
-
-    }
+    onSelectMe();
+    qDebug() << " Press the layout " << this->m_frame->pos();
 }
-void NewLayer::mouseMoveEvent(QMouseEvent *event)
+void NewLayout::mouseMoveEvent(QMouseEvent *event)
 {
     if (event->buttons() & Qt::LeftButton)
     {
@@ -561,6 +567,8 @@ void NewLayer::mouseMoveEvent(QMouseEvent *event)
         /* 把新的位置更新到右边属性框 */
 
         QPoint nr = this->pos();
+
+      //  QSize ns = this->size();
         foreach (QWidget *w, mWindow->propertyWidget->findChildren<QWidget*>()) {
            if(!w->objectName().compare(X))
            {
@@ -579,15 +587,16 @@ void NewLayer::mouseMoveEvent(QMouseEvent *event)
 
 
     }
-    QList<NewFrame*> list = this->findChildren<NewFrame*>();
-    foreach (NewFrame *n , list) {
-        qDebug() << " my child is " << n->objectName() << " pos " << n->pos();
+  //  qDebug() << "drag new size is " << this->size() << " frame size " << this->m_frame->size();
+//    QList<NewFrame*> list = this->findChildren<NewFrame*>();
+//    foreach (NewFrame *n , list) {
+//        qDebug() << " my child is " << n->objectName() << " pos " << n->pos();
 
-    }
+//    }
 
 }
 
-void NewLayer::mouseReleaseEvent(QMouseEvent *event)
+void NewLayout::mouseReleaseEvent(QMouseEvent *event)
 {
     /* 放开鼠标时检查它的是否出了边界要 */
     QWidget *p = this->parentWidget();
@@ -602,24 +611,90 @@ void NewLayer::mouseReleaseEvent(QMouseEvent *event)
     {
         pos.setY(0);
         this->move(pos);
-
     }
 
     QSize ms = p->size();
+    //左出界检查
     if((this->x()  + this->size().width()) > ms.width())
     {
         pos.setX( ms.width() - this->size().width() );
         this->move(pos);
     }
 
+    //上出界检查
     if((this->y() + this->size().height()) > ms.height())
     {
         pos.setY(ms.height() - this->size().height());
         this->move(pos);
     }
-    qDebug() << " new pos from Layer " << this->pos() ;
+
+    // 这里只能在释放鼠标时改变左边的控件值
+    foreach (QWidget *wid, mWindow->propertyWidget->findChildren<QWidget*>()) {
+       if(!wid->objectName().compare(H))
+       {
+           QSpinBox *s = (QSpinBox*)wid;
+
+           s->setValue(this->height());
+       }
+       else if(!wid->objectName().compare(W))
+       {
+           QSpinBox *s = (QSpinBox*)wid;
+
+           s->setValue(this->width());
+       }
+
+   }
+
+    qDebug() << " new pos from Layer " << this->pos() << this->size();
     NewFrame *nf = this->findChild<NewFrame*>("NewFrame");
     if(nf)
         qDebug() << " new pos from Frame : " << nf->pos();
 }
 
+void NewLayout::clearOtherObjectStyleSheet()
+{
+    /* 清除控件的红线框 */
+    QList<NewFrame*> nflist =  m_frame->findChildren<NewFrame*>();
+    foreach(NewFrame *x,nflist)
+    {
+
+//            QList<NewLabel*> list =  x->findChildren<NewLabel*>();
+//            QListIterator<NewLabel*> it(list);
+//            while(it.hasNext())
+//            {
+//                NewLabel *nl = it.next();
+//                nl->setStyleSheet("");
+//            }
+           x->setStyleSheet("");
+
+    }
+
+//    QWidgetList laylist = this->parentWidget()->findChildren<QWidget*>();
+//    foreach (QWidget *wid, laylist) {
+
+//        if (wid == this)
+//            continue;
+//        if(!CN_NEWFRAME.compare(wid->metaObject()->className())
+//            || !CN_NewLayout.compare(wid->metaObject()->className()))
+//        {
+//            ((NewLayout*)wid)->setState(SelectionHandleOff);
+//        }
+//    }
+}
+
+void NewLayout::clearOtherSelectHandler()
+{
+
+    QWidgetList laylist = this->parentWidget()->findChildren<QWidget*>();
+    foreach (QWidget *wid, laylist) {
+
+        if (wid == this)
+            continue;
+
+        if(!CN_NEWFRAME.compare(wid->metaObject()->className())
+            || !CN_NEWLAYOUT.compare(wid->metaObject()->className()))
+        {
+            ((FormResizer*)wid)->setState(SelectionHandleOff);
+        }
+    }
+}

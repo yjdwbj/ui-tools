@@ -45,7 +45,7 @@ signals:
 
 public slots:
      void onCreateCompoentToCanvas();
-     void onCreateNewLayer();
+     void onCreateNewLayout();
 };
 
 #endif // COMPOENTCONTROLS_H

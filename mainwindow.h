@@ -31,6 +31,7 @@
 class TreeDock;
 class PropertyBox;
 class ScenesScreen;
+class CanvasManager;
 
 
 
@@ -65,8 +66,13 @@ public:
     TreeDock *tree;
     ScenesScreen *Scenes;
 
+    QWidgetList *ssList;
+    CanvasManager *cManager;
 
 
+private slots:
+    void onCreateNewScenesScreen();
+    void onCreateNewProject();
 
 private:
     void mousePressEvent(QMouseEvent *ev);
@@ -91,6 +97,7 @@ private:
 
     void HandleFrameObject(QJsonObject qjo, QString ParentName);
     QWidget *pWin;
+
 
 
 };

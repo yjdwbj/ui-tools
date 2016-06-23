@@ -27,8 +27,8 @@ FormResizer::FormResizer(QWidget *parent) :
     handleLayout->addWidget(m_frame);
 
     m_frame->setFrameStyle(QFrame::Panel | QFrame::Raised);
-//    QVBoxLayout *layout = new QVBoxLayout(m_frame);
-//    layout->setMargin(0);
+    QVBoxLayout *layout = new QVBoxLayout(m_frame);
+    layout->setMargin(0);
     // handles
     m_handles.reserve(SizeHandleRect::Left);
     for (int i = SizeHandleRect::LeftTop; i <= SizeHandleRect::Left; ++i) {
@@ -130,7 +130,9 @@ void FormResizer::resizeEvent(QResizeEvent *event)
 
 QSize FormResizer::decorationSize() const
 {
+
     const int margin = 2 * SELECTION_MARGIN + 2 * m_frame->lineWidth();
+    qDebug() << " margin " << margin;
     return QSize(margin, margin);
 }
 
@@ -160,17 +162,17 @@ QSize FormResizer::decorationSize() const
 //    }
 //}
 
-void FormResizer::mousePressEvent(QMouseEvent *e)
-{
-    mOffset = e->pos();
-}
+//void FormResizer::mousePressEvent(QMouseEvent *e)
+//{
+//    mOffset = e->pos();
+//}
 
-void FormResizer::mouseMoveEvent(QMouseEvent *e)
-{
-     move(this->pos() + (e->pos() - mOffset));
-}
+//void FormResizer::mouseMoveEvent(QMouseEvent *e)
+//{
+//     move(this->pos() + (e->pos() - mOffset));
+//}
 
-void FormResizer::mouseReleaseEvent(QMouseEvent *e)
-{
+//void FormResizer::mouseReleaseEvent(QMouseEvent *e)
+//{
 
-}
+//}

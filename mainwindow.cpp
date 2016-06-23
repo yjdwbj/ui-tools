@@ -4,9 +4,11 @@
 #include "compoentcontrols.h"
 #include "propertybox.h"
 #include "scenesscreen.h"
+#include "canvasmanager.h"
 
 #include <QStandardPaths>
 #include <QStyleFactory>
+#include <QRegion>
 
 static int Width  = 480;
 static int Height  = 320;
@@ -18,36 +20,41 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     propertyWidget(new PropertyBox(tr("控件属性"))),
     imgPropertyWidget(new PropertyBox(tr("元素属性")))
+
 {
 
     ui->setupUi(this);
+    cManager = new CanvasManager(this);
     QStringList sflist = QStyleFactory::keys();
+    setWindowTitle(tr("图片编辑工具"));
     //qDebug() << " list " << sflist;
-  //  this->setStyle(QStyleFactory::create("GTK+"));
+    // 　  this->setStyle(QStyleFactory::create("GTK+"));
 
 
 
-    Scenes = new ScenesScreen(QSize(Width,Height),ui->centralWidget);
-    Scenes->addMainWindow(this);
-    Scenes->move(this->width() * 0.12,this->height()* 0.3);
+    //    Scenes = new ScenesScreen(QSize(Width,Height),ui->centralWidget);
+    //    Scenes->addMainWindow(this);
+    //    Scenes->move(this->width() * 0.12,this->height()* 0.3);  // 按屏幕比例调整
 
-//    mCanvas = new QFrame(Scenes);
-//    mCanvas->setFrameShadow(QFrame::Raised);
-//    mCanvas->setFrameShape(QFrame::StyledPanel);
-//    mCanvas->installEventFilter(this);
-//    mCanvas->setFixedSize(CanvasW,CanvasH);
+    //    ssList->append(Scenes);
 
+    QPushButton *newPrj = new QPushButton(tr("新建工程"));
+    ui->mainToolBar->addWidget(newPrj);
 
-    ui->mainToolBar->addWidget(new QPushButton("test"));
+    connect(newPrj,SIGNAL(clicked(bool)),SLOT(onCreateNewProject()));
 
-    /* 左边属性框 */
+    QPushButton *newPage = new QPushButton(tr("新建页面"));
+    connect(newPage,SIGNAL(clicked(bool)),SLOT(onCreateNewScenesScreen()));
+    ui->mainToolBar->addWidget(newPage);
+
+    // 左边属性框
     lDock = new QDockWidget();
     lDock->setAllowedAreas( Qt::LeftDockWidgetArea);
     lDock->setFeatures(QDockWidget::NoDockWidgetFeatures);
     lDock->setFixedWidth(this->size().width() * 0.15);
     lDock->setObjectName("LeftDock");
     lList = new QListWidget();
-   // lDock->setWidget(lList);
+    // lDock->setWidget(lList);
 
     QWidget *lDockWidget = new QWidget(lDock);
     lDockWidget->setObjectName("lDockWidget");
@@ -58,18 +65,18 @@ MainWindow::MainWindow(QWidget *parent) :
 
     QVBoxLayout *leftLayout = new QVBoxLayout();
 
-   // lDock->setLayout(leftLayout);
+    // lDock->setLayout(leftLayout);
     leftLayout->setObjectName("leftLayout");
     lDockWidget->setLayout(leftLayout);
     lDockWidget->setStyleSheet("QGroupBox{border: 1px solid gray;top: 18px; padding: 6px}");
 
-   // leftLayout->addWidget(lList);
+    // leftLayout->addWidget(lList);
     CompoentControls *cc = new  CompoentControls(lDockWidget);
     leftLayout->addWidget(cc);
 
 
     lList->setFixedHeight((lDock->size().height() -50) / 2);
-;
+    ;
     QFrame *qcl = new QFrame();
 
     QVBoxLayout *propertyLayout = new QVBoxLayout(qcl);
@@ -89,82 +96,94 @@ MainWindow::MainWindow(QWidget *parent) :
     tree->addCompoentControls(cc);
     tree->addPropBox(propertyWidget);
 
-   // addDockWidget(Qt::LeftDockWidgetArea,new TreeDock(this));
+    // addDockWidget(Qt::LeftDockWidgetArea,new TreeDock(this));
     splitDockWidget(lDock,tree,Qt::Horizontal);
-  //  lList->setFixedWidth(160);
+    //  lList->setFixedWidth(160);
 
 }
 
 
 
+void MainWindow::onCreateNewScenesScreen()
+{
+    cManager->createNewCanvas();
+}
 
 
+void MainWindow::onCreateNewProject()
+{
+    QPixmap pixmap(cManager->activeSS()->size());
+
+    cManager->activeSS()->render(&pixmap,QPoint(),QRegion(cManager->activeSS()->rect()));
+    pixmap.save("test.png");
+    // widget->render(&pixmap, QPoint(), QRegion(rectangle));
+}
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {
 
 
-        if(obj == mCanvas)
+    if(obj == mCanvas)
+    {
+        if(event->type() == QEvent::MouseButtonPress)
         {
-            if(event->type() == QEvent::MouseButtonPress)
+            QList<QFrame*> lst = mCanvas->findChildren<QFrame*>();
+            QListIterator<QFrame*> it(lst);
+            while(it.hasNext())
             {
-                QList<QFrame*> lst = mCanvas->findChildren<QFrame*>();
-                QListIterator<QFrame*> it(lst);
-                while(it.hasNext())
-                {
-                    QFrame *qf = it.next();
-                    qf->setStyleSheet("");
-                }
-
-            }else if(event->type() == QEvent::MouseMove)
-            {
-
+                QFrame *qf = it.next();
+                qf->setStyleSheet("");
             }
+
+        }else if(event->type() == QEvent::MouseMove)
+        {
+
         }
+    }
 
-        if ( event->type() != QEvent::MouseButtonPress )
-            return false;
-
-
-            const QMouseEvent* const me = static_cast<const QMouseEvent*>( event );
-//            int x = me->pos().rx();
-//            int y = me->pos().ry();
-            QPoint xy = me->pos();
-            QPoint pxy = mapFromParent(xy);
-            QPoint gxy = mapFromGlobal(xy);
+    if ( event->type() != QEvent::MouseButtonPress )
+        return false;
 
 
-            QString msg =  QString("mouse x:%1 , y:%2 ----- px : %3 , py : %4 ---- gx : %5, gy : %6")
-                    .arg(QString::number(xy.rx()))
-                    .arg(QString::number(xy.ry()))
-                    .arg(QString::number(pxy.rx()))
-                    .arg(QString::number(pxy.ry()))
-                    .arg(QString::number(gxy.rx()))
-                    .arg(QString::number(gxy.rx()));
-            ui->debugEdit->setText( msg );
+    const QMouseEvent* const me = static_cast<const QMouseEvent*>( event );
+    //            int x = me->pos().rx();
+    //            int y = me->pos().ry();
+    QPoint xy = me->pos();
+    QPoint pxy = mapFromParent(xy);
+    QPoint gxy = mapFromGlobal(xy);
 
 
-            qDebug() << " mapto global or parent";
+    QString msg =  QString("mouse x:%1 , y:%2 ----- px : %3 , py : %4 ---- gx : %5, gy : %6")
+            .arg(QString::number(xy.rx()))
+            .arg(QString::number(xy.ry()))
+            .arg(QString::number(pxy.rx()))
+            .arg(QString::number(pxy.ry()))
+            .arg(QString::number(gxy.rx()))
+            .arg(QString::number(gxy.rx()));
+    ui->debugEdit->setText( msg );
 
-            pxy = this->mapToParent(xy);
-            gxy = this->mapToGlobal(xy);
 
-            qDebug() << " px : " << pxy.x() << ",px : " << pxy.y()
-                     << " , gx : " << gxy.x() << ", gy : " << gxy.y() ;
+    qDebug() << " mapto global or parent";
+
+    pxy = this->mapToParent(xy);
+    gxy = this->mapToGlobal(xy);
+
+    qDebug() << " px : " << pxy.x() << ",px : " << pxy.y()
+             << " , gx : " << gxy.x() << ", gy : " << gxy.y() ;
 
 
 
 
-   // event->accept();
+    // event->accept();
     return false;
 }
 
 
 void MainWindow::mousePressEvent(QMouseEvent *ev)
 {
-     ui->statusBar->showMessage(QString("mouse x:%1 , y:%2 ")
-                    .arg(QString::number(ev->pos().rx()))
-                    .arg(QString::number(ev->pos().ry()))  );
+    ui->statusBar->showMessage(QString("mouse x:%1 , y:%2 ")
+                               .arg(QString::number(ev->pos().rx()))
+                               .arg(QString::number(ev->pos().ry()))  );
 }
 
 

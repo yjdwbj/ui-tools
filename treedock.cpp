@@ -8,7 +8,7 @@ static QString HeadCol = "结点,属性";
 
 TreeDock::TreeDock(MainWindow *mw, QWidget *parent)
     :QDockWidget(parent),
-      mWindow(mw), tree(new QTreeWidget())
+      mWindow(mw), treeWidget(new QTreeWidget())
 {
 
     /*
@@ -86,24 +86,23 @@ QTreeView::branch:open:has-children:!has-siblings {\
 ";
 
 //QTreeWidget *tree = new QTreeWidget();
-tree->setColumnCount(2);
+treeWidget->setColumnCount(2);
 
-tree->setHeaderLabels(HeadCol.split(","));
-connect(tree,SIGNAL(itemClicked(QTreeWidgetItem*,int)),SLOT(onItemPressed(QTreeWidgetItem*,int)));
-QTreeWidgetItem *root = new QTreeWidgetItem(tree);
+treeWidget->setHeaderLabels(HeadCol.split(","));
+connect(treeWidget,SIGNAL(itemClicked(QTreeWidgetItem*,int)),SLOT(onItemPressed(QTreeWidgetItem*,int)));
+root = new QTreeWidgetItem(treeWidget);
 root->setText(0,"根结点");
 root->setText(1,"画布");
 
-this->setWidget(tree);
+this->setWidget(treeWidget);
 
 this->setFeatures(DockWidgetMovable|DockWidgetFloatable);
 //tree->setStyleSheet(style);
-// tree->adjustSize();
 
-//  qDebug() << "  mWindow Size: "  << mWindow->size() ;
 setFixedHeight(mWindow->size().height()-50);
 setFixedWidth(200);
-tree->setFixedHeight(mWindow->size().height()-80);
+treeWidget->setFixedHeight(mWindow->size().height()-80);
+
 
 }
 
@@ -117,33 +116,53 @@ void TreeDock::addPropBox(PropertyBox *p)
     pb = p;
 }
 
+void TreeDock::setSelectTreeItem(QWidget *obj)
+{
+    int index = comC->comList.indexOf(obj);
+    qDebug() << " selected object name " << obj->objectName();
+    QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(obj->objectName(),Qt::MatchFixedString | Qt::MatchRecursive);
+    qDebug() << " list size for Tree " << qwilist.size();
+    foreach (QTreeWidgetItem *qwi, qwilist) {
+        qDebug() << " this text " << qwi->text(0);
+       if(!qwi->text(0).compare(obj->objectName()))
+       {
+           treeWidget->setCurrentItem(qwi);
+           break;
+       }
+    }
+      //  treeWidget->setCurrentItem(it);
+}
+
 void TreeDock::onItemPressed(QTreeWidgetItem *item,int col)
 {
 
-    if (tree->topLevelItem(0)  == item)
+    if (root  == item)
         return;
 
     qDebug() << " clicked tree : " << item->text(0);
     foreach (QWidget *w, comC->comList) {
         if(!w->objectName().compare(item->text(0)))
         {
-            NewFrame *f = (NewFrame*)w;
-            f->onSelectMe();
-           // pb->createPropertyBox(w);
+//            const char *cname = w->metaObject()->className();
+//            if(!CN_NEWLAYOUT.compare(cname) || !CN_NEWFRAME.compare(cname))
+//            {
 
-            break;
+              ((FormResizer*)w)->onSelectMe();
+                 break;
+//            }
+
+//            NewFrame *f = (NewFrame*)w;
+//            f->onSelectMe();
         }
 
     }
-
-
+    treeWidget->setCurrentItem(item);
 }
 
 void TreeDock::addItemToRoot(QString node, QString property)
 {
-    QTreeWidgetItem *root =  tree->topLevelItem(0);
-    QTreeWidgetItem *child = new QTreeWidgetItem(QStringList() << node << property);
-
-    root->addChild(child);
+     QTreeWidgetItem *nroot = new QTreeWidgetItem(QStringList() << node << property);
+     root->addChild(nroot);
+     treeWidget->setCurrentItem(nroot);
 }
 

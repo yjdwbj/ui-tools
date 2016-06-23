@@ -38,6 +38,10 @@ static const char DKEY_UID[] = "uid";
 static const char DKEY_DYN[]= "dynProperty";
 static const char DKEY_PRONAME[] = "PropertyOwner";
 static const char DKEY_CLSNAME[] = "clsName";
+
+static const QString CN_NEWLAYOUT = "NewLayout";
+static const QString CN_NEWFRAME = "NewFrame";
+static const QString CN_NEWLABEL = "NewLabel";
 const QMargins propertyMarg = QMargins(2,12,2,50);
 
 const int labHeight = 25;
