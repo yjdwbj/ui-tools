@@ -23,7 +23,6 @@ SOURCES += main.cpp\
     compoentcontrols.cpp \
     treedock.cpp \
     propertybox.cpp \
-    imagelayer.cpp \
     scenesscreen.cpp \
     sizehandlerect.cpp \
     formresizer.cpp \
@@ -38,7 +37,6 @@ HEADERS  += mainwindow.h \
     treedock.h \
     propertybox.h \
     config.h \
-    imagelayer.h \
     scenesscreen.h \
     sizehandlerect.h \
     formresizer.h \

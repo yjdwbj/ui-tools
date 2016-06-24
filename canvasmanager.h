@@ -6,6 +6,7 @@
 
 class ScenesScreen;
 class MainWindow;
+class QStackedLayout;
 
 class CanvasManager
 {
@@ -18,9 +19,11 @@ public:
     void setActiveSS(int index);
     void setActiveSS(ScenesScreen *ss) { currentSS =ss;}
 
+    QStackedLayout *stack;
+
 
 private:
-
+    void screenshot();
     ScenesScreen *currentSS;
     QWidgetList ssList;
     MainWindow *mWindow;

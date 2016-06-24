@@ -102,7 +102,7 @@ class NewLayout :public FormResizer
 public:
     explicit NewLayout(QSize nsize, QWidget *parent=0);
     NewLayout (int width,int height,QWidget *parent=0);
-    //void SelectLayer();
+
     void onSelectMe();
     void addMainWindow(MainWindow *m) { mWindow = m;}
     MainWindow *mWindow;
@@ -119,7 +119,7 @@ private:
 
 public slots:
     void onXYWHChangedValue(int v);
-    void onSizeChanged(const QRect &oldGeo, const QRect &newGeo);
+
 
 
 protected:

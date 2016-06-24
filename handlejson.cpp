@@ -61,7 +61,7 @@ QObject* HandleJson::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
 
                 if(!cval.compare(QFRAME))
                 {
-                    //mParentObj = new NewFrame();
+
                     nobj =qobject_cast<QObject*>(new NewFrame((QWidget *)pobj));
                     nobj->setProperty(DKEY_CLSNAME,cval);
                 }

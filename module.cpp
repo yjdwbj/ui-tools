@@ -493,24 +493,6 @@ void NewLayout::onSelectMe()
 }
 
 
-void NewLayout::onSizeChanged(const QRect &oldGeo, const QRect &newGeo)
-{
-//    qDebug() << " oldGeo " << oldGeo << " new Geo " << newGeo;
-//    foreach (QWidget *w, mWindow->propertyWidget->findChildren<QWidget*>()) {
-//       if(!w->objectName().compare(W))
-//       {
-//            QSpinBox *s = (QSpinBox*)w;
-//            emit s->valueChanged(newGeo.size().width());
-//          //  s->setValue(newGeo.size().width());
-//       }else if(!w->objectName().compare(H))
-//       {
-//           QSpinBox *s = (QSpinBox*)w;
-//           emit s->valueChanged(newGeo.size().width());
-//           //s->setValue(newGeo.size().height());
-//       }
-//   }
-
-}
 
 void NewLayout::onXYWHChangedValue(int v)
 {
@@ -556,7 +538,7 @@ void NewLayout::mousePressEvent(QMouseEvent *event)
     m_curSize = m_startSize = this->size();
     setCursor(Qt::ClosedHandCursor);
     onSelectMe();
-    qDebug() << " Press the layout " << this->m_frame->pos();
+    //qDebug() << " Press the layout " << this->m_frame->pos();
 }
 void NewLayout::mouseMoveEvent(QMouseEvent *event)
 {
@@ -645,10 +627,10 @@ void NewLayout::mouseReleaseEvent(QMouseEvent *event)
 
    }
 
-    qDebug() << " new pos from Layer " << this->pos() << this->size();
-    NewFrame *nf = this->findChild<NewFrame*>("NewFrame");
-    if(nf)
-        qDebug() << " new pos from Frame : " << nf->pos();
+//    qDebug() << " new pos from Layer " << this->pos() << this->size();
+//    NewFrame *nf = this->findChild<NewFrame*>("NewFrame");
+//    if(nf)
+//        qDebug() << " new pos from Frame : " << nf->pos();
 }
 
 void NewLayout::clearOtherObjectStyleSheet()

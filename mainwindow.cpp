@@ -5,6 +5,7 @@
 #include "propertybox.h"
 #include "scenesscreen.h"
 #include "canvasmanager.h"
+#include "pageview.h"
 
 #include <QStandardPaths>
 #include <QStyleFactory>
@@ -29,7 +30,7 @@ MainWindow::MainWindow(QWidget *parent) :
     //qDebug() << " list " << sflist;
     // 　  this->setStyle(QStyleFactory::create("GTK+"));
 
-
+    QApplication::setStyle(QStyleFactory::create("Fusion"));
 
     //    Scenes = new ScenesScreen(QSize(Width,Height),ui->centralWidget);
     //    Scenes->addMainWindow(this);
@@ -101,6 +102,16 @@ MainWindow::MainWindow(QWidget *parent) :
     splitDockWidget(lDock,tree,Qt::Horizontal);
     //  lList->setFixedWidth(160);
 
+    //　右边的截图页面.
+    pageView = new PageView(this);
+    pageView->addMainWindow(this);
+    pageView->setAllowedAreas( Qt::RightDockWidgetArea);
+    pageView->setFeatures(QDockWidget::NoDockWidgetFeatures);
+
+    addDockWidget(Qt::RightDockWidgetArea,pageView);
+
+
+
 }
 
 
@@ -161,7 +172,7 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
             .arg(QString::number(pxy.ry()))
             .arg(QString::number(gxy.rx()))
             .arg(QString::number(gxy.rx()));
-    ui->debugEdit->setText( msg );
+    //ui->debugEdit->setText( msg );
 
 
     qDebug() << " mapto global or parent";

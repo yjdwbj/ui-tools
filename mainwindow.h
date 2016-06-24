@@ -32,6 +32,7 @@ class TreeDock;
 class PropertyBox;
 class ScenesScreen;
 class CanvasManager;
+class PageView;
 
 
 
@@ -69,6 +70,7 @@ public:
     QWidgetList *ssList;
     CanvasManager *cManager;
     QDockWidget* lDock;
+    PageView *pageView;
 
 
 private slots:

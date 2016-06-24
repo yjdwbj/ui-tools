@@ -90,9 +90,9 @@ treeWidget->setColumnCount(2);
 
 treeWidget->setHeaderLabels(HeadCol.split(","));
 connect(treeWidget,SIGNAL(itemClicked(QTreeWidgetItem*,int)),SLOT(onItemPressed(QTreeWidgetItem*,int)));
-root = new QTreeWidgetItem(treeWidget);
-root->setText(0,"根结点");
-root->setText(1,"画布");
+//root = new QTreeWidgetItem(treeWidget);
+//root->setText(0,"根结点");
+//root->setText(1,"画布");
 
 this->setWidget(treeWidget);
 
@@ -119,11 +119,11 @@ void TreeDock::addPropBox(PropertyBox *p)
 void TreeDock::setSelectTreeItem(QWidget *obj)
 {
 
-    qDebug() << " selected object name " << obj->objectName();
+   // qDebug() << " selected object name " << obj->objectName();
     QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(obj->objectName(),Qt::MatchFixedString | Qt::MatchRecursive);
-    qDebug() << " list size for Tree " << qwilist.size();
+   // qDebug() << " list size for Tree " << qwilist.size();
     foreach (QTreeWidgetItem *qwi, qwilist) {
-        qDebug() << " this text " << qwi->text(0);
+        //qDebug() << " this text " << qwi->text(0);
        if(!qwi->text(0).compare(obj->objectName()))
        {
            treeWidget->setCurrentItem(qwi);
@@ -136,8 +136,8 @@ void TreeDock::setSelectTreeItem(QWidget *obj)
 void TreeDock::onItemPressed(QTreeWidgetItem *item,int col)
 {
 
-    if (root  == item)
-        return;
+   // if (root  == item)
+    //    return;
 
     qDebug() << " clicked tree : " << item->text(0);
     foreach (QWidget *w, comC->comList) {
@@ -161,8 +161,14 @@ void TreeDock::onItemPressed(QTreeWidgetItem *item,int col)
 
 void TreeDock::addItemToRoot(QString node, QString property)
 {
-     QTreeWidgetItem *nroot = new QTreeWidgetItem(QStringList() << node << property);
-     root->addChild(nroot);
+
+
+     //QTreeWidgetItem *nroot = new QTreeWidgetItem(QStringList() << node << property);
+     QTreeWidgetItem *nroot = new QTreeWidgetItem(treeWidget,QStringList() << node << property);
      treeWidget->setCurrentItem(nroot);
+
+    // root = new QTreeWidgetItem(treeWidget);
+     //root->addChild(nroot);
+     //treeWidget->setCurrentItem(nroot);
 }
 

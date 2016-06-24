@@ -99,25 +99,26 @@ void CompoentControls::ReadJsonFile()
 void CompoentControls::CreateButtonList()
 {
 
-    this->setStyleSheet("QPushButton:hover:!pressed\
-    {\
-                            border: 1px solid red;\
-                            background-color: #729FCF;\
-                        }\
-                        QPushButton:open {  \
-                            background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\
-                            stop: 0 #dadbde, stop: 1 #f6f7fa);\
-                        }\
-                        QPushButton::menu-indicator {\
-                            image: url(menu_indicator.png);\
-                            subcontrol-origin: padding;\
-                            subcontrol-position: bottom right;\
-                        }\
-                        QPushButton::menu-indicator:pressed, QPushButton::menu-indicator:open {\
-                            position: relative;\
-                            top: 2px; left: 2px; \
-                        }"\
-                        );
+//    this->setStyleSheet("QPushButton:hover:!pressed\
+//    {\
+//                            border: 1px solid red;\
+//                            radious: 1px;\
+//                            background-color: #729FCF;\
+//                        }\
+//                        QPushButton:open {  \
+//                            background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\
+//                            stop: 0 #dadbde, stop: 1 #f6f7fa);\
+//                        }\
+//                        QPushButton::menu-indicator {\
+//                            image: url(menu_indicator.png);\
+//                            subcontrol-origin: padding;\
+//                            subcontrol-position: bottom right;\
+//                        }\
+//                        QPushButton::menu-indicator:pressed, QPushButton::menu-indicator:open {\
+//                            position: relative;\
+//                            top: 2px; left: 2px; \
+//                        }"\
+//                        );
 
 
 
@@ -172,7 +173,7 @@ void CompoentControls::onCreateCompoentToCanvas()
 {
    // QObject *sender = QObject::sender(); /* 确定的那一个按钮被点击了 */
 
-    if(!mWindow->cManager->activeSS())
+    if(!mWindow->cManager->activeSS()->activeLayer())
     {
         QMessageBox::warning(this,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
         return;
@@ -194,7 +195,7 @@ void CompoentControls::onCreateCompoentToCanvas()
     ww->onSelectMe();
 
     // 找出图层,把新建的控件添加进去.
-   // int idex = mWindow->Scenes->getActiveIndex();
+
     qDebug() << "Tree  row Size " << mWindow->tree->treeWidget->children().size();
   //  QTreeWidgetItem *qwi =  mWindow->tree->treeWidget->takeTopLevelItem(idex);
     QTreeWidgetItem *qwi = mWindow->tree->treeWidget->currentItem();
@@ -221,7 +222,7 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
     for(QVariantMap::const_iterator it = qvm.begin();it != qvm.end();++it)
     {
         QString key = it.key();
-        qDebug() << "json key is " << key;
+       // qDebug() << "json key is " << key;
         QVariant::Type qvt = it.value().type();
 
 
@@ -315,7 +316,7 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                 for(QVariantMap::const_iterator it = qvm.begin();it != qvm.end();++it)
                 {
                     QString key = it.key();
-                    if(!key.compare(RECT)) /* 这里直接处理json "rect" 对像字段 */
+                    if(!key.compare(KEY_RECT)) /* 这里直接处理json "rect" 对像字段 */
                     {
                         QString clsName = nobj->property(DKEY_CLSNAME).toString();
                         QVariantMap rect = it.value().toMap();
@@ -332,7 +333,7 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                            ((NewFrame*)nobj)->updateGeometry();
                             ((NewFrame*)nobj)->setFixedSize(r.size()+QSize(20,20));
                           // qobject_cast<NewFrame *>(nobj)->move(QPoint(501,501));
-                          qDebug() << "create Frame geometry " << r << qobject_cast<NewFrame *>(nobj)->geometry();
+                         // qDebug() << "create Frame geometry " << r << qobject_cast<NewFrame *>(nobj)->geometry();
 
 
                         }else{
