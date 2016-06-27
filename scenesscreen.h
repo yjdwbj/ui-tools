@@ -19,7 +19,7 @@ public:
     ~ScenesScreen();
     NewLayout *activeLayer() {
         return mActiveIdx == -1 ? (NewLayout*)0 :
-                                  (NewLayout*)(LayerList.at(mActiveIdx));}
+                                  (NewLayout*)(LayoutList.at(mActiveIdx));}
     int getActiveIndex() { return mActiveIdx;}
     void createNewLayout();
     void addMainWindow(MainWindow* m) { mWindow = m;}
@@ -30,8 +30,9 @@ public:
 
     void delAllObjects();
 
-    QWidgetList LayerList;
+    QWidgetList LayoutList;
     MainWindow* mWindow;
+    QWidget* activeObj;
 
 signals:
 

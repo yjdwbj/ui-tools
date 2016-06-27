@@ -371,6 +371,7 @@ NewFrame::NewFrame(QWidget *parent)
 {
     setObjectName(CN_NEWFRAME);
     setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
+    setFocusPolicy(Qt::ClickFocus);
 }
 
 
@@ -455,6 +456,7 @@ NewLayout::NewLayout(QSize nsize,QWidget *parent):
     setMinimumSize(nsize );
     setMaximumSize(parent->size());
     this->setObjectName(this->metaObject()->className());
+    setFocusPolicy(Qt::ClickFocus);
     show();
 }
 

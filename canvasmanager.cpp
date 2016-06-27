@@ -122,7 +122,7 @@ void CanvasManager::setActiveSS(int index)
         mWindow->tree->deleteAllitem();
         ScenesScreen *Scenes = (ScenesScreen*)(stack->currentWidget());
         // 把当前页的布局重新添加到treeWidget上
-        foreach (QWidget *w, Scenes->LayerList) {
+        foreach (QWidget *w, Scenes->LayoutList) {
             mWindow->tree->addItemToRoot(w->objectName(),"布局");
             foreach (QWidget *ww, ((NewLayout*)w)->ChildrenList()) {
                 mWindow->tree->addObjectToLayout(ww);
@@ -138,7 +138,7 @@ void CanvasManager::setActiveSS(int index)
 void CanvasManager::onDelCurrentScenesScreen()
 {
 
-    //if(QMessageBox::warning(this,"删除提示","你真的要删除当前页面吗?删除之后不可以撤消,请选择<确认>删除.") )
+
     QMessageBox msgBox;
     msgBox.setWindowTitle("删除提示");
     msgBox.setText("你真的要删除当前页面吗?删除之后不可以撤消,请选择<删除>删除.");
