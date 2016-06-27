@@ -22,6 +22,11 @@ public:
     void addItemToRoot(QString node,QString property);
     void addCompoentControls(CompoentControls *cc);
     void addPropBox(PropertyBox *p);
+
+    void addObjectToLayout(QWidget *ww);
+
+    void deleteAllitem();
+
     QTreeWidgetItem *getRoot()const { return root;}
 
     void setSelectTreeItem(QWidget *);

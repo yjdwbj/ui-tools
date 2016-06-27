@@ -11,7 +11,7 @@
 #include <QPaintEvent>
 #include <QGraphicsItem>
 #include "mainwindow.h"
-#include "imagefiledialog.h"
+#include "mydialog.h"
 
 #include "propertybox.h"
 #include "formresizer.h"
@@ -81,6 +81,7 @@ public:
 
     void addMainWindow(QObject *mw);
     void onSelectMe();
+    void delMySelf();
     MainWindow *mWindow;
 private slots:
 
@@ -107,6 +108,10 @@ public:
     void addMainWindow(MainWindow *m) { mWindow = m;}
     MainWindow *mWindow;
     void clearOtherSelectHandler();
+    void appendChildObj(QWidget *w) { mNewFrameList.append(w);}
+    QWidgetList ChildrenList() const { return mNewFrameList;}
+    void delCurrentObject(QWidget *);
+    void delMySelf();
 
 private:
     QPoint mOffset;

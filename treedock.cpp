@@ -172,3 +172,22 @@ void TreeDock::addItemToRoot(QString node, QString property)
      //treeWidget->setCurrentItem(nroot);
 }
 
+void TreeDock::addObjectToLayout(QWidget *ww)
+{
+
+   //     qDebug() << "Tree  row Size " << mWindow->tree->treeWidget->children().size();
+        QTreeWidgetItem *qwi = treeWidget->currentItem();
+        if(qwi)
+        {
+            //qDebug() << " add child to " << qwi->text(0) << qwi->text(1);
+           QTreeWidgetItem *nqwi =  new QTreeWidgetItem(!qwi->text(1).compare(CN_NEWFRAME) ? qwi->parent()
+                                                                    : qwi, QStringList()  << ww->objectName() << ww->metaObject()->className());
+           treeWidget->setCurrentItem(nqwi);
+        }
+}
+
+void TreeDock::deleteAllitem()
+{
+
+    treeWidget->clear();
+}

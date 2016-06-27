@@ -57,6 +57,7 @@ public:
     void HandleArrayObject(QJsonArray array);
     void setWidget(QObject &oob);
     bool eventFilter(QObject *obj, QEvent *event);
+    void addWidgetToToolBar(QWidget *);
 
     //QGroupBox *propertyWidget;
 
@@ -73,9 +74,11 @@ public:
     PageView *pageView;
 
 
-private slots:
-    void onCreateNewScenesScreen();
-    void onCreateNewProject();
+
+//private slots:
+//    void onCreateNewScenesScreen();
+//    void onDelCurrentScenesScreen();
+//    void onCreateNewProject();
 
 private:
     void mousePressEvent(QMouseEvent *ev);

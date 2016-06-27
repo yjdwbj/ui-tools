@@ -7,9 +7,11 @@
 #include "canvasmanager.h"
 #include "pageview.h"
 
+
 #include <QStandardPaths>
 #include <QStyleFactory>
 #include <QRegion>
+#include <QMessageBox>
 
 
 
@@ -38,14 +40,18 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //    ssList->append(Scenes);
 
-    QPushButton *newPrj = new QPushButton(tr("新建工程"));
-    ui->mainToolBar->addWidget(newPrj);
+//    QPushButton *newPrj = new QPushButton(tr("新建工程"));
+//    ui->mainToolBar->addWidget(newPrj);
 
-    connect(newPrj,SIGNAL(clicked(bool)),SLOT(onCreateNewProject()));
+//    connect(newPrj,SIGNAL(clicked(bool)),SLOT(onCreateNewProject()));
 
-    QPushButton *newPage = new QPushButton(tr("新建页面"));
-    connect(newPage,SIGNAL(clicked(bool)),SLOT(onCreateNewScenesScreen()));
-    ui->mainToolBar->addWidget(newPage);
+//    QPushButton *newPage = new QPushButton(tr("新建页面"));
+//    connect(newPage,SIGNAL(clicked(bool)),SLOT(onCreateNewScenesScreen()));
+//    ui->mainToolBar->addWidget(newPage);
+
+//    QPushButton *delPage = new QPushButton(tr("删除当前页"));
+//    connect(delPage,SIGNAL(clicked(bool)),SLOT(onDelCurrentScenesScreen()));
+//    ui->mainToolBar->addWidget(delPage);
 
     // 左边属性框
     lDock = new QDockWidget();
@@ -114,22 +120,46 @@ MainWindow::MainWindow(QWidget *parent) :
 
 }
 
-
-
-void MainWindow::onCreateNewScenesScreen()
+void MainWindow::addWidgetToToolBar(QWidget *w)
 {
-    cManager->createNewCanvas();
+    ui->mainToolBar->addWidget(w);
 }
 
+//void MainWindow::onCreateNewScenesScreen()
+//{
+//    cManager->createNewCanvas();
+//}
 
-void MainWindow::onCreateNewProject()
-{
-    QPixmap pixmap(cManager->activeSS()->size());
 
-    cManager->activeSS()->render(&pixmap,QPoint(),QRegion(cManager->activeSS()->rect()));
-    pixmap.save("test.png");
-    // widget->render(&pixmap, QPoint(), QRegion(rectangle));
-}
+//void MainWindow::onDelCurrentScenesScreen()
+//{
+
+//    //if(QMessageBox::warning(this,"删除提示","你真的要删除当前页面吗?删除之后不可以撤消,请选择<确认>删除.") )
+//        QMessageBox msgBox;
+//        msgBox.setWindowTitle("删除提示");
+//        msgBox.setText("你真的要删除当前页面吗?删除之后不可以撤消,请选择<删除>删除.");
+//       // msgBox.setInformativeText("Do you want to save your changes?");
+//        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+//        msgBox.setButtonText(0x4000,"删除");
+//        msgBox.setButtonText(0x400000,"取消");
+//        msgBox.setDefaultButton(QMessageBox::Cancel);
+//        int ret = msgBox.exec();
+//        qDebug() << " QMessageBox result " << ret;
+//        if(ret == QMessageBox::Yes)
+//        {
+//            cManager->deleteCurrentPage();
+//        }
+
+//}
+
+//void MainWindow::onCreateNewProject()
+//{
+//    ProjectDialog *pd = new ProjectDialog(this);
+//    pd->exec();
+//    pd->deleteLater();
+//   // this->cManager->setDefaultPageSize(pd->getDefaultSize());
+//   // qDebug() << " default page size " << pd->getDefaultSize();
+//}
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {

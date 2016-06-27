@@ -1,4 +1,8 @@
-#include "imagefiledialog.h"
+#include "mydialog.h"
+#include "ui_dialog.h"
+#include <QMessageBox>
+#include "mainwindow.h"
+#include "canvasmanager.h"
 
 ImageFileDialog::ImageFileDialog(QStringList old, QWidget *parent)
     :QDialog(parent),
@@ -71,6 +75,7 @@ ImageFileDialog::ImageFileDialog(QStringList old, QWidget *parent)
     mh->addWidget(treefile);
 
     this->setModal(true);
+    exec();
 }
 
 void ImageFileDialog::onListViewDoubleClicked(QModelIndex index)
@@ -108,7 +113,7 @@ void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
     /* 双击从右框删除 */
     // sellist->takeItem(index.row())->text();
     QString selstr = sellist->takeItem(index.row())->text();
-    QModelIndex qmi = fileModel->index(selstr);
+  //  QModelIndex qmi = fileModel->index(selstr);
     QString fpath = fileModel->fileInfo(fileModel->index(selstr)).absoluteFilePath();
     qDebug() << " will show the " << fpath << " selected str: " << selstr;
 
@@ -184,3 +189,79 @@ void ImageFileDialog::onTreeViewClicked(QModelIndex index)
     treefile->setCurrentIndex(dirModel->index(mPath));
 }
 
+
+
+ProjectDialog::ProjectDialog(QWidget *parent):QDialog(parent),ui(new Ui::ProjectDialog)
+{
+    ui->setupUi(this);
+    mWindow = (MainWindow*)(parent);
+    setWindowTitle("新建工程");
+    setModal(true);
+    connect(this,SIGNAL(accepted()),SLOT(onAccepted()));
+    connect(this,SIGNAL(rejected()),SLOT(onRejected()));
+    connect(this,SIGNAL(finished(int)),SLOT(onFinished(int)));
+    QSize pdsize(64,64);
+    ui->spinBox->setMinimum(64);
+    ui->spinBox_2->setMinimum(64);
+    ui->spinBox->setMaximum(parent->width()*0.8);
+    ui->spinBox_2->setMaximum(parent->height()*0.8);
+    QSize ds = mWindow->cManager->getDefaultPageSize();
+
+    if(ds.width() > pdsize.width() && ds.height() > pdsize.height())
+    {
+        // 记住上次的输入
+        ui->spinBox->setValue(ds.width());
+        ui->spinBox_2->setValue(ds.height());
+    }
+
+
+
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setText("创建");
+    ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("取消");
+
+    //setLayout();
+}
+ProjectDialog::~ProjectDialog()
+{
+    delete ui;
+}
+
+QSize ProjectDialog::getDefaultSize()
+{
+    return QSize(ui->spinBox->value(),ui->spinBox_2->value());
+}
+
+void ProjectDialog::closeEvent(QCloseEvent *)
+{
+   // qDebug() << " close result is " << this->result();
+}
+
+void ProjectDialog::onAccepted()
+{
+
+     //  qDebug() << " trigger accepted event ";
+       if(ui->spinBox->value() == 0 ||
+               ui->spinBox_2->value() == 0)
+       {
+           QMessageBox::warning(this,"提示","宽高没能设置为零.");
+       }
+
+
+       mWindow->cManager->setDefaultPageSize(QSize(ui->spinBox->value(),ui->spinBox_2->value()));
+}
+
+void ProjectDialog::onRejected()
+{
+    qDebug() << " trigger reject event ";
+}
+
+void ProjectDialog::onFinished(int result)
+{
+    qDebug() << " trigger finished " << result;
+}
+
+
+void ProjectDialog::onSpinBoxVChanged(int v)
+{
+    qDebug() << " spin box value changed " << v << " get " << ui->spinBox->value();
+}

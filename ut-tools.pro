@@ -19,7 +19,6 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     module.cpp \
     handlejson.cpp \
-    imagefiledialog.cpp \
     compoentcontrols.cpp \
     treedock.cpp \
     propertybox.cpp \
@@ -27,12 +26,12 @@ SOURCES += main.cpp\
     sizehandlerect.cpp \
     formresizer.cpp \
     canvasmanager.cpp \
-    pageview.cpp
+    pageview.cpp \
+    mydialog.cpp
 
 HEADERS  += mainwindow.h \
     module.h \
     handlejson.h \
-    imagefiledialog.h \
     compoentcontrols.h \
     treedock.h \
     propertybox.h \
@@ -41,9 +40,11 @@ HEADERS  += mainwindow.h \
     sizehandlerect.h \
     formresizer.h \
     canvasmanager.h \
-    pageview.h
+    pageview.h \
+    mydialog.h
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    dialog.ui
 CONFIG += c++11
 
 

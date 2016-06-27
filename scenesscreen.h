@@ -16,6 +16,7 @@ class ScenesScreen : public QFrame
     Q_OBJECT
 public:
     explicit ScenesScreen(QSize size,QWidget *parent = 0);
+    ~ScenesScreen();
     NewLayout *activeLayer() {
         return mActiveIdx == -1 ? (NewLayout*)0 :
                                   (NewLayout*)(LayerList.at(mActiveIdx));}
@@ -24,6 +25,12 @@ public:
     void addMainWindow(MainWindow* m) { mWindow = m;}
     void setActiveIdx(int index) { mActiveIdx = index;}
     void setSelectObject(FormResizer *obj);
+    void delSelectedLayout();
+    void delSelectedObject();
+
+    void delAllObjects();
+
+    QWidgetList LayerList;
     MainWindow* mWindow;
 
 signals:
@@ -31,7 +38,7 @@ signals:
 public slots:
 
 private:
-    QWidgetList LayerList;
+   void keyReleaseEvent(QKeyEvent *);
    int mActiveIdx; //  当前激活的图层.
 
 

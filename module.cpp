@@ -329,11 +329,11 @@ void NewLabel::updatePixmap(QString imgpath)
     this->setPixmap(QPixmap(imgpath));
 }
 
-void NewLabel::onPictureDialog(bool b)
+void NewLabel::onPictureDialog(bool )
 {
     // QMessageBox::warning(this,"test","your clicked me: ");
     ImageFileDialog *ifd = new ImageFileDialog(myImageList,this);
-    ifd->show();
+
     ifd->exec();
     //selectedMap sMap  = ifd->getSelectedMap();
     myImageList = ifd->getSelectedList();
@@ -365,6 +365,7 @@ void NewLabel::updateComboItems(QComboBox *cb)
 
 
 
+
 NewFrame::NewFrame(QWidget *parent)
     :FormResizer(parent)
 {
@@ -372,18 +373,20 @@ NewFrame::NewFrame(QWidget *parent)
     setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
 }
 
-//void NewFrame::mousePressEvent(QMouseEvent *event)
-//{
 
-//}
+void NewFrame::delMySelf()
+{
+   QList<NewLabel*> nllist = this->findChildren<NewLabel*>();
 
-//void NewFrame::mouseMoveEvent(QMouseEvent *event)
-//{
-//   event->accept();
-//   qDebug() << " new pos from New FRame " << pos();
-//   // event->accept();
-//}
+   QListIterator<NewLabel*> it(nllist);
 
+   while(it.hasNext())
+   {
+       QWidget *w = it.next();
+       w->deleteLater();
+   }
+    this->deleteLater();
+}
 
 void NewFrame::onSelectMe()
 {
@@ -407,17 +410,7 @@ void NewFrame::clearOtherObjectStyleSheet()
     QList<NewFrame*> nflist =  this->parentWidget()->findChildren<NewFrame*>();
     foreach(NewFrame *x,nflist)
     {
-
-//            QList<NewLabel*> list =  x->findChildren<NewLabel*>();
-//            QListIterator<NewLabel*> it(list);
-//            while(it.hasNext())
-//            {
-//                NewLabel *nl = it.next();
-//               // nl->setStyleSheet("");
-//            }
-
            x->setStyleSheet("");
-
     }
 }
 
@@ -462,23 +455,10 @@ NewLayout::NewLayout(QSize nsize,QWidget *parent):
     setMinimumSize(nsize );
     setMaximumSize(parent->size());
     this->setObjectName(this->metaObject()->className());
-  //  this->setStyleSheet("NewLayout{border: 0.5px solid blue;}");
-    //setFrameShape(QFrame::NoFrame);
-   // setLineWidth(0);
-    //setMouseTracking(true);
-    //setFlag(QGraphicsItem::ItemIsMovable, true);
-   // setFlag(QGraphicsItem::ItemIgnoresTransformations, true);
-  //  connect(this,SIGNAL(formWindowSizeChanged(QRect,QRect)),SLOT(onSizeChanged(QRect,QRect)));
-
     show();
 }
 
-//void NewLayout::paintEvent(QPaintEvent *)
-//{
-//    QPainter p(this);
-//    p.setPen(Qt::blue);
-//    p.drawRect(0,0,width() -1,height() -1);
-//}
+
 void NewLayout::onSelectMe()
 {
 
@@ -489,9 +469,18 @@ void NewLayout::onSelectMe()
     mWindow->propertyWidget->createPropertyBox(this);
     this->blockSignals(true);
 
-
 }
 
+void NewLayout::delMySelf()
+{
+    QListIterator<QWidget*> nf(mNewFrameList);
+    while(nf.hasNext())
+    {
+        NewFrame *n = (NewFrame*)(nf.next());
+        n->delMySelf();
+        n->deleteLater();
+    }
+}
 
 
 void NewLayout::onXYWHChangedValue(int v)
@@ -564,17 +553,9 @@ void NewLayout::mouseMoveEvent(QMouseEvent *event)
 
                s->setValue(nr.y());
            }
-
        }
 
-
     }
-  //  qDebug() << "drag new size is " << this->size() << " frame size " << this->m_frame->size();
-//    QList<NewFrame*> list = this->findChildren<NewFrame*>();
-//    foreach (NewFrame *n , list) {
-//        qDebug() << " my child is " << n->objectName() << " pos " << n->pos();
-
-//    }
 
 }
 
@@ -627,10 +608,6 @@ void NewLayout::mouseReleaseEvent(QMouseEvent *event)
 
    }
 
-//    qDebug() << " new pos from Layer " << this->pos() << this->size();
-//    NewFrame *nf = this->findChild<NewFrame*>("NewFrame");
-//    if(nf)
-//        qDebug() << " new pos from Frame : " << nf->pos();
 }
 
 void NewLayout::clearOtherObjectStyleSheet()
@@ -679,4 +656,11 @@ void NewLayout::clearOtherSelectHandler()
             ((FormResizer*)wid)->setState(SelectionHandleOff);
         }
     }
+}
+
+void NewLayout::delCurrentObject(QWidget *w)
+{
+   int index =  mNewFrameList.indexOf(w);
+   QWidget *a = mNewFrameList.takeAt(index);
+   a->deleteLater();
 }

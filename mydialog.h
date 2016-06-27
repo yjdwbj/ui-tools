@@ -12,6 +12,8 @@
 #include <QDebug>
 #include <QStringListModel>
 
+class MainWindow;
+
 typedef QMap<QString,QVariant> selectedMap;
 
 class ImageFileDialog: public QDialog
@@ -42,14 +44,43 @@ private:
     QPushButton *add;
     QPushButton *del;
 
-
     QMap<QString,QModelIndex> hRows;
     //selectedMap selMap;
     QStringList selstrList;
 
-
 };
 
+
+
+
+
+namespace Ui {
+    class ProjectDialog;
+}
+
+class ProjectDialog : public QDialog
+{
+    Q_OBJECT
+public:
+    explicit ProjectDialog(QWidget *parent=0);
+    ~ProjectDialog();
+
+    QSize pageSize;
+public slots:
+    void onAccepted();
+    void onRejected();
+    void onFinished(int result);
+    QSize getDefaultSize();
+
+    void onSpinBoxVChanged(int);
+private:
+    Ui::ProjectDialog  *ui;
+    MainWindow *mWindow;
+
+protected:
+    void closeEvent(QCloseEvent *);
+
+};
 
 
 #endif // IMAGEFILEDIALOG_H

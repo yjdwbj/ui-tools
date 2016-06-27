@@ -19,6 +19,7 @@ public:
     void addNewPage(QPixmap &,QString txt);
     void delPage(int index);
     void InsertPage(int index, QPixmap &p);
+    void InsertPage(int index, QPixmap &p,QString txt);
 
     MainWindow* mWindow;
 

@@ -43,7 +43,7 @@ PageView::PageView(MainWindow *mw)
    // connect(mImgList,SIGNAL(clicked(QModelIndex)),SLOT(onClickedItem(QModelIndex)));
 
     connect(mImgList,SIGNAL(itemPressed(QListWidgetItem*)),SLOT(onClickedItem(QListWidgetItem*)));
-    connect(mImgList,SIGNAL(itemChanged(QListWidgetItem*)),SLOT(onItemChanged(QListWidgetItem*)));
+  //  connect(mImgList,SIGNAL(itemChanged(QListWidgetItem*)),SLOT(onItemChanged(QListWidgetItem*)));
  //   connect(mImgList,SIGNAL(itemClicked(QListWidgetItem*)),SLOT(onClickedItem(QListWidgetItem*)));
    // connect(mImgList,SIGNAL(itemClicked(QListWidgetItem*))
     show();
@@ -54,7 +54,7 @@ void PageView::addNewPage(QPixmap &p)
     QListWidgetItem * nit = new QListWidgetItem(QIcon(p),"");
 
     mImgList->addItem(nit);
-    qDebug() << " Page count " << mImgList->count();
+   // qDebug() << " Page count " << mImgList->count();
 
 }
 
@@ -76,9 +76,14 @@ void PageView::InsertPage(int index, QPixmap &p)
     mImgList->insertItem(index,new QListWidgetItem(QIcon(p),""));
 }
 
+void PageView::InsertPage(int index, QPixmap &p, QString txt)
+{
+    mImgList->insertItem(index,new QListWidgetItem(QIcon(p),txt));
+}
+
 void PageView::onClickedItem(QListWidgetItem *item)
 {
-    qDebug() << " clicked index is " ;
+    //qDebug() << " clicked index is " << item->text() ;
     int row = mImgList->row(item);
     mWindow->cManager->setActiveSS(row);
 }

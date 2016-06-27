@@ -98,6 +98,7 @@ void CompoentControls::ReadJsonFile()
 
 void CompoentControls::CreateButtonList()
 {
+     int row,col = 0;
 
 //    this->setStyleSheet("QPushButton:hover:!pressed\
 //    {\
@@ -132,8 +133,6 @@ void CompoentControls::CreateButtonList()
     comLayout->setVerticalSpacing(1);
     comLayout->setHorizontalSpacing(1);
 
-
-    int row,col = 0;
 
 
     QPushButton *l = new QPushButton(tr("布局"));
@@ -173,43 +172,27 @@ void CompoentControls::onCreateCompoentToCanvas()
 {
    // QObject *sender = QObject::sender(); /* 确定的那一个按钮被点击了 */
 
-    if(!mWindow->cManager->activeSS()->activeLayer())
+    NewLayout *activeLayer = mWindow->cManager->activeSS()->activeLayer();
+    if(!activeLayer)
     {
         QMessageBox::warning(this,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
         return;
     }
 
     QPushButton *btn = (QPushButton*)(QObject::sender());
-
-
     NewFrame* ww = (NewFrame *)CreateObjectFromJson(comMap[btn->text()],
             mWindow->cManager->activeSS()->activeLayer()->m_frame);
             //mWindow->Scenes->activeLayer()->m_frame);
     ww->setObjectName(QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
+    activeLayer->appendChildObj(ww);
     comList.append(ww);
-   // ((NewFrame*)ww)->addMainWindow(mWindow);
-   // ((NewFrame*)ww)->onSelectMe();
-    qDebug() << " parent  object name " << ww->parentWidget()->objectName();
+   // qDebug() << " parent  object name " << ww->parentWidget()->objectName();
     this->parentWidget()->move(50,50);
     ww->addMainWindow(mWindow);
     ww->onSelectMe();
 
     // 找出图层,把新建的控件添加进去.
-
-    qDebug() << "Tree  row Size " << mWindow->tree->treeWidget->children().size();
-  //  QTreeWidgetItem *qwi =  mWindow->tree->treeWidget->takeTopLevelItem(idex);
-    QTreeWidgetItem *qwi = mWindow->tree->treeWidget->currentItem();
-
-    if(qwi)
-    {
-        qDebug() << " add child to " << qwi->text(0) << qwi->text(1);
-       // qwi->addChild(new QTreeWidgetItem( QStringList()  << ww->objectName() << btn->text()));
-       QTreeWidgetItem *nqwi =  new QTreeWidgetItem(!qwi->text(1).compare(CN_NEWFRAME) ? qwi->parent()
-                                                                : qwi, QStringList()  << ww->objectName() << ww->metaObject()->className());
-       mWindow->tree->treeWidget->setCurrentItem(nqwi);
-    }
-
-
+    mWindow->tree->addObjectToLayout(ww);
   //  mWindow->tree->addItemToRoot(ww->objectName(),btn->text());
 
     ww->show();
@@ -370,10 +353,18 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
 
 void CompoentControls::onCreateNewLayout()
 {
-    mWindow->cManager->activeSS()->createNewLayout();
-    QPushButton *btn = (QPushButton*)(QObject::sender());
-    NewLayout *nl =  mWindow->cManager->activeSS()->activeLayer();
-    comList.append(nl);
-    mWindow->tree->addItemToRoot(nl->objectName(),btn->text());
+
+    ScenesScreen *ss = mWindow->cManager->activeSS();
+    if(ss)
+    {
+        ss->createNewLayout();
+        QPushButton *btn = (QPushButton*)(QObject::sender());
+        NewLayout *nl =  ss->activeLayer();
+        //comList.append(nl);
+
+        mWindow->tree->addItemToRoot(nl->objectName(),btn->text());
+    }
+  //  mWindow->cManager->activeSS()->createNewLayout();
+
 
 }
