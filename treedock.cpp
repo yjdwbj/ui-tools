@@ -118,10 +118,7 @@ void TreeDock::addPropBox(PropertyBox *p)
 
 void TreeDock::setSelectTreeItem(QWidget *obj)
 {
-
-   // qDebug() << " selected object name " << obj->objectName();
     QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(obj->objectName(),Qt::MatchFixedString | Qt::MatchRecursive);
-   // qDebug() << " list size for Tree " << qwilist.size();
     foreach (QTreeWidgetItem *qwi, qwilist) {
         //qDebug() << " this text " << qwi->text(0);
        if(!qwi->text(0).compare(obj->objectName()))
@@ -143,16 +140,8 @@ void TreeDock::onItemPressed(QTreeWidgetItem *item,int col)
     foreach (QWidget *w, comC->comList) {
         if(!w->objectName().compare(item->text(0)))
         {
-//            const char *cname = w->metaObject()->className();
-//            if(!CN_NEWLAYOUT.compare(cname) || !CN_NEWFRAME.compare(cname))
-//            {
-
               ((FormResizer*)w)->onSelectMe();
                  break;
-//            }
-
-//            NewFrame *f = (NewFrame*)w;
-//            f->onSelectMe();
         }
 
     }
@@ -161,15 +150,8 @@ void TreeDock::onItemPressed(QTreeWidgetItem *item,int col)
 
 void TreeDock::addItemToRoot(QString node, QString property)
 {
-
-
-     //QTreeWidgetItem *nroot = new QTreeWidgetItem(QStringList() << node << property);
      QTreeWidgetItem *nroot = new QTreeWidgetItem(treeWidget,QStringList() << node << property);
      treeWidget->setCurrentItem(nroot);
-
-    // root = new QTreeWidgetItem(treeWidget);
-     //root->addChild(nroot);
-     //treeWidget->setCurrentItem(nroot);
 }
 
 void TreeDock::addObjectToLayout(QWidget *ww)
@@ -184,6 +166,22 @@ void TreeDock::addObjectToLayout(QWidget *ww)
                                                                     : qwi, QStringList()  << ww->objectName() << ww->metaObject()->className());
            treeWidget->setCurrentItem(nqwi);
         }
+}
+
+void TreeDock::deleteItem(QWidget *obj)
+{
+    QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(obj->objectName(),Qt::MatchFixedString | Qt::MatchRecursive);
+    foreach (QTreeWidgetItem *qwi, qwilist) {
+        //qDebug() << " this text " << qwi->text(0);
+       if(!qwi->text(0).compare(obj->objectName()))
+       {
+           treeWidget->removeItemWidget(qwi,0);
+           delete qwi;
+           break;
+       }
+    }
+
+   // treeWidget->removeItemWidget(treeWidget->currentItem(),1);
 }
 
 void TreeDock::deleteAllitem()

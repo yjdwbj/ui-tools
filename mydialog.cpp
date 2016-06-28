@@ -200,7 +200,7 @@ ProjectDialog::ProjectDialog(QWidget *parent):QDialog(parent),ui(new Ui::Project
     connect(this,SIGNAL(accepted()),SLOT(onAccepted()));
     connect(this,SIGNAL(rejected()),SLOT(onRejected()));
     connect(this,SIGNAL(finished(int)),SLOT(onFinished(int)));
-    QSize pdsize(64,64);
+    QSize pdsize(430,360);
     ui->spinBox->setMinimum(64);
     ui->spinBox_2->setMinimum(64);
     ui->spinBox->setMaximum(parent->width()*0.8);
@@ -212,6 +212,9 @@ ProjectDialog::ProjectDialog(QWidget *parent):QDialog(parent),ui(new Ui::Project
         // 记住上次的输入
         ui->spinBox->setValue(ds.width());
         ui->spinBox_2->setValue(ds.height());
+    }else{
+        ui->spinBox->setValue(pdsize.width());
+        ui->spinBox_2->setValue(pdsize.height());
     }
 
 

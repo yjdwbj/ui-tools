@@ -26,6 +26,7 @@ public:
     void addObjectToLayout(QWidget *ww);
 
     void deleteAllitem();
+    void deleteItem(QWidget *obj);
 
     QTreeWidgetItem *getRoot()const { return root;}
 

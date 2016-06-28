@@ -29,6 +29,8 @@ static QString MAX = "max";
 static QString MIN = "min";
 static QString LISTIMAGE = "ListImage";
 static QString ICON = "icon";
+static QString NUMBER ="number";
+static QString TEXT = "text";
 
 static const char  DKEY_CAPTION[] = "caption";
 
@@ -38,6 +40,8 @@ static const char DKEY_UID[] = "uid";
 static const char DKEY_DYN[]= "dynProperty";
 static const char DKEY_PRONAME[] = "PropertyOwner";
 static const char DKEY_CLSNAME[] = "clsName";
+static const char DKEY_DYNVAL[] = "dynValues";
+static const char DKEY_VALTYPE[] = "valueType";
 
 static const QString CN_NEWLAYOUT = "NewLayout";
 static const QString CN_NEWFRAME = "NewFrame";

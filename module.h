@@ -19,7 +19,21 @@
 
 class MainWindow;
 class ScenesScreen;
-class NewLabel :public QLabel
+
+class Compoent
+{
+
+public:
+//    Compoent(){}
+//    ~Compoent(){}
+    virtual void onBindValue(QWidget *w,const QVariant &val);
+    QMap<QString,QVariant> dynValues;
+
+};
+
+
+
+class NewLabel :public QLabel ,public Compoent
 {
     friend class PropertyBox;
 
@@ -37,10 +51,14 @@ public:
     };
 
 
-    void createPropertyBox();
+    //void createPropertyBox();
     void addPropertyBoxSignal(QSpinBox *b);
     void updatePixmap(QString imgpath);
     void updateComboItems(QComboBox *cb);
+
+  //  QMap<QString,QVariant> dynValues;
+ //   void onBindValue(QWidget *w, const QVariant &val);
+
     QString *defaultImg;
     MainWindow *mWindow;
 
@@ -55,12 +73,16 @@ protected:
     QGroupBox* CreateXYWHGBox(QWidget *p);
     void removeWidFromLayout(QLayout* layout);
     void clearOtherObjectStyleSheet();
+  //  void onBindValue(QWidget *w,const QVariant &val);
 
 private slots:
 
     void onPictureDialog(bool );
     void onXYWHChangedValue(int);
     void onListImageChanged(QString);
+    void onTextChanged();
+    void onNumberChanged(int num);
+    void onEnumItemChanged(QString txt);
 
 private:
     void UpdateXYWHPos();
@@ -72,7 +94,7 @@ private:
 
 };
 
-class NewFrame :public FormResizer
+class NewFrame :public FormResizer,public Compoent
 {
     Q_OBJECT
 public:
@@ -82,12 +104,20 @@ public:
     void addMainWindow(QObject *mw);
     void onSelectMe();
     void delMySelf();
+  //  void onBindValue(QWidget *w,const QVariant &val);
+
+   // void onBindValue(QWidget *w, const QVariant &val);
+  //  QMap<QString,QVariant> dynValues; //本控件的所有属性值
     MainWindow *mWindow;
 private slots:
 
     void onXYWHChangedValue(int v);
+    void onTextChanged();
+    void onNumberChanged(int num);
+    void onEnumItemChanged(QString txt);
 
 protected:
+
 //    void mouseMoveEvent(QMouseEvent *event);
 //    void mousePressEvent(QMouseEvent *event) ;
     void clearOtherObjectStyleSheet();
@@ -108,16 +138,20 @@ public:
     void addMainWindow(MainWindow *m) { mWindow = m;}
     MainWindow *mWindow;
     void clearOtherSelectHandler();
-    void appendChildObj(QWidget *w) { mNewFrameList.append(w);}
-    QWidgetList ChildrenList() const { return mNewFrameList;}
-    void delCurrentObject(QWidget *);
+    void appendChildObj(QWidget *w) { mChList.append(w);}
+    void deleteObject(int index);
+    void deleteObject(QWidget *w);
+    const QWidgetList &getChildrenList() { return mChList;}
+
     void delMySelf();
+
 
 private:
     QPoint mOffset;
-    QSize m_startSize;
-    QSize m_curSize;
-    QWidgetList mNewFrameList;
+   // QSize m_startSize;
+    //QSize m_curSize;
+    QWidgetList mChList;
+
 
     void clearOtherObjectStyleSheet();
 

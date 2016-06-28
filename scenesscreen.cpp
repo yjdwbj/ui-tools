@@ -38,7 +38,9 @@ void ScenesScreen::setSelectObject(FormResizer *obj)
         fr->setState(SelectionHandleOff);
     }
     obj->setState(SelectionHandleActive);
+    obj->setFocus();
     activeObj = obj;
+    //qDebug() << " active object is " << obj->objectName();
     if(!CN_NEWLAYOUT.compare(obj->metaObject()->className()))
         mActiveIdx = LayoutList.indexOf(obj);  // 这里只是布局控件才更改它的数值
     mWindow->tree->setSelectTreeItem(obj);
@@ -59,25 +61,38 @@ void ScenesScreen::delSelectedLayout()
         msgBox.setButtonText(QMessageBox::Cancel,"取消");
         msgBox.setDefaultButton(QMessageBox::Cancel);
         int ret = msgBox.exec();
-        qDebug() << " QMessageBox result " << ret;
+        //qDebug() << " QMessageBox result " << ret;
         if(ret == QMessageBox::Yes)
         {
             // cManager->deleteCurrentPage();
            // ScenesScreen *ss = activeObj->parentWidget();
            int index = LayoutList.indexOf(activeObj);
-           QWidget *p = LayoutList.takeAt(index);
-           qDebug() << " activeObj " << activeObj << " take it from list " << p;
-           ((NewLayout*)p)->delMySelf();
+
+           //QWidget *p = LayoutList.takeAt(index);
+
+
+
+           ((NewLayout*)activeObj)->delMySelf();
+
+           LayoutList.removeAt(index);
+           if(LayoutList.size())
+           {
+               if((index - 1) <  0  )
+               {
+                   setSelectObject((NewLayout*)(LayoutList.last()));
+               }else{
+                   setSelectObject((NewLayout*)(LayoutList.at(index-1)));
+               }
+           }
 
         }
 
     }else {
         //删除控件
-        NewLayout *nl = (NewLayout*)(activeLayer()->parentWidget());
-        int index =  nl->ChildrenList().indexOf(activeObj);
-        QWidget *p =  nl->ChildrenList().takeAt(index);
-        qDebug() << " activeObj " << activeObj << " take it from list " << p;
-        ((NewFrame*)p)->delMySelf();
+        NewLayout *nl = (NewLayout*)(activeObj->parentWidget()->parentWidget());
+        nl->deleteObject(activeObj);
+
+        setSelectObject(nl); // 选中它父控件.
 
     }
 
@@ -109,9 +124,10 @@ void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
     case Qt::Key_Delete:
         if(activeObj)
         {
+            qDebug() << " you pressed Delete " << "active object " << activeObj->objectName();
             delSelectedLayout();
         }
-        qDebug() << " you pressed Delete ";
+
         break;
     default:
         break;

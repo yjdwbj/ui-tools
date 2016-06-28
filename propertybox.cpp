@@ -18,8 +18,6 @@ PropertyBox::PropertyBox(QString title, QWidget *parent) : QGroupBox(parent),
             break;
         }
     }
-
-   // setLayout(mainLayout);
    // setTitle(tr("控件属性"));
     setTitle(title);
     mainLayout->setObjectName(COMGRPLYT);
@@ -82,10 +80,7 @@ QGroupBox* PropertyBox::CreateXYWHGBox(QWidget *p)
     return xygb;
 }
 
-
-
-
-void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
+void PropertyBox::createPropertyBox(QWidget *p)
 {
 
     // 删除之前的重新画一个新的.
@@ -97,20 +92,16 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
         nkeyuid = p->objectName();
         if(!mainLayout->property(DKEY_UID).toString().compare(nkeyuid))
         {
-            //qDebug() << " press at same return ";
             return;
         }
-
 
     }else if(!CN_NEWFRAME.compare(className))
     {
         nkeyuid = p->property(DKEY_UID).toString();
         if(!mainLayout->property(DKEY_UID).toString().compare(nkeyuid))
         {
-            //qDebug() << " press at same return ";
             return;
         }
-
 
     }else if(!CN_NEWLABEL.compare(className))
     {
@@ -127,8 +118,9 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
     mainLayout->addSpacing(1);
   // setTitle(p->objectName());
 
-    if(!isImage)
+    if(CN_NEWLABEL.compare(className))
     {
+        //只要不是图片元素都是要重画坐标属性的.
         mainLayout->addWidget(CreateXYWHGBox(p));
     }
 
@@ -136,6 +128,7 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
     foreach(QVariant qv, qvl)
     {
 
+        NewFrame *nf = (NewFrame*)p;
         if(qv.type() == QVariant::Map)
         {
             QVariantMap qvm = qv.toMap();
@@ -143,7 +136,12 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
             if(qvm.contains(ENUM))
             {
                 QComboBox *cb = new QComboBox();
+                cb->setObjectName(uname);
+                cb->setProperty(DKEY_VALTYPE,ENUM);
+
+
                 QVariantList qvlist = qvm[ENUM].toList();
+
                 for(QVariantList::const_iterator it = qvlist.begin();
                     it != qvlist.end();++it)
                 {
@@ -152,32 +150,58 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
                 }
                 mainLayout->addWidget(new QLabel(uname));
                 mainLayout->addWidget(cb);
+                QString fk ="";
+                if(qvlist.size())
+                {
+                    fk = qvlist.at(0).toString();
+                }
+                if(!className.compare(CN_NEWFRAME))
+                {
+                    ((NewFrame*)p)->onBindValue(cb,fk);
+                }else{
+                    ((NewLabel*)p)->onBindValue(cb,fk);
+                }
+                connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onEnumItemChanged(QString)));
 
             }else if(qvm.contains(LIST))
             {
 
                 //qDebug() << " class name " << p->metaObject()->className();
                 QComboBox *cb = new QComboBox();
+                cb->setObjectName(uname);
+                cb->setProperty(DKEY_VALTYPE,LIST);
                 cb->setObjectName(LISTIMAGE);  // 这里假设一个NewLabel只有这样一个QComoBox
                 p->setProperty(DKEY_IMGIDX,0); // 当前选择的行号
                 //QString uname =  qvm["-name"].toString();
                 QString className = p->metaObject()->className();
-                if(!className.compare("NewLabel"))
+                QString fk = "";
+                if(!className.compare(CN_NEWLABEL))
                 {
                     NewLabel *nl = (NewLabel*)p;
                     if(!nl->disDefaultList)
                     {
                         QVariantList qvlist = qvm[LIST].toList();
+                        if(qvlist.size())
+                        {
+                            fk = qvlist.at(0).toString();
+                        }
                         for(QVariantList::const_iterator it = qvlist.begin();
                             it != qvlist.end();++it)
                         {
-                            cb->addItem((*it).toString());//添加默认的列表到Combobox
 
+                            cb->addItem((*it).toString());//添加默认的列表到Combobox
                         }
                     }else{
                         nl->updateComboItems(cb);
                     }
                 }
+
+                 if(!className.compare(CN_NEWFRAME))
+                 {
+                     ((NewFrame*)p)->onBindValue(cb,fk);
+                 }else{
+                     ((NewLabel*)p)->onBindValue(cb,fk);
+                 }
 
                 mainLayout->addWidget(new QLabel(uname));
                 //v->addLayout(h);
@@ -215,8 +239,19 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
                         // id->setEnabled(false);
                         mainLayout->addWidget(new QLabel(uname));
                         QSpinBox *s = new QSpinBox();
+
+                        s->setObjectName(uname);
+                        s->setProperty(DKEY_VALTYPE,NUMBER);
+                        //要保存每一次修改过的值.
                         mainLayout->addWidget(s);
-                        s->setValue(qvm[DEFAULT].toInt());
+                        //s->setValue(qvm[DEFAULT].toInt());
+                      //  ((Compoent*)p)->onBindValue(s,qvm[DEFAULT].toInt());
+                        if(!className.compare(CN_NEWFRAME))
+                        {
+                            ((NewFrame*)p)->onBindValue(s,qvm[DEFAULT].toInt());
+                        }else{
+                            ((NewLabel*)p)->onBindValue(s,qvm[DEFAULT].toInt());
+                        }
 
                         if(qvm.contains(MAX))
                         {
@@ -226,18 +261,29 @@ void PropertyBox::createPropertyBox(QWidget *p, bool isImage)
                         {
                             s->setMinimum(qvm[MIN].toInt());
                         }
+                        connect(s,SIGNAL(valueChanged(int)),p,SLOT(onNumberChanged(int)));
                     }
                     else if(t == QVariant::String ){
                         QTextEdit *txt = new QTextEdit(qvm[DEFAULT].toString());
+                        txt->setObjectName(uname);
+                        txt->setProperty(DKEY_VALTYPE,TEXT);
+
+
+                        if(!className.compare(CN_NEWFRAME))
+                        {
+                            ((NewFrame*)p)->onBindValue(txt,qvm[DEFAULT].toString());
+                        }else{
+                            ((NewLabel*)p)->onBindValue(txt,qvm[DEFAULT].toString());
+                        }
                         mainLayout->addWidget(new QLabel(uname));
                         mainLayout->addWidget(txt);
                         txt->setFixedHeight(25);
+                         connect(txt,SIGNAL(textChanged()),p,SLOT(onTextChanged()));
                         //  v->addSpacerItem(new QSpacerItem(10,50));
 
                     }
                 }
             }
-
 
         }
 

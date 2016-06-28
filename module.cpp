@@ -18,6 +18,108 @@
 #include "canvasmanager.h"
 
 
+ void Compoent::onBindValue(QWidget *w, const QVariant &val)
+{
+ //   qDebug() << " dyn size " << dynValues.size();
+    QString n = w->metaObject()->className();
+    QString uname = w->objectName();
+    if(!n.compare("QTextEdit"))
+    {
+        if(dynValues.contains(uname))
+        {
+            QTextEdit *txt = (QTextEdit *)w;
+            txt->setText(dynValues[uname].toString());
+        }else
+        {
+            dynValues[uname] = val;
+        }
+    }else if(!n.compare("QComboBox"))
+    {
+       // qDebug() << " dynValues addr " << dynValues << &dynValues;
+        if(dynValues.contains(uname))
+        {
+            QComboBox *cb = (QComboBox *)w;
+            cb->setCurrentText(dynValues[uname].toString());
+
+        }else
+        {
+            dynValues[uname] = val;
+        }
+
+    }else if(!n.compare("QSpinBox"))
+    {
+
+         if(dynValues.contains(uname))
+         {
+             QSpinBox *sp = (QSpinBox *)w;
+             sp->setValue(dynValues[uname].toDouble());
+         }else
+         {
+             dynValues[uname] = val;
+         }
+    }
+}
+
+
+
+void NewLabel::onEnumItemChanged(QString txt)
+{
+   QComboBox *cb =(QComboBox *)(QObject::sender());
+  // qDebug() << " Label enum value changed " << txt << cb->currentText();
+   dynValues[cb->objectName()] = txt;
+
+}
+
+void NewLabel::onNumberChanged(int num)
+{
+
+    QSpinBox *sp = (QSpinBox *)(QObject::sender());
+    dynValues[sp->objectName()] = num;
+}
+
+void NewLabel::onTextChanged()
+{
+    QTextEdit *txt = (QTextEdit *)(QObject::sender());
+    dynValues[txt->objectName()] = txt->toPlainText();
+}
+
+/*------------------------------------------------------------------------*/
+
+void NewFrame::onEnumItemChanged(QString txt)
+{
+   QComboBox *cb =(QComboBox *)(QObject::sender());
+ //  qDebug() << " Frame enum value changed " << txt << cb->currentText();
+   dynValues[cb->objectName()] = txt;
+  // qDebug() << " dynValues addr " << dynValues << &dynValues;
+
+    this->signalsBlocked();
+}
+
+void NewFrame::onNumberChanged(int num)
+{
+
+    QSpinBox *sp = (QSpinBox *)(QObject::sender());
+    dynValues[sp->objectName()] = num;
+}
+
+void NewFrame::onTextChanged()
+{
+    QTextEdit *txt = (QTextEdit *)(QObject::sender());
+  //  qDebug() << " txt changed" << txt->toPlainText();
+    dynValues[txt->objectName()] = txt->toPlainText();
+}
+
+
+
+//void NewLabel::onBindValue(QWidget *w, const QVariant &val)
+//{
+//    Compoent::onBindValue(w,val);
+//}
+
+//void NewFrame::onBindValue(QWidget *w, const QVariant &val)
+//{
+//    Compoent::onBindValue(w,val);
+//}
 
 NewLabel::NewLabel(QWidget *parent)
     :QLabel(parent),
@@ -40,43 +142,43 @@ NewLabel::NewLabel(QWidget *parent)
     // connect(this,SIGNAL(Clicked()),SLOT(onClieck()));
 }
 
-QGroupBox* NewLabel::CreateXYWHGBox(QWidget *p)
-{
-    QGridLayout *xywh = new QGridLayout();
-    xywh->setObjectName("xywhGrid");
+//QGroupBox* NewLabel::CreateXYWHGBox(QWidget *p)
+//{
+//    QGridLayout *xywh = new QGridLayout();
+//    xywh->setObjectName("xywhGrid");
 
-    QMap<QString,int> xymap;
-    xymap[X] = p->geometry().x();
-    xymap[Y] = p->geometry().y();
-    xymap[W] = p->geometry().width();
-    xymap[H] = p->geometry().height();
+//    QMap<QString,int> xymap;
+//    xymap[X] = p->geometry().x();
+//    xymap[Y] = p->geometry().y();
+//    xymap[W] = p->geometry().width();
+//    xymap[H] = p->geometry().height();
 
-    int index = 0;
+//    int index = 0;
 
 
-    for(QMap<QString,int>::iterator it = xymap.begin();it != xymap.end();++it)
-    {
-        QLabel *s = new QLabel(it.key());
-        s->setFixedWidth(35);
-        xywh->addWidget(s,index,0);
-        QSpinBox *xedit = new QSpinBox();
-        xedit->setFixedWidth(40);
+//    for(QMap<QString,int>::iterator it = xymap.begin();it != xymap.end();++it)
+//    {
+//        QLabel *s = new QLabel(it.key());
+//        s->setFixedWidth(35);
+//        xywh->addWidget(s,index,0);
+//        QSpinBox *xedit = new QSpinBox();
+//        xedit->setFixedWidth(40);
 
-        xedit->setObjectName(it.key());
-        xedit->setMaximum(1000);
-        xedit->setValue(it.value());
-        xywh->addWidget(xedit,index,1);
-        connect(xedit,SIGNAL(valueChanged(int)),SLOT(onXYWHChangedValue(int)));
-        index++;
-    }
+//        xedit->setObjectName(it.key());
+//        xedit->setMaximum(1000);
+//        xedit->setValue(it.value());
+//        xywh->addWidget(xedit,index,1);
+//        connect(xedit,SIGNAL(valueChanged(int)),p,SLOT(onXYWHChangedValue(int)));
+//        index++;
+//    }
 
-    QGroupBox *xygb = new QGroupBox(tr("坐标位置"));
-    //xywh->setSizeConstraint(QLayout::SetFixedSize);
-    xywh->setContentsMargins(2,10,2,20);
-    xygb->setObjectName("xygb");
-    xygb->setLayout(xywh);
-    return xygb;
-}
+//    QGroupBox *xygb = new QGroupBox(tr("坐标位置"));
+//    //xywh->setSizeConstraint(QLayout::SetFixedSize);
+//    xywh->setContentsMargins(2,10,2,20);
+//    xygb->setObjectName("xygb");
+//    xygb->setLayout(xywh);
+//    return xygb;
+//}
 
 
 void NewLabel::addPropertyBoxSignal(QSpinBox *b)
@@ -196,7 +298,7 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
   //  p->setStyleSheet("NewFrame{border: 0.5px solid red;}");
 
     clearOtherObjectStyleSheet();
-    mWindow->propertyWidget->createPropertyBox(p,false);
+    mWindow->propertyWidget->createPropertyBox(p);
 
 
      QTextEdit *et = (QTextEdit *)(getQWidgetByName("debugEdit"));
@@ -245,7 +347,7 @@ void NewLabel::mouseReleaseEvent(QMouseEvent *ev)
     }
     //qDebug() << " parent Widget pos " << p->pos() << "size : " << p->size() << " geomerty " << p->geometry();
 
-    qDebug() << " new pos from Frame : " << p->pos();
+    //qDebug() << " new pos from Frame : " << p->pos();
 }
 
 void NewLabel::mouseMoveEvent(QMouseEvent *event)
@@ -281,7 +383,7 @@ void NewLabel::mouseMoveEvent(QMouseEvent *event)
     }
     // event->accept();
     //  this->parentWidget()->update();
-    qDebug() << " new pos from Layer : "  << pos() ;
+   // qDebug() << " new pos from Layer : "  << pos() ;
 }
 
 void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
@@ -301,8 +403,8 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
     }
 
     setStyleSheet("QLabel{border: 1px solid red;border-style: outset;}");
-    mWindow->propertyWidget->createPropertyBox(p,false);
-    mWindow->imgPropertyWidget->createPropertyBox(this,true);
+    mWindow->propertyWidget->createPropertyBox(p);
+    mWindow->imgPropertyWidget->createPropertyBox(this);
     qDebug() << " Frame pos is " << p->pos();
 
 }
@@ -369,6 +471,7 @@ void NewLabel::updateComboItems(QComboBox *cb)
 NewFrame::NewFrame(QWidget *parent)
     :FormResizer(parent)
 {
+
     setObjectName(CN_NEWFRAME);
     setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
     setFocusPolicy(Qt::ClickFocus);
@@ -386,6 +489,8 @@ void NewFrame::delMySelf()
        QWidget *w = it.next();
        w->deleteLater();
    }
+
+   mWindow->tree->deleteItem(this);
     this->deleteLater();
 }
 
@@ -463,8 +568,6 @@ NewLayout::NewLayout(QSize nsize,QWidget *parent):
 
 void NewLayout::onSelectMe()
 {
-
-
    // setStyleSheet("NewFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
     clearOtherObjectStyleSheet();
     mWindow->cManager->activeSS()->setSelectObject(this);
@@ -475,13 +578,14 @@ void NewLayout::onSelectMe()
 
 void NewLayout::delMySelf()
 {
-    QListIterator<QWidget*> nf(mNewFrameList);
+    QListIterator<QWidget*> nf(mChList);
     while(nf.hasNext())
     {
-        NewFrame *n = (NewFrame*)(nf.next());
-        n->delMySelf();
-        n->deleteLater();
+        deleteObject(nf.next());
     }
+
+    mWindow->tree->deleteItem(this);
+    deleteLater();
 }
 
 
@@ -526,8 +630,8 @@ void NewLayout::mousePressEvent(QMouseEvent *event)
     if (event->button() != Qt::LeftButton)
         return;
     mOffset = event->pos();
-    m_curSize = m_startSize = this->size();
-    setCursor(Qt::ClosedHandCursor);
+   // m_curSize = m_startSize = this->size();
+   // setCursor(Qt::ClosedHandCursor);
     onSelectMe();
     //qDebug() << " Press the layout " << this->m_frame->pos();
 }
@@ -660,9 +764,19 @@ void NewLayout::clearOtherSelectHandler()
     }
 }
 
-void NewLayout::delCurrentObject(QWidget *w)
+
+
+void NewLayout::deleteObject(int index)
 {
-   int index =  mNewFrameList.indexOf(w);
-   QWidget *a = mNewFrameList.takeAt(index);
-   a->deleteLater();
+    QWidget *w = mChList.at(index);
+    mChList.removeAt(index);
+     ((NewFrame*)w)->delMySelf();
+}
+
+void NewLayout::deleteObject(QWidget *w)
+{
+    int i = mChList.indexOf(w);
+    mChList.removeAt(i);
+    ((NewFrame*)w)->delMySelf();
+
 }

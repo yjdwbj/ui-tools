@@ -8,8 +8,8 @@
 #include <QString>
 
 
-//static int Width  = 480;
-//static int Height  = 320;
+static int Width  = 480;
+static int Height  = 320;
 const char DKEY_SHOT[] = "screenshot";
 const char DKEY_TXT[] = "ViewName";
 
@@ -46,7 +46,7 @@ CanvasManager::CanvasManager(MainWindow *w):
 void CanvasManager::screenshot()
 {
     // 对原来的那个页面进行截屏
-    if(ssList.size())
+    if(mCanvasList.size())
     {
         QWidget *wd = stack->currentWidget();
         if(wd)
@@ -70,6 +70,7 @@ void CanvasManager::screenshot()
                 mWindow->pageView->delPage(index); // 删除当前的,更新每新的.
                 mWindow->pageView->InsertPage(index,pixmap,stack->currentWidget()->property(DKEY_TXT).toString());
 
+
             }
         }
 
@@ -86,10 +87,10 @@ void CanvasManager::createNewCanvas()
     Scenes->addMainWindow(mWindow);
     Scenes->move(mWindow->width() * 0.12,mWindow->height()* 0.3);  // 按屏幕比例调整
     Scenes->setProperty(DKEY_SHOT,false);  // 检查该页面是否创建过截图.
-    ssList.append(Scenes);
+    mCanvasList.append(Scenes);
     // 这里不能改变它的对像名,用一个动态属
     // Scenes->setObjectName(QString("Page_%1").arg(QString::number(ssList.size()-1)));
-    Scenes->setProperty(DKEY_TXT,QString("页面_%1").arg(QString::number(ssList.size()-1)));
+    Scenes->setProperty(DKEY_TXT,QString("页面_%1").arg(QString::number(mCanvasList.size()-1)));
     currentSS = Scenes;
     mWindow->lDock->setEnabled(true);
     stack->addWidget(Scenes);
@@ -111,9 +112,9 @@ ScenesScreen *CanvasManager::activeSS()
 
 void CanvasManager::setActiveSS(int index)
 {
-    if(index < ssList.size())
+    if(index < mCanvasList.size())
     {
-        qDebug() << " show previous object" << index;
+      //  qDebug() << " show previous object" << index;
         screenshot();
         stack->setCurrentIndex(index);
         stack->setGeometry(stackRect);
@@ -124,7 +125,8 @@ void CanvasManager::setActiveSS(int index)
         // 把当前页的布局重新添加到treeWidget上
         foreach (QWidget *w, Scenes->LayoutList) {
             mWindow->tree->addItemToRoot(w->objectName(),"布局");
-            foreach (QWidget *ww, ((NewLayout*)w)->ChildrenList()) {
+            foreach (QWidget *ww, ((NewLayout*)w)->getChildrenList()) {
+
                 mWindow->tree->addObjectToLayout(ww);
             }
         }
@@ -160,7 +162,7 @@ void CanvasManager::onDelCurrentScenesScreen()
             stack->removeWidget(ss);
             mWindow->pageView->delPage(index);
             mWindow->tree->deleteAllitem();
-            ssList.removeAt(index);
+            mCanvasList.removeAt(index);
             //ss->deleteLater();
             ss->delAllObjects();
             delPage->setEnabled(stack->count() == 0 ? false : true);
@@ -176,6 +178,7 @@ void CanvasManager::onCreateNewProject()
     // qDebug() << " ProjectDialog result " << pd->result();
     newPage->setEnabled(pd->result());
     pd->deleteLater();
+    onCreateNewScenesScreen();
 
     // this->cManager->setDefaultPageSize(pd->getDefaultSize());
     // qDebug() << " default page size " << pd->getDefaultSize();

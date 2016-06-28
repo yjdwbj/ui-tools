@@ -35,6 +35,7 @@ public:
     void setState(SelectionHandleState st);
     void update();
     virtual void onSelectMe() =0;
+   // virtual void onBindValue(QWidget *w,const QVariant &val) =0;
 
    // void setFormWindow(QDesignerFormWindowInterface *fw);
     QFrame *m_frame;

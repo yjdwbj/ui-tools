@@ -185,6 +185,7 @@ void CompoentControls::onCreateCompoentToCanvas()
             //mWindow->Scenes->activeLayer()->m_frame);
     ww->setObjectName(QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
     activeLayer->appendChildObj(ww);
+   // activeLayer->mNewFrameList.append(ww);
     comList.append(ww);
    // qDebug() << " parent  object name " << ww->parentWidget()->objectName();
     this->parentWidget()->move(50,50);

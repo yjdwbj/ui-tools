@@ -22,38 +22,25 @@ PageView::PageView(MainWindow *mw)
    mImgList->setViewMode(QListWidget::IconMode);
    mImgList->setIconSize(QSize(200,180));
    mImgList->setDragEnabled(false);
+   mImgList->setDragDropMode(QAbstractItemView::NoDragDrop);
    mImgList->setSelectionMode(QAbstractItemView::SingleSelection);
-  // mImgList->resizeMode(QListWidget::Adjust);
-//   mImgList->addItem(new QListWidgetItem(QIcon("test.png"),""));
-//   mImgList->addItem(new QListWidgetItem(QIcon("test1.png"),""));
-//   mImgList->addItem(new QListWidgetItem(QIcon("test2.png"),""));
-//   mImgList->addItem(new QListWidgetItem(QIcon("test3.png"),""));
-//   mImgList->addItem(new QListWidgetItem(QIcon("test4.png"),""));
-//   mImgList->addItem(new QListWidgetItem(QIcon("test5.png"),""));
-//   mImgList->addItem(new QListWidgetItem(QIcon("test6.png"),""));
-//   mImgList->addItem(new QListWidgetItem(QIcon("test7.png"),""));
-//   mImgList->addItem(new QListWidgetItem(QIcon("test.png"),""));
-//   mImgList->addItem(new QListWidgetItem(QIcon("test.png"),""));
+   mImgList->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
 
     vb->addWidget(mImgList);
     setMinimumHeight(mWindow->size().height()-60);
     setMaximumHeight(mWindow->size().height());
-   // qDebug() << "  items size " <<  mScene->items().size();
-   // connect(mImgList,SIGNAL(clicked(QModelIndex)),SLOT(onClickedItem(QModelIndex)));
 
     connect(mImgList,SIGNAL(itemPressed(QListWidgetItem*)),SLOT(onClickedItem(QListWidgetItem*)));
-  //  connect(mImgList,SIGNAL(itemChanged(QListWidgetItem*)),SLOT(onItemChanged(QListWidgetItem*)));
- //   connect(mImgList,SIGNAL(itemClicked(QListWidgetItem*)),SLOT(onClickedItem(QListWidgetItem*)));
-   // connect(mImgList,SIGNAL(itemClicked(QListWidgetItem*))
+    //connect(mImgList,SIGNAL(itemDoubleClicked(QListWidgetItem*)),SLOT(onClickedItem(QListWidgetItem*)));
     show();
 }
 
 void PageView::addNewPage(QPixmap &p)
 {
-    QListWidgetItem * nit = new QListWidgetItem(QIcon(p),"");
+    QListWidgetItem * twi = new QListWidgetItem(QIcon(p),"");
 
-    mImgList->addItem(nit);
+    mImgList->addItem(twi);
    // qDebug() << " Page count " << mImgList->count();
 
 }
@@ -63,6 +50,7 @@ void PageView::addNewPage(QPixmap &p, QString txt)
     QListWidgetItem * nit = new QListWidgetItem(QIcon(p),txt);
 
     mImgList->addItem(nit);
+    mImgList->setCurrentItem(nit);
 }
 
 void PageView::delPage(int index)
@@ -78,14 +66,24 @@ void PageView::InsertPage(int index, QPixmap &p)
 
 void PageView::InsertPage(int index, QPixmap &p, QString txt)
 {
-    mImgList->insertItem(index,new QListWidgetItem(QIcon(p),txt));
+    QListWidgetItem *twi = new QListWidgetItem(QIcon(p),txt);
+    mImgList->insertItem(index,twi);
+    mImgList->clearSelection();
+    mImgList->setCurrentItem(twi,QItemSelectionModel::ClearAndSelect);
+    mImgList->setItemSelected(twi,true);
+
 }
 
 void PageView::onClickedItem(QListWidgetItem *item)
 {
-    //qDebug() << " clicked index is " << item->text() ;
+    qDebug() << " clicked index is " << item->text() ;
     int row = mImgList->row(item);
     mWindow->cManager->setActiveSS(row);
+    mImgList->clearSelection();
+   // mImgList->setCurrentItem(item);
+    mImgList->setCurrentItem(item,QItemSelectionModel::ClearAndSelect);
+    mImgList->setItemSelected(item,true);
+    this->signalsBlocked();
 }
 
 

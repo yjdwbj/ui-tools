@@ -41,7 +41,7 @@ private slots:
 private:
     void screenshot();
     ScenesScreen *currentSS;
-    QWidgetList ssList;
+    QWidgetList mCanvasList; // 画布列表
     MainWindow *mWindow;
     QRect stackRect;
     QSize mPageSize;
