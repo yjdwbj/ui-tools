@@ -31,8 +31,8 @@ CompoentControls::CompoentControls(QWidget *parent) : QGroupBox(parent),mainLayo
 
 
 
-   mJsonFile =  QDir::currentPath() + "/menu_strip.json";
-   // mJsonFile = QDir::currentPath() + "/control.json";
+  // mJsonFile =  QDir::currentPath() + "/menu_strip.json";
+    mJsonFile = QDir::currentPath() + "/control.json";
     qDebug() << " json file name " << mJsonFile;
     QFileInfo qfi(mJsonFile);
     if(!qfi.exists())
@@ -141,12 +141,12 @@ void CompoentControls::CreateButtonList()
     v->addWidget(l);
 
 
-    qDebug() << " compoents size " << comJsonArr.size();
+   // qDebug() << " compoents size " << comJsonArr.size();
     foreach (QJsonValue qjv, comJsonArr)
     {
         QVariantMap  qjm = qjv.toObject().toVariantMap();
         QString uname = qjv.toObject()[CAPTION].toString();
-        qDebug() << " json key is " << uname;
+      //  qDebug() << " json key is " << uname;
         comMap[uname] = qjm;
         QPushButton *btnTest = new QPushButton(uname);
         btnTest->setSizePolicy(mSizePolicy);
@@ -187,7 +187,7 @@ void CompoentControls::onCreateCompoentToCanvas()
     activeLayer->appendChildObj(ww);
    // activeLayer->mNewFrameList.append(ww);
     comList.append(ww);
-   // qDebug() << " parent  object name " << ww->parentWidget()->objectName();
+
     this->parentWidget()->move(50,50);
     ww->addMainWindow(mWindow);
     ww->onSelectMe();
@@ -235,12 +235,7 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
             }
             else if(!key.compare(NAME))
             {
-                // mParentObj->setObjectName(it.value().toString());
-                // qDebug() << "Create new Label " << it.value().toString() ;
                 nobj->setObjectName(it.value().toString());
-                //if(nobj)
-                //   nobj->setObjectName(it.value().toString());
-
             }
             else if(!key.compare(CAPTION)) /* 界面显示的名称 */
             {

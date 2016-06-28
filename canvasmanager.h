@@ -14,7 +14,7 @@ class CanvasManager : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QSize mPageSize READ getDefaultPageSize WRITE setDefaultPageSize)
-    //Q_PROPERTY(QString Name READ getName WRITE setName)
+
 public:
     CanvasManager(MainWindow *w);
     void createNewCanvas();
@@ -35,6 +35,7 @@ private slots:
     void onCreateNewProject();
     void onCreateNewScenesScreen();
     void onDelCurrentScenesScreen();
+    void onSaveProject();
 
 
 
@@ -46,7 +47,7 @@ private:
     QRect stackRect;
     QSize mPageSize;
 
-    QPushButton *newPrj,*newPage,*delPage;
+    QPushButton *newPrj,*newPage,*delPage,*savePrj;
 
 };
 

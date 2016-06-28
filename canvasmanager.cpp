@@ -18,28 +18,25 @@ CanvasManager::CanvasManager(MainWindow *w):
     mPageSize(0,0),
     newPrj(new QPushButton(tr("新建工程"))),
     newPage(new QPushButton(tr("新建页面"))),
-    delPage(new QPushButton(tr("删除当前页")))
+    delPage(new QPushButton(tr("删除当前页"))),
+    savePrj(new QPushButton(tr("保存工程")))
 {
     // w->ui->centralWidget;
     newPage->setEnabled(false);
     delPage->setEnabled(false);
+    savePrj->setEnabled(false);
 
     mWindow->addWidgetToToolBar(newPrj);
     mWindow->addWidgetToToolBar(newPage);
     mWindow->addWidgetToToolBar(delPage);
+    mWindow->addWidgetToToolBar(savePrj);
     mWindow->centralWidget()->setLayout(stack);
+    // 按屏幕的大小比例调整.
     stackRect = QRect( QPoint(mWindow->width() * 0.12,mWindow->height()* 0.3),mPageSize);
-
-    //  QPushButton *newPrj = new QPushButton(tr("新建工程"));
-    // ui->mainToolBar->addWidget(newPrj);
     connect(newPrj,SIGNAL(clicked(bool)),SLOT(onCreateNewProject()));
-    // QPushButton *newPage = new QPushButton(tr("新建页面"));
     connect(newPage,SIGNAL(clicked(bool)),SLOT(onCreateNewScenesScreen()));
-    // ui->mainToolBar->addWidget(newPage);
-    // QPushButton *delPage = new QPushButton(tr("删除当前页"));
     connect(delPage,SIGNAL(clicked(bool)),SLOT(onDelCurrentScenesScreen()));
-    //  ui->mainToolBar->addWidget(delPage);
-
+    connect(savePrj,SIGNAL(clicked(bool)),SLOT(onSaveProject()));
 }
 
 
@@ -52,14 +49,10 @@ void CanvasManager::screenshot()
         if(wd)
         {
             QPixmap pixmap(stack->currentWidget()->size());
-
-
-            //QPixmap pixmap(activeSS()->size());
             stack->currentWidget()->render(&pixmap,QPoint(),QRegion(stack->currentWidget()->rect()));
             QVariant vp = stack->currentWidget()->property(DKEY_SHOT);
             if( vp.isValid() && vp.toBool() == false)
             {
-
                 mWindow->pageView->addNewPage(pixmap,
                                               stack->currentWidget()->property(DKEY_TXT).toString());
                 // stack->currentWidget()->objectName());
@@ -69,8 +62,6 @@ void CanvasManager::screenshot()
                 int index = stack->currentIndex();
                 mWindow->pageView->delPage(index); // 删除当前的,更新每新的.
                 mWindow->pageView->InsertPage(index,pixmap,stack->currentWidget()->property(DKEY_TXT).toString());
-
-
             }
         }
 
@@ -103,10 +94,6 @@ void CanvasManager::createNewCanvas()
 
 ScenesScreen *CanvasManager::activeSS()
 {
-    //    if(!currentSS)
-    //        createNewCanvas();
-    //    qDebug() << " Scenes size " << ssList.size();
-    //    return currentSS;
     return (ScenesScreen*)(stack->currentWidget());
 }
 
@@ -126,7 +113,6 @@ void CanvasManager::setActiveSS(int index)
         foreach (QWidget *w, Scenes->LayoutList) {
             mWindow->tree->addItemToRoot(w->objectName(),"布局");
             foreach (QWidget *ww, ((NewLayout*)w)->getChildrenList()) {
-
                 mWindow->tree->addObjectToLayout(ww);
             }
         }
@@ -139,8 +125,6 @@ void CanvasManager::setActiveSS(int index)
 
 void CanvasManager::onDelCurrentScenesScreen()
 {
-
-
     QMessageBox msgBox;
     msgBox.setWindowTitle("删除提示");
     msgBox.setText("你真的要删除当前页面吗?删除之后不可以撤消,请选择<删除>删除.");
@@ -150,7 +134,7 @@ void CanvasManager::onDelCurrentScenesScreen()
     msgBox.setButtonText(QMessageBox::Cancel,"取消");
     msgBox.setDefaultButton(QMessageBox::Cancel);
     int ret = msgBox.exec();
-    qDebug() << " QMessageBox result " << ret;
+  //  qDebug() << " QMessageBox result " << ret;
     if(ret == QMessageBox::Yes)
     {
         // cManager->deleteCurrentPage();
@@ -177,11 +161,9 @@ void CanvasManager::onCreateNewProject()
     pd->exec();
     // qDebug() << " ProjectDialog result " << pd->result();
     newPage->setEnabled(pd->result());
+    savePrj->setEnabled(pd->result());
     pd->deleteLater();
     onCreateNewScenesScreen();
-
-    // this->cManager->setDefaultPageSize(pd->getDefaultSize());
-    // qDebug() << " default page size " << pd->getDefaultSize();
 }
 
 
@@ -192,3 +174,8 @@ void CanvasManager::onCreateNewScenesScreen()
     delPage->setEnabled(true);
 }
 
+void CanvasManager::onSaveProject()
+{
+
+
+}

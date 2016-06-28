@@ -24,8 +24,6 @@ class Compoent
 {
 
 public:
-//    Compoent(){}
-//    ~Compoent(){}
     virtual void onBindValue(QWidget *w,const QVariant &val);
     QMap<QString,QVariant> dynValues;
 
@@ -36,28 +34,15 @@ public:
 class NewLabel :public QLabel ,public Compoent
 {
     friend class PropertyBox;
-
     Q_OBJECT
-
 signals:
     void Clicked();
 public:
     NewLabel(QWidget *parent=0);
-    enum widType {
-        Number =0x0,
-        Text = 0x1,
-        List = 0x2,
-        Enum = 0x3
-    };
-
-
     //void createPropertyBox();
     void addPropertyBoxSignal(QSpinBox *b);
     void updatePixmap(QString imgpath);
     void updateComboItems(QComboBox *cb);
-
-  //  QMap<QString,QVariant> dynValues;
- //   void onBindValue(QWidget *w, const QVariant &val);
 
     QString *defaultImg;
     MainWindow *mWindow;
@@ -104,10 +89,6 @@ public:
     void addMainWindow(QObject *mw);
     void onSelectMe();
     void delMySelf();
-  //  void onBindValue(QWidget *w,const QVariant &val);
-
-   // void onBindValue(QWidget *w, const QVariant &val);
-  //  QMap<QString,QVariant> dynValues; //本控件的所有属性值
     MainWindow *mWindow;
 private slots:
 
@@ -117,12 +98,7 @@ private slots:
     void onEnumItemChanged(QString txt);
 
 protected:
-
-//    void mouseMoveEvent(QMouseEvent *event);
-//    void mousePressEvent(QMouseEvent *event) ;
     void clearOtherObjectStyleSheet();
-
-   // void mouseDoubleClickEvent(QMouseEvent *event);
 
 };
 
@@ -148,8 +124,6 @@ public:
 
 private:
     QPoint mOffset;
-   // QSize m_startSize;
-    //QSize m_curSize;
     QWidgetList mChList;
 
 
@@ -166,8 +140,6 @@ protected:
     void mouseMoveEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
- //   void paintEvent(QPaintEvent *);
-
 
 };
 
