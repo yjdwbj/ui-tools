@@ -31,8 +31,8 @@ CompoentControls::CompoentControls(QWidget *parent) : QGroupBox(parent),mainLayo
 
 
 
-  // mJsonFile =  QDir::currentPath() + "/menu_strip.json";
-    mJsonFile = QDir::currentPath() + "/control.json";
+   mJsonFile =  QDir::currentPath() + "/menu_strip.json";
+   // mJsonFile = QDir::currentPath() + "/control.json";
     qDebug() << " json file name " << mJsonFile;
     QFileInfo qfi(mJsonFile);
     if(!qfi.exists())

@@ -551,7 +551,17 @@ void NewFrame::onXYWHChangedValue(int v)
 
 }
 
+void NewFrame::writeToJson(QJsonObject &json)
+{
 
+//    QJsonArray layoutarr;
+//    json[objectName()] = layoutarr;
+//    foreach (QWidget *w, LayoutList) {
+//        QJsonObject layoutObj;
+//        ((NewFrame*)w)->writeToJson(layoutObj);
+//    }
+
+}
 
 
 NewLayout::NewLayout(QSize nsize,QWidget *parent):
@@ -778,5 +788,17 @@ void NewLayout::deleteObject(QWidget *w)
     int i = mChList.indexOf(w);
     mChList.removeAt(i);
     ((NewFrame*)w)->delMySelf();
+
+}
+
+void NewLayout::writeToJson(QJsonObject &json)
+{
+
+        QJsonArray layoutarr;
+        json[objectName()] = layoutarr;
+        foreach (QWidget *w, mChList) {
+            QJsonObject layoutObj;
+            ((NewFrame*)w)->writeToJson(layoutObj);
+        }
 
 }

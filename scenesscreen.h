@@ -28,6 +28,8 @@ public:
     void delSelectedLayout();
     void delSelectedObject();
 
+    void writeToJson(QJsonObject &json);
+
     void delAllObjects();
 
     QWidgetList LayoutList;

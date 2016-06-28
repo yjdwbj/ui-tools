@@ -43,6 +43,7 @@ public:
     void addPropertyBoxSignal(QSpinBox *b);
     void updatePixmap(QString imgpath);
     void updateComboItems(QComboBox *cb);
+    void writeToJson(QJsonObject &json);
 
     QString *defaultImg;
     MainWindow *mWindow;
@@ -89,6 +90,8 @@ public:
     void addMainWindow(QObject *mw);
     void onSelectMe();
     void delMySelf();
+    void writeToJson(QJsonObject &json);
+
     MainWindow *mWindow;
 private slots:
 
@@ -120,6 +123,8 @@ public:
     const QWidgetList &getChildrenList() { return mChList;}
 
     void delMySelf();
+
+    void writeToJson(QJsonObject &json);
 
 
 private:

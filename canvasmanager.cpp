@@ -176,6 +176,24 @@ void CanvasManager::onCreateNewScenesScreen()
 
 void CanvasManager::onSaveProject()
 {
+    QFile saveFile(QStringLiteral("save.json"));
+
+
+    if (!saveFile.open(QIODevice::WriteOnly)) {
+        qWarning("Couldn't open save file.");
+
+    }
+
+    QJsonArray CanvasArray;
+    QJsonDocument jsonDoc(CanvasArray);
+
+    foreach (QWidget *w, mCanvasList) {
+        QJsonObject CanvasObj;
+       // QJsonValue CanvasVal;
+       CanvasObj[NAME] = w->objectName();
+       CanvasArray.append(CanvasObj);
+    }
+    saveFile.write(jsonDoc.toJson());
 
 
 }

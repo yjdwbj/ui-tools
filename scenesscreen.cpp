@@ -134,3 +134,13 @@ void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
     }
 }
 
+void ScenesScreen::writeToJson(QJsonObject &json)
+{
+    QJsonArray layoutarr;
+    json[objectName()] = layoutarr;
+    foreach (QWidget *w, LayoutList) {
+        QJsonObject layoutObj;
+        ((NewLayout*)w)->writeToJson(layoutObj);
+    }
+}
+
