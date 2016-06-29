@@ -507,19 +507,6 @@ void NewLabel::writeToJson(QJsonObject &json)
     QJsonArray projson;// 属性
 
     projson = dynValues[DKEY_DYN].toArray(); //复制出模版的属性来保存.
-    int psize = projson.size();
-
-    // 更新一些属性.
-//    for(int i =0; i < psize;i++)
-//    {
-//        QJsonObject ov = projson.at(i).toObject();
-//        if(ov.contains(KEY_RECT))
-//        {
-//            projson[i] = getRectJson(this);
-//            break;
-//        }
-
-//    }
 
     json[NAME] = objectName();
     json[CLASS] = this->metaObject()->className();

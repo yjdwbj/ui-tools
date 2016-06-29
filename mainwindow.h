@@ -34,6 +34,8 @@ class ScenesScreen;
 class CanvasManager;
 class PageView;
 class CompoentControls;
+class ComProperty;
+class ImgProperty;
 
 
 
@@ -62,9 +64,9 @@ public:
 
     //QGroupBox *propertyWidget;
 
-    PropertyBox *propertyWidget;
+    ComProperty *propertyWidget;
     //QGroupBox *imgPropertyWidget;
-    PropertyBox *imgPropertyWidget;
+    ImgProperty *imgPropertyWidget;
     QFrame *mCanvas;
     TreeDock *tree;
     ScenesScreen *Scenes;

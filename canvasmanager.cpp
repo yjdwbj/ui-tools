@@ -8,8 +8,8 @@
 #include <QString>
 
 
-static int Width  = 480;
-static int Height  = 320;
+//static int Width  = 480;
+//static int Height  = 320;
 
 
 CanvasManager::CanvasManager(MainWindow *w):

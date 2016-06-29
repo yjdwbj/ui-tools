@@ -40,6 +40,8 @@ public:
 class NewLabel :public QLabel ,public Compoent
 {
     friend class PropertyBox;
+    friend class ComProperty;
+    friend class ImgProperty;
     Q_OBJECT
 signals:
     void Clicked();

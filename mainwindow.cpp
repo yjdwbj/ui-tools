@@ -23,9 +23,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
     cManager = new CanvasManager(this);
-    propertyWidget = new PropertyBox(tr("控件属性"),this) ;
-    imgPropertyWidget = new PropertyBox(tr("元素属性"),this);
-    QStringList sflist = QStyleFactory::keys();
+    propertyWidget = new ComProperty(this) ;
+    imgPropertyWidget = new ImgProperty(this);
+  //  QStringList sflist = QStyleFactory::keys();
     setWindowTitle(tr("图片编辑工具"));
     //qDebug() << " list " << sflist;
     // 　  this->setStyle(QStyleFactory::create("GTK+"));
@@ -78,7 +78,7 @@ MainWindow::MainWindow(QWidget *parent) :
    // lDockWidget->setStyleSheet("QGroupBox{border: 1px solid gray;top: 18px; padding: 6px}");
 
     // leftLayout->addWidget(lList);
-    ComCtrl = new  CompoentControls(lDockWidget);
+    ComCtrl = new  CompoentControls(this,lDockWidget);
 
     leftLayout->addWidget(ComCtrl);
 
@@ -91,12 +91,12 @@ MainWindow::MainWindow(QWidget *parent) :
     // 控件属性框
     //*pb = new PropertyBox();
     //propertyLayout->addWidget(pb);
-    propertyLayout->addWidget(propertyWidget);
-    propertyLayout->addWidget(imgPropertyWidget);
+    leftLayout->addWidget(propertyWidget);
+    leftLayout->addWidget(imgPropertyWidget);
 
 
 
-    leftLayout->addWidget(qcl);
+   // leftLayout->addWidget(qcl);
 
 
     addDockWidget(Qt::LeftDockWidgetArea, lDock);

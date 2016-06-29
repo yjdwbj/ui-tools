@@ -27,7 +27,7 @@ void HandleJson::ReadJsonFile()
         QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
         if(json_error.error == QJsonParseError::NoError)
         {
-            QWidget *mp = 0;
+          //  QWidget *mp = 0;
             QPoint mpos;
             if(qd.isObject())
             {

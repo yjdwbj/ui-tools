@@ -15,14 +15,48 @@
 class TreeDock;
 class MainWindow;
 class ScenesScreen;
+
+
+void removeWidFromLayout(QLayout *layout);
+
+
+
+class ComProperty: public QGroupBox
+{
+    Q_OBJECT
+public:
+    explicit ComProperty(QWidget *parent=0);
+    ~ComProperty(){}
+  //  QGroupBox *CreateXYWHGBox(QWidget *p);
+    void createPropertyBox(QWidget *p);
+private:
+     QGroupBox *CreateXYWHGBox(QWidget *p);
+     QVBoxLayout* mainLayout;
+
+};
+
+class ImgProperty: public QGroupBox
+{
+    Q_OBJECT
+public:
+    explicit ImgProperty(QWidget *parent=0);
+    ~ImgProperty(){}
+    void createPropertyBox(QWidget *p);
+
+private:
+    QVBoxLayout* mainLayout;
+};
+
+
 class CompoentControls : public QGroupBox
 {
     friend class PropertyBox;
     friend class TreeDock;
     Q_OBJECT
 public:
-    explicit CompoentControls(QWidget *parent = 0);
+    explicit CompoentControls(MainWindow *mw,QWidget *parent = 0);
     QObject* CreateObjectFromJson(QVariantMap qvm, QObject *pobj);
+   // QWidget *CcWidgetList,ProWidgetList,ImgWidgetList;
 
 private:
      MainWindow *mWindow;
@@ -35,9 +69,7 @@ private:
      QMap<QString,QVariantMap> comMap;
      QSizePolicy mSizePolicy;
 
-
      void CreateButtonList();
-
      QWidget *getQWidgetByName(QString name) const;
      void ReadJsonFile();
 

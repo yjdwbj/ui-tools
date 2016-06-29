@@ -151,7 +151,7 @@ void PropertyBox::createPropertyBox(QWidget *p)
     foreach(QVariant qv, qvl)
     {
 
-        NewFrame *nf = (NewFrame*)p;
+
         if(qv.type() == QVariant::Map)
         {
             QVariantMap qvm = qv.toMap();

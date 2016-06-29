@@ -29,8 +29,6 @@ public:
 
     explicit PropertyBox(QString title,QWidget *parent = 0);
     void createPropertyBox(QWidget *p);
-    //void onListImageChanged(QString img);
-    //void onPictureDialog(bool b);
 
 
 signals:
