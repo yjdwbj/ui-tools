@@ -4,7 +4,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsWidget>
 #include <QPushButton>
-#include <QTextEdit>
+
 #include <QGraphicsView>
 #include <QGraphicsGridLayout>
 #include <QGraphicsItem>

@@ -4,27 +4,41 @@
 
 // 控件属性的框
 
-PropertyBox::PropertyBox(QString title, QWidget *parent) : QGroupBox(parent),
-    mainLayout(new QVBoxLayout())
-{
+PropertyBox::PropertyBox(QString title, QWidget *parent) :
 
-    // MainWindow *m ;
-    QWidgetList tlist = qApp->topLevelWidgets();
-    for(QWidgetList::iterator wit = tlist.begin();wit != tlist.end();++wit)
-    {
-        if((*wit)->objectName() == "MainWindow")
-        {
-            mw = (MainWindow*)(*wit);
-            break;
-        }
-    }
-   // setTitle(tr("控件属性"));
-    setTitle(title);
+    QScrollArea(parent),
+    mw((MainWindow*)parent),
+    mainLayout(new QVBoxLayout()),
+
+    mainWidget(new QWidget())
+{
+    setObjectName("Property");
+
+    setWindowIconText(title);
+  //  QVBoxLayout * mainLayout = new QVBoxLayout();
     mainLayout->setObjectName(COMGRPLYT);
    // mainLayout->addSpacing(1);
-    mainLayout->setContentsMargins(0,50,0,0);
-    setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");
-    setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
+   // mainLayout->setContentsMargins(0,50,0,0);
+   mSizePolicy =QSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
+
+    //setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");
+   // setStyleSheet("*{background-color: #C0DCC0;}");
+    setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    mainWidget->setLayout(mainLayout);
+    QPalette p = mainWidget->palette();
+   // p.setColor(mainWidget->backgroundRole(), Qt::white);
+     p.setColor(mainWidget->backgroundRole(), "#C0DCC0");
+    mainWidget->setPalette(p);
+
+//    setAutoFillBackground(true);
+   // setBackgroundRole(QPalette::Dark);
+    setWidget(mainWidget);
+    setWidgetResizable(true);
+    qDebug() << " new Property box " << this->geometry();
+    mainWidget->setSizePolicy(mSizePolicy);
+
+
 
 }
 
@@ -71,9 +85,9 @@ QGroupBox* PropertyBox::CreateXYWHGBox(QWidget *p)
     }
 
     QGroupBox *xygb = new QGroupBox(tr("坐标位置"));
-    xygb->setSizePolicy(mSizePolicy);
+   // xygb->setSizePolicy(mSizePolicy);
     //xywh->setSizeConstraint(QLayout::SetFixedSize);
-    xywh->setContentsMargins(0,15,0,0);
+   // xywh->setContentsMargins(0,15,0,0);
 
     xygb->setObjectName("xygb");
     xygb->setLayout(xywh);
@@ -107,13 +121,22 @@ void PropertyBox::createPropertyBox(QWidget *p)
     {
 
     }
+
+//    foreach (QWidget *w, mainWidget->findChildren<QWidget*>()) {
+//       delete w;
+//    }
+//    mainWidget->layout()->deleteLater();
     removeWidFromLayout(mainLayout);
     delete mainLayout;
+
+   // QVBoxLayout * mainLayout = new QVBoxLayout();
     mainLayout = new QVBoxLayout();
     mainLayout->setProperty(DKEY_UID,nkeyuid);
 
 
-    setLayout( mainLayout);
+    mainWidget->setLayout(mainLayout);
+    qDebug() << " create propertBox " << this->geometry();
+
     mainLayout->setObjectName(COMGRPLYT);
     mainLayout->addSpacing(1);
   // setTitle(p->objectName());
@@ -151,6 +174,7 @@ void PropertyBox::createPropertyBox(QWidget *p)
                 }
                 mainLayout->addWidget(new QLabel(uname));
                 mainLayout->addWidget(cb);
+
                 QString fk ="";
                 if(qvlist.size())
                 {
@@ -173,6 +197,7 @@ void PropertyBox::createPropertyBox(QWidget *p)
                 cb->setProperty(DKEY_VALTYPE,LIST);
                 cb->setObjectName(LISTIMAGE);  // 这里假设一个NewLabel只有这样一个QComoBox
                 p->setProperty(DKEY_IMGIDX,0); // 当前选择的行号
+
                 //QString uname =  qvm["-name"].toString();
                 QString className = p->metaObject()->className();
                 QString fk = "";
@@ -236,8 +261,7 @@ void PropertyBox::createPropertyBox(QWidget *p)
 
                     else if(t == QVariant::Double)
                     {
-                        // QTextEdit *id = new QTextEdit(t.toLocalTime().toString());
-                        // id->setEnabled(false);
+
                         mainLayout->addWidget(new QLabel(uname));
                         QSpinBox *s = new QSpinBox();
 
@@ -265,9 +289,13 @@ void PropertyBox::createPropertyBox(QWidget *p)
                         connect(s,SIGNAL(valueChanged(int)),p,SLOT(onNumberChanged(int)));
                     }
                     else if(t == QVariant::String ){
-                        QTextEdit *txt = new QTextEdit(qvm[DEFAULT].toString());
+                        QLineEdit *txt = new QLineEdit(qvm[DEFAULT].toString());
                         txt->setObjectName(uname);
                         txt->setProperty(DKEY_VALTYPE,TEXT);
+                        if(qvm.contains(MAXLEN))
+                        {
+                            txt->setMaxLength(qvm[MAXLEN].toDouble());
+                        }
 
 
                         if(!className.compare(CN_NEWFRAME))
@@ -279,7 +307,7 @@ void PropertyBox::createPropertyBox(QWidget *p)
                         mainLayout->addWidget(new QLabel(uname));
                         mainLayout->addWidget(txt);
                         txt->setFixedHeight(25);
-                         connect(txt,SIGNAL(textChanged()),p,SLOT(onTextChanged()));
+                         connect(txt,SIGNAL(textChanged(QString)),p,SLOT(onTextChanged(QString)));
                         //  v->addSpacerItem(new QSpacerItem(10,50));
 
                     }
@@ -290,9 +318,9 @@ void PropertyBox::createPropertyBox(QWidget *p)
 
     }
 
-    QSpacerItem *verticalSpacer = new QSpacerItem(20, 50, QSizePolicy::Minimum, QSizePolicy::Expanding);
-    mainLayout->addItem(verticalSpacer);
-    mainLayout->setContentsMargins(0,20,0,0);
+//    QSpacerItem *verticalSpacer = new QSpacerItem(20, 50, QSizePolicy::Minimum, QSizePolicy::Expanding);
+//    mainLayout->addItem(verticalSpacer);
+//    mainLayout->setContentsMargins(0,20,0,0);
 
 
 }

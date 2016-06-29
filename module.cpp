@@ -4,7 +4,7 @@
 #include <QtWidgets/QStackedLayout>
 
 #include <QtWidgets/QSpinBox>
-#include <QtWidgets/QTextEdit>
+
 #include <QtWidgets/QSpacerItem>
 
 #include <QApplication>
@@ -18,47 +18,108 @@
 #include "canvasmanager.h"
 
 
+
+void Compoent::changeJsonValue(QString key, QVariant val)
+{
+   QJsonArray parr = dynValues[DKEY_DYN].toArray();
+    int asize = parr.size();
+    for(int i = 0;i < asize;i++)
+    {
+        QJsonObject obj = parr[i].toObject();
+        // 这里必需要有-name 这个属性名.
+        if(obj[NAME].toString().contains(key) )
+        {
+            if(obj.contains(DEFAULT))
+            {
+                obj[DEFAULT] = QJsonValue::fromVariant(val);
+                parr[i] = obj;
+                break;
+            }
+
+        }
+    }
+    // 这个QJsonObject 都是只读的,修改之后必需重新赋值.
+    dynValues[DKEY_DYN] = parr;
+}
+
+QVariant Compoent::getJsonValue(QString key) const
+{
+    QJsonArray parr = dynValues[DKEY_DYN].toArray();
+    int asize = parr.size();
+    for(int i = 0;i < asize;i++)
+    {
+        QJsonObject obj = parr[i].toObject();
+        if(obj[NAME].toString().contains(key))
+        {
+            if(obj.contains(DEFAULT))
+            {
+                return obj[DEFAULT].toVariant();
+            }
+
+        }
+    }
+    return QVariant(0);
+}
+
+
  void Compoent::onBindValue(QWidget *w, const QVariant &val)
 {
  //   qDebug() << " dyn size " << dynValues.size();
     QString n = w->metaObject()->className();
     QString uname = w->objectName();
-    if(!n.compare("QTextEdit"))
-    {
-        if(dynValues.contains(uname))
+//    qDebug() << " QJsonObject subclass name " << uname;
+//    int asize = parr.size();
+//    for(int i = 0;i < asize;i++)
+//    {
+//        QJsonObject obj = parr[i].toObject();
+        if(!n.compare("QLineEdit"))
         {
-            QTextEdit *txt = (QTextEdit *)w;
-            txt->setText(dynValues[uname].toString());
-        }else
+//            if(obj.contains(uname))
+//            {
+                QLineEdit *txt = (QLineEdit *)w;
+                //txt->setText(obj[uname].toString());
+                txt->setText(getJsonValue(uname).toString());
+
+//            }else
+//            {
+//               // obj[uname] = QJsonValue::fromVariant(val);
+//                changeJsonValue(uname,val);
+
+//            }
+        }else if(!n.compare("QComboBox"))
         {
-            dynValues[uname] = val;
+            // qDebug() << " dynValues addr " << dynValues << &dynValues;
+//            if(obj.contains(uname))
+//            {
+                QComboBox *cb = (QComboBox *)w;
+                //cb->setCurrentText(obj[uname].toString());
+                cb->setCurrentText(getJsonValue(uname).toString());
+               // break;
+//            }else
+//            {
+//                changeJsonValue(uname,val);
+//               // obj[uname] = QJsonValue::fromVariant(val);
+//              //  break;
+//            }
+
+        }else if(!n.compare("QSpinBox"))
+        {
+
+//            if(obj.contains(uname))
+//            {
+                QSpinBox *sp = (QSpinBox *)w;
+             //   sp->setValue(obj[uname].toDouble());
+                sp->setValue(getJsonValue(uname).toDouble());
+                //break;
+//            }else
+//            {
+//                changeJsonValue(uname,val);
+//               // obj[uname] = QJsonValue::fromVariant(val);
+//                //break;
+//            }
         }
-    }else if(!n.compare("QComboBox"))
-    {
-       // qDebug() << " dynValues addr " << dynValues << &dynValues;
-        if(dynValues.contains(uname))
-        {
-            QComboBox *cb = (QComboBox *)w;
-            cb->setCurrentText(dynValues[uname].toString());
-
-        }else
-        {
-            dynValues[uname] = val;
-        }
-
-    }else if(!n.compare("QSpinBox"))
-    {
-
-         if(dynValues.contains(uname))
-         {
-             QSpinBox *sp = (QSpinBox *)w;
-             sp->setValue(dynValues[uname].toDouble());
-         }else
-         {
-             dynValues[uname] = val;
-         }
-    }
-}
+    //}
+ }
 
 
 QJsonObject Compoent::getRectJson(QWidget *w)
@@ -73,10 +134,12 @@ QJsonObject Compoent::getRectJson(QWidget *w)
     return rect;
 }
 
-void Compoent::copyProperty(QVariantMap map)
+void Compoent::copyProperty(const QVariant &va)
 {
-    QJsonObject ob = QJsonObject::fromVariantMap(map);
-    dynValues = ob.toVariantMap();
+
+
+    QJsonObject oo = QJsonValue::fromVariant(va).toObject();
+    dynValues[DKEY_DYN] = QJsonValue::fromVariant(va);
 }
 
 
@@ -84,7 +147,8 @@ void NewLabel::onEnumItemChanged(QString txt)
 {
    QComboBox *cb =(QComboBox *)(QObject::sender());
   // qDebug() << " Label enum value changed " << txt << cb->currentText();
-   dynValues[cb->objectName()] = txt;
+   changeJsonValue(cb->objectName(),txt);
+  // dynValues[cb->objectName()] = txt;
 
 }
 
@@ -92,13 +156,15 @@ void NewLabel::onNumberChanged(int num)
 {
 
     QSpinBox *sp = (QSpinBox *)(QObject::sender());
-    dynValues[sp->objectName()] = num;
+   // dynValues[sp->objectName()] = num;
+    changeJsonValue(sp->objectName(),num);
 }
 
-void NewLabel::onTextChanged()
+void NewLabel::onTextChanged(QString str)
 {
-    QTextEdit *txt = (QTextEdit *)(QObject::sender());
-    dynValues[txt->objectName()] = txt->toPlainText();
+    QLineEdit *txt = (QLineEdit *)(QObject::sender());
+  //  dynValues[txt->objectName()] = str;
+    changeJsonValue(txt->objectName(),str);
 }
 
 /*------------------------------------------------------------------------*/
@@ -107,8 +173,8 @@ void NewFrame::onEnumItemChanged(QString txt)
 {
    QComboBox *cb =(QComboBox *)(QObject::sender());
  //  qDebug() << " Frame enum value changed " << txt << cb->currentText();
-   dynValues[cb->objectName()] = txt;
-  // qDebug() << " dynValues addr " << dynValues << &dynValues;
+ //  dynValues[cb->objectName()] = txt;
+ changeJsonValue(cb->objectName(),txt);
 
     this->signalsBlocked();
 }
@@ -117,14 +183,16 @@ void NewFrame::onNumberChanged(int num)
 {
 
     QSpinBox *sp = (QSpinBox *)(QObject::sender());
-    dynValues[sp->objectName()] = num;
+    changeJsonValue(sp->objectName(),num);
+  //  dynValues[sp->objectName()] = num;
 }
 
-void NewFrame::onTextChanged()
+void NewFrame::onTextChanged(QString str)
 {
-    QTextEdit *txt = (QTextEdit *)(QObject::sender());
+    QLineEdit *txt = (QLineEdit *)(QObject::sender());
   //  qDebug() << " txt changed" << txt->toPlainText();
-    dynValues[txt->objectName()] = txt->toPlainText();
+    changeJsonValue(txt->objectName(),str);
+  //  dynValues[txt->objectName()] = str;
 }
 
 
@@ -268,7 +336,7 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
     mWindow->propertyWidget->createPropertyBox(p);
 
 
-     QTextEdit *et = (QTextEdit *)(getQWidgetByName("debugEdit"));
+     QLineEdit *et = (QLineEdit *)(getQWidgetByName("debugEdit"));
      if(et != 0 )
      {
          et->setText(QString("mouse x:%1 , y:%2 ")
@@ -436,12 +504,22 @@ void NewLabel::updateComboItems(QComboBox *cb)
 
 void NewLabel::writeToJson(QJsonObject &json)
 {
+    QJsonArray projson;// 属性
 
+    projson = dynValues[DKEY_DYN].toArray(); //复制出模版的属性来保存.
+    int psize = projson.size();
 
-    QJsonArray projson;
+    // 更新一些属性.
+//    for(int i =0; i < psize;i++)
+//    {
+//        QJsonObject ov = projson.at(i).toObject();
+//        if(ov.contains(KEY_RECT))
+//        {
+//            projson[i] = getRectJson(this);
+//            break;
+//        }
 
-
-    projson.append(getRectJson(this));
+//    }
 
     json[NAME] = objectName();
     json[CLASS] = this->metaObject()->className();
@@ -538,20 +616,38 @@ void NewFrame::writeToJson(QJsonObject &json)
 {
 
     QJsonArray layoutarr;
-    json[WIDGET] = layoutarr;
+
     foreach (NewLabel *w, m_frame->findChildren<NewLabel*>()) {
         QJsonObject nlobj;
         w->writeToJson(nlobj);
         layoutarr.append(nlobj);
 
     }
-    json[objectName()] = layoutarr;
+
+    json[WIDGET] = layoutarr;
     QJsonArray projson;// 属性
-    projson.append(getRectJson(this));
-    projson.append(QJsonObject::fromVariantMap(dynValues));
-    QVariantMap uid;
-    uid["id"] = this->property(DKEY_UID).toString();
-    projson.append(QJsonObject::fromVariantMap(uid));
+
+    projson = dynValues[DKEY_DYN].toArray();
+    int psize = projson.size();
+
+    // 更新一些属性.
+    for(int i =0; i < psize;i++)
+    {
+        QJsonObject ov = projson.at(i).toObject();
+
+        if(ov.contains(KEY_RECT))
+        {
+
+            projson[i] = getRectJson(this);
+
+        }else if(ov.contains("id"))
+        {
+            ov["id"] = this->property(DKEY_UID).toString();
+            projson[i] = ov;
+
+        }
+
+    }
 
     json[PROPERTY] = projson;
     json[NAME] = objectName();

@@ -34,6 +34,7 @@ static QString LISTIMAGE = "ListImage";
 static QString ICON = "icon";
 static QString NUMBER ="number";
 static QString TEXT = "text";
+static QString MAXLEN = "maxlength";
 
 static const char  DKEY_CAPTION[] = "caption";
 

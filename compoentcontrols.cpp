@@ -31,8 +31,8 @@ CompoentControls::CompoentControls(QWidget *parent) : QGroupBox(parent),mainLayo
 
 
 
-   mJsonFile =  QDir::currentPath() + "/menu_strip.json";
-   // mJsonFile = QDir::currentPath() + "/control.json";
+  // mJsonFile =  QDir::currentPath() + "/menu_strip.json";
+    mJsonFile = QDir::currentPath() + "/control.json";
     qDebug() << " json file name " << mJsonFile;
     QFileInfo qfi(mJsonFile);
     if(!qfi.exists())
@@ -224,7 +224,9 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                   //  n->addMainWindow(pobj->parent());
                     if(qvm.contains(PROPERTY))
                     {
-                        n->copyProperty(qvm[PROPERTY].toMap());
+                       // QJsonObject vp =QJsonObject::fromVariantMap(qvm[PROPERTY]);
+                        n->copyProperty(qvm[PROPERTY]);
+                     //   qDebug() << " NewFrame dyn property " << n->dynValues;
                     }
                     nobj =qobject_cast<QObject*>(n);
                     nobj->setProperty(DKEY_CLSNAME,cval);
@@ -232,12 +234,15 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                 else if(!cval.compare(QLABEL))
                 {
                     NewFrame *np = (NewFrame*)pobj;
-                    if(qvm.contains(PROPERTY))
-                    {
-                        np->copyProperty(qvm[PROPERTY].toMap());
-                    }
+
                    // qDebug() << " NewLabel Property " << it.value().toMap();
                     nobj =qobject_cast<QObject*>(new NewLabel(np->m_frame));
+                    if(qvm.contains(PROPERTY))
+                    {
+                    //    QVariantMap vp =qvm[PROPERTY].toMap();
+                        ((NewLabel*)nobj)->copyProperty(qvm[PROPERTY]);
+                       // qDebug() << " NewLabel dyn property " << ((NewLabel*)nobj)->dynValues;
+                    }
                     nobj->setProperty(DKEY_CLSNAME,cval);
 
                 }

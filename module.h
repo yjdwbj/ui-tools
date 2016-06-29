@@ -26,8 +26,12 @@ class Compoent
 public:
     virtual void onBindValue(QWidget *w,const QVariant &val);
     virtual QJsonObject getRectJson(QWidget* w);
-    virtual void copyProperty(QVariantMap map);
-    QVariantMap dynValues;
+    virtual void copyProperty(const QVariant &va);
+    virtual void changeJsonValue(QString key, QVariant val);
+    virtual QVariant getJsonValue(QString key) const;
+    //QVariantMap dynValues;
+    //QJsonValue dynValues;
+    QJsonObject dynValues;
 
 };
 
@@ -68,7 +72,7 @@ private slots:
     void onPictureDialog(bool );
     void onXYWHChangedValue(int);
     void onListImageChanged(QString);
-    void onTextChanged();
+    void onTextChanged(QString);
     void onNumberChanged(int num);
     void onEnumItemChanged(QString txt);
 
@@ -98,7 +102,7 @@ public:
 private slots:
 
     void onXYWHChangedValue(int v);
-    void onTextChanged();
+    void onTextChanged(QString str);
     void onNumberChanged(int num);
     void onEnumItemChanged(QString txt);
 

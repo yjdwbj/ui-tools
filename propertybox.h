@@ -4,11 +4,12 @@
 #include <QWidget>
 #include <QGroupBox>
 #include <QSpinBox>
+#include <QScrollArea>
 #include "mainwindow.h"
 
 #include "module.h"
 #include <QComboBox>
-#include <QTextEdit>
+#include <QLineEdit>
 
 
 
@@ -19,7 +20,7 @@ class NewLabel;
 class MainWindow;
 
 
-class PropertyBox : public QGroupBox
+class PropertyBox : public QScrollArea
 {
  //   friend class NewLabel;
     Q_OBJECT
@@ -44,6 +45,7 @@ private:
     MainWindow *mw;
     NewLabel *comT;
     QSizePolicy mSizePolicy;
+    QWidget *mainWidget;
 };
 
 #endif // PROPERTYBOX_H

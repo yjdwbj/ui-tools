@@ -18,15 +18,13 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     out(stdout, QIODevice::WriteOnly),
-
-    ui(new Ui::MainWindow),
-    propertyWidget(new PropertyBox(tr("控件属性"))),
-    imgPropertyWidget(new PropertyBox(tr("元素属性")))
-
+    ui(new Ui::MainWindow)
 {
 
     ui->setupUi(this);
     cManager = new CanvasManager(this);
+    propertyWidget = new PropertyBox(tr("控件属性"),this) ;
+    imgPropertyWidget = new PropertyBox(tr("元素属性"),this);
     QStringList sflist = QStyleFactory::keys();
     setWindowTitle(tr("图片编辑工具"));
     //qDebug() << " list " << sflist;
@@ -58,13 +56,15 @@ MainWindow::MainWindow(QWidget *parent) :
     lDock->setEnabled(false);
     lDock->setAllowedAreas( Qt::LeftDockWidgetArea);
     lDock->setFeatures(QDockWidget::NoDockWidgetFeatures);
-    lDock->setFixedWidth(this->size().width() * 0.15);
+   // lDock->setFixedWidth(this->size().width() * 0.15);
     lDock->setObjectName("LeftDock");
-    lList = new QListWidget();
+   // lList = new QListWidget();
     // lDock->setWidget(lList);
 
     QWidget *lDockWidget = new QWidget(lDock);
     lDockWidget->setObjectName("lDockWidget");
+    lDockWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    lDockWidget->setFixedWidth(this->width() * 0.15);
 
     lDock->setWidget(lDockWidget);
 
@@ -75,7 +75,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // lDock->setLayout(leftLayout);
     leftLayout->setObjectName("leftLayout");
     lDockWidget->setLayout(leftLayout);
-    lDockWidget->setStyleSheet("QGroupBox{border: 1px solid gray;top: 18px; padding: 6px}");
+   // lDockWidget->setStyleSheet("QGroupBox{border: 1px solid gray;top: 18px; padding: 6px}");
 
     // leftLayout->addWidget(lList);
     ComCtrl = new  CompoentControls(lDockWidget);
@@ -83,8 +83,8 @@ MainWindow::MainWindow(QWidget *parent) :
     leftLayout->addWidget(ComCtrl);
 
 
-    lList->setFixedHeight((lDock->size().height() -50) / 2);
-    ;
+
+
     QFrame *qcl = new QFrame();
 
     QVBoxLayout *propertyLayout = new QVBoxLayout(qcl);
@@ -104,9 +104,9 @@ MainWindow::MainWindow(QWidget *parent) :
 //    tree->addCompoentControls(cc);
 //    tree->addPropBox(propertyWidget);
 
-    // addDockWidget(Qt::LeftDockWidgetArea,new TreeDock(this));
+
     splitDockWidget(lDock,tree,Qt::Horizontal);
-    //  lList->setFixedWidth(160);
+
 
     //　右边的截图页面.
     pageView = new PageView(this);
