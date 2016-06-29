@@ -33,6 +33,7 @@ class PropertyBox;
 class ScenesScreen;
 class CanvasManager;
 class PageView;
+class CompoentControls;
 
 
 
@@ -72,6 +73,7 @@ public:
     CanvasManager *cManager;
     QDockWidget* lDock;
     PageView *pageView;
+    CompoentControls *ComCtrl;
 
 
 

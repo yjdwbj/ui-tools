@@ -10,8 +10,7 @@
 
 static int Width  = 480;
 static int Height  = 320;
-const char DKEY_SHOT[] = "screenshot";
-const char DKEY_TXT[] = "ViewName";
+
 
 CanvasManager::CanvasManager(MainWindow *w):
     mWindow(w),stack(new QStackedLayout),
@@ -33,6 +32,7 @@ CanvasManager::CanvasManager(MainWindow *w):
     mWindow->centralWidget()->setLayout(stack);
     // 按屏幕的大小比例调整.
     stackRect = QRect( QPoint(mWindow->width() * 0.12,mWindow->height()* 0.3),mPageSize);
+    mWindow->centralWidget()->setGeometry(stackRect);
     connect(newPrj,SIGNAL(clicked(bool)),SLOT(onCreateNewProject()));
     connect(newPage,SIGNAL(clicked(bool)),SLOT(onCreateNewScenesScreen()));
     connect(delPage,SIGNAL(clicked(bool)),SLOT(onDelCurrentScenesScreen()));
@@ -80,7 +80,7 @@ void CanvasManager::createNewCanvas()
     Scenes->setProperty(DKEY_SHOT,false);  // 检查该页面是否创建过截图.
     mCanvasList.append(Scenes);
     // 这里不能改变它的对像名,用一个动态属
-    // Scenes->setObjectName(QString("Page_%1").arg(QString::number(ssList.size()-1)));
+//    // Scenes->setObjectName(QString("Page_%1").arg(QString::number(ssList.size()-1)));
     Scenes->setProperty(DKEY_TXT,QString("页面_%1").arg(QString::number(mCanvasList.size()-1)));
     currentSS = Scenes;
     mWindow->lDock->setEnabled(true);
@@ -185,14 +185,16 @@ void CanvasManager::onSaveProject()
     }
 
     QJsonArray CanvasArray;
-    QJsonDocument jsonDoc(CanvasArray);
-
+   // QJsonObject root;
     foreach (QWidget *w, mCanvasList) {
         QJsonObject CanvasObj;
-       // QJsonValue CanvasVal;
        CanvasObj[NAME] = w->objectName();
+       ((ScenesScreen*)w)->writeToJson(CanvasObj);
        CanvasArray.append(CanvasObj);
+      // qDebug() << "CanvasObj json  " << CanvasObj;
+
     }
+    QJsonDocument jsonDoc(CanvasArray);
     saveFile.write(jsonDoc.toJson());
 
 

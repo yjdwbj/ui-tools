@@ -6,9 +6,9 @@
 
 static QString HeadCol = "结点,属性";
 
-TreeDock::TreeDock(MainWindow *mw, QWidget *parent)
+TreeDock::TreeDock(QWidget *parent)
     :QDockWidget(parent),
-      mWindow(mw), treeWidget(new QTreeWidget())
+      mWindow((MainWindow*)parent), treeWidget(new QTreeWidget())
 {
 
     /*
@@ -106,15 +106,15 @@ treeWidget->setFixedHeight(mWindow->size().height()-80);
 
 }
 
-void TreeDock::addCompoentControls(CompoentControls *cc)
-{
-    comC = cc;
-}
+//void TreeDock::addCompoentControls(CompoentControls *cc)
+//{
+//    comC = cc;
+//}
 
-void TreeDock::addPropBox(PropertyBox *p)
-{
-    pb = p;
-}
+//void TreeDock::addPropBox(PropertyBox *p)
+//{
+//    pb = p;
+//}
 
 void TreeDock::setSelectTreeItem(QWidget *obj)
 {
@@ -137,7 +137,7 @@ void TreeDock::onItemPressed(QTreeWidgetItem *item,int col)
     //    return;
 
     qDebug() << " clicked tree : " << item->text(0);
-    foreach (QWidget *w, comC->comList) {
+    foreach (QWidget *w, mWindow->ComCtrl->comList) {
         if(!w->objectName().compare(item->text(0)))
         {
               ((FormResizer*)w)->onSelectMe();

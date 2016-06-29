@@ -222,12 +222,21 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                     //创建父控件
                     NewFrame  *n = new NewFrame((QWidget*)pobj);
                   //  n->addMainWindow(pobj->parent());
+                    if(qvm.contains(PROPERTY))
+                    {
+                        n->copyProperty(qvm[PROPERTY].toMap());
+                    }
                     nobj =qobject_cast<QObject*>(n);
                     nobj->setProperty(DKEY_CLSNAME,cval);
                 }
                 else if(!cval.compare(QLABEL))
                 {
                     NewFrame *np = (NewFrame*)pobj;
+                    if(qvm.contains(PROPERTY))
+                    {
+                        np->copyProperty(qvm[PROPERTY].toMap());
+                    }
+                   // qDebug() << " NewLabel Property " << it.value().toMap();
                     nobj =qobject_cast<QObject*>(new NewLabel(np->m_frame));
                     nobj->setProperty(DKEY_CLSNAME,cval);
 
@@ -311,16 +320,13 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                            ((NewFrame*)nobj)->m_frame->setGeometry(r);
                            ((NewFrame*)nobj)->updateGeometry();
                             ((NewFrame*)nobj)->setFixedSize(r.size()+QSize(20,20));
-                          // qobject_cast<NewFrame *>(nobj)->move(QPoint(501,501));
-                         // qDebug() << "create Frame geometry " << r << qobject_cast<NewFrame *>(nobj)->geometry();
-
 
                         }else{
                             qobject_cast<NewLabel *>(nobj)->setGeometry(r);
                           //  qDebug() << " label geometry " << qobject_cast<NewLabel *>(nobj)->geometry();
                         }
                     }
-                    else if(!key.compare(IMAGE))
+                    else if(!key.compare(IMAGE)) // 这里中处理了这一个图片属性.
                     {
                         QPixmap p;
                         QString path = it.value().toString();

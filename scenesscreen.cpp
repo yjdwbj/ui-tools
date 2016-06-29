@@ -137,10 +137,23 @@ void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
 void ScenesScreen::writeToJson(QJsonObject &json)
 {
     QJsonArray layoutarr;
-    json[objectName()] = layoutarr;
+    //qDebug() << "ScenesScreen parent obj " << &json ;
+
     foreach (QWidget *w, LayoutList) {
         QJsonObject layoutObj;
+       // qDebug() << "ScenesScreen  sub object " << &layoutObj;
+        layoutObj[NAME] = w->objectName();
         ((NewLayout*)w)->writeToJson(layoutObj);
+       // qDebug() << " LayoutObj " << layoutObj;
+        layoutarr.append(layoutObj);
     }
+
+    QVariantMap s ;
+    s[WIDTH] = QString::number(this->width());
+    s[HEIGHT] = QString::number(this->height());
+    json[SIZE] = QJsonObject::fromVariantMap(s);
+    json[CAPTION] = this->property(DKEY_TXT).toString();
+    json[objectName()] = layoutarr;
+    //qDebug() << "ScenesScreen array " << layoutarr;
 }
 

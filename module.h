@@ -25,7 +25,9 @@ class Compoent
 
 public:
     virtual void onBindValue(QWidget *w,const QVariant &val);
-    QMap<QString,QVariant> dynValues;
+    virtual QJsonObject getRectJson(QWidget* w);
+    virtual void copyProperty(QVariantMap map);
+    QVariantMap dynValues;
 
 };
 

@@ -132,13 +132,14 @@ void PropertyBox::createPropertyBox(QWidget *p)
         if(qv.type() == QVariant::Map)
         {
             QVariantMap qvm = qv.toMap();
-            QString uname =  qvm[CAPTION].toString();
+            QString uname =  qvm[NAME].toString();
+            QString caption =  qvm[CAPTION].toString();
             if(qvm.contains(ENUM))
             {
                 QComboBox *cb = new QComboBox();
                 cb->setObjectName(uname);
+                cb->setProperty(DKEY_CAPTION,caption);
                 cb->setProperty(DKEY_VALTYPE,ENUM);
-
 
                 QVariantList qvlist = qvm[ENUM].toList();
 

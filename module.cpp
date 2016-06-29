@@ -61,6 +61,24 @@
 }
 
 
+QJsonObject Compoent::getRectJson(QWidget *w)
+{
+    QJsonObject rect;
+    QVariantMap vmap;
+    vmap["x"] = QString::number(w->x());
+    vmap["y"] = QString::number(w->y());
+    vmap[WIDTH] = QString::number(w->width());
+    vmap[HEIGHT] = QString::number(w->height());
+    rect[KEY_RECT] = QJsonObject::fromVariantMap(vmap);
+    return rect;
+}
+
+void Compoent::copyProperty(QVariantMap map)
+{
+    QJsonObject ob = QJsonObject::fromVariantMap(map);
+    dynValues = ob.toVariantMap();
+}
+
 
 void NewLabel::onEnumItemChanged(QString txt)
 {
@@ -110,17 +128,6 @@ void NewFrame::onTextChanged()
 }
 
 
-
-//void NewLabel::onBindValue(QWidget *w, const QVariant &val)
-//{
-//    Compoent::onBindValue(w,val);
-//}
-
-//void NewFrame::onBindValue(QWidget *w, const QVariant &val)
-//{
-//    Compoent::onBindValue(w,val);
-//}
-
 NewLabel::NewLabel(QWidget *parent)
     :QLabel(parent),
      selIndex(0),disDefaultList(false)
@@ -138,47 +145,7 @@ NewLabel::NewLabel(QWidget *parent)
     }
     this->setLineWidth(0);
     setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
-
-    // connect(this,SIGNAL(Clicked()),SLOT(onClieck()));
 }
-
-//QGroupBox* NewLabel::CreateXYWHGBox(QWidget *p)
-//{
-//    QGridLayout *xywh = new QGridLayout();
-//    xywh->setObjectName("xywhGrid");
-
-//    QMap<QString,int> xymap;
-//    xymap[X] = p->geometry().x();
-//    xymap[Y] = p->geometry().y();
-//    xymap[W] = p->geometry().width();
-//    xymap[H] = p->geometry().height();
-
-//    int index = 0;
-
-
-//    for(QMap<QString,int>::iterator it = xymap.begin();it != xymap.end();++it)
-//    {
-//        QLabel *s = new QLabel(it.key());
-//        s->setFixedWidth(35);
-//        xywh->addWidget(s,index,0);
-//        QSpinBox *xedit = new QSpinBox();
-//        xedit->setFixedWidth(40);
-
-//        xedit->setObjectName(it.key());
-//        xedit->setMaximum(1000);
-//        xedit->setValue(it.value());
-//        xywh->addWidget(xedit,index,1);
-//        connect(xedit,SIGNAL(valueChanged(int)),p,SLOT(onXYWHChangedValue(int)));
-//        index++;
-//    }
-
-//    QGroupBox *xygb = new QGroupBox(tr("坐标位置"));
-//    //xywh->setSizeConstraint(QLayout::SetFixedSize);
-//    xywh->setContentsMargins(2,10,2,20);
-//    xygb->setObjectName("xygb");
-//    xygb->setLayout(xywh);
-//    return xygb;
-//}
 
 
 void NewLabel::addPropertyBoxSignal(QSpinBox *b)
@@ -437,6 +404,7 @@ void NewLabel::onPictureDialog(bool )
     ImageFileDialog *ifd = new ImageFileDialog(myImageList,this);
 
     ifd->exec();
+    qDebug() << " ImageFileDialog ";
     //selectedMap sMap  = ifd->getSelectedMap();
     myImageList = ifd->getSelectedList();
 
@@ -454,6 +422,7 @@ void NewLabel::onPictureDialog(bool )
         }
     }
     updateComboItems(cb);
+    this->blockSignals(true);
 
 }
 
@@ -463,6 +432,20 @@ void NewLabel::updateComboItems(QComboBox *cb)
        cb->addItem(s.section(":",0,0));
     }
     cb->setCurrentIndex(this->property(DKEY_IMGIDX).toInt());
+}
+
+void NewLabel::writeToJson(QJsonObject &json)
+{
+
+
+    QJsonArray projson;
+
+
+    projson.append(getRectJson(this));
+
+    json[NAME] = objectName();
+    json[CLASS] = this->metaObject()->className();
+    json[PROPERTY] = projson;
 }
 
 
@@ -554,12 +537,26 @@ void NewFrame::onXYWHChangedValue(int v)
 void NewFrame::writeToJson(QJsonObject &json)
 {
 
-//    QJsonArray layoutarr;
-//    json[objectName()] = layoutarr;
-//    foreach (QWidget *w, LayoutList) {
-//        QJsonObject layoutObj;
-//        ((NewFrame*)w)->writeToJson(layoutObj);
-//    }
+    QJsonArray layoutarr;
+    json[WIDGET] = layoutarr;
+    foreach (NewLabel *w, m_frame->findChildren<NewLabel*>()) {
+        QJsonObject nlobj;
+        w->writeToJson(nlobj);
+        layoutarr.append(nlobj);
+
+    }
+    json[objectName()] = layoutarr;
+    QJsonArray projson;// 属性
+    projson.append(getRectJson(this));
+    projson.append(QJsonObject::fromVariantMap(dynValues));
+    QVariantMap uid;
+    uid["id"] = this->property(DKEY_UID).toString();
+    projson.append(QJsonObject::fromVariantMap(uid));
+
+    json[PROPERTY] = projson;
+    json[NAME] = objectName();
+    json[CLASS] = this->metaObject()->className();
+    json[CAPTION] = this->property(DKEY_CAPTION).toString();
 
 }
 
@@ -795,10 +792,31 @@ void NewLayout::writeToJson(QJsonObject &json)
 {
 
         QJsonArray layoutarr;
-        json[objectName()] = layoutarr;
+      //  qDebug() << "NewLayout  parent object " << &json;
+
         foreach (QWidget *w, mChList) {
-            QJsonObject layoutObj;
-            ((NewFrame*)w)->writeToJson(layoutObj);
+            QJsonObject frameObj;
+            frameObj[NAME] = w->objectName();
+            ((NewFrame*)w)->writeToJson(frameObj);
+           // qDebug() << " NewLayout sub obj " << &frameObj << frameObj;
+            layoutarr.append(frameObj);
+
         }
+        // 这一句必需要在这个偱环后面.
+        json[objectName()] = layoutarr;
+        QJsonArray projson;
+
+        QVariantMap vmap ;
+        vmap["x"] = QString::number(this->x());
+        vmap["y"] = QString::number(this->y());
+        vmap[WIDTH] =QString::number(this->width());
+        vmap[HEIGHT] = QString::number(this->height());
+
+        QJsonObject rect;
+
+        rect[KEY_RECT] = QJsonObject::fromVariantMap(vmap);
+        projson.append(rect);
+        json[PROPERTY] = projson;
+      //  qDebug() << " NewLayout array " << layoutarr;
 
 }

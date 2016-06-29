@@ -18,10 +18,10 @@ class TreeDock : public QDockWidget
 {
     Q_OBJECT
 public:
-    explicit TreeDock(MainWindow *mw, QWidget *parent=Q_NULLPTR);
+    explicit TreeDock(QWidget *parent=Q_NULLPTR);
     void addItemToRoot(QString node,QString property);
-    void addCompoentControls(CompoentControls *cc);
-    void addPropBox(PropertyBox *p);
+//    void addCompoentControls(CompoentControls *cc);
+//    void addPropBox(PropertyBox *p);
 
     void addObjectToLayout(QWidget *ww);
 
@@ -44,8 +44,8 @@ public slots:
 private:
     MainWindow *mWindow;
 
-    CompoentControls *comC;
-    PropertyBox *pb;
+  //  CompoentControls *comC;
+   // PropertyBox *pb;
     QTreeWidgetItem *root;
 };
 

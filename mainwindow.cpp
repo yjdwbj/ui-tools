@@ -78,9 +78,9 @@ MainWindow::MainWindow(QWidget *parent) :
     lDockWidget->setStyleSheet("QGroupBox{border: 1px solid gray;top: 18px; padding: 6px}");
 
     // leftLayout->addWidget(lList);
-    CompoentControls *cc = new  CompoentControls(lDockWidget);
- //   cc->setEnabled(false);
-    leftLayout->addWidget(cc);
+    ComCtrl = new  CompoentControls(lDockWidget);
+
+    leftLayout->addWidget(ComCtrl);
 
 
     lList->setFixedHeight((lDock->size().height() -50) / 2);
@@ -100,9 +100,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     addDockWidget(Qt::LeftDockWidgetArea, lDock);
-    tree = new TreeDock(this,this);
-    tree->addCompoentControls(cc);
-    tree->addPropBox(propertyWidget);
+    tree = new TreeDock(this);
+//    tree->addCompoentControls(cc);
+//    tree->addPropBox(propertyWidget);
 
     // addDockWidget(Qt::LeftDockWidgetArea,new TreeDock(this));
     splitDockWidget(lDock,tree,Qt::Horizontal);
