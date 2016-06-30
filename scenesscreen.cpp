@@ -3,7 +3,10 @@
 
 
 
-ScenesScreen::ScenesScreen(QSize size, QWidget *parent) : QFrame(parent),mWindow((MainWindow*)parent),mActiveIdx(-1),activeObj(0)
+ScenesScreen::ScenesScreen(QSize size, QWidget *parent)
+    : QFrame(parent),
+      mWindow((MainWindow*)parent),
+      mActiveIdx(-1),activeObj(0)
 {
     setObjectName("ActiveScreen");
     setStyleSheet("QFrame#ActiveScreen{border: 1.5px solid gray;"\
@@ -39,10 +42,19 @@ void ScenesScreen::setSelectObject(FormResizer *obj)
     }
     obj->setState(SelectionHandleActive);
     obj->setFocus();
-    activeObj = obj;
+
+
     //qDebug() << " active object is " << obj->objectName();
     if(!CN_NEWLAYOUT.compare(obj->metaObject()->className()))
+    {
+        activeObj = (NewLayout*)obj;
         mActiveIdx = LayoutList.indexOf(obj);  // 这里只是布局控件才更改它的数值
+    }else
+    {
+         // 如果当前　是一个NewFrame 就设置它的布局为激活布局.
+         activeObj =  ((NewLayout *)obj->parentWidget()->parentWidget());
+    }
+
     mWindow->tree->setSelectTreeItem(obj);
 }
 
@@ -69,8 +81,6 @@ void ScenesScreen::delSelectedLayout()
            int index = LayoutList.indexOf(activeObj);
 
            //QWidget *p = LayoutList.takeAt(index);
-
-
 
            ((NewLayout*)activeObj)->delMySelf();
 

@@ -2,7 +2,7 @@
 #include "ui_mainwindow.h"
 #include "handlejson.h"
 #include "compoentcontrols.h"
-#include "propertybox.h"
+//#include "propertybox.h"
 #include "scenesscreen.h"
 #include "canvasmanager.h"
 #include "pageview.h"
@@ -22,90 +22,62 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 
     ui->setupUi(this);
+    lDock = ui->dockWidget;
     cManager = new CanvasManager(this);
-    propertyWidget = new ComProperty(this) ;
-    imgPropertyWidget = new ImgProperty(this);
+     posWidget = new Position(this);
+    propertyWidget = new ComProperty("控件属性",this) ;
+    imgPropertyWidget = new ComProperty("图片属性",this);
   //  QStringList sflist = QStyleFactory::keys();
     setWindowTitle(tr("图片编辑工具"));
     //qDebug() << " list " << sflist;
     // 　  this->setStyle(QStyleFactory::create("GTK+"));
 
-    QApplication::setStyle(QStyleFactory::create("Fusion"));
-
-    //    Scenes = new ScenesScreen(QSize(Width,Height),ui->centralWidget);
-    //    Scenes->addMainWindow(this);
-    //    Scenes->move(this->width() * 0.12,this->height()* 0.3);  // 按屏幕比例调整
-
-    //    ssList->append(Scenes);
-
-//    QPushButton *newPrj = new QPushButton(tr("新建工程"));
-//    ui->mainToolBar->addWidget(newPrj);
-
-//    connect(newPrj,SIGNAL(clicked(bool)),SLOT(onCreateNewProject()));
-
-//    QPushButton *newPage = new QPushButton(tr("新建页面"));
-//    connect(newPage,SIGNAL(clicked(bool)),SLOT(onCreateNewScenesScreen()));
-//    ui->mainToolBar->addWidget(newPage);
-
-//    QPushButton *delPage = new QPushButton(tr("删除当前页"));
-//    connect(delPage,SIGNAL(clicked(bool)),SLOT(onDelCurrentScenesScreen()));
-//    ui->mainToolBar->addWidget(delPage);
+  //  QApplication::setStyle(QStyleFactory::create("Fusion"));
 
     // 左边属性框
-    lDock = new QDockWidget();
-    lDock->setEnabled(false);
-    lDock->setAllowedAreas( Qt::LeftDockWidgetArea);
-    lDock->setFeatures(QDockWidget::NoDockWidgetFeatures);
-   // lDock->setFixedWidth(this->size().width() * 0.15);
-    lDock->setObjectName("LeftDock");
-   // lList = new QListWidget();
-    // lDock->setWidget(lList);
+//    lDock = new QDockWidget();
+//    lDock->setStyleSheet("QWidget{border: 0.5px solid red;}");
+//    lDock->setEnabled(false);
+//    lDock->setAllowedAreas( Qt::LeftDockWidgetArea);
+//    lDock->setFeatures(QDockWidget::NoDockWidgetFeatures);
+//    lDock->setFixedWidth(this->size().width() * 0.20);
+//    lDock->setObjectName("LeftDock");
 
-    QWidget *lDockWidget = new QWidget(lDock);
+
+
+   // QWidget *lDockWidget = new QWidget(lDock);
+    ui->dockWidget->setFixedWidth(this->width()*0.12);
+    ui->dockWidget->setEnabled(false);
+
+    //　qDockWidget 下面必需要发放一个QWidget ,　才能显示控件.
+    QWidget *lDockWidget = new QWidget(ui->dockWidget);
+
+    ui->dockWidget->setWidget(lDockWidget);
     lDockWidget->setObjectName("lDockWidget");
-    lDockWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
-    lDockWidget->setFixedWidth(this->width() * 0.15);
+    lDockWidget->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
+    QVBoxLayout *leftLayout = new QVBoxLayout(lDockWidget);
 
-    lDock->setWidget(lDockWidget);
-
-
-
-    QVBoxLayout *leftLayout = new QVBoxLayout();
-
-    // lDock->setLayout(leftLayout);
     leftLayout->setObjectName("leftLayout");
+   // leftLayout->setSizeConstraint(QLayout::SetFixedSize);
     lDockWidget->setLayout(leftLayout);
-   // lDockWidget->setStyleSheet("QGroupBox{border: 1px solid gray;top: 18px; padding: 6px}");
 
-    // leftLayout->addWidget(lList);
-    ComCtrl = new  CompoentControls(this,lDockWidget);
-
+    ComCtrl = new  CompoentControls(this,ui->dockWidget);
     leftLayout->addWidget(ComCtrl);
+    leftLayout->addWidget(posWidget);
 
 
+//    leftLayout->addWidget(ComCtrl);
 
+//    // 控件属性框
 
-    QFrame *qcl = new QFrame();
-
-    QVBoxLayout *propertyLayout = new QVBoxLayout(qcl);
-    // 控件属性框
-    //*pb = new PropertyBox();
-    //propertyLayout->addWidget(pb);
     leftLayout->addWidget(propertyWidget);
     leftLayout->addWidget(imgPropertyWidget);
 
 
-
-   // leftLayout->addWidget(qcl);
-
-
-    addDockWidget(Qt::LeftDockWidgetArea, lDock);
+   // addDockWidget(Qt::LeftDockWidgetArea, lDock);
     tree = new TreeDock(this);
-//    tree->addCompoentControls(cc);
-//    tree->addPropBox(propertyWidget);
-
-
-    splitDockWidget(lDock,tree,Qt::Horizontal);
+    // 左边两个并排的QDockWidget
+    splitDockWidget(ui->dockWidget,tree,Qt::Horizontal);
 
 
     //　右边的截图页面.
@@ -125,41 +97,7 @@ void MainWindow::addWidgetToToolBar(QWidget *w)
     ui->mainToolBar->addWidget(w);
 }
 
-//void MainWindow::onCreateNewScenesScreen()
-//{
-//    cManager->createNewCanvas();
-//}
 
-
-//void MainWindow::onDelCurrentScenesScreen()
-//{
-
-//    //if(QMessageBox::warning(this,"删除提示","你真的要删除当前页面吗?删除之后不可以撤消,请选择<确认>删除.") )
-//        QMessageBox msgBox;
-//        msgBox.setWindowTitle("删除提示");
-//        msgBox.setText("你真的要删除当前页面吗?删除之后不可以撤消,请选择<删除>删除.");
-//       // msgBox.setInformativeText("Do you want to save your changes?");
-//        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-//        msgBox.setButtonText(0x4000,"删除");
-//        msgBox.setButtonText(0x400000,"取消");
-//        msgBox.setDefaultButton(QMessageBox::Cancel);
-//        int ret = msgBox.exec();
-//        qDebug() << " QMessageBox result " << ret;
-//        if(ret == QMessageBox::Yes)
-//        {
-//            cManager->deleteCurrentPage();
-//        }
-
-//}
-
-//void MainWindow::onCreateNewProject()
-//{
-//    ProjectDialog *pd = new ProjectDialog(this);
-//    pd->exec();
-//    pd->deleteLater();
-//   // this->cManager->setDefaultPageSize(pd->getDefaultSize());
-//   // qDebug() << " default page size " << pd->getDefaultSize();
-//}
 
 bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 {

@@ -21,7 +21,6 @@ SOURCES += main.cpp\
     handlejson.cpp \
     compoentcontrols.cpp \
     treedock.cpp \
-    propertybox.cpp \
     scenesscreen.cpp \
     sizehandlerect.cpp \
     formresizer.cpp \
@@ -34,7 +33,6 @@ HEADERS  += mainwindow.h \
     handlejson.h \
     compoentcontrols.h \
     treedock.h \
-    propertybox.h \
     config.h \
     scenesscreen.h \
     sizehandlerect.h \

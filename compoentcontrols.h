@@ -6,9 +6,11 @@
 #include <QtCore/QJsonObject>
 #include <QtCore/QJsonArray>
 #include <QDateTime>
+#include <QSpinBox>
+#include <QLineEdit>
 #include <QSignalMapper>
 #include "mainwindow.h"
-#include "propertybox.h"
+//#include "propertybox.h"
 #include "treedock.h"
 
 
@@ -19,32 +21,36 @@ class ScenesScreen;
 
 void removeWidFromLayout(QLayout *layout);
 
+class Position: public QGroupBox
+{
+    Q_OBJECT
+public:
+    explicit Position(QWidget *parent=0);
+    ~Position();
+    //QGroupBox *CreateXYWHGBox(QWidget *p);
 
+    void setConnectNewQWidget(QWidget *com);
+    void updatePosition(QPoint pos);
+    void updateSize(QSize size);
+private:
+    QSpinBox *Xpos,*Ypos,*Wpos,*Hpos;
+    QWidget *old;
+    QList<QMetaObject::Connection> connections;
+};
 
 class ComProperty: public QGroupBox
 {
     Q_OBJECT
 public:
-    explicit ComProperty(QWidget *parent=0);
+    explicit ComProperty(QString title, QWidget *parent=0);
     ~ComProperty(){}
-  //  QGroupBox *CreateXYWHGBox(QWidget *p);
+
     void createPropertyBox(QWidget *p);
 private:
-     QGroupBox *CreateXYWHGBox(QWidget *p);
+    // QGroupBox *CreateXYWHGBox(QWidget *p);
      QVBoxLayout* mainLayout;
+     QWidget *mainWidget;
 
-};
-
-class ImgProperty: public QGroupBox
-{
-    Q_OBJECT
-public:
-    explicit ImgProperty(QWidget *parent=0);
-    ~ImgProperty(){}
-    void createPropertyBox(QWidget *p);
-
-private:
-    QVBoxLayout* mainLayout;
 };
 
 

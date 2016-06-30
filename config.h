@@ -60,6 +60,7 @@ const int labHeight = 25;
 enum { SELECTION_HANDLE_SIZE = 6, SELECTION_MARGIN = 10 };
 enum SelectionHandleState { SelectionHandleOff, SelectionHandleInactive, SelectionHandleActive };
 
+static QSize MARGIN_SIZE = QSize(SELECTION_MARGIN * 2, SELECTION_MARGIN *2);
 
 
 

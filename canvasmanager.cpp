@@ -4,6 +4,7 @@
 #include "scenesscreen.h"
 #include "pageview.h"
 #include "mydialog.h"
+#include "module.h"
 #include <QStackedLayout>
 #include <QString>
 
@@ -73,8 +74,7 @@ void CanvasManager::createNewCanvas()
 {
     screenshot();
     ScenesScreen *Scenes = new ScenesScreen(mPageSize);
-    // ScenesScreen *Scenes = new ScenesScreen(QSize(Width,Height));
-    //mWindow->centralWidget());
+
     Scenes->addMainWindow(mWindow);
     Scenes->move(mWindow->width() * 0.12,mWindow->height()* 0.3);  // 按屏幕比例调整
     Scenes->setProperty(DKEY_SHOT,false);  // 检查该页面是否创建过截图.

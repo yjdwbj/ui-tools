@@ -30,6 +30,7 @@ public:
     QSize getDefaultPageSize() { return mPageSize;}
 
     QStackedLayout *stack;
+    MainWindow *mWindow;
 
 private slots:
     void onCreateNewProject();
@@ -43,7 +44,7 @@ private:
     void screenshot();
     ScenesScreen *currentSS;
     QWidgetList mCanvasList; // 画布列表
-    MainWindow *mWindow;
+
     QRect stackRect;
     QSize mPageSize;
 

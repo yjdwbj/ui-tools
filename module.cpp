@@ -12,6 +12,7 @@
 #include <QFileSystemModel>
 #include <QTreeView>
 #include <QSignalMapper>
+#include <QLineEdit>
 
 #include "config.h"
 #include "scenesscreen.h"
@@ -62,63 +63,26 @@ QVariant Compoent::getJsonValue(QString key) const
 }
 
 
- void Compoent::onBindValue(QWidget *w, const QVariant &val)
+ void Compoent::onBindValue(QWidget *w)
 {
  //   qDebug() << " dyn size " << dynValues.size();
-    QString n = w->metaObject()->className();
-    QString uname = w->objectName();
-//    qDebug() << " QJsonObject subclass name " << uname;
-//    int asize = parr.size();
-//    for(int i = 0;i < asize;i++)
-//    {
-//        QJsonObject obj = parr[i].toObject();
-        if(!n.compare("QLineEdit"))
-        {
-//            if(obj.contains(uname))
-//            {
-                QLineEdit *txt = (QLineEdit *)w;
-                //txt->setText(obj[uname].toString());
-                txt->setText(getJsonValue(uname).toString());
+     QString n = w->metaObject()->className();
+     QString uname = w->objectName();
 
-//            }else
-//            {
-//               // obj[uname] = QJsonValue::fromVariant(val);
-//                changeJsonValue(uname,val);
+     if(!n.compare("QLineEdit"))
+     {
+         QLineEdit *txt = (QLineEdit *)w;
+         txt->setText(getJsonValue(uname).toString());
+     }else if(!n.compare("QComboBox"))
+     {
+         QComboBox *cb = (QComboBox *)w;
+         cb->setCurrentText(getJsonValue(uname).toString());
 
-//            }
-        }else if(!n.compare("QComboBox"))
-        {
-            // qDebug() << " dynValues addr " << dynValues << &dynValues;
-//            if(obj.contains(uname))
-//            {
-                QComboBox *cb = (QComboBox *)w;
-                //cb->setCurrentText(obj[uname].toString());
-                cb->setCurrentText(getJsonValue(uname).toString());
-               // break;
-//            }else
-//            {
-//                changeJsonValue(uname,val);
-//               // obj[uname] = QJsonValue::fromVariant(val);
-//              //  break;
-//            }
-
-        }else if(!n.compare("QSpinBox"))
-        {
-
-//            if(obj.contains(uname))
-//            {
-                QSpinBox *sp = (QSpinBox *)w;
-             //   sp->setValue(obj[uname].toDouble());
-                sp->setValue(getJsonValue(uname).toDouble());
-                //break;
-//            }else
-//            {
-//                changeJsonValue(uname,val);
-//               // obj[uname] = QJsonValue::fromVariant(val);
-//                //break;
-//            }
-        }
-    //}
+     }else if(!n.compare("QSpinBox"))
+     {
+         QSpinBox *sp = (QSpinBox *)w;
+         sp->setValue(getJsonValue(uname).toDouble());
+     }
  }
 
 
@@ -200,17 +164,7 @@ NewLabel::NewLabel(QWidget *parent)
     :QLabel(parent),
      selIndex(0),disDefaultList(false)
 {
-
-    // MainWindow *m ;
-    QWidgetList tlist = qApp->topLevelWidgets();
-    for(QWidgetList::iterator wit = tlist.begin();wit != tlist.end();++wit)
-    {
-        if((*wit)->objectName() == "MainWindow")
-        {
-            mWindow = (MainWindow*)(*wit);
-            break;
-        }
-    }
+    mWindow = ((NewFrame*)(parent->parentWidget()))->mWindow;
     this->setLineWidth(0);
     setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
 }
@@ -247,15 +201,6 @@ void NewLabel::onXYWHChangedValue(int v)
         p->move(pos );
 
     }
-//    else if(!sender->objectName().compare(W))
-//    {
-
-//    }else if(!sender->objectName().compare(H))
-//    {
-
-//    }
-
-
 }
 
 
@@ -333,16 +278,17 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
   //  p->setStyleSheet("NewFrame{border: 0.5px solid red;}");
 
     clearOtherObjectStyleSheet();
+    mWindow->posWidget->setConnectNewQWidget(p);
     mWindow->propertyWidget->createPropertyBox(p);
 
 
-     QLineEdit *et = (QLineEdit *)(getQWidgetByName("debugEdit"));
-     if(et != 0 )
-     {
-         et->setText(QString("mouse x:%1 , y:%2 ")
-                     .arg(QString::number(ev->pos().rx()))
-                     .arg(QString::number(ev->pos().ry())));
-     }
+//     QLineEdit *et = (QLineEdit *)(getQWidgetByName("debugEdit"));
+//     if(et != 0 )
+//     {
+//         et->setText(QString("mouse x:%1 , y:%2 ")
+//                     .arg(QString::number(ev->pos().rx()))
+//                     .arg(QString::number(ev->pos().ry())));
+//     }
   //  ev->accept();
     mOffset = ev->pos();
     setCursor(Qt::ClosedHandCursor);
@@ -390,6 +336,7 @@ void NewLabel::mouseMoveEvent(QMouseEvent *event)
 
     if (event->buttons() & Qt::LeftButton)
     {
+        qDebug() << " NewFrame move" << event->pos();
         NewFrame *p =(NewFrame*) (this->parentWidget()->parentWidget());
 
         p->move( p->pos() + (event->pos() - mOffset));
@@ -397,22 +344,24 @@ void NewLabel::mouseMoveEvent(QMouseEvent *event)
 
         /* 把新的位置更新到右边属性框 */
 
-        QPoint nr = p->pos();
-        foreach (QWidget *w, mWindow->propertyWidget->findChildren<QWidget*>()) {
-           if(!w->objectName().compare(X))
-           {
-               QSpinBox *s = (QSpinBox*)w;
+    //    QPoint nr = p->pos();
+        mWindow->posWidget->updatePosition(p->pos());
+        p->blockSignals(true);
+//        foreach (QWidget *w, mWindow->propertyWidget->findChildren<QWidget*>()) {
+//           if(!w->objectName().compare(X))
+//           {
+//               QSpinBox *s = (QSpinBox*)w;
 
-               s->setValue(nr.x());
-           }
-           else if(!w->objectName().compare(Y))
-           {
-               QSpinBox *s = (QSpinBox*)w;
+//               s->setValue(nr.x());
+//           }
+//           else if(!w->objectName().compare(Y))
+//           {
+//               QSpinBox *s = (QSpinBox*)w;
 
-               s->setValue(nr.y());
-           }
+//               s->setValue(nr.y());
+//           }
 
-       }
+//       }
 
 
     }
@@ -518,8 +467,10 @@ void NewLabel::writeToJson(QJsonObject &json)
 
 NewFrame::NewFrame(QWidget *parent)
     :FormResizer(parent)
-{
 
+{
+    NewLayout * pwid = ((NewLayout*)parent->parentWidget());
+    mWindow = ((NewLayout*)parent->parentWidget())->mWindow;
     setObjectName(CN_NEWFRAME);
     setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
     setFocusPolicy(Qt::ClickFocus);
@@ -549,6 +500,7 @@ void NewFrame::onSelectMe()
     mWindow->cManager->activeSS()->setSelectObject(this);
    // ((NewLayout*)this->parentWidget())->clearOtherSelectHandler();
     this->setState(SelectionHandleActive);
+    mWindow->posWidget->setConnectNewQWidget(this);
     mWindow->propertyWidget->createPropertyBox(this);
     this->blockSignals(true);
 }
@@ -625,7 +577,9 @@ void NewFrame::writeToJson(QJsonObject &json)
         if(ov.contains(KEY_RECT))
         {
 
-            projson[i] = getRectJson(this);
+            //ov = getRectJson(this);
+            ov[KEY_RECT] = getRectJson(this)[KEY_RECT];
+            projson[i] = ov;
 
         }else if(ov.contains("id"))
         {
@@ -661,6 +615,7 @@ void NewLayout::onSelectMe()
    // setStyleSheet("NewFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
     clearOtherObjectStyleSheet();
     mWindow->cManager->activeSS()->setSelectObject(this);
+    mWindow->posWidget->setConnectNewQWidget(this);
     mWindow->propertyWidget->createPropertyBox(this);
     this->blockSignals(true);
 
@@ -712,6 +667,7 @@ void NewLayout::onXYWHChangedValue(int v)
         n.setHeight(v);
         this->resize(n);
     }
+    this->blockSignals(true);
 }
 
 
@@ -731,25 +687,29 @@ void NewLayout::mouseMoveEvent(QMouseEvent *event)
     {
         move(this->pos() + (event->pos() - mOffset));
 
+
         /* 把新的位置更新到右边属性框 */
 
-        QPoint nr = this->pos();
 
-      //  QSize ns = this->size();
-        foreach (QWidget *w, mWindow->propertyWidget->findChildren<QWidget*>()) {
-           if(!w->objectName().compare(X))
-           {
-               QSpinBox *s = (QSpinBox*)w;
 
-               s->setValue(nr.x());
-           }
-           else if(!w->objectName().compare(Y))
-           {
-               QSpinBox *s = (QSpinBox*)w;
+        mWindow->posWidget->updatePosition(this->pos());
+        this->blockSignals(true);
+        //  QSize ns = this->size();
+//        QPoint nr = this->pos();
+//        foreach (QWidget *w, mWindow->propertyWidget->findChildren<QWidget*>()) {
+//           if(!w->objectName().compare(X))
+//           {
+//               QSpinBox *s = (QSpinBox*)w;
 
-               s->setValue(nr.y());
-           }
-       }
+//               s->setValue(nr.x());
+//           }
+//           else if(!w->objectName().compare(Y))
+//           {
+//               QSpinBox *s = (QSpinBox*)w;
+
+//               s->setValue(nr.y());
+//           }
+//       }
 
     }
 
@@ -788,21 +748,22 @@ void NewLayout::mouseReleaseEvent(QMouseEvent *event)
     }
 
     // 这里只能在释放鼠标时改变左边的控件值
-    foreach (QWidget *wid, mWindow->propertyWidget->findChildren<QWidget*>()) {
-       if(!wid->objectName().compare(H))
-       {
-           QSpinBox *s = (QSpinBox*)wid;
+    mWindow->posWidget->updateSize(this->size());
+//    foreach (QWidget *wid, mWindow->propertyWidget->findChildren<QWidget*>()) {
+//       if(!wid->objectName().compare(H))
+//       {
+//           QSpinBox *s = (QSpinBox*)wid;
 
-           s->setValue(this->height());
-       }
-       else if(!wid->objectName().compare(W))
-       {
-           QSpinBox *s = (QSpinBox*)wid;
+//           s->setValue(this->height());
+//       }
+//       else if(!wid->objectName().compare(W))
+//       {
+//           QSpinBox *s = (QSpinBox*)wid;
 
-           s->setValue(this->width());
-       }
+//           s->setValue(this->width());
+//       }
 
-   }
+//   }
 
 }
 
@@ -886,7 +847,8 @@ void NewLayout::writeToJson(QJsonObject &json)
 
         }
         // 这一句必需要在这个偱环后面.
-        json[objectName()] = layoutarr;
+        json[LAYOUT] = layoutarr;
+        json[CLASS] = this->metaObject()->className();
         QJsonArray projson;
 
         QVariantMap vmap ;

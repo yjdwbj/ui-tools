@@ -13,7 +13,7 @@
 #include "mainwindow.h"
 #include "mydialog.h"
 
-#include "propertybox.h"
+//#include "propertybox.h"
 #include "formresizer.h"
 
 
@@ -24,7 +24,7 @@ class Compoent
 {
 
 public:
-    virtual void onBindValue(QWidget *w,const QVariant &val);
+    virtual void onBindValue(QWidget *w);
     virtual QJsonObject getRectJson(QWidget* w);
     virtual void copyProperty(const QVariant &va);
     virtual void changeJsonValue(QString key, QVariant val);
@@ -39,7 +39,7 @@ public:
 
 class NewLabel :public QLabel ,public Compoent
 {
-    friend class PropertyBox;
+   // friend class PropertyBox;
     friend class ComProperty;
     friend class ImgProperty;
     Q_OBJECT
@@ -123,7 +123,7 @@ public:
 
     void onSelectMe();
     void addMainWindow(MainWindow *m) { mWindow = m;}
-    MainWindow *mWindow;
+
     void clearOtherSelectHandler();
     void appendChildObj(QWidget *w) { mChList.append(w);}
     void deleteObject(int index);
@@ -133,6 +133,8 @@ public:
     void delMySelf();
 
     void writeToJson(QJsonObject &json);
+
+    MainWindow *mWindow;
 
 
 private:

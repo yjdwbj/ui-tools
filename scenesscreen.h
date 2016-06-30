@@ -34,7 +34,7 @@ public:
 
     QWidgetList LayoutList;
     MainWindow* mWindow;
-    QWidget* activeObj;
+    NewLayout* activeObj;
 
 signals:
 

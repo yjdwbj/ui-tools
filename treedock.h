@@ -7,10 +7,10 @@
 #include <QTreeWidgetItem>
 #include <QHeaderView>
 #include "compoentcontrols.h"
-#include "propertybox.h"
+//#include "propertybox.h"
 
 class MainWindow;
-class PropertyBox;
+//class PropertyBox;
 class CompoentControls;
 
 

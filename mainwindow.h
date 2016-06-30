@@ -25,17 +25,18 @@
 #include <QScrollArea>
 #include <QTreeWidget>
 #include "treedock.h"
-#include "propertybox.h"
+//#include "propertybox.h"
 
 
 class TreeDock;
-class PropertyBox;
+//class PropertyBox;
 class ScenesScreen;
 class CanvasManager;
 class PageView;
 class CompoentControls;
 class ComProperty;
 class ImgProperty;
+class Position;
 
 
 
@@ -66,7 +67,8 @@ public:
 
     ComProperty *propertyWidget;
     //QGroupBox *imgPropertyWidget;
-    ImgProperty *imgPropertyWidget;
+    ComProperty *imgPropertyWidget;
+    Position *posWidget;
     QFrame *mCanvas;
     TreeDock *tree;
     ScenesScreen *Scenes;

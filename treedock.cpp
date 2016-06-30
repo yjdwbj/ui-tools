@@ -3,6 +3,7 @@
 #include "mainwindow.h"
 #include <QMetaObject>
 #include <QMetaProperty>
+#include "formresizer.h"
 
 static QString HeadCol = "结点,属性";
 
@@ -96,7 +97,7 @@ connect(treeWidget,SIGNAL(itemClicked(QTreeWidgetItem*,int)),SLOT(onItemPressed(
 
 this->setWidget(treeWidget);
 
-this->setFeatures(DockWidgetMovable|DockWidgetFloatable);
+//this->setFeatures(DockWidgetMovable|DockWidgetFloatable);
 //tree->setStyleSheet(style);
 
 setFixedHeight(mWindow->size().height()-50);
