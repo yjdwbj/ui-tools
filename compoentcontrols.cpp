@@ -138,7 +138,8 @@ Position::~Position()
 
 ComProperty::ComProperty(QString title,QWidget *parent):
     QGroupBox(parent),
-    mainLayout(new QVBoxLayout())
+    mainLayout(new QVBoxLayout()),
+    oldobject(0)
 
 {
     setTitle(title);
@@ -174,36 +175,40 @@ void ComProperty::delPropertyBox()
     removeWidFromLayout(mainLayout);
     delete mainLayout;
     mainLayout = 0;
+    oldobject = 0;
 }
 
 void ComProperty::createPropertyBox(QWidget *p)
 {
 
+    if(oldobject==p)
+        return;
+
     // 删除之前的重新画一个新的.
     QString className = p->metaObject()->className();
-    QString nkeyuid ;
+   // QString nkeyuid ;
     if(mainLayout)
     {
-        if(!CN_NEWLAYOUT.compare(className))
-        {
-            nkeyuid = p->objectName();
-            if(!mainLayout->property(DKEY_UID).toString().compare(nkeyuid))
-            {
-                return;
-            }
+//        if(!CN_NEWLAYOUT.compare(className))
+//        {
+//            nkeyuid = p->objectName();
+//            if(!mainLayout->property(DKEY_UID).toString().compare(nkeyuid))
+//            {
+//                return;
+//            }
 
-        }else if(!CN_NEWFRAME.compare(className))
-        {
-            nkeyuid = p->property(DKEY_UID).toString();
-            if(!mainLayout->property(DKEY_UID).toString().compare(nkeyuid))
-            {
-                return;
-            }
+//        }else if(!CN_NEWFRAME.compare(className))
+//        {
+//            nkeyuid = p->property(DKEY_UID).toString();
+//            if(!mainLayout->property(DKEY_UID).toString().compare(nkeyuid))
+//            {
+//                return;
+//            }
 
-        }else if(!CN_NEWLABEL.compare(className))
-        {
+//        }else if(!CN_NEWLABEL.compare(className))
+//        {
 
-        }
+//        }
         removeWidFromLayout(mainLayout);
         delete mainLayout;
     }
@@ -213,7 +218,7 @@ void ComProperty::createPropertyBox(QWidget *p)
 
     // QVBoxLayout * mainLayout = new QVBoxLayout();
     mainLayout = new QVBoxLayout(mainWidget);
-    mainLayout->setProperty(DKEY_UID,nkeyuid);
+   // mainLayout->setProperty(DKEY_UID,nkeyuid);
 
     mainWidget->setLayout(mainLayout);
 
@@ -249,11 +254,6 @@ void ComProperty::createPropertyBox(QWidget *p)
                 mainLayout->addWidget(l);
                 mainLayout->addWidget(cb);
 
-                //QString fk ="";
-//                if(qvlist.size())
-//                {
-//                    fk = qvlist.at(0).toString();
-//                }
                 if(!className.compare(CN_NEWFRAME))
                 {
                     ((NewFrame*)p)->onBindValue(cb);
@@ -265,13 +265,14 @@ void ComProperty::createPropertyBox(QWidget *p)
             }else if(qvm.contains(LIST))
             {
 
-
                 QComboBox *cb = new QComboBox();
-               // cb->setFixedWidth(pwidth);
                 cb->setObjectName(uname);
                 cb->setProperty(DKEY_VALTYPE,LIST);
-                cb->setObjectName(LISTIMAGE);  // 这里假设一个NewLabel只有这样一个QComoBox
+                // 这里通过它的JSON组数的位置去找它.
+              //  cb->setObjectName(LISTIMAGE);
                 p->setProperty(DKEY_IMGIDX,0); // 当前选择的行号
+                QString cbkey =QString("%1_%2").arg(uname,QString::number(ImgCbMap.size()));
+                ImgCbMap[cbkey] = cb;
 
                 //QString uname =  qvm["-name"].toString();
                 QString className = p->metaObject()->className();
@@ -282,10 +283,6 @@ void ComProperty::createPropertyBox(QWidget *p)
                     if(!nl->disDefaultList)
                     {
                         QVariantList qvlist = qvm[LIST].toList();
-//                        if(qvlist.size())
-//                        {
-//                            fk = qvlist.at(0).toString();
-//                        }
                         for(QVariantList::const_iterator it = qvlist.begin();
                             it != qvlist.end();++it)
                         {
@@ -305,16 +302,14 @@ void ComProperty::createPropertyBox(QWidget *p)
                 }
 
                 QLabel * l = new QLabel(uname);
-
                 mainLayout->addWidget(l);
-
                 QPushButton *b = new QPushButton(tr("添加图片"));
+                b->setObjectName(cbkey);
                 connect(b,SIGNAL(clicked(bool)),p,SLOT(onPictureDialog(bool)));
                 mainLayout->addWidget(b);
                 mainLayout->addWidget(cb);
                 // 绑定QComoBox的更改信号,更改它的值就要在相应的画版控件更新图片
                 connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onListImageChanged(QString)));
-
             }else if(qvm.contains(IMAGE) ) /* 跳过这一行.*/
             {
 
@@ -398,11 +393,28 @@ void ComProperty::createPropertyBox(QWidget *p)
 
     }
     mainLayout->setSizeConstraint(QLayout::SetFixedSize);
+    oldobject = p;
 
+}
+
+void ComProperty::updateImageComboBox(QString key,int index , const QStringList &list)
+{
+   QComboBox *cb =    ImgCbMap.value(key,0);
+   if(!cb)
+       return;
+
+   cb->clear();
+ //  cb->addItems(list);
+   foreach (QString s, list) {
+      cb->addItem(s.section(":",0,0));
+   }
+   cb->setCurrentIndex(index);
 }
 
 void removeWidFromLayout(QLayout *layout)
 {
+    if(!layout)
+        return;
     QLayoutItem* child;
     while(layout->count()!=0)
     {
@@ -451,8 +463,8 @@ CompoentControls::CompoentControls(MainWindow *mw, QWidget *parent)
 
 
 
-    //mJsonFile =  QDir::currentPath() + "/menu_strip.json";
-    mJsonFile = QDir::currentPath() + "/control.json";
+    mJsonFile =  QDir::currentPath() + "/menu_strip.json";
+   // mJsonFile = QDir::currentPath() + "/control.json";
     qDebug() << " json file name " << mJsonFile;
     QFileInfo qfi(mJsonFile);
     if(!qfi.exists())

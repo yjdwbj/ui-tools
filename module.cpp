@@ -192,10 +192,6 @@ void NewLabel::onXYWHChangedValue(int v)
 
     }else if(!sender->objectName().compare(Y))
     {
-       // o.setY(v);
-     //   QPoint p = sender->pos();
-      //  p.setY(v);
-       // sender->move(p);
         QPoint pos = p->pos();
         pos.setY(v);
         p->move(pos );
@@ -334,7 +330,6 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
     foreach (NewLabel *n, nlist) {
         if(n != this)
             n->setStyleSheet("");
-
     }
 
     setStyleSheet("QLabel{border: 1px solid red;border-style: outset;}");
@@ -366,6 +361,7 @@ void NewLabel::updatePixmap(QString imgpath)
 
 void NewLabel::onPictureDialog(bool )
 {
+    QString key = QObject::sender()->objectName();
     // QMessageBox::warning(this,"test","your clicked me: ");
     ImageFileDialog *ifd = new ImageFileDialog(myImageList,this);
 
@@ -376,18 +372,19 @@ void NewLabel::onPictureDialog(bool )
 
     disDefaultList = myImageList.size() ? true : false;
     ifd->deleteLater();
-    QComboBox *cb=0;
-    foreach (QWidget *w, mWindow->imgPropertyWidget->findChildren<QWidget*>())
-    {
-        if(!w->objectName().compare(LISTIMAGE))
-        {
-          //  qDebug() << " found QComobox " << w->objectName();
-            cb = (QComboBox *)w;
-            cb->clear();
-            break;
-        }
-    }
-    updateComboItems(cb);
+    mWindow->imgPropertyWidget->updateImageComboBox(key,this->property(DKEY_IMGIDX).toInt(),myImageList);
+//    QComboBox *cb=0;
+//    foreach (QWidget *w, mWindow->imgPropertyWidget->findChildren<QWidget*>())
+//    {
+//        if(!w->objectName().compare(LISTIMAGE))
+//        {
+//          //  qDebug() << " found QComobox " << w->objectName();
+//            cb = (QComboBox *)w;
+//            cb->clear();
+//            break;
+//        }
+//    }
+//    updateComboItems(cb);
     this->blockSignals(true);
 
 }
@@ -403,15 +400,11 @@ void NewLabel::updateComboItems(QComboBox *cb)
 void NewLabel::writeToJson(QJsonObject &json)
 {
     QJsonArray projson;// 属性
-
     projson = dynValues[DKEY_DYN].toArray(); //复制出模版的属性来保存.
-
     json[NAME] = objectName();
     json[CLASS] = this->metaObject()->className();
     json[PROPERTY] = projson;
 }
-
-
 
 
 NewFrame::NewFrame(QWidget *parent)
@@ -490,16 +483,7 @@ void NewFrame::onXYWHChangedValue(int v)
         pos.setY(v);
         move(pos );
 
-    }else if(!sender->objectName().compare(W))
-    {
-
-      //  sender->setFixedWidth(v);
-    }else if(!sender->objectName().compare(H))
-    {
-
-      //  sender->setFixedHeight(v);
     }
-    //sender->setGeometry(o);
 
 }
 
@@ -570,9 +554,8 @@ void NewLayout::onSelectMe()
     mWindow->cManager->activeSS()->setSelectObject(this);
     mWindow->posWidget->setConnectNewQWidget(this);
     mWindow->propertyWidget->createPropertyBox(this);
-
+    mWindow->imgPropertyWidget->delPropertyBox();
     this->blockSignals(true);
-
 }
 
 void NewLayout::delMySelf()

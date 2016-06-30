@@ -9,6 +9,7 @@
 #include <QSpinBox>
 #include <QLineEdit>
 #include <QSignalMapper>
+#include <QComboBox>
 #include "mainwindow.h"
 //#include "propertybox.h"
 #include "treedock.h"
@@ -49,10 +50,13 @@ public:
 
     void createPropertyBox(QWidget *p);
     void delPropertyBox();
+    void updateImageComboBox(QString key, int index, const QStringList &list);
 private:
     // QGroupBox *CreateXYWHGBox(QWidget *p);
      QVBoxLayout* mainLayout;
      QWidget *mainWidget;
+     QWidget *oldobject;
+     QMap<QString,QComboBox*> ImgCbMap;
 
 };
 

@@ -49,14 +49,7 @@ void ScenesScreen::setSelectObject(FormResizer *obj)
     //qDebug() << " active object is " << obj->objectName();
     if(!CN_NEWLAYOUT.compare(obj->metaObject()->className()))
     {
-       // activeObj = (NewLayout*)obj;
-       // ((NewLayout*)obj)->onSelectMe();
         mActiveIdx = LayoutList.indexOf(obj);  // 这里只是布局控件才更改它的数值
-    }else
-    {
-        // ((NewFrame*)obj)->onSelectMe();
-         // 如果当前　是一个NewFrame 就设置它的布局为激活布局.
-         //activeObj =  ((NewLayout *)obj->parentWidget()->parentWidget());
     }
 
     mWindow->tree->setSelectTreeItem(obj);
@@ -107,7 +100,6 @@ void ScenesScreen::delSelectedLayout()
         //删除控件
         NewLayout *nl = (NewLayout*)(activeObj->parentWidget()->parentWidget());
         nl->deleteObject(activeObj);  // 从它的父控件删除它.
-
         setSelectObject(nl); // 选中它父控件.
 
     }
@@ -140,7 +132,7 @@ void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
     case Qt::Key_Delete:
         if(activeObj)
         {
-            qDebug() << " you pressed Delete " << "active object " << activeObj->objectName();
+          //  qDebug() << " you pressed Delete " << "active object " << activeObj->objectName();
             delSelectedLayout();
         }
 
