@@ -18,7 +18,6 @@ QMAKE_LIBS_OPENGL -= -lGL
 SOURCES += main.cpp\
         mainwindow.cpp \
     module.cpp \
-    handlejson.cpp \
     compoentcontrols.cpp \
     treedock.cpp \
     scenesscreen.cpp \
@@ -30,7 +29,6 @@ SOURCES += main.cpp\
 
 HEADERS  += mainwindow.h \
     module.h \
-    handlejson.h \
     compoentcontrols.h \
     treedock.h \
     config.h \

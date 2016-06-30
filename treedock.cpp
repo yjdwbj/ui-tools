@@ -119,10 +119,12 @@ treeWidget->setFixedHeight(mWindow->size().height()-80);
 
 void TreeDock::setSelectTreeItem(QWidget *obj)
 {
-    QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(obj->objectName(),Qt::MatchFixedString | Qt::MatchRecursive);
+    QString key  = obj->property(DKEY_LOCALSEQ).toString();
+    QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(key,Qt::MatchFixedString | Qt::MatchRecursive);
     foreach (QTreeWidgetItem *qwi, qwilist) {
         //qDebug() << " this text " << qwi->text(0);
-       if(!qwi->text(0).compare(obj->objectName()))
+       //if(!qwi->text(0).compare(obj->objectName()))
+       if(!qwi->text(0).compare(key)) // caption 加序号.
        {
            treeWidget->setCurrentItem(qwi);
            break;
@@ -138,14 +140,23 @@ void TreeDock::onItemPressed(QTreeWidgetItem *item,int col)
     //    return;
 
     qDebug() << " clicked tree : " << item->text(0);
-    foreach (QWidget *w, mWindow->ComCtrl->comList) {
-        if(!w->objectName().compare(item->text(0)))
-        {
-              ((FormResizer*)w)->onSelectMe();
-                 break;
-        }
 
+   // foreach (QWidget *w, mWindow->ComCtrl->comList) {
+  //  QString key = w->property(DKEY_LOCALSEQ).toString();
+    if(mWindow->ComCtrl->ProMap.contains(item->text(0)))
+    {
+        ((FormResizer*)mWindow->ComCtrl->ProMap[item->text(0)])->onSelectMe();
     }
+//    foreach (QWidget *w, mWindow->ComCtrl->comList) {
+//       // if(!w->objectName().compare(item->text(0)))
+//        QString key = w->property(DKEY_LOCALSEQ).toString();
+//        if(!key.compare(item->text(0)))
+//        {
+//              ((FormResizer*)w)->onSelectMe();
+//                 break;
+//        }
+
+//    }
     treeWidget->setCurrentItem(item);
 }
 
@@ -162,19 +173,24 @@ void TreeDock::addObjectToLayout(QWidget *ww)
         QTreeWidgetItem *qwi = treeWidget->currentItem();
         if(qwi)
         {
+           QStringList tlist;
+           tlist << ww->property(DKEY_LOCALSEQ).toString() << ww->metaObject()->className();
             //qDebug() << " add child to " << qwi->text(0) << qwi->text(1);
            QTreeWidgetItem *nqwi =  new QTreeWidgetItem(!qwi->text(1).compare(CN_NEWFRAME) ? qwi->parent()
-                                                                    : qwi, QStringList()  << ww->objectName() << ww->metaObject()->className());
+                                                                    : qwi, tlist);
            treeWidget->setCurrentItem(nqwi);
         }
 }
 
 void TreeDock::deleteItem(QWidget *obj)
 {
-    QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(obj->objectName(),Qt::MatchFixedString | Qt::MatchRecursive);
+    QString key = obj->property(DKEY_LOCALSEQ).toString();
+   // QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(obj->objectName(),Qt::MatchFixedString | Qt::MatchRecursive);
+    QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(key,Qt::MatchFixedString | Qt::MatchRecursive);
+
     foreach (QTreeWidgetItem *qwi, qwilist) {
         //qDebug() << " this text " << qwi->text(0);
-       if(!qwi->text(0).compare(obj->objectName()))
+       if(!qwi->text(0).compare(key))
        {
            treeWidget->removeItemWidget(qwi,0);
            delete qwi;

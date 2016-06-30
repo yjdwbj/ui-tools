@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "handlejson.h"
+//#include "handlejson.h"
 #include "compoentcontrols.h"
 //#include "propertybox.h"
 #include "scenesscreen.h"

@@ -1,8 +1,12 @@
 #include "compoentcontrols.h"
-#include "handlejson.h"
+//#include "handlejson.h"
 #include "config.h"
 #include "scenesscreen.h"
 #include "canvasmanager.h"
+#include "module.h"
+#include <QHash>
+#include <QComboBox>
+#include <QApplication>
 
 //static int pwidth = 20;
 
@@ -45,7 +49,7 @@ Position::Position( QWidget *parent)
 
 void Position::setConnectNewQWidget(QWidget *com)
 {
-
+    setEnabled(true);
     if(old == com)
         return;
 
@@ -93,6 +97,23 @@ void Position::updateSize(QSize size)
 {
     Wpos->setValue(size.width());
     Hpos->setValue(size.height());
+}
+
+void Position::resetValues()
+{
+    foreach(auto var , connections)
+    {
+        QObject::disconnect(var);
+    }
+
+    connections.clear();
+
+    Xpos->setValue(0);
+    Ypos->setValue(0);
+    Wpos->setValue(0);
+    Hpos->setValue(0);
+    this->setEnabled(false);
+
 }
 
 Position::~Position()
@@ -148,35 +169,46 @@ ComProperty::ComProperty(QString title,QWidget *parent):
 
 
 
+void ComProperty::delPropertyBox()
+{
+    removeWidFromLayout(mainLayout);
+    delete mainLayout;
+    mainLayout = 0;
+}
+
 void ComProperty::createPropertyBox(QWidget *p)
 {
 
     // 删除之前的重新画一个新的.
     QString className = p->metaObject()->className();
     QString nkeyuid ;
-    if(!CN_NEWLAYOUT.compare(className))
+    if(mainLayout)
     {
-        nkeyuid = p->objectName();
-        if(!mainLayout->property(DKEY_UID).toString().compare(nkeyuid))
+        if(!CN_NEWLAYOUT.compare(className))
         {
-            return;
-        }
+            nkeyuid = p->objectName();
+            if(!mainLayout->property(DKEY_UID).toString().compare(nkeyuid))
+            {
+                return;
+            }
 
-    }else if(!CN_NEWFRAME.compare(className))
-    {
-        nkeyuid = p->property(DKEY_UID).toString();
-        if(!mainLayout->property(DKEY_UID).toString().compare(nkeyuid))
+        }else if(!CN_NEWFRAME.compare(className))
         {
-            return;
+            nkeyuid = p->property(DKEY_UID).toString();
+            if(!mainLayout->property(DKEY_UID).toString().compare(nkeyuid))
+            {
+                return;
+            }
+
+        }else if(!CN_NEWLABEL.compare(className))
+        {
+
         }
-
-    }else if(!CN_NEWLABEL.compare(className))
-    {
-
+        removeWidFromLayout(mainLayout);
+        delete mainLayout;
     }
 
-    removeWidFromLayout(mainLayout);
-    delete mainLayout;
+
     // mainWidget->layout()->destroyed();
 
     // QVBoxLayout * mainLayout = new QVBoxLayout();
@@ -429,7 +461,7 @@ CompoentControls::CompoentControls(MainWindow *mw, QWidget *parent)
         return;
     }
 
-    // HandleJson *hj = new HandleJson(filename);
+
     ReadJsonFile();
     CreateButtonList();
 
@@ -533,10 +565,13 @@ void CompoentControls::CreateButtonList()
     foreach (QJsonValue qjv, comJsonArr)
     {
         QVariantMap  qjm = qjv.toObject().toVariantMap();
-        QString uname = qjv.toObject()[CAPTION].toString();
+        QString caption = qjv.toObject()[CAPTION].toString();
+        QString objname = qjv.toObject()[NAME].toString();
         //  qDebug() << " json key is " << uname;
-        comMap[uname] = qjm;
-        QPushButton *btnTest = new QPushButton(uname);
+        comMap[caption] = qjm;
+        QPushButton *btnTest = new QPushButton(caption);
+        btnTest->setProperty(DKEY_CATEGORY,objname);
+
         btnTest->setSizePolicy(mSizePolicy);
         if(qjm.contains(ICON))
             btnTest->setIcon(QIcon(qjv.toObject()[ICON].toString()));
@@ -560,19 +595,21 @@ void CompoentControls::onCreateCompoentToCanvas()
 {
     // QObject *sender = QObject::sender(); /* 确定的那一个按钮被点击了 */
 
-    NewLayout *activeLayer = mWindow->cManager->activeSS()->activeObj;
-    if(!mWindow->cManager->activeSS()->activeObj)
+    NewLayout *activeLayout = mWindow->cManager->activeSS()->activeLayout();
+    if(!activeLayout)
     {
         QMessageBox::warning(this,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
         return;
     }
 
     QPushButton *btn = (QPushButton*)(QObject::sender());
-    NewFrame* ww = (NewFrame *)CreateObjectFromJson(comMap[btn->text()],
-            mWindow->cManager->activeSS()->activeObj->m_frame);
+    NewFrame* ww = (NewFrame *)CreateObjectFromJson(comMap[btn->text()],activeLayout->m_frame);
     //mWindow->Scenes->activeLayer()->m_frame);
-    ww->setObjectName(QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
-    activeLayer->appendChildObj(ww);
+    ww->setObjectName(btn->property(DKEY_CATEGORY).toString());
+    //ww->setObjectName(QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
+    ww->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
+    activeLayout->appendChildObj(ww);
+    ProMap[ww->property(DKEY_LOCALSEQ).toString()] = ww;
     // activeLayer->mNewFrameList.append(ww);
     comList.append(ww);
 
@@ -617,7 +654,7 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                         //   qDebug() << " NewFrame dyn property " << n->dynValues;
                     }
                     nobj =qobject_cast<QObject*>(n);
-                    nobj->setProperty(DKEY_CLSNAME,cval);
+                  //  nobj->setProperty(DKEY_CLSNAME,cval);
                 }
                 else if(!cval.compare(QLABEL))
                 {
@@ -631,13 +668,13 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                         ((NewLabel*)nobj)->copyProperty(qvm[PROPERTY]);
                         // qDebug() << " NewLabel dyn property " << ((NewLabel*)nobj)->dynValues;
                     }
-                    nobj->setProperty(DKEY_CLSNAME,cval);
+                  //  nobj->setProperty(DKEY_CLSNAME,cval);
 
                 }
             }
             else if(!key.compare(NAME))
             {
-                //nobj->setObjectName(it.value().toString());
+                nobj->setObjectName(it.value().toString());
             }
             else if(!key.compare(CAPTION)) /* 界面显示的名称 */
             {
@@ -652,19 +689,19 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                 property = it.value();
             }else {
                 QVariantList qvl = it.value().toList();
-                QStringList chlist;
+               // QStringList chlist;
                 foreach(QVariant qv, qvl)
                 {
                     // qDebug() << qv.type();
                     if(qv.type() == QVariant::Map)
                     {
                         QObject *cobj = CreateObjectFromJson(qv.toMap(),nobj);
-                        chlist.append(cobj->objectName());
+                       // chlist.append(cobj->objectName());
                     }
 
                 }
 
-                pobj->setProperty("chlist",chlist);
+                //pobj->setProperty("chlist",chlist);
 
             }
         }
@@ -681,7 +718,9 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
         }
     }
     nobj->setProperty(DKEY_DYN,property);
-    nobj->setProperty(DKEY_UID,QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch()));
+   // nobj->setProperty(DKEY_UID,QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch()));
+    uint number = qHash(QDateTime::currentDateTime().toMSecsSinceEpoch());
+    nobj->setProperty(DKEY_UID,QString::number(number));
     /*  处理每一个json对像的property部分 */
     // qDebug() << "Dynamic Property Count " << nobj->dynamicPropertyNames().count();
     foreach(QByteArray qba,nobj->dynamicPropertyNames())
@@ -699,14 +738,15 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                     QString key = it.key();
                     if(!key.compare(KEY_RECT)) /* 这里直接处理json "rect" 对像字段 */
                     {
-                        QString clsName = nobj->property(DKEY_CLSNAME).toString();
+                      //  QString clsName = nobj->property(DKEY_CLSNAME).toString();
                         QVariantMap rect = it.value().toMap();
                         QRect r = QRect(rect["x"].toString().toInt(),
                                 rect["y"].toString().toInt(),
                                 rect["width"].toString().toInt(),
                                 rect["height"].toString().toInt());
 
-                        if(!clsName.compare(QFRAME))
+                        //if(!clsName.compare(QFRAME))
+                        if(!CN_NEWFRAME.compare(nobj->metaObject()->className()))
                         {
 
                             qobject_cast<NewFrame *>(nobj)->setGeometry(r);
@@ -756,10 +796,12 @@ void CompoentControls::onCreateNewLayout()
     {
         ss->createNewLayout();
         QPushButton *btn = (QPushButton*)(QObject::sender());
-        NewLayout *nl =  ss->activeLayer();
+        NewLayout *nl =  ss->activeLayout();
+        ProMap[nl->property(DKEY_LOCALSEQ).toString()] = nl;
         //comList.append(nl);
 
-        mWindow->tree->addItemToRoot(nl->objectName(),btn->text());
+       // mWindow->tree->addItemToRoot(nl->objectName(),btn->text());
+        mWindow->tree->addItemToRoot(nl->property(DKEY_LOCALSEQ).toString(),btn->text());
     }
     //  mWindow->cManager->activeSS()->createNewLayout();
 

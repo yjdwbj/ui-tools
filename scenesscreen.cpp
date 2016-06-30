@@ -28,7 +28,9 @@ void ScenesScreen::createNewLayout()
     nl->addMainWindow(mWindow);
     LayoutList.append(nl);
     mActiveIdx = LayoutList.size() - 1;
-    nl->setObjectName(QString("%1_%2").arg(nl->metaObject()->className(),QString::number(mActiveIdx)));
+    //nl->setObjectName(QString("%1_%2").arg(nl->metaObject()->className(),QString::number(mActiveIdx)));
+    nl->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("布局",QString::number(mActiveIdx)));
+
     nl->onSelectMe();
 }
 
@@ -43,16 +45,18 @@ void ScenesScreen::setSelectObject(FormResizer *obj)
     obj->setState(SelectionHandleActive);
     obj->setFocus();
 
-
+    activeObj = obj;
     //qDebug() << " active object is " << obj->objectName();
     if(!CN_NEWLAYOUT.compare(obj->metaObject()->className()))
     {
-        activeObj = (NewLayout*)obj;
+       // activeObj = (NewLayout*)obj;
+       // ((NewLayout*)obj)->onSelectMe();
         mActiveIdx = LayoutList.indexOf(obj);  // 这里只是布局控件才更改它的数值
     }else
     {
+        // ((NewFrame*)obj)->onSelectMe();
          // 如果当前　是一个NewFrame 就设置它的布局为激活布局.
-         activeObj =  ((NewLayout *)obj->parentWidget()->parentWidget());
+         //activeObj =  ((NewLayout *)obj->parentWidget()->parentWidget());
     }
 
     mWindow->tree->setSelectTreeItem(obj);
@@ -93,6 +97,8 @@ void ScenesScreen::delSelectedLayout()
                }else{
                    setSelectObject((NewLayout*)(LayoutList.at(index-1)));
                }
+           }else{
+               mActiveIdx = -1;
            }
 
         }
@@ -100,7 +106,7 @@ void ScenesScreen::delSelectedLayout()
     }else {
         //删除控件
         NewLayout *nl = (NewLayout*)(activeObj->parentWidget()->parentWidget());
-        nl->deleteObject(activeObj);
+        nl->deleteObject(activeObj);  // 从它的父控件删除它.
 
         setSelectObject(nl); // 选中它父控件.
 

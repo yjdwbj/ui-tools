@@ -17,7 +17,7 @@ class ScenesScreen : public QFrame
 public:
     explicit ScenesScreen(QSize size,QWidget *parent = 0);
     ~ScenesScreen();
-    NewLayout *activeLayer() {
+    NewLayout *activeLayout() {
         return mActiveIdx == -1 ? (NewLayout*)0 :
                                   (NewLayout*)(LayoutList.at(mActiveIdx));}
     int getActiveIndex() { return mActiveIdx;}
@@ -26,7 +26,7 @@ public:
     void setActiveIdx(int index) { mActiveIdx = index;}
     void setSelectObject(FormResizer *obj);
     void delSelectedLayout();
-    void delSelectedObject();
+   // void delSelectedObject();
 
     void writeToJson(QJsonObject &json);
 
@@ -34,7 +34,7 @@ public:
 
     QWidgetList LayoutList;
     MainWindow* mWindow;
-    NewLayout* activeObj;
+
 
 signals:
 
@@ -43,6 +43,7 @@ public slots:
 private:
    void keyReleaseEvent(QKeyEvent *);
    int mActiveIdx; //  当前激活的图层.
+   QWidget *activeObj;
 
 
 };

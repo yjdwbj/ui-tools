@@ -17,6 +17,7 @@
 class TreeDock;
 class MainWindow;
 class ScenesScreen;
+class FormResizer;
 
 
 void removeWidFromLayout(QLayout *layout);
@@ -32,6 +33,7 @@ public:
     void setConnectNewQWidget(QWidget *com);
     void updatePosition(QPoint pos);
     void updateSize(QSize size);
+    void resetValues();
 private:
     QSpinBox *Xpos,*Ypos,*Wpos,*Hpos;
     QWidget *old;
@@ -46,6 +48,7 @@ public:
     ~ComProperty(){}
 
     void createPropertyBox(QWidget *p);
+    void delPropertyBox();
 private:
     // QGroupBox *CreateXYWHGBox(QWidget *p);
      QVBoxLayout* mainLayout;
@@ -73,6 +76,7 @@ private:
      QWidgetList comList;
      QJsonArray comJsonArr;
      QMap<QString,QVariantMap> comMap;
+     QMap<QString,FormResizer*> ProMap; // 新生成的控件.
      QSizePolicy mSizePolicy;
 
      void CreateButtonList();

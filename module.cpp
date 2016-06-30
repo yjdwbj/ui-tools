@@ -233,14 +233,6 @@ void NewLabel::clearOtherObjectStyleSheet()
     QList<NewLabel*> nflist =  this->parentWidget()->findChildren<NewLabel*>();
     foreach(NewLabel *x,nflist)
     {
-
-//            QList<NewLabel*> list =  x->findChildren<NewLabel*>();
-//            QListIterator<NewLabel*> it(list);
-//            while(it.hasNext())
-//            {
-//                NewLabel *nl = it.next();
-//                nl->setStyleSheet("");
-//            }
            x->setStyleSheet("");
 
     }
@@ -263,9 +255,6 @@ QWidget *NewLabel::getQWidgetByName(QString name) const
     return (QWidget*)0;
 }
 
-
-
-
 void NewLabel::mousePressEvent(QMouseEvent *ev)
 {
 
@@ -280,16 +269,6 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
     clearOtherObjectStyleSheet();
     mWindow->posWidget->setConnectNewQWidget(p);
     mWindow->propertyWidget->createPropertyBox(p);
-
-
-//     QLineEdit *et = (QLineEdit *)(getQWidgetByName("debugEdit"));
-//     if(et != 0 )
-//     {
-//         et->setText(QString("mouse x:%1 , y:%2 ")
-//                     .arg(QString::number(ev->pos().rx()))
-//                     .arg(QString::number(ev->pos().ry())));
-//     }
-  //  ev->accept();
     mOffset = ev->pos();
     setCursor(Qt::ClosedHandCursor);
 }
@@ -326,9 +305,6 @@ void NewLabel::mouseReleaseEvent(QMouseEvent *ev)
         pos.setY(ms.height() - p->size().height());
         p->move(pos);
     }
-    //qDebug() << " parent Widget pos " << p->pos() << "size : " << p->size() << " geomerty " << p->geometry();
-
-    //qDebug() << " new pos from Frame : " << p->pos();
 }
 
 void NewLabel::mouseMoveEvent(QMouseEvent *event)
@@ -336,38 +312,13 @@ void NewLabel::mouseMoveEvent(QMouseEvent *event)
 
     if (event->buttons() & Qt::LeftButton)
     {
-        qDebug() << " NewFrame move" << event->pos();
         NewFrame *p =(NewFrame*) (this->parentWidget()->parentWidget());
-
         p->move( p->pos() + (event->pos() - mOffset));
-
-
         /* 把新的位置更新到右边属性框 */
-
-    //    QPoint nr = p->pos();
         mWindow->posWidget->updatePosition(p->pos());
         p->blockSignals(true);
-//        foreach (QWidget *w, mWindow->propertyWidget->findChildren<QWidget*>()) {
-//           if(!w->objectName().compare(X))
-//           {
-//               QSpinBox *s = (QSpinBox*)w;
-
-//               s->setValue(nr.x());
-//           }
-//           else if(!w->objectName().compare(Y))
-//           {
-//               QSpinBox *s = (QSpinBox*)w;
-
-//               s->setValue(nr.y());
-//           }
-
-//       }
-
-
     }
-    // event->accept();
-    //  this->parentWidget()->update();
-   // qDebug() << " new pos from Layer : "  << pos() ;
+
 }
 
 void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
@@ -389,8 +340,6 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
     setStyleSheet("QLabel{border: 1px solid red;border-style: outset;}");
     mWindow->propertyWidget->createPropertyBox(p);
     mWindow->imgPropertyWidget->createPropertyBox(this);
-    qDebug() << " Frame pos is " << p->pos();
-
 }
 
 
@@ -490,7 +439,10 @@ void NewFrame::delMySelf()
    }
 
    mWindow->tree->deleteItem(this);
-    this->deleteLater();
+   this->deleteLater();
+   mWindow->propertyWidget->delPropertyBox();
+   mWindow->imgPropertyWidget->delPropertyBox();
+
 }
 
 void NewFrame::onSelectMe()
@@ -498,7 +450,7 @@ void NewFrame::onSelectMe()
   //  setStyleSheet("NewFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
     clearOtherObjectStyleSheet();
     mWindow->cManager->activeSS()->setSelectObject(this);
-   // ((NewLayout*)this->parentWidget())->clearOtherSelectHandler();
+
     this->setState(SelectionHandleActive);
     mWindow->posWidget->setConnectNewQWidget(this);
     mWindow->propertyWidget->createPropertyBox(this);
@@ -602,6 +554,7 @@ NewLayout::NewLayout(QSize nsize,QWidget *parent):
     FormResizer(parent)
 {
    // setFixedSize(nsize);
+    setObjectName(LAYOUT);
     setMinimumSize(nsize );
     setMaximumSize(parent->size());
     this->setObjectName(this->metaObject()->className());
@@ -617,6 +570,7 @@ void NewLayout::onSelectMe()
     mWindow->cManager->activeSS()->setSelectObject(this);
     mWindow->posWidget->setConnectNewQWidget(this);
     mWindow->propertyWidget->createPropertyBox(this);
+
     this->blockSignals(true);
 
 }
@@ -630,6 +584,8 @@ void NewLayout::delMySelf()
     }
 
     mWindow->tree->deleteItem(this);
+    mWindow->posWidget->resetValues();
+
     deleteLater();
 }
 
@@ -676,41 +632,17 @@ void NewLayout::mousePressEvent(QMouseEvent *event)
     if (event->button() != Qt::LeftButton)
         return;
     mOffset = event->pos();
-   // m_curSize = m_startSize = this->size();
-   // setCursor(Qt::ClosedHandCursor);
     onSelectMe();
-    //qDebug() << " Press the layout " << this->m_frame->pos();
+
 }
 void NewLayout::mouseMoveEvent(QMouseEvent *event)
 {
     if (event->buttons() & Qt::LeftButton)
     {
         move(this->pos() + (event->pos() - mOffset));
-
-
         /* 把新的位置更新到右边属性框 */
-
-
-
         mWindow->posWidget->updatePosition(this->pos());
         this->blockSignals(true);
-        //  QSize ns = this->size();
-//        QPoint nr = this->pos();
-//        foreach (QWidget *w, mWindow->propertyWidget->findChildren<QWidget*>()) {
-//           if(!w->objectName().compare(X))
-//           {
-//               QSpinBox *s = (QSpinBox*)w;
-
-//               s->setValue(nr.x());
-//           }
-//           else if(!w->objectName().compare(Y))
-//           {
-//               QSpinBox *s = (QSpinBox*)w;
-
-//               s->setValue(nr.y());
-//           }
-//       }
-
     }
 
 }
@@ -749,22 +681,6 @@ void NewLayout::mouseReleaseEvent(QMouseEvent *event)
 
     // 这里只能在释放鼠标时改变左边的控件值
     mWindow->posWidget->updateSize(this->size());
-//    foreach (QWidget *wid, mWindow->propertyWidget->findChildren<QWidget*>()) {
-//       if(!wid->objectName().compare(H))
-//       {
-//           QSpinBox *s = (QSpinBox*)wid;
-
-//           s->setValue(this->height());
-//       }
-//       else if(!wid->objectName().compare(W))
-//       {
-//           QSpinBox *s = (QSpinBox*)wid;
-
-//           s->setValue(this->width());
-//       }
-
-//   }
-
 }
 
 void NewLayout::clearOtherObjectStyleSheet()
@@ -773,29 +689,10 @@ void NewLayout::clearOtherObjectStyleSheet()
     QList<NewFrame*> nflist =  m_frame->findChildren<NewFrame*>();
     foreach(NewFrame *x,nflist)
     {
-
-//            QList<NewLabel*> list =  x->findChildren<NewLabel*>();
-//            QListIterator<NewLabel*> it(list);
-//            while(it.hasNext())
-//            {
-//                NewLabel *nl = it.next();
-//                nl->setStyleSheet("");
-//            }
            x->setStyleSheet("");
 
     }
 
-//    QWidgetList laylist = this->parentWidget()->findChildren<QWidget*>();
-//    foreach (QWidget *wid, laylist) {
-
-//        if (wid == this)
-//            continue;
-//        if(!CN_NEWFRAME.compare(wid->metaObject()->className())
-//            || !CN_NewLayout.compare(wid->metaObject()->className()))
-//        {
-//            ((NewLayout*)wid)->setState(SelectionHandleOff);
-//        }
-//    }
 }
 
 void NewLayout::clearOtherSelectHandler()

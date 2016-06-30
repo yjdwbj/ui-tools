@@ -36,6 +36,7 @@ static QString NUMBER ="number";
 static QString TEXT = "text";
 static QString MAXLEN = "maxlength";
 
+
 static const char  DKEY_CAPTION[] = "caption";
 
 static const char DKEY_IMGIDX[] = "ImageIndex";
@@ -48,6 +49,8 @@ static const char DKEY_DYNVAL[] = "dynValues";
 static const char DKEY_VALTYPE[] = "valueType";
 static const char DKEY_SHOT[] = "screenshot";
 static const char DKEY_TXT[] = "ViewName";
+static const char DKEY_CATEGORY[] = "Category";
+static const char DKEY_LOCALSEQ[] = "LocalSeq";
 
 static const QString CN_NEWLAYOUT = "NewLayout";
 static const QString CN_NEWFRAME = "NewFrame";
