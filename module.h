@@ -12,6 +12,7 @@
 #include <QGraphicsItem>
 #include "mainwindow.h"
 #include "mydialog.h"
+#include <QJsonArray>
 
 //#include "propertybox.h"
 #include "formresizer.h"
@@ -24,11 +25,12 @@ class Compoent
 {
 
 public:
-    virtual void onBindValue(QWidget *w);
+    virtual void onBindValue(QWidget *w, const QVariantMap &map);
     virtual QJsonObject getRectJson(QWidget* w);
     virtual void copyProperty(const QVariant &va);
     virtual void changeJsonValue(QString key, QVariant val);
-    virtual QVariant getJsonValue(QString key) const;
+    QVariant getJsonValue(QString key) const;
+    void updateJsonArray(QString key,const QJsonArray &arr);
     //QVariantMap dynValues;
     //QJsonValue dynValues;
     QJsonObject dynValues;

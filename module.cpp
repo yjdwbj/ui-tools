@@ -35,6 +35,16 @@ void Compoent::changeJsonValue(QString key, QVariant val)
                 obj[DEFAULT] = QJsonValue::fromVariant(val);
                 parr[i] = obj;
                 break;
+            }else if(obj.contains(IMAGE))
+            {
+                obj[IMAGE] = QJsonValue::fromVariant(val);
+                parr[i] = obj;
+                break;
+            }else if(obj.contains(LIST))
+            {
+                obj[LIST] = QJsonValue::fromVariant(val);
+                parr[i] = obj;
+                break;
             }
 
         }
@@ -59,16 +69,15 @@ QVariant Compoent::getJsonValue(QString key) const
 
         }
     }
-    return QVariant(0);
+    return QVariant("");
 }
 
 
- void Compoent::onBindValue(QWidget *w)
+void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
 {
  //   qDebug() << " dyn size " << dynValues.size();
      QString n = w->metaObject()->className();
      QString uname = w->objectName();
-
      if(!n.compare("QLineEdit"))
      {
          QLineEdit *txt = (QLineEdit *)w;
@@ -76,7 +85,40 @@ QVariant Compoent::getJsonValue(QString key) const
      }else if(!n.compare("QComboBox"))
      {
          QComboBox *cb = (QComboBox *)w;
-         cb->setCurrentText(getJsonValue(uname).toString());
+         QVariant nlv =  map.value(LIST);
+         if(nlv.isValid() )
+         {
+             // 处理图片列表与它的默认值.
+             QVariantList nlist = nlv.toList();
+             for(QVariantList::const_iterator it = nlist.begin();
+                     it != nlist.end();++it)
+             {
+                 // example for key  is  "config/images/string/alarm_pol.bmp"
+                 QString key = (*it).toString();
+                 int idx = key.lastIndexOf('/')+1;
+                 cb->addItem(key.mid(idx));
+             }
+             changeJsonValue(LIST,nlv);
+
+             foreach (QJsonValue val, dynValues[DKEY_DYN].toArray()) {
+                 QJsonObject qobj = val.toObject();
+                 if(qobj.contains(IMAGE))
+                 {
+                     QString defval  =qobj.value(IMAGE).toString();
+                     bool b = defval.contains('/');
+                     int idx =   defval.lastIndexOf( b ? '/' : '\\')+1;
+                     cb->setCurrentText(defval.mid(idx));
+                     break;
+                 }
+             }
+
+           // cb->setCurrentText("");
+
+         }else{
+            cb->setCurrentText(getJsonValue(uname).toString());
+         }
+
+
 
      }else if(!n.compare("QSpinBox"))
      {
@@ -100,8 +142,6 @@ QJsonObject Compoent::getRectJson(QWidget *w)
 
 void Compoent::copyProperty(const QVariant &va)
 {
-
-
     QJsonObject oo = QJsonValue::fromVariant(va).toObject();
     dynValues[DKEY_DYN] = QJsonValue::fromVariant(va);
 }
@@ -110,10 +150,7 @@ void Compoent::copyProperty(const QVariant &va)
 void NewLabel::onEnumItemChanged(QString txt)
 {
    QComboBox *cb =(QComboBox *)(QObject::sender());
-  // qDebug() << " Label enum value changed " << txt << cb->currentText();
    changeJsonValue(cb->objectName(),txt);
-  // dynValues[cb->objectName()] = txt;
-
 }
 
 void NewLabel::onNumberChanged(int num)
@@ -342,11 +379,17 @@ void NewLabel::onListImageChanged(QString img)
 {
    //  selectedMap sMap = this->property(IMAGELST).toMap();
   // QStringList selList = this->property(DKEY_IMAGELST).toStringList();
+
+   //QJsonArray dynarray = dynValues[DKEY_DYN].toArray();
+
    foreach (QString s, myImageList) {
        QString k = s.section(":",0,0);
        if(!k.compare(img))
        {
-           this->setPixmap(QPixmap(s.section(":",1,1)));/* 更新图片 */
+           QString fpath = s.section(":",1,1);
+           this->setPixmap(QPixmap(fpath));/* 更新图片 */
+           int idx = QDir::currentPath().length() + 1;
+           this->changeJsonValue(IMAGE,fpath.mid(idx));
            selIndex = myImageList.indexOf(s);
            break;
        }
@@ -372,19 +415,21 @@ void NewLabel::onPictureDialog(bool )
 
     disDefaultList = myImageList.size() ? true : false;
     ifd->deleteLater();
-    mWindow->imgPropertyWidget->updateImageComboBox(key,this->property(DKEY_IMGIDX).toInt(),myImageList);
-//    QComboBox *cb=0;
-//    foreach (QWidget *w, mWindow->imgPropertyWidget->findChildren<QWidget*>())
-//    {
-//        if(!w->objectName().compare(LISTIMAGE))
-//        {
-//          //  qDebug() << " found QComobox " << w->objectName();
-//            cb = (QComboBox *)w;
-//            cb->clear();
-//            break;
-//        }
-//    }
-//    updateComboItems(cb);
+    QJsonObject json;
+    int rootlen  = QDir::currentPath().length()+1;
+    QJsonArray qa;
+    qDebug() << " current path " << QDir::currentPath() << " len " << rootlen;
+    foreach (QString s, myImageList) {
+        // example for s   "alarm_du.bmp:/home/yjdwbj/build-ut-tools-Desktop_Qt_5_6_0_GCC_64bit-Debug/images/string/alarm_du.bmp
+
+        qDebug() << " image file path    "  << s;
+        QString substr = s.section(':',1,1).mid(rootlen).replace("\\","/");
+        qa.append(substr);
+    }
+    json[LIST] = qa;
+    // 把新的列表更新的json中.
+    onBindValue(mWindow->imgPropertyWidget->getPropertyObject(key),json.toVariantMap());
+    //mWindow->imgPropertyWidget->updateImageComboBox(key,this->property(DKEY_IMGIDX).toInt(),myImageList);
     this->blockSignals(true);
 
 }
@@ -471,14 +516,11 @@ void NewFrame::onXYWHChangedValue(int v)
     QWidget *sender =(QWidget *)(QObject::sender());
     if(!sender->objectName().compare(X))
     {
-
         QPoint pos = this->pos();
         pos.setX(v);
         move(pos);
-
     }else if(!sender->objectName().compare(Y))
     {
-
         QPoint pos = this->pos();
         pos.setY(v);
         move(pos );
@@ -539,8 +581,8 @@ NewLayout::NewLayout(QSize nsize,QWidget *parent):
 {
    // setFixedSize(nsize);
     setObjectName(LAYOUT);
-    setMinimumSize(nsize );
-    setMaximumSize(parent->size());
+    setMinimumSize(nsize ); // 最小尺寸
+    setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
     this->setObjectName(this->metaObject()->className());
     setFocusPolicy(Qt::ClickFocus);
     show();

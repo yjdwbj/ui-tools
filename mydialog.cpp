@@ -37,7 +37,7 @@ ImageFileDialog::ImageFileDialog(QStringList old, QWidget *parent)
     connect(add,SIGNAL(clicked(bool)),SLOT(onAddSelectedItems()));
 
 
-    QString imgpath = QDir::currentPath() + "/images";
+    QString imgpath = QDir::currentPath() + "/config/images";
     QFileInfo qf(imgpath);
     qDebug() << " images path " << imgpath;
     dirModel->setRootPath(imgpath);
@@ -75,7 +75,7 @@ ImageFileDialog::ImageFileDialog(QStringList old, QWidget *parent)
     mh->addWidget(treefile);
 
     this->setModal(true);
-    exec();
+   // exec();
 }
 
 void ImageFileDialog::onListViewDoubleClicked(QModelIndex index)

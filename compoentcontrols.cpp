@@ -155,12 +155,7 @@ ComProperty::ComProperty(QString title,QWidget *parent):
     scroll->setParent(this);
     hb->addWidget(scroll);
     scroll->setWidget(mainWidget);
-   // scroll->setWidgetResizable(true);
     mainWidget->setLayout(mainLayout);
-   // mainWidget->setFixedWidth(parent->size().width()-50);
-  //  pwidth = parent->width() - 20;
-    // mainWidget->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Fixed);
-  //  scroll->setAlignment(Qt::AlignLeft|Qt::AlignVCenter);
     scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
    // setTitle(tr("控件属性"));
@@ -226,9 +221,13 @@ void ComProperty::createPropertyBox(QWidget *p)
     mainLayout->addSpacing(1);
 
     QVariantList qvl = p->property(DKEY_DYN).toList();
+
+
     foreach(QVariant qv, qvl)
     {
 
+        QWidget *wid = 0;
+        QVariant val;
         if(qv.type() == QVariant::Map)
         {
             QVariantMap qvm = qv.toMap();
@@ -240,39 +239,34 @@ void ComProperty::createPropertyBox(QWidget *p)
                 cb->setObjectName(uname);
                 cb->setProperty(DKEY_CAPTION,caption);
                 cb->setProperty(DKEY_VALTYPE,ENUM);
-
-
                 QVariantList qvlist = qvm[ENUM].toList();
-
                 for(QVariantList::const_iterator it = qvlist.begin();
                     it != qvlist.end();++it)
                 {
-
                     cb->addItem((*it).toMap().firstKey());
                 }
                 QLabel * l = new QLabel(uname);
                 mainLayout->addWidget(l);
                 mainLayout->addWidget(cb);
-
-                if(!className.compare(CN_NEWFRAME))
-                {
-                    ((NewFrame*)p)->onBindValue(cb);
-                }else{
-                    ((NewLabel*)p)->onBindValue(cb);
-                }
+                wid = cb;
+//                if(!className.compare(CN_NEWFRAME))
+//                {
+//                    ((NewFrame*)p)->onBindValue(cb);
+//                }else{
+//                    ((NewLabel*)p)->onBindValue(cb);
+//                }
                 connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onEnumItemChanged(QString)));
 
             }else if(qvm.contains(LIST))
             {
-
                 QComboBox *cb = new QComboBox();
                 cb->setObjectName(uname);
                 cb->setProperty(DKEY_VALTYPE,LIST);
                 // 这里通过它的JSON组数的位置去找它.
               //  cb->setObjectName(LISTIMAGE);
-                p->setProperty(DKEY_IMGIDX,0); // 当前选择的行号
-                QString cbkey =QString("%1_%2").arg(uname,QString::number(ImgCbMap.size()));
-                ImgCbMap[cbkey] = cb;
+                //p->setProperty(DKEY_IMGIDX,0); // 当前选择的行号
+                QString cbkey =QString("%1_%2").arg(uname,QString::number(widgetMap.size()));
+                widgetMap[cbkey] = cb;
 
                 //QString uname =  qvm["-name"].toString();
                 QString className = p->metaObject()->className();
@@ -280,26 +274,38 @@ void ComProperty::createPropertyBox(QWidget *p)
                 if(!className.compare(CN_NEWLABEL))
                 {
                     NewLabel *nl = (NewLabel*)p;
-                    if(!nl->disDefaultList)
-                    {
-                        QVariantList qvlist = qvm[LIST].toList();
-                        for(QVariantList::const_iterator it = qvlist.begin();
-                            it != qvlist.end();++it)
-                        {
+                    QVariant nlv =  qvm.value(LIST);
 
-                            cb->addItem((*it).toString());//添加默认的列表到Combobox
-                        }
-                    }else{
-                        nl->updateComboItems(cb);
-                    }
-                }
+//                    if(qv.isValid() )
+//                    {
+//                        QVariantList nlist = nlv.toList();
+//                        for(QVariantList::const_iterator it = nlist.begin();
+//                                it != nlist.end();++it)
+//                        {
+//                            cb->addItem((*it).toString());
+//                        }
+//                    }
+//                    if(!nl->disDefaultList)
+//                    {
+//                        QVariantList qvlist = qvm[LIST].toList();
+//                        for(QVariantList::const_iterator it = qvlist.begin();
+//                            it != qvlist.end();++it)
+//                        {
 
-                if(!className.compare(CN_NEWFRAME))
-                {
-                    ((NewFrame*)p)->onBindValue(cb);
-                }else{
-                    ((NewLabel*)p)->onBindValue(cb);
+//                            cb->addItem((*it).toString());//添加默认的列表到Combobox
+//                        }
+//                    }else{
+//                        nl->updateComboItems(cb);
+//                    }
                 }
+                wid = cb;
+
+//                if(!className.compare(CN_NEWFRAME))
+//                {
+//                    ((NewFrame*)p)->onBindValue(cb);
+//                }else{
+//                    ((NewLabel*)p)->onBindValue(cb);
+//                }
 
                 QLabel * l = new QLabel(uname);
                 mainLayout->addWidget(l);
@@ -326,7 +332,6 @@ void ComProperty::createPropertyBox(QWidget *p)
 
                         mainLayout->addWidget(title);
                         QLabel *id = new QLabel(p->property(DKEY_UID).toString());
-
                         id->setStyleSheet("*{border: 0.5px solid gray;}");
                         id->setFixedHeight(labHeight);
                         mainLayout->addWidget(id);
@@ -344,13 +349,14 @@ void ComProperty::createPropertyBox(QWidget *p)
                         s->setProperty(DKEY_VALTYPE,NUMBER);
                         //要保存每一次修改过的值.
                         mainLayout->addWidget(s);
+                        wid = s;
 
-                        if(!className.compare(CN_NEWFRAME))
-                        {
-                            ((NewFrame*)p)->onBindValue(s);
-                        }else{
-                            ((NewLabel*)p)->onBindValue(s);
-                        }
+//                        if(!className.compare(CN_NEWFRAME))
+//                        {
+//                            ((NewFrame*)p)->onBindValue(s);
+//                        }else{
+//                            ((NewLabel*)p)->onBindValue(s);
+//                        }
 
                         if(qvm.contains(MAX))
                         {
@@ -372,13 +378,13 @@ void ComProperty::createPropertyBox(QWidget *p)
                             txt->setMaxLength(qvm[MAXLEN].toDouble());
                         }
 
-
-                        if(!className.compare(CN_NEWFRAME))
-                        {
-                            ((NewFrame*)p)->onBindValue(txt);
-                        }else{
-                            ((NewLabel*)p)->onBindValue(txt);
-                        }
+                        wid = txt;
+//                        if(!className.compare(CN_NEWFRAME))
+//                        {
+//                            ((NewFrame*)p)->onBindValue(txt);
+//                        }else{
+//                            ((NewLabel*)p)->onBindValue(txt);
+//                        }
                         QLabel * l = new QLabel(uname);
                         mainLayout->addWidget(l);
                         mainLayout->addWidget(txt);
@@ -387,6 +393,15 @@ void ComProperty::createPropertyBox(QWidget *p)
 
                     }
                 }
+            }
+
+            if(!wid)
+                continue;
+            if(!className.compare(CN_NEWFRAME))
+            {
+                ((NewFrame*)p)->onBindValue(wid,qvm);
+            }else{
+                ((NewLabel*)p)->onBindValue(wid,qvm);
             }
 
         }
@@ -399,7 +414,7 @@ void ComProperty::createPropertyBox(QWidget *p)
 
 void ComProperty::updateImageComboBox(QString key,int index , const QStringList &list)
 {
-   QComboBox *cb =    ImgCbMap.value(key,0);
+   QComboBox *cb = (QComboBox*)(widgetMap.value(key,0));
    if(!cb)
        return;
 
@@ -463,8 +478,8 @@ CompoentControls::CompoentControls(MainWindow *mw, QWidget *parent)
 
 
 
-    mJsonFile =  QDir::currentPath() + "/menu_strip.json";
-   // mJsonFile = QDir::currentPath() + "/control.json";
+   // mJsonFile =  QDir::currentPath() + "/menu_strip.json";
+    mJsonFile = QDir::currentPath() + "/control.json";
     qDebug() << " json file name " << mJsonFile;
     QFileInfo qfi(mJsonFile);
     if(!qfi.exists())
@@ -565,15 +580,10 @@ void CompoentControls::CreateButtonList()
     comLayout->setVerticalSpacing(1);
     comLayout->setHorizontalSpacing(1);
 
-
-
     QPushButton *l = new QPushButton(tr("布局"));
     l->setSizePolicy(mSizePolicy);
     connect(l,SIGNAL(clicked(bool)),SLOT(onCreateNewLayout()));
     v->addWidget(l);
-
-
-    // qDebug() << " compoents size " << comJsonArr.size();
     foreach (QJsonValue qjv, comJsonArr)
     {
         QVariantMap  qjm = qjv.toObject().toVariantMap();
@@ -621,18 +631,13 @@ void CompoentControls::onCreateCompoentToCanvas()
     //ww->setObjectName(QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
     ww->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
     activeLayout->appendChildObj(ww);
+    // 做treeWidget区分的名字.
     ProMap[ww->property(DKEY_LOCALSEQ).toString()] = ww;
-    // activeLayer->mNewFrameList.append(ww);
     comList.append(ww);
-
-    //this->parentWidget()->move(50,50);
-   // ww->addMainWindow(mWindow);
     ww->onSelectMe();
 
     // 找出图层,把新建的控件添加进去.
     mWindow->tree->addObjectToLayout(ww);
-    //  mWindow->tree->addItemToRoot(ww->objectName(),btn->text());
-
     ww->show();
 }
 
@@ -671,8 +676,6 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                 else if(!cval.compare(QLABEL))
                 {
                     NewFrame *np = (NewFrame*)pobj;
-
-                    // qDebug() << " NewLabel Property " << it.value().toMap();
                     nobj =qobject_cast<QObject*>(new NewLabel(np->m_frame));
                     if(qvm.contains(PROPERTY))
                     {
@@ -680,7 +683,6 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                         ((NewLabel*)nobj)->copyProperty(qvm[PROPERTY]);
                         // qDebug() << " NewLabel dyn property " << ((NewLabel*)nobj)->dynValues;
                     }
-                  //  nobj->setProperty(DKEY_CLSNAME,cval);
 
                 }
             }
@@ -811,11 +813,6 @@ void CompoentControls::onCreateNewLayout()
         NewLayout *nl =  ss->activeLayout();
         ProMap[nl->property(DKEY_LOCALSEQ).toString()] = nl;
         //comList.append(nl);
-
-       // mWindow->tree->addItemToRoot(nl->objectName(),btn->text());
         mWindow->tree->addItemToRoot(nl->property(DKEY_LOCALSEQ).toString(),btn->text());
     }
-    //  mWindow->cManager->activeSS()->createNewLayout();
-
-
 }

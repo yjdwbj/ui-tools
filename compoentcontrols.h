@@ -51,12 +51,14 @@ public:
     void createPropertyBox(QWidget *p);
     void delPropertyBox();
     void updateImageComboBox(QString key, int index, const QStringList &list);
+    QWidget* getPropertyObject(QString key) const { return widgetMap.value(key);}
+
 private:
     // QGroupBox *CreateXYWHGBox(QWidget *p);
      QVBoxLayout* mainLayout;
      QWidget *mainWidget;
      QWidget *oldobject;
-     QMap<QString,QComboBox*> ImgCbMap;
+     QMap<QString,QWidget*> widgetMap;  // 预备着多个同类型的控件区分.
 
 };
 
