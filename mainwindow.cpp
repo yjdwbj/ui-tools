@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 
     ui->setupUi(this);
-    lDock = ui->dockWidget;
+   // lDock = ui->dockWidget;
     cManager = new CanvasManager(this);
      posWidget = new Position(this);
     propertyWidget = new ComProperty("控件属性",this) ;
@@ -35,24 +35,27 @@ MainWindow::MainWindow(QWidget *parent) :
   //  QApplication::setStyle(QStyleFactory::create("Fusion"));
 
     // 左边属性框
-//    lDock = new QDockWidget();
-//    lDock->setStyleSheet("QWidget{border: 0.5px solid red;}");
-//    lDock->setEnabled(false);
-//    lDock->setAllowedAreas( Qt::LeftDockWidgetArea);
-//    lDock->setFeatures(QDockWidget::NoDockWidgetFeatures);
-//    lDock->setFixedWidth(this->size().width() * 0.20);
-//    lDock->setObjectName("LeftDock");
+    lDock = new QDockWidget();
+   // lDock->setStyleSheet("QWidget{border: 0.5px solid red;}");
+    lDock->setEnabled(false);
+    lDock->setAllowedAreas( Qt::LeftDockWidgetArea);
+    lDock->setFeatures(QDockWidget::DockWidgetVerticalTitleBar);
+    lDock->setFixedWidth(this->size().width() * 0.14);
+    lDock->setObjectName("LeftDock");
 
 
 
    // QWidget *lDockWidget = new QWidget(lDock);
-    ui->dockWidget->setFixedWidth(this->width()*0.12);
-    ui->dockWidget->setEnabled(false);
+//    ui->dockWidget->setFixedWidth(this->width()*0.12);
+//    ui->dockWidget->setEnabled(false);
+
+   // ui->dockWidget->move(0,0);
+   // ui->dockWidget->setFeatures(QDockWidget::DockWidgetVerticalTitleBar);
 
     //　qDockWidget 下面必需要发放一个QWidget ,　才能显示控件.
-    QWidget *lDockWidget = new QWidget(ui->dockWidget);
+    QWidget *lDockWidget = new QWidget(lDock);
 
-    ui->dockWidget->setWidget(lDockWidget);
+    lDock->setWidget(lDockWidget);
     lDockWidget->setObjectName("lDockWidget");
     lDockWidget->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
     QVBoxLayout *leftLayout = new QVBoxLayout(lDockWidget);
@@ -61,7 +64,7 @@ MainWindow::MainWindow(QWidget *parent) :
    // leftLayout->setSizeConstraint(QLayout::SetFixedSize);
     lDockWidget->setLayout(leftLayout);
 
-    ComCtrl = new  CompoentControls(this,ui->dockWidget);
+    ComCtrl = new  CompoentControls(this,lDock);
     leftLayout->addWidget(ComCtrl);
     leftLayout->addWidget(posWidget);
 
@@ -74,17 +77,19 @@ MainWindow::MainWindow(QWidget *parent) :
     leftLayout->addWidget(imgPropertyWidget);
 
 
-   // addDockWidget(Qt::LeftDockWidgetArea, lDock);
+
     tree = new TreeDock(this);
     // 左边两个并排的QDockWidget
-    splitDockWidget(ui->dockWidget,tree,Qt::Horizontal);
+    addDockWidget(Qt::LeftDockWidgetArea, tree);
+   splitDockWidget(tree,lDock,Qt::Horizontal);
 
 
     //　右边的截图页面.
     pageView = new PageView(this);
+   // pageView->setFloating(true);
     pageView->addMainWindow(this);
     pageView->setAllowedAreas( Qt::RightDockWidgetArea);
-    pageView->setFeatures(QDockWidget::NoDockWidgetFeatures);
+    pageView->setFeatures(QDockWidget::DockWidgetVerticalTitleBar);
 
     addDockWidget(Qt::RightDockWidgetArea,pageView);
 

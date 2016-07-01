@@ -103,6 +103,7 @@ this->setWidget(treeWidget);
 setFixedHeight(mWindow->size().height()-50);
 setFixedWidth(200);
 treeWidget->setFixedHeight(mWindow->size().height()-80);
+//setFeatures(QDockWidget::DockWidgetVerticalTitleBar);
 
 
 }

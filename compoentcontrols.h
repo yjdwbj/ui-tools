@@ -77,13 +77,13 @@ private:
      MainWindow *mWindow;
      QVariantMap mJsonMap;
      //QGridLayout* mainLayout;
-     QHBoxLayout* mainLayout;
+     QVBoxLayout* mainLayout;
      QString mJsonFile;
      QWidgetList comList;
      QJsonArray comJsonArr;
      QMap<QString,QVariantMap> comMap;
      QMap<QString,FormResizer*> ProMap; // 新生成的控件.
-     QSizePolicy mSizePolicy;
+     //QSizePolicy mSizePolicy;
 
      void CreateButtonList();
      QWidget *getQWidgetByName(QString name) const;

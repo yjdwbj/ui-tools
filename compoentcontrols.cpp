@@ -20,6 +20,7 @@ Position::Position( QWidget *parent)
       old(0)
 {
     setTitle(tr("坐标位置"));
+    setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");
    // setFixedHeight((parent->width()-50)*0.1);
     QGridLayout *xywh = new QGridLayout();
     xywh->setSpacing(2);
@@ -143,11 +144,11 @@ ComProperty::ComProperty(QString title,QWidget *parent):
 
 {
     setTitle(title);
-
+    setStyleSheet("QGroupBox,QLabel,QScrollArea,QWidget{background-color: #C0DCC0;}");
     this->setFixedHeight((parent->height()-50) * 0.3);
     this->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
     QHBoxLayout *hb = new QHBoxLayout(this);
-    hb->setSpacing(1);
+    hb->setSpacing(0);
     this->setLayout(hb);
     mainWidget = new QWidget();
 
@@ -184,28 +185,9 @@ void ComProperty::createPropertyBox(QWidget *p)
    // QString nkeyuid ;
     if(mainLayout)
     {
-//        if(!CN_NEWLAYOUT.compare(className))
-//        {
-//            nkeyuid = p->objectName();
-//            if(!mainLayout->property(DKEY_UID).toString().compare(nkeyuid))
-//            {
-//                return;
-//            }
-
-//        }else if(!CN_NEWFRAME.compare(className))
-//        {
-//            nkeyuid = p->property(DKEY_UID).toString();
-//            if(!mainLayout->property(DKEY_UID).toString().compare(nkeyuid))
-//            {
-//                return;
-//            }
-
-//        }else if(!CN_NEWLABEL.compare(className))
-//        {
-
-//        }
         removeWidFromLayout(mainLayout);
         delete mainLayout;
+        mainLayout = 0;
     }
 
 
@@ -218,7 +200,7 @@ void ComProperty::createPropertyBox(QWidget *p)
     mainWidget->setLayout(mainLayout);
 
     mainLayout->setObjectName(COMGRPLYT);
-    mainLayout->addSpacing(1);
+    mainLayout->addSpacing(0);
 
     QVariantList qvl = p->property(DKEY_DYN).toList();
 
@@ -249,12 +231,6 @@ void ComProperty::createPropertyBox(QWidget *p)
                 mainLayout->addWidget(l);
                 mainLayout->addWidget(cb);
                 wid = cb;
-//                if(!className.compare(CN_NEWFRAME))
-//                {
-//                    ((NewFrame*)p)->onBindValue(cb);
-//                }else{
-//                    ((NewLabel*)p)->onBindValue(cb);
-//                }
                 connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onEnumItemChanged(QString)));
 
             }else if(qvm.contains(LIST))
@@ -267,46 +243,8 @@ void ComProperty::createPropertyBox(QWidget *p)
                 //p->setProperty(DKEY_IMGIDX,0); // 当前选择的行号
                 QString cbkey =QString("%1_%2").arg(uname,QString::number(widgetMap.size()));
                 widgetMap[cbkey] = cb;
-
-                //QString uname =  qvm["-name"].toString();
-                QString className = p->metaObject()->className();
-               // QString fk = "";
-                if(!className.compare(CN_NEWLABEL))
-                {
-                    NewLabel *nl = (NewLabel*)p;
-                    QVariant nlv =  qvm.value(LIST);
-
-//                    if(qv.isValid() )
-//                    {
-//                        QVariantList nlist = nlv.toList();
-//                        for(QVariantList::const_iterator it = nlist.begin();
-//                                it != nlist.end();++it)
-//                        {
-//                            cb->addItem((*it).toString());
-//                        }
-//                    }
-//                    if(!nl->disDefaultList)
-//                    {
-//                        QVariantList qvlist = qvm[LIST].toList();
-//                        for(QVariantList::const_iterator it = qvlist.begin();
-//                            it != qvlist.end();++it)
-//                        {
-
-//                            cb->addItem((*it).toString());//添加默认的列表到Combobox
-//                        }
-//                    }else{
-//                        nl->updateComboItems(cb);
-//                    }
-                }
+              //  QString className = p->metaObject()->className();
                 wid = cb;
-
-//                if(!className.compare(CN_NEWFRAME))
-//                {
-//                    ((NewFrame*)p)->onBindValue(cb);
-//                }else{
-//                    ((NewLabel*)p)->onBindValue(cb);
-//                }
-
                 QLabel * l = new QLabel(uname);
                 mainLayout->addWidget(l);
                 QPushButton *b = new QPushButton(tr("添加图片"));
@@ -351,13 +289,6 @@ void ComProperty::createPropertyBox(QWidget *p)
                         mainLayout->addWidget(s);
                         wid = s;
 
-//                        if(!className.compare(CN_NEWFRAME))
-//                        {
-//                            ((NewFrame*)p)->onBindValue(s);
-//                        }else{
-//                            ((NewLabel*)p)->onBindValue(s);
-//                        }
-
                         if(qvm.contains(MAX))
                         {
                             s->setMaximum(qvm[MAX].toInt());
@@ -379,12 +310,6 @@ void ComProperty::createPropertyBox(QWidget *p)
                         }
 
                         wid = txt;
-//                        if(!className.compare(CN_NEWFRAME))
-//                        {
-//                            ((NewFrame*)p)->onBindValue(txt);
-//                        }else{
-//                            ((NewLabel*)p)->onBindValue(txt);
-//                        }
                         QLabel * l = new QLabel(uname);
                         mainLayout->addWidget(l);
                         mainLayout->addWidget(txt);
@@ -450,7 +375,7 @@ void removeWidFromLayout(QLayout *layout)
 
 CompoentControls::CompoentControls(MainWindow *mw, QWidget *parent)
     : QGroupBox(parent),
-      mainLayout(new QHBoxLayout()),
+      mainLayout(new QVBoxLayout()),
       mWindow(mw)
 {
 
@@ -460,21 +385,29 @@ CompoentControls::CompoentControls(MainWindow *mw, QWidget *parent)
 
     setTitle(tr("控件列表"));
     setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");
+    this->setLayout(mainLayout);
 
-    QScrollArea *scroll = new QScrollArea();
-    scroll->setWidget(this);
-    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
-    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+//    QHBoxLayout *hb = new QHBoxLayout(this);
+//    hb->setSpacing(0);
+//    this->setLayout(hb);
+//    QWidget *mainWidget = new QWidget();
+
+
+//    QScrollArea *scroll = new QScrollArea();
+//    hb->addWidget(scroll);
+//    scroll->setWidget(mainWidget);
+//    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+//    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
 
     //QGridLayout *mainLayout = new QGridLayout();
-    this->setLayout(mainLayout);
-    mainLayout->setContentsMargins(0,50,0,0);
+   // mainWidget->setLayout(mainLayout);
+   // mainLayout->setContentsMargins(0,50,0,0);
     mainLayout->setSpacing(1);
     mainLayout->setSizeConstraint(QLayout::SetFixedSize);
     this->setFixedHeight(200);
 
-    mSizePolicy.setVerticalPolicy(QSizePolicy::Preferred);
+   // mSizePolicy.setVerticalPolicy(QSizePolicy::Preferred);
 
 
 
@@ -572,18 +505,22 @@ void CompoentControls::CreateButtonList()
 
 
     QGridLayout *comLayout = new QGridLayout();
-    mainLayout->addLayout(comLayout);
+
     // mainLayout->addWidget(new QPushButton());
     QVBoxLayout *v = new QVBoxLayout();
     mainLayout->addLayout(v);
+    mainLayout->addLayout(comLayout);
+    comLayout->setSizeConstraint(QLayout::SetFixedSize);
 
     comLayout->setVerticalSpacing(1);
     comLayout->setHorizontalSpacing(1);
 
     QPushButton *l = new QPushButton(tr("布局"));
-    l->setSizePolicy(mSizePolicy);
+
+    //l->setSizePolicy(mSizePolicy);
     connect(l,SIGNAL(clicked(bool)),SLOT(onCreateNewLayout()));
     v->addWidget(l);
+
     foreach (QJsonValue qjv, comJsonArr)
     {
         QVariantMap  qjm = qjv.toObject().toVariantMap();
@@ -594,23 +531,23 @@ void CompoentControls::CreateButtonList()
         QPushButton *btnTest = new QPushButton(caption);
         btnTest->setProperty(DKEY_CATEGORY,objname);
 
-        btnTest->setSizePolicy(mSizePolicy);
+       // btnTest->setSizePolicy(mSizePolicy);
         if(qjm.contains(ICON))
             btnTest->setIcon(QIcon(qjv.toObject()[ICON].toString()));
 
-        btnTest->setFixedSize(40,40);
+       // btnTest->setFixedSize(40,40);
         if(col == 2)
         {
             col = 0;
             row++;
         }
-        comLayout->addWidget(btnTest,row,col++,1,1);
+        comLayout->addWidget(btnTest,row,col++);
         connect(btnTest,SIGNAL(clicked(bool)),this,SLOT(onCreateCompoentToCanvas()));
 
     }
     //  comLayout->setRowStretch(row,0);
-    QSpacerItem *verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
-    comLayout->addItem(verticalSpacer,++row,0,1,1);
+//    QSpacerItem *verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+//    comLayout->addItem(verticalSpacer,++row,0,1,1);
 }
 
 void CompoentControls::onCreateCompoentToCanvas()
@@ -620,7 +557,7 @@ void CompoentControls::onCreateCompoentToCanvas()
     NewLayout *activeLayout = mWindow->cManager->activeSS()->activeLayout();
     if(!activeLayout)
     {
-        QMessageBox::warning(this,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
+        QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
         return;
     }
 
@@ -635,7 +572,6 @@ void CompoentControls::onCreateCompoentToCanvas()
     ProMap[ww->property(DKEY_LOCALSEQ).toString()] = ww;
     comList.append(ww);
     ww->onSelectMe();
-
     // 找出图层,把新建的控件添加进去.
     mWindow->tree->addObjectToLayout(ww);
     ww->show();

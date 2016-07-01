@@ -89,13 +89,15 @@ void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
          if(nlv.isValid() )
          {
              // 处理图片列表与它的默认值.
+             cb->clear();
              QVariantList nlist = nlv.toList();
              for(QVariantList::const_iterator it = nlist.begin();
                      it != nlist.end();++it)
              {
                  // example for key  is  "config/images/string/alarm_pol.bmp"
                  QString key = (*it).toString();
-                 int idx = key.lastIndexOf('/')+1;
+                 bool b = key.contains('/');
+                 int idx = key.lastIndexOf(b ? '/' : '\\')+1;
                  cb->addItem(key.mid(idx));
              }
              changeJsonValue(LIST,nlv);
@@ -107,6 +109,7 @@ void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
                      QString defval  =qobj.value(IMAGE).toString();
                      bool b = defval.contains('/');
                      int idx =   defval.lastIndexOf( b ? '/' : '\\')+1;
+                     qDebug() << " s " << defval.mid(idx)  << cb->count();
                      cb->setCurrentText(defval.mid(idx));
                      break;
                  }
@@ -302,6 +305,7 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
     clearOtherObjectStyleSheet();
     mWindow->posWidget->setConnectNewQWidget(p);
     mWindow->propertyWidget->createPropertyBox(p);
+    mWindow->imgPropertyWidget->delPropertyBox();
     mOffset = ev->pos();
     setCursor(Qt::ClosedHandCursor);
 }
@@ -377,11 +381,6 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 
 void NewLabel::onListImageChanged(QString img)
 {
-   //  selectedMap sMap = this->property(IMAGELST).toMap();
-  // QStringList selList = this->property(DKEY_IMAGELST).toStringList();
-
-   //QJsonArray dynarray = dynValues[DKEY_DYN].toArray();
-
    foreach (QString s, myImageList) {
        QString k = s.section(":",0,0);
        if(!k.compare(img))
@@ -418,11 +417,11 @@ void NewLabel::onPictureDialog(bool )
     QJsonObject json;
     int rootlen  = QDir::currentPath().length()+1;
     QJsonArray qa;
-    qDebug() << " current path " << QDir::currentPath() << " len " << rootlen;
+   // qDebug() << " current path " << QDir::currentPath() << " len " << rootlen;
     foreach (QString s, myImageList) {
         // example for s   "alarm_du.bmp:/home/yjdwbj/build-ut-tools-Desktop_Qt_5_6_0_GCC_64bit-Debug/images/string/alarm_du.bmp
 
-        qDebug() << " image file path    "  << s;
+       // qDebug() << " image file path    "  << s;
         QString substr = s.section(':',1,1).mid(rootlen).replace("\\","/");
         qa.append(substr);
     }
@@ -488,10 +487,10 @@ void NewFrame::onSelectMe()
   //  setStyleSheet("NewFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
     clearOtherObjectStyleSheet();
     mWindow->cManager->activeSS()->setSelectObject(this);
-
-    this->setState(SelectionHandleActive);
+   // this->setState(SelectionHandleActive);
     mWindow->posWidget->setConnectNewQWidget(this);
     mWindow->propertyWidget->createPropertyBox(this);
+    mWindow->imgPropertyWidget->delPropertyBox();
     this->blockSignals(true);
 }
 
