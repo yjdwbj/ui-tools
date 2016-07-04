@@ -19,7 +19,8 @@ CanvasManager::CanvasManager(MainWindow *w):
     newPrj(new QPushButton(tr("新建工程"))),
     newPage(new QPushButton(tr("新建页面"))),
     delPage(new QPushButton(tr("删除当前页"))),
-    savePrj(new QPushButton(tr("保存工程")))
+    savePrj(new QPushButton(tr("保存工程"))),
+    PrjIsChanged(false)
 {
     // w->ui->centralWidget;
     newPage->setEnabled(false);
@@ -33,11 +34,16 @@ CanvasManager::CanvasManager(MainWindow *w):
     mWindow->centralWidget()->setLayout(stack);
     // 按屏幕的大小比例调整.
     stackRect = QRect( QPoint(mWindow->width() * 0.12,mWindow->height()* 0.3),mPageSize);
-    mWindow->centralWidget()->setGeometry(stackRect);
+   // mWindow->centralWidget()->setGeometry(stackRect);
+
     connect(newPrj,SIGNAL(clicked(bool)),SLOT(onCreateNewProject()));
     connect(newPage,SIGNAL(clicked(bool)),SLOT(onCreateNewScenesScreen()));
     connect(delPage,SIGNAL(clicked(bool)),SLOT(onDelCurrentScenesScreen()));
     connect(savePrj,SIGNAL(clicked(bool)),SLOT(onSaveProject()));
+    qDebug() << "centralWidget pos" << mWindow->centralWidget()->geometry()
+             << " stack pos " << stackRect;
+    //stack->setGeometry(stackRect);
+   // stack->update();
 }
 
 
@@ -70,7 +76,7 @@ void CanvasManager::screenshot()
 
 }
 
-void CanvasManager::createNewCanvas()
+ScenesScreen * CanvasManager::createNewCanvas()
 {
     screenshot();
     ScenesScreen *Scenes = new ScenesScreen(mPageSize);
@@ -89,7 +95,7 @@ void CanvasManager::createNewCanvas()
     stack->setGeometry(stackRect);
     // 清理treeWidget 的行
     mWindow->tree->deleteAllitem();
-
+    return Scenes;
 }
 
 ScenesScreen *CanvasManager::activeSS()
@@ -97,14 +103,24 @@ ScenesScreen *CanvasManager::activeSS()
     return (ScenesScreen*)(stack->currentWidget());
 }
 
+int CanvasManager::activeIndex()
+{
+
+
+    return stack->currentIndex();
+}
+
 void CanvasManager::setActiveSS(int index)
 {
+
+    qDebug() << "centralWidget pos" << mWindow->centralWidget()->geometry()
+             << " this pos " << stack->geometry();
     if(index < mCanvasList.size())
     {
       //  qDebug() << " show previous object" << index;
         screenshot();
         stack->setCurrentIndex(index);
-        stack->setGeometry(stackRect);
+
 
         // 清理treeWidget 的行
         mWindow->tree->deleteAllitem();
@@ -119,12 +135,29 @@ void CanvasManager::setActiveSS(int index)
                 mWindow->tree->addObjectToLayout(ww);
             }
         }
+        stack->setGeometry(stackRect);
 
     }
+   // mWindow->centralWidget()->update();
+
 }
 
 
-
+void CanvasManager::deleteCurrentPage()
+{
+    ScenesScreen *ss = this->activeSS();
+    if(ss)
+    {
+        int index = stack->currentIndex();
+        stack->removeWidget(ss);
+        mWindow->pageView->delPage(index);
+        mWindow->tree->deleteAllitem();
+        mCanvasList.removeAt(index);
+        //ss->deleteLater();
+        ss->delAllObjects();
+        delPage->setEnabled(stack->count() == 0 ? false : true);
+    }
+}
 
 void CanvasManager::onDelCurrentScenesScreen()
 {
@@ -140,36 +173,54 @@ void CanvasManager::onDelCurrentScenesScreen()
   //  qDebug() << " QMessageBox result " << ret;
     if(ret == QMessageBox::Yes)
     {
-        // cManager->deleteCurrentPage();
-        ScenesScreen *ss = this->activeSS();
 
-        if(ss)
-        {
-            int index = stack->currentIndex();
-            stack->removeWidget(ss);
-            mWindow->pageView->delPage(index);
-            mWindow->tree->deleteAllitem();
-            mCanvasList.removeAt(index);
-            //ss->deleteLater();
-            ss->delAllObjects();
-            delPage->setEnabled(stack->count() == 0 ? false : true);
-        }
+        deleteCurrentPage();
     }
 
 }
 
 void CanvasManager::onCreateNewProject()
 {
+
+    if(PrjIsChanged)
+    {
+        // 当前工程有修改还没有保存.
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("新建工程提示");
+        msgBox.setText("当前编辑的工程有新的修改没有保存,选请择<保存>进行保存.");
+        // msgBox.setInformativeText("Do you want to save your changes?");
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+        msgBox.setButtonText(QMessageBox::Yes,"保存");
+        msgBox.setButtonText(QMessageBox::Cancel,"取消");
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+        int ret = msgBox.exec();
+        //qDebug() << " QMessageBox result " << ret;
+        if(ret == QMessageBox::Yes)
+        {
+            //　需要保存
+            onSaveProject();
+        }
+    }
+    closeCurrentProject(); // 关闭当前工程.
     ProjectDialog *pd = new ProjectDialog(mWindow);
     pd->exec();
     // qDebug() << " ProjectDialog result " << pd->result();
     newPage->setEnabled(pd->result());
     savePrj->setEnabled(pd->result());
     pd->deleteLater();
-    onCreateNewScenesScreen();
+    if(pd->result())
+    {
+        onCreateNewScenesScreen();
+    }
+
 }
 
-
+void CanvasManager::closeCurrentProject()
+{
+    foreach (QWidget *w, mCanvasList) {
+       deleteCurrentPage();
+    }
+}
 
 void CanvasManager::onCreateNewScenesScreen()
 {
@@ -179,7 +230,20 @@ void CanvasManager::onCreateNewScenesScreen()
 
 void CanvasManager::onSaveProject()
 {
-    QFile saveFile(QStringLiteral("save.json"));
+
+    QVariant prjvar = mWindow->globalSet->value(INI_PRJLAST);
+    QFile saveFile;
+    if(prjvar.isValid())
+    {
+
+        saveFile.setFileName(prjvar.toString());
+    }
+    else
+    {
+        saveFile.setFileName("save.json");
+    }
+    mWindow->globalSet->setValue(INI_PRJLAST,saveFile.fileName());
+//    QFile saveFile(QStringLiteral("save.json"));
 
 
     if (!saveFile.open(QIODevice::WriteOnly)) {
@@ -187,18 +251,54 @@ void CanvasManager::onSaveProject()
 
     }
 
+
     QJsonArray CanvasArray;
    // QJsonObject root;
     foreach (QWidget *w, mCanvasList) {
         QJsonObject CanvasObj;
-       CanvasObj[NAME] = w->objectName();
+       CanvasObj[NAME] = w->metaObject()->className();
        ((ScenesScreen*)w)->writeToJson(CanvasObj);
        CanvasArray.append(CanvasObj);
       // qDebug() << "CanvasObj json  " << CanvasObj;
 
     }
-    QJsonDocument jsonDoc(CanvasArray);
+    QJsonObject obj;
+    obj[NAME] = mWindow->windowTitle();
+    obj[ACTPAGE] = stack->currentIndex();
+    obj[PAGES] = CanvasArray;
+    QJsonDocument jsonDoc(obj);
     saveFile.write(jsonDoc.toJson());
+}
 
 
+
+void CanvasManager::readProjectJson(const QJsonArray &array)
+{
+    bool readflag = false;
+    foreach (QJsonValue val, array) {
+        readflag = true;
+        QVariantMap  qjm = val.toObject().toVariantMap();
+        // 创建一个页面.
+        switch (val.type()) {
+        case QJsonValue::Object:
+        {
+                QJsonObject valobj = val.toObject();
+                QSize valsize(valobj[SIZE].toObject()[WIDTH].toString().toInt(),
+                              valobj[SIZE].toObject()[HEIGHT].toString().toInt());
+                setDefaultPageSize(valsize);
+                ScenesScreen *Scenes = createNewCanvas();
+                // 递归读取它的页面.
+                Scenes->readLayout(valobj[CN_SSNAME].toArray());
+        }
+
+            break;
+        default:
+            break;
+        }
+
+    }
+
+    newPage->setEnabled(readflag);
+    savePrj->setEnabled(readflag);
+    delPage->setEnabled(readflag);
 }

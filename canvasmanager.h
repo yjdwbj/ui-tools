@@ -15,22 +15,27 @@ class CanvasManager : public QObject
     Q_OBJECT
     Q_PROPERTY(QSize mPageSize READ getDefaultPageSize WRITE setDefaultPageSize)
 
+    friend class ScenesScreen;
 public:
     CanvasManager(MainWindow *w);
-    void createNewCanvas();
+    ScenesScreen *createNewCanvas();
     ScenesScreen *activeSS();
+    int activeIndex();
     void deleteCanvas(int index);
     void deleteCanvas(ScenesScreen *ss);
     void setActiveSS(int index);
     void setActiveSS(ScenesScreen *ss) { currentSS =ss;}
     void setDefaultPageSize(QSize s) { mPageSize = s;}
+    void closeCurrentProject();
 
     void deleteCurrentPage();
+    void readProjectJson(const QJsonArray &array);
 
     QSize getDefaultPageSize() { return mPageSize;}
 
     QStackedLayout *stack;
     MainWindow *mWindow;
+    bool PrjIsChanged;
 
 private slots:
     void onCreateNewProject();
@@ -49,6 +54,7 @@ private:
     QSize mPageSize;
 
     QPushButton *newPrj,*newPage,*delPage,*savePrj;
+    QString PrjJsonPath;
 
 };
 

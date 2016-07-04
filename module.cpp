@@ -558,9 +558,9 @@ void NewFrame::writeToJson(QJsonObject &json)
             ov[KEY_RECT] = getRectJson(this)[KEY_RECT];
             projson[i] = ov;
 
-        }else if(ov.contains("id"))
+        }else if(ov.contains(UID))
         {
-            ov["id"] = this->property(DKEY_UID).toString();
+            ov[UID] = this->property(DKEY_UID).toString();
             projson[i] = ov;
 
         }
@@ -579,10 +579,11 @@ NewLayout::NewLayout(QSize nsize,QWidget *parent):
     FormResizer(parent)
 {
    // setFixedSize(nsize);
-    setObjectName(LAYOUT);
+    //setObjectName(LAYOUT);
     setMinimumSize(nsize ); // 最小尺寸
     setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
     this->setObjectName(this->metaObject()->className());
+    setStyleSheet("NewLayout#%s{border: 0.5px solid #929292;}" % LAYOUT);
     setFocusPolicy(Qt::ClickFocus);
     show();
 }
@@ -653,10 +654,19 @@ void NewLayout::onXYWHChangedValue(int v)
 
 void NewLayout::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() != Qt::LeftButton)
-        return;
-    mOffset = event->pos();
-    onSelectMe();
+    if (event->button() == Qt::LeftButton)
+    {
+        mOffset = event->pos();
+        onSelectMe();
+    }else if(event->button() == Qt::RightButton)
+    {
+        QMenu *contextMenu = new QMenu(this);
+        QAction delme("删除当前布局",this);
+        connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
+        contextMenu->addAction(&delme);
+
+        contextMenu->exec(mapToGlobal(event->pos()));
+    }
 
 }
 void NewLayout::mouseMoveEvent(QMouseEvent *event)
@@ -668,6 +678,15 @@ void NewLayout::mouseMoveEvent(QMouseEvent *event)
         mWindow->posWidget->updatePosition(this->pos());
         this->blockSignals(true);
     }
+
+}
+
+void NewLayout::onDeleteMe()
+{
+    //这里不能绕过它的父控件.
+
+    //delMySelf();
+    mWindow->cManager->activeSS()->delSelectedLayout();
 
 }
 
@@ -770,6 +789,7 @@ void NewLayout::writeToJson(QJsonObject &json)
         // 这一句必需要在这个偱环后面.
         json[LAYOUT] = layoutarr;
         json[CLASS] = this->metaObject()->className();
+        json[CAPTION] = this->property(DKEY_LOCALSEQ).toString();
         QJsonArray projson;
 
         QVariantMap vmap ;
@@ -784,5 +804,32 @@ void NewLayout::writeToJson(QJsonObject &json)
         projson.append(rect);
         json[PROPERTY] = projson;
       //  qDebug() << " NewLayout array " << layoutarr;
+}
 
+void NewLayout::readFromJson(const QJsonArray &array)
+{
+    foreach (QJsonValue val, array) {
+        switch (val.type()) {
+        case QJsonValue::Object:
+        {
+            QJsonObject valobj = val.toObject();
+             NewFrame *nf =  mWindow->ComCtrl->ReadObjectFromJson(valobj.toVariantMap(),m_frame,
+                                                 valobj[CAPTION].toString(),valobj[NAME].toString());
+
+             foreach (QJsonValue pval, valobj[PROPERTY].toArray()) {
+                 QJsonObject pobj = pval.toObject();
+                 if(pobj.contains(UID))
+                 {
+                     nf->setProperty(DKEY_UID,pobj[UID].toString());
+                 }
+             }
+             nf->onSelectMe();
+
+        }
+
+            break;
+        default:
+            break;
+        }
+    }
 }

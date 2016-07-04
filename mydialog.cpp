@@ -200,22 +200,38 @@ ProjectDialog::ProjectDialog(QWidget *parent):QDialog(parent),ui(new Ui::Project
     connect(this,SIGNAL(accepted()),SLOT(onAccepted()));
     connect(this,SIGNAL(rejected()),SLOT(onRejected()));
     connect(this,SIGNAL(finished(int)),SLOT(onFinished(int)));
-    QSize pdsize(430,360);
+    QVariant sizeVar =  mWindow->globalSet->value(INI_PRJSIZE);
+     int w,h;
+    if(sizeVar.isValid())
+    {
+        QString prjsize = sizeVar.toString();
+        w = prjsize.section("*",0,0).toInt();
+        h = prjsize.section("*",1,1).toInt();
+
+    }else{
+        w = 128;
+        h = 128;
+    }
+
+    QSize pdsize(w,h);
     ui->spinBox->setMinimum(64);
     ui->spinBox_2->setMinimum(64);
     ui->spinBox->setMaximum(parent->width()*0.8);
     ui->spinBox_2->setMaximum(parent->height()*0.8);
-    QSize ds = mWindow->cManager->getDefaultPageSize();
+    ui->spinBox->setValue(w);
+    ui->spinBox_2->setValue(h);
 
-    if(ds.width() > pdsize.width() && ds.height() > pdsize.height())
-    {
-        // 记住上次的输入
-        ui->spinBox->setValue(ds.width());
-        ui->spinBox_2->setValue(ds.height());
-    }else{
-        ui->spinBox->setValue(pdsize.width());
-        ui->spinBox_2->setValue(pdsize.height());
-    }
+//    QSize ds = mWindow->cManager->getDefaultPageSize();
+
+//    if(ds.width() > pdsize.width() && ds.height() > pdsize.height())
+//    {
+//        // 记住上次的输入
+//        ui->spinBox->setValue(ds.width());
+//        ui->spinBox_2->setValue(ds.height());
+//    }else{
+//        ui->spinBox->setValue(pdsize.width());
+//        ui->spinBox_2->setValue(pdsize.height());
+//    }
 
 
 
@@ -251,6 +267,10 @@ void ProjectDialog::onAccepted()
 
 
        mWindow->cManager->setDefaultPageSize(QSize(ui->spinBox->value(),ui->spinBox_2->value()));
+       mWindow->globalSet->setValue(INI_PRJSIZE,
+                                   QString("%1*%2").arg(QString::number(ui->spinBox->value()),
+                                                       QString::number(ui->spinBox_2->value())));
+       mWindow->setWindowTitle(ui->lineEdit->text());
 }
 
 void ProjectDialog::onRejected()

@@ -26,6 +26,8 @@ public:
     void setActiveIdx(int index) { mActiveIdx = index;}
     void setSelectObject(FormResizer *obj);
     void delSelectedLayout();
+
+    void readLayout(const QJsonArray &array);
    // void delSelectedObject();
 
     void writeToJson(QJsonObject &json);
@@ -39,12 +41,14 @@ public:
 signals:
 
 public slots:
+    void onDeleteMySelf();
 
 private:
    void keyReleaseEvent(QKeyEvent *);
    int mActiveIdx; //  当前激活的图层.
    QWidget *activeObj;
-
+protected:
+   void mousePressEvent(QMouseEvent *);
 
 };
 

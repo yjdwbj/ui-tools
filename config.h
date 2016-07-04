@@ -35,6 +35,9 @@ static QString ICON = "icon";
 static QString NUMBER ="number";
 static QString TEXT = "text";
 static QString MAXLEN = "maxlength";
+static QString ACTPAGE = "activePage";
+static QString PAGES = "pages";
+static QString UID = "id";
 
 
 static const char  DKEY_CAPTION[] = "caption";
@@ -52,9 +55,19 @@ static const char DKEY_TXT[] = "ViewName";
 static const char DKEY_CATEGORY[] = "Category";
 static const char DKEY_LOCALSEQ[] = "LocalSeq";
 
+/* Class Name */
 static const QString CN_NEWLAYOUT = "NewLayout";
 static const QString CN_NEWFRAME = "NewFrame";
 static const QString CN_NEWLABEL = "NewLabel";
+static const QString CN_SSNAME = "ScenesScreen";
+
+/*  ini format */
+static const QString INI_PRJSIZE = "Project/Size";
+static const QString INI_PRJBAKIMG = "Project/Background";
+static const QString INI_PRJLAST = "Project/LastOpen";
+static const QString INI_PRJDIR = "Project/Dir";
+
+
 const QMargins propertyMarg = QMargins(2,12,2,50);
 
 const int labHeight = 25;
@@ -67,6 +80,7 @@ static QSize MARGIN_SIZE = QSize(SELECTION_MARGIN * 2, SELECTION_MARGIN *2);
 
 
 
+static const QString WIN_TITLE = "图片编辑工具";
 
 
 #endif // CONFIG_H

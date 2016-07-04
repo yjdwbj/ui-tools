@@ -263,7 +263,7 @@ void ComProperty::createPropertyBox(QWidget *p)
                 {
 
                     QVariant::Type t = qvm[DEFAULT].type();
-                    if(qvm.contains("id"))
+                    if(qvm.contains(UID))
                     {
                         QLabel *title = new QLabel(uname);
                         title->setFixedHeight(labHeight);
@@ -562,20 +562,45 @@ void CompoentControls::onCreateCompoentToCanvas()
     }
 
     QPushButton *btn = (QPushButton*)(QObject::sender());
-    NewFrame* ww = (NewFrame *)CreateObjectFromJson(comMap[btn->text()],activeLayout->m_frame);
+//    NewFrame* ww = (NewFrame *)CreateObjectFromJson(comMap[btn->text()],activeLayout->m_frame);
+//    //mWindow->Scenes->activeLayer()->m_frame);
+//    ww->setObjectName(btn->property(DKEY_CATEGORY).toString());
+//    //ww->setObjectName(QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
+//    ww->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
+//    activeLayout->appendChildObj(ww);
+//    // 做treeWidget区分的名字.
+//    ProMap[ww->property(DKEY_LOCALSEQ).toString()] = ww;
+//    comList.append(ww);
+//    ww->onSelectMe();
+//    // 找出图层,把新建的控件添加进去.
+//    mWindow->tree->addObjectToLayout(ww);
+//    ww->show();
+   NewFrame* ww =  ReadObjectFromJson(comMap[btn->text()],activeLayout->m_frame,btn->text(),
+            btn->property(DKEY_CATEGORY).toString());
+    uint number = qHash(QDateTime::currentDateTime().toMSecsSinceEpoch());
+    ww->setProperty(DKEY_UID,QString::number(number));
+    ww->onSelectMe();
+}
+
+NewFrame* CompoentControls::ReadObjectFromJson(QVariantMap qvm, QObject *pobj,QString txt,QString objname)
+{
+    NewLayout *activeLayout = mWindow->cManager->activeSS()->activeLayout();
+    NewFrame* ww = (NewFrame *)CreateObjectFromJson(qvm,pobj);
     //mWindow->Scenes->activeLayer()->m_frame);
-    ww->setObjectName(btn->property(DKEY_CATEGORY).toString());
+    ww->setObjectName(objname);
     //ww->setObjectName(QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
-    ww->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
+    ww->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg(txt,QString::number(comList.size())));
     activeLayout->appendChildObj(ww);
     // 做treeWidget区分的名字.
     ProMap[ww->property(DKEY_LOCALSEQ).toString()] = ww;
     comList.append(ww);
-    ww->onSelectMe();
+
     // 找出图层,把新建的控件添加进去.
     mWindow->tree->addObjectToLayout(ww);
     ww->show();
+    return ww;
 }
+
 
 QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
 {
@@ -594,7 +619,7 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
             {
                 QString cval = it.value().toString();
 
-                if(!cval.compare(QFRAME))
+                if(!cval.compare(QFRAME) || !cval.compare(CN_NEWFRAME))
                 {
 
                     //创建父控件
@@ -609,7 +634,7 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                     nobj =qobject_cast<QObject*>(n);
                   //  nobj->setProperty(DKEY_CLSNAME,cval);
                 }
-                else if(!cval.compare(QLABEL))
+                else if(!cval.compare(QLABEL) || !cval.compare(CN_NEWLABEL))
                 {
                     NewFrame *np = (NewFrame*)pobj;
                     nobj =qobject_cast<QObject*>(new NewLabel(np->m_frame));
@@ -669,8 +694,7 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
     }
     nobj->setProperty(DKEY_DYN,property);
    // nobj->setProperty(DKEY_UID,QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch()));
-    uint number = qHash(QDateTime::currentDateTime().toMSecsSinceEpoch());
-    nobj->setProperty(DKEY_UID,QString::number(number));
+
     /*  处理每一个json对像的property部分 */
     // qDebug() << "Dynamic Property Count " << nobj->dynamicPropertyNames().count();
     foreach(QByteArray qba,nobj->dynamicPropertyNames())

@@ -19,6 +19,7 @@ class TreeDock;
 class MainWindow;
 class ScenesScreen;
 class FormResizer;
+class NewFrame;
 
 
 void removeWidFromLayout(QLayout *layout);
@@ -71,6 +72,7 @@ class CompoentControls : public QGroupBox
 public:
     explicit CompoentControls(MainWindow *mw,QWidget *parent = 0);
     QObject* CreateObjectFromJson(QVariantMap qvm, QObject *pobj);
+    NewFrame *ReadObjectFromJson(QVariantMap qvm, QObject *, QString txt, QString objname);
    // QWidget *CcWidgetList,ProWidgetList,ImgWidgetList;
 
 private:

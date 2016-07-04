@@ -13,6 +13,8 @@
 #include "mainwindow.h"
 #include "mydialog.h"
 #include <QJsonArray>
+#include <QMenu>
+#include <QAction>
 
 //#include "propertybox.h"
 #include "formresizer.h"
@@ -25,15 +27,16 @@ class Compoent
 {
 
 public:
-    virtual void onBindValue(QWidget *w, const QVariantMap &map);
-    virtual QJsonObject getRectJson(QWidget* w);
-    virtual void copyProperty(const QVariant &va);
-    virtual void changeJsonValue(QString key, QVariant val);
+     void onBindValue(QWidget *w, const QVariantMap &map);
+     QJsonObject getRectJson(QWidget* w);
+     void copyProperty(const QVariant &va);
+     void changeJsonValue(QString key, QVariant val);
     QVariant getJsonValue(QString key) const;
     void updateJsonArray(QString key,const QJsonArray &arr);
     //QVariantMap dynValues;
     //QJsonValue dynValues;
     QJsonObject dynValues;
+
 
 };
 
@@ -135,6 +138,7 @@ public:
     void delMySelf();
 
     void writeToJson(QJsonObject &json);
+    void readFromJson(const QJsonArray &array);
 
     MainWindow *mWindow;
 
@@ -149,6 +153,7 @@ private:
 
 public slots:
     void onXYWHChangedValue(int v);
+    void onDeleteMe();
 
 
 

@@ -24,6 +24,8 @@
 #include <QtWidgets/QMessageBox>
 #include <QScrollArea>
 #include <QTreeWidget>
+#include <QPainter>
+#include <QSettings>
 #include "treedock.h"
 //#include "propertybox.h"
 
@@ -39,10 +41,19 @@ class ImgProperty;
 class Position;
 
 
-
 namespace Ui {
 class MainWindow;
 }
+
+class Backgroud: public QWidget
+{
+public:
+    QPixmap backImage;
+
+protected:
+    void paintEvent(QPaintEvent *);
+
+};
 
 class MainWindow : public QMainWindow
 {
@@ -64,7 +75,7 @@ public:
     void addWidgetToToolBar(QWidget *);
 
     //QGroupBox *propertyWidget;
-
+    QMap<QString,QPixmap> bakimageMap; // 背景图片
     ComProperty *propertyWidget;
     //QGroupBox *imgPropertyWidget;
     ComProperty *imgPropertyWidget;
@@ -78,10 +89,15 @@ public:
     QDockWidget* lDock;
     PageView *pageView;
     CompoentControls *ComCtrl;
+    QString backImage;
+    Backgroud *bk;
+    QSettings *globalSet;
 
 
 
-//private slots:
+private slots:
+      void onChangeBackgroud();
+      void onDobuleClickedImage(QListWidgetItem *);
 //    void onCreateNewScenesScreen();
 //    void onDelCurrentScenesScreen();
 //    void onCreateNewProject();
@@ -94,18 +110,8 @@ private:
 
     QListWidget* rList;
     QListWidget* lList;
-    QTextStream out;
 
-
-    enum KType {
-        Null =  0x0,
-        Bool = 0x1,
-        Double = 0x2,
-        String = 0x3,
-        Array = 0x4,
-        Object = 0x5,
-        Undefined = 0x80
-    };
+    QString PrjJsonPath;
 
     void HandleFrameObject(QJsonObject qjo, QString ParentName);
     QWidget *pWin;

@@ -1,8 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-//#include "handlejson.h"
 #include "compoentcontrols.h"
-//#include "propertybox.h"
 #include "scenesscreen.h"
 #include "canvasmanager.h"
 #include "pageview.h"
@@ -12,27 +10,39 @@
 #include <QStyleFactory>
 #include <QRegion>
 #include <QMessageBox>
+#include <QStandardPaths>
 
 
+void Backgroud::paintEvent(QPaintEvent *)
+{
+      // 这里必需要得新定义一个类,重写它的paintEvent才能画出它的背景.
+      QPainter p(this);
+      p.drawPixmap(this->rect(),QPixmap(backImage));
+}
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    out(stdout, QIODevice::WriteOnly),
+    //out(stdout, QIODevice::WriteOnly),
     ui(new Ui::MainWindow)
 {
 
     ui->setupUi(this);
+    QString iniFile  =  QStandardPaths::displayName(QStandardPaths::DataLocation) + "/ui-config";
+    globalSet= new QSettings(iniFile,QSettings::IniFormat);
+    bk = new Backgroud();
+    QString stylestr = "QPushButton::hover{"\
+                        "background: #F48024}";
+                       //"background: #5EBA7D}";
+
+    setStyleSheet(stylestr);
+    setCentralWidget(bk);
    // lDock = ui->dockWidget;
     cManager = new CanvasManager(this);
      posWidget = new Position(this);
     propertyWidget = new ComProperty("控件属性",this) ;
     imgPropertyWidget = new ComProperty("图片属性",this);
-  //  QStringList sflist = QStyleFactory::keys();
-    setWindowTitle(tr("图片编辑工具"));
-    //qDebug() << " list " << sflist;
-    // 　  this->setStyle(QStyleFactory::create("GTK+"));
 
-  //  QApplication::setStyle(QStyleFactory::create("Fusion"));
+    setWindowTitle(WIN_TITLE);
 
     // 左边属性框
     lDock = new QDockWidget();
@@ -43,14 +53,6 @@ MainWindow::MainWindow(QWidget *parent) :
     lDock->setFixedWidth(this->size().width() * 0.14);
     lDock->setObjectName("LeftDock");
 
-
-
-   // QWidget *lDockWidget = new QWidget(lDock);
-//    ui->dockWidget->setFixedWidth(this->width()*0.12);
-//    ui->dockWidget->setEnabled(false);
-
-   // ui->dockWidget->move(0,0);
-   // ui->dockWidget->setFeatures(QDockWidget::DockWidgetVerticalTitleBar);
 
     //　qDockWidget 下面必需要发放一个QWidget ,　才能显示控件.
     QWidget *lDockWidget = new QWidget(lDock);
@@ -76,12 +78,10 @@ MainWindow::MainWindow(QWidget *parent) :
     leftLayout->addWidget(propertyWidget);
     leftLayout->addWidget(imgPropertyWidget);
 
-
-
     tree = new TreeDock(this);
     // 左边两个并排的QDockWidget
     addDockWidget(Qt::LeftDockWidgetArea, tree);
-   splitDockWidget(tree,lDock,Qt::Horizontal);
+    splitDockWidget(tree,lDock,Qt::Horizontal);
 
 
     //　右边的截图页面.
@@ -93,6 +93,84 @@ MainWindow::MainWindow(QWidget *parent) :
 
     addDockWidget(Qt::RightDockWidgetArea,pageView);
 
+    // 缓存一些背景图片.
+    QString dir = QDir::currentPath() + "/backgrounds";
+    QDirIterator it(dir, QStringList() << "*.jpg", QDir::Files, QDirIterator::Subdirectories);
+    while (it.hasNext())
+    {
+        QString fpath = it.next();
+        bool b = fpath.contains('/');
+        int idx = fpath.lastIndexOf(b ? '/' : '\\')+1;
+        bakimageMap[fpath.mid(idx)] = QPixmap(fpath);
+    }
+    QVariant bkvar = globalSet->value(INI_PRJBAKIMG);
+    if(bkvar.isValid())
+    {
+        bk->backImage = bakimageMap[bkvar.toString()];
+    }
+    else
+    {
+      bk->backImage = bakimageMap.first();
+    }
+
+    this->centralWidget()->update();
+
+    // 如果可以自动打开上次的工程
+    QVariant prjvar = globalSet->value(INI_PRJLAST);
+    QFile PrjFile;
+    if(prjvar.isValid())
+    {
+
+        PrjFile.setFileName(prjvar.toString());
+    }
+    else
+    {
+        PrjFile.setFileName("save.json");
+    }
+
+
+
+    if (PrjFile.open(QFile::ReadOnly|QIODevice::Text)) {
+        QByteArray qba = PrjFile.readAll();
+        QTextStream in(&PrjFile);
+        QString str;
+        int ans = 0;
+        in >> str >> ans;
+        QJsonParseError json_error;
+        QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
+        if(json_error.error == QJsonParseError::NoError)
+        {
+
+            QPoint mpos;
+            if(qd.isObject())
+            {
+                QJsonObject  qdobj = qd.object();
+                setWindowTitle(qdobj[NAME].toString());
+
+                cManager->readProjectJson(qdobj[PAGES].toArray());
+                cManager->setActiveSS(qdobj[ACTPAGE].toInt());
+
+            }
+        }else{
+            // qDebug() << " read Json file error";
+            qDebug() << json_error.errorString();
+        }
+
+
+    }
+
+//    QJsonArray CanvasArray;
+//   // QJsonObject root;
+//    foreach (QWidget *w, mCanvasList) {
+//        QJsonObject CanvasObj;
+//       CanvasObj[NAME] = w->objectName();
+//       ((ScenesScreen*)w)->writeToJson(CanvasObj);
+//       CanvasArray.append(CanvasObj);
+//      // qDebug() << "CanvasObj json  " << CanvasObj;
+
+//    }
+//    QJsonDocument jsonDoc(CanvasArray);
+//    saveFile.write(jsonDoc.toJson());
 
 
 }
@@ -128,37 +206,6 @@ bool MainWindow::eventFilter(QObject *obj, QEvent *event)
 
     if ( event->type() != QEvent::MouseButtonPress )
         return false;
-
-
-    const QMouseEvent* const me = static_cast<const QMouseEvent*>( event );
-    //            int x = me->pos().rx();
-    //            int y = me->pos().ry();
-    QPoint xy = me->pos();
-    QPoint pxy = mapFromParent(xy);
-    QPoint gxy = mapFromGlobal(xy);
-
-
-    QString msg =  QString("mouse x:%1 , y:%2 ----- px : %3 , py : %4 ---- gx : %5, gy : %6")
-            .arg(QString::number(xy.rx()))
-            .arg(QString::number(xy.ry()))
-            .arg(QString::number(pxy.rx()))
-            .arg(QString::number(pxy.ry()))
-            .arg(QString::number(gxy.rx()))
-            .arg(QString::number(gxy.rx()));
-    //ui->debugEdit->setText( msg );
-
-
-    qDebug() << " mapto global or parent";
-
-    pxy = this->mapToParent(xy);
-    gxy = this->mapToGlobal(xy);
-
-    qDebug() << " px : " << pxy.x() << ",px : " << pxy.y()
-             << " , gx : " << gxy.x() << ", gy : " << gxy.y() ;
-
-
-
-
     // event->accept();
     return false;
 }
@@ -169,10 +216,54 @@ void MainWindow::mousePressEvent(QMouseEvent *ev)
     ui->statusBar->showMessage(QString("mouse x:%1 , y:%2 ")
                                .arg(QString::number(ev->pos().rx()))
                                .arg(QString::number(ev->pos().ry()))  );
+
+    if(ev->button() == Qt::RightButton)
+    {
+        QMenu *contextMenu = new QMenu(this);
+        QAction chBakimg("修改背景",this);
+        contextMenu->addAction(&chBakimg);
+        connect(&chBakimg,SIGNAL(triggered(bool)),this,SLOT(onChangeBackgroud()));
+
+        contextMenu->exec(ev->pos());
+    }
 }
 
 
+void MainWindow::onChangeBackgroud()
+{
 
+    QDialog dig(this->centralWidget());
+    dig.setFixedSize(this->centralWidget()->size() * 0.5);
+    dig.setWindowTitle(tr("修改背景"));
+
+    QVBoxLayout *v = new QVBoxLayout();
+    dig.setLayout( v);
+    QListWidget *imglist = new QListWidget();
+    imglist->setSelectionMode(QAbstractItemView::SingleSelection);
+    imglist->setViewMode(QListWidget::IconMode);
+    imglist->setIconSize(QSize(160,140));
+    //connect(imglist,SIGNAL(itemDoubleClicked(QListWidgetItem*)),SLOT(onDobuleClickedImage(QListWidgetItem*)));
+    connect(imglist,SIGNAL(itemClicked(QListWidgetItem*)),SLOT(onDobuleClickedImage(QListWidgetItem*)));
+    v->addWidget(imglist);
+    QMapIterator<QString,QPixmap> it(bakimageMap);
+    while(it.hasNext())
+    {
+        it.next();
+        imglist->addItem(new QListWidgetItem(QIcon(it.value()),it.key()));
+    }
+
+    dig.setModal(true);
+    dig.exec();
+
+}
+
+void MainWindow::onDobuleClickedImage(QListWidgetItem *item)
+{
+    bk->backImage = bakimageMap[item->text()];
+    globalSet->setValue(INI_PRJBAKIMG,item->text());
+    this->centralWidget()->update();
+    //update();
+}
 
 MainWindow::~MainWindow()
 {
