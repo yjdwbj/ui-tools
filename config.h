@@ -38,6 +38,8 @@ static QString MAXLEN = "maxlength";
 static QString ACTPAGE = "activePage";
 static QString PAGES = "pages";
 static QString UID = "id";
+static QString COLOR = "color";
+static QString BkIMAGE = "background-image";
 
 
 static const char  DKEY_CAPTION[] = "caption";
@@ -59,6 +61,7 @@ static const char DKEY_LOCALSEQ[] = "LocalSeq";
 static const QString CN_NEWLAYOUT = "NewLayout";
 static const QString CN_NEWFRAME = "NewFrame";
 static const QString CN_NEWLABEL = "NewLabel";
+static const QString CN_NEWLAYER = "NewLayer";
 static const QString CN_SSNAME = "ScenesScreen";
 
 /*  ini format */
@@ -73,7 +76,7 @@ const QMargins propertyMarg = QMargins(2,12,2,50);
 const int labHeight = 25;
 
 
-enum { SELECTION_HANDLE_SIZE = 6, SELECTION_MARGIN = 10 };
+enum { SELECTION_HANDLE_SIZE = 6, SELECTION_MARGIN = 6 };
 enum SelectionHandleState { SelectionHandleOff, SelectionHandleInactive, SelectionHandleActive };
 
 static QSize MARGIN_SIZE = QSize(SELECTION_MARGIN * 2, SELECTION_MARGIN *2);

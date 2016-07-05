@@ -11,7 +11,7 @@
 #include <QSignalMapper>
 #include <QComboBox>
 #include "mainwindow.h"
-//#include "propertybox.h"
+
 #include "treedock.h"
 
 

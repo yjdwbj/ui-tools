@@ -76,6 +76,7 @@ public:
 
     //QGroupBox *propertyWidget;
     QMap<QString,QPixmap> bakimageMap; // 背景图片
+    QMap<QString,QString> bimgPath; // 背景图片的全路径
     ComProperty *propertyWidget;
     //QGroupBox *imgPropertyWidget;
     ComProperty *imgPropertyWidget;

@@ -166,4 +166,22 @@ protected:
 };
 
 
+class NewLayer : public FormResizer
+{
+    Q_OBJECT
+public:
+    explicit NewLayer(QSize nsize, QWidget *parent=0);
+    MainWindow *mWindow;
+
+
+private:
+    QPoint mOffset;
+
+protected:
+
+//    void mouseMoveEvent(QMouseEvent *event);
+//    void mousePressEvent(QMouseEvent *event);
+//    void mouseReleaseEvent(QMouseEvent *event);
+};
+
 #endif // MODULE_H

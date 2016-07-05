@@ -282,10 +282,21 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
         switch (val.type()) {
         case QJsonValue::Object:
         {
+
+                int w,h;
                 QJsonObject valobj = val.toObject();
-                QSize valsize(valobj[SIZE].toObject()[WIDTH].toString().toInt(),
-                              valobj[SIZE].toObject()[HEIGHT].toString().toInt());
-                setDefaultPageSize(valsize);
+                foreach (QJsonValue pval, valobj[PROPERTY].toArray()) {
+                    QJsonObject pobj = pval.toObject();
+                    if(pobj.contains(KEY_RECT))
+                    {
+                        w = pobj[KEY_RECT].toObject()[WIDTH].toString().toInt();
+                        h = pobj[KEY_RECT].toObject()[HEIGHT].toString().toInt();
+                        break;
+                    }
+                }
+//                QSize valsize(valobj[SIZE].toObject()[WIDTH].toString().toInt(),
+//                              valobj[SIZE].toObject()[HEIGHT].toString().toInt());
+                setDefaultPageSize(QSize(w,h));
                 ScenesScreen *Scenes = createNewCanvas();
                 // 递归读取它的页面.
                 Scenes->readLayout(valobj[CN_SSNAME].toArray());

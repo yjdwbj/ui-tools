@@ -263,9 +263,10 @@ void ComProperty::createPropertyBox(QWidget *p)
                 {
 
                     QVariant::Type t = qvm[DEFAULT].type();
+                    QLabel *title = new QLabel(uname);
                     if(qvm.contains(UID))
                     {
-                        QLabel *title = new QLabel(uname);
+
                         title->setFixedHeight(labHeight);
 
                         mainLayout->addWidget(title);
@@ -274,12 +275,19 @@ void ComProperty::createPropertyBox(QWidget *p)
                         id->setFixedHeight(labHeight);
                         mainLayout->addWidget(id);
                         // 这里是一个特殊属性,唯一序号
-                    }
+                    }else if(qvm.contains(COLOR))
+                    {
+                          mainLayout->addWidget(title);
 
-                    else if(t == QVariant::Double)
+                    }
+                    else if(qvm.contains(BkIMAGE))
                     {
 
-                        mainLayout->addWidget(new QLabel(uname));
+                    }
+                    else if(t == QVariant::Int)
+                    {
+
+                        mainLayout->addWidget(title);
                         QSpinBox *s = new QSpinBox();
 
                         s->setObjectName(uname);
@@ -310,8 +318,8 @@ void ComProperty::createPropertyBox(QWidget *p)
                         }
 
                         wid = txt;
-                        QLabel * l = new QLabel(uname);
-                        mainLayout->addWidget(l);
+                       // QLabel * l = new QLabel(uname);
+                        mainLayout->addWidget(title);
                         mainLayout->addWidget(txt);
                         txt->setFixedHeight(25);
                         connect(txt,SIGNAL(textChanged(QString)),p,SLOT(onTextChanged(QString)));
@@ -386,23 +394,6 @@ CompoentControls::CompoentControls(MainWindow *mw, QWidget *parent)
     setTitle(tr("控件列表"));
     setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");
     this->setLayout(mainLayout);
-
-//    QHBoxLayout *hb = new QHBoxLayout(this);
-//    hb->setSpacing(0);
-//    this->setLayout(hb);
-//    QWidget *mainWidget = new QWidget();
-
-
-//    QScrollArea *scroll = new QScrollArea();
-//    hb->addWidget(scroll);
-//    scroll->setWidget(mainWidget);
-//    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-//    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
-
-    //QGridLayout *mainLayout = new QGridLayout();
-   // mainWidget->setLayout(mainLayout);
-   // mainLayout->setContentsMargins(0,50,0,0);
     mainLayout->setSpacing(1);
     mainLayout->setSizeConstraint(QLayout::SetFixedSize);
     this->setFixedHeight(200);
@@ -629,7 +620,6 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                     {
                         // QJsonObject vp =QJsonObject::fromVariantMap(qvm[PROPERTY]);
                         n->copyProperty(qvm[PROPERTY]);
-                        //   qDebug() << " NewFrame dyn property " << n->dynValues;
                     }
                     nobj =qobject_cast<QObject*>(n);
                   //  nobj->setProperty(DKEY_CLSNAME,cval);
@@ -728,7 +718,8 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
                             ((NewFrame*)nobj)->updateGeometry();
 
                             // 外面８个点的实际位置.
-                            ((NewFrame*)nobj)->setFixedSize(r.size()+MARGIN_SIZE);
+                           ((NewFrame*)nobj)->setFixedSize(r.size()+MARGIN_SIZE);
+                           // ((NewFrame*)nobj)->setFixedSize(r.size());
 
                         }else{
                             qobject_cast<NewLabel *>(nobj)->setGeometry(r);

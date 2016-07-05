@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QWidget>
 #include <QFrame>
+#include <QListWidgetItem>
 
 //#include "mainwindow.h"
 class MainWindow;
@@ -42,6 +43,9 @@ signals:
 
 public slots:
     void onDeleteMySelf();
+    void onChangedBackgroundColor();
+    void onChangedBackgroundImage();
+    void onDobuleClickedImage(QListWidgetItem*);
 
 private:
    void keyReleaseEvent(QKeyEvent *);

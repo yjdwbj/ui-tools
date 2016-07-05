@@ -1,6 +1,7 @@
 #include "scenesscreen.h"
 #include "module.h"
 #include "canvasmanager.h"
+#include <QColorDialog>
 
 
 
@@ -26,6 +27,12 @@ void ScenesScreen::mousePressEvent(QMouseEvent *event)
             QAction delme("删除当前页面",this);
             connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMySelf()));
             contextMenu->addAction(&delme);
+            QAction chgcolor("修改背景色",this);
+            contextMenu->addAction(&chgcolor);
+            connect(&chgcolor,SIGNAL(triggered(bool)),SLOT(onChangedBackgroundColor()));
+            QAction chgimg("修改背景图片",this);
+            contextMenu->addAction(&chgimg);
+            connect(&chgimg,SIGNAL(triggered(bool)),SLOT(onChangedBackgroundImage()));
 
             contextMenu->exec(mapToGlobal(event->pos()));
         }
@@ -41,9 +48,64 @@ ScenesScreen::~ScenesScreen()
 
 }
 
+void ScenesScreen::onChangedBackgroundImage()
+{
+    QDialog dig(mWindow);
+    dig.setFixedSize(mWindow->size() * 0.5);
+    dig.setWindowTitle(tr("修改背景"));
+
+    QVBoxLayout *v = new QVBoxLayout();
+    dig.setLayout( v);
+    QListWidget *imglist = new QListWidget();
+    imglist->setSelectionMode(QAbstractItemView::SingleSelection);
+    imglist->setViewMode(QListWidget::IconMode);
+    imglist->setIconSize(QSize(160,140));
+
+    connect(imglist,SIGNAL(itemClicked(QListWidgetItem*)),SLOT(onDobuleClickedImage(QListWidgetItem*)));
+    v->addWidget(imglist);
+    QMapIterator<QString,QPixmap> it(mWindow->bakimageMap);
+    while(it.hasNext())
+    {
+        it.next();
+        imglist->addItem(new QListWidgetItem(QIcon(it.value()),it.key()));
+    }
+
+    dig.setModal(true);
+    dig.exec();
+
+}
+
+void ScenesScreen::onDobuleClickedImage(QListWidgetItem *item)
+{
+    setStyleSheet(QString("background-image: url(%1);").arg(mWindow->bimgPath[item->text()]));
+    update();
+    qDebug() << " this stylesheet " << styleSheet();
+}
+
+void ScenesScreen::onChangedBackgroundColor()
+{
+    QColorDialog *color =new  QColorDialog(mWindow);
+
+//    color->setWindowState(Qt::WindowActive);
+//    color->setWindowModality(Qt::ApplicationModal);
+    color->setWindowFlags(Qt::Window|Qt::WindowStaysOnTopHint);
+//     color->setModal(true);
+    color->exec();
+    QColor c =  color->selectedColor();
+
+    if(c.isValid())
+    {
+        qDebug() << " you selected color is " << c.rgb();
+    }
+    this->setStyleSheet(QString("background-color: %1;").arg(c.name(QColor::HexRgb)));
+    update();
+    qDebug() << " this styleSheet :" << styleSheet();
+    delete color;
+}
+
 void ScenesScreen::createNewLayout()
 {
-    NewLayout *nl = new NewLayout(QSize(150,200),this);
+    NewLayout *nl = new NewLayout(QSize(150,200)+MARGIN_SIZE,this);
     nl->addMainWindow(mWindow);
     LayoutList.append(nl);
     mActiveIdx = LayoutList.size() - 1;

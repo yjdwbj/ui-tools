@@ -18,8 +18,6 @@
 #include "scenesscreen.h"
 #include "canvasmanager.h"
 
-
-
 void Compoent::changeJsonValue(QString key, QVariant val)
 {
    QJsonArray parr = dynValues[DKEY_DYN].toArray();
@@ -109,19 +107,15 @@ void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
                      QString defval  =qobj.value(IMAGE).toString();
                      bool b = defval.contains('/');
                      int idx =   defval.lastIndexOf( b ? '/' : '\\')+1;
-                     qDebug() << " s " << defval.mid(idx)  << cb->count();
+
                      cb->setCurrentText(defval.mid(idx));
                      break;
                  }
              }
 
-           // cb->setCurrentText("");
-
-         }else{
+           }else{
             cb->setCurrentText(getJsonValue(uname).toString());
          }
-
-
 
      }else if(!n.compare("QSpinBox"))
      {
@@ -137,8 +131,8 @@ QJsonObject Compoent::getRectJson(QWidget *w)
     QVariantMap vmap;
     vmap["x"] = QString::number(w->x());
     vmap["y"] = QString::number(w->y());
-    vmap[WIDTH] = QString::number(w->width());
-    vmap[HEIGHT] = QString::number(w->height());
+    vmap[WIDTH] = QString::number(w->width()-MARGIN_SIZE.width());
+    vmap[HEIGHT] = QString::number(w->height()-MARGIN_SIZE.height());
     rect[KEY_RECT] = QJsonObject::fromVariantMap(vmap);
     return rect;
 }
@@ -333,13 +327,14 @@ void NewLabel::mouseReleaseEvent(QMouseEvent *ev)
     QSize ms = p->parentWidget()->parentWidget()->size();
     if((p->x() + p->size().width()) > ms.width())
     {
-        pos.setX( ms.width() - p->size().width() );
+        pos.setX( ms.width() - p->size().width() - MARGIN_SIZE.width() /2 );
         p->move(pos);
+        qDebug() << " move pos " << pos;
     }
 
     if((p->y() + p->size().height()) > ms.height())
     {
-        pos.setY(ms.height() - p->size().height());
+        pos.setY(ms.height() - p->size().height() - MARGIN_SIZE.height() /2);
         p->move(pos);
     }
 }
@@ -420,15 +415,12 @@ void NewLabel::onPictureDialog(bool )
    // qDebug() << " current path " << QDir::currentPath() << " len " << rootlen;
     foreach (QString s, myImageList) {
         // example for s   "alarm_du.bmp:/home/yjdwbj/build-ut-tools-Desktop_Qt_5_6_0_GCC_64bit-Debug/images/string/alarm_du.bmp
-
-       // qDebug() << " image file path    "  << s;
         QString substr = s.section(':',1,1).mid(rootlen).replace("\\","/");
         qa.append(substr);
     }
     json[LIST] = qa;
     // 把新的列表更新的json中.
     onBindValue(mWindow->imgPropertyWidget->getPropertyObject(key),json.toVariantMap());
-    //mWindow->imgPropertyWidget->updateImageComboBox(key,this->property(DKEY_IMGIDX).toInt(),myImageList);
     this->blockSignals(true);
 
 }
@@ -487,7 +479,6 @@ void NewFrame::onSelectMe()
   //  setStyleSheet("NewFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
     clearOtherObjectStyleSheet();
     mWindow->cManager->activeSS()->setSelectObject(this);
-   // this->setState(SelectionHandleActive);
     mWindow->posWidget->setConnectNewQWidget(this);
     mWindow->propertyWidget->createPropertyBox(this);
     mWindow->imgPropertyWidget->delPropertyBox();
@@ -578,8 +569,6 @@ void NewFrame::writeToJson(QJsonObject &json)
 NewLayout::NewLayout(QSize nsize,QWidget *parent):
     FormResizer(parent)
 {
-   // setFixedSize(nsize);
-    //setObjectName(LAYOUT);
     setMinimumSize(nsize ); // 最小尺寸
     setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
     this->setObjectName(this->metaObject()->className());
@@ -697,13 +686,13 @@ void NewLayout::mouseReleaseEvent(QMouseEvent *event)
     QPoint pos = this->pos();
     if(this->x() < 0)
     {
-        pos.setX(0);
+        pos.setX(0 - MARGIN_SIZE.width() /2);
         this->move(pos);
 
     }
     if(this->y() < 0 )
     {
-        pos.setY(0);
+        pos.setY(0 -MARGIN_SIZE.width() /2);
         this->move(pos);
     }
 
@@ -711,14 +700,15 @@ void NewLayout::mouseReleaseEvent(QMouseEvent *event)
     //左出界检查
     if((this->x()  + this->size().width()) > ms.width())
     {
-        pos.setX( ms.width() - this->size().width() );
+        pos.setX( ms.width() - this->size().width() + MARGIN_SIZE.width() /2 );
         this->move(pos);
+
     }
 
     //上出界检查
     if((this->y() + this->size().height()) > ms.height())
     {
-        pos.setY(ms.height() - this->size().height());
+        pos.setY(ms.height() - this->size().height() + MARGIN_SIZE.height() /2);
         this->move(pos);
     }
 
@@ -782,9 +772,7 @@ void NewLayout::writeToJson(QJsonObject &json)
             QJsonObject frameObj;
             frameObj[NAME] = w->objectName();
             ((NewFrame*)w)->writeToJson(frameObj);
-           // qDebug() << " NewLayout sub obj " << &frameObj << frameObj;
             layoutarr.append(frameObj);
-
         }
         // 这一句必需要在这个偱环后面.
         json[LAYOUT] = layoutarr;
@@ -803,7 +791,6 @@ void NewLayout::writeToJson(QJsonObject &json)
         rect[KEY_RECT] = QJsonObject::fromVariantMap(vmap);
         projson.append(rect);
         json[PROPERTY] = projson;
-      //  qDebug() << " NewLayout array " << layoutarr;
 }
 
 void NewLayout::readFromJson(const QJsonArray &array)

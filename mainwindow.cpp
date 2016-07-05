@@ -33,6 +33,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QString stylestr = "QPushButton::hover{"\
                         "background: #F48024}";
                        //"background: #5EBA7D}";
+    qDebug() << " styleSheet " << ui->pushButton->styleSheet();
 
     setStyleSheet(stylestr);
     setCentralWidget(bk);
@@ -102,6 +103,7 @@ MainWindow::MainWindow(QWidget *parent) :
         bool b = fpath.contains('/');
         int idx = fpath.lastIndexOf(b ? '/' : '\\')+1;
         bakimageMap[fpath.mid(idx)] = QPixmap(fpath);
+        bimgPath[fpath.mid(idx)] = fpath;
     }
     QVariant bkvar = globalSet->value(INI_PRJBAKIMG);
     if(bkvar.isValid())
@@ -242,7 +244,7 @@ void MainWindow::onChangeBackgroud()
     imglist->setSelectionMode(QAbstractItemView::SingleSelection);
     imglist->setViewMode(QListWidget::IconMode);
     imglist->setIconSize(QSize(160,140));
-    //connect(imglist,SIGNAL(itemDoubleClicked(QListWidgetItem*)),SLOT(onDobuleClickedImage(QListWidgetItem*)));
+
     connect(imglist,SIGNAL(itemClicked(QListWidgetItem*)),SLOT(onDobuleClickedImage(QListWidgetItem*)));
     v->addWidget(imglist);
     QMapIterator<QString,QPixmap> it(bakimageMap);
