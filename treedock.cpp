@@ -90,6 +90,7 @@ QTreeView::branch:open:has-children:!has-siblings {\
 treeWidget->setColumnCount(2);
 
 treeWidget->setHeaderLabels(HeadCol.split(","));
+setStyleSheet("background-color: #C0DCC0;");
 connect(treeWidget,SIGNAL(itemClicked(QTreeWidgetItem*,int)),SLOT(onItemPressed(QTreeWidgetItem*,int)));
 //root = new QTreeWidgetItem(treeWidget);
 //root->setText(0,"根结点");

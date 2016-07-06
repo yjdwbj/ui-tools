@@ -566,6 +566,44 @@ void NewFrame::writeToJson(QJsonObject &json)
 }
 
 
+
+
+BaseForm::BaseForm(QWidget *parent)
+    :FormResizer(parent)
+{
+
+
+}
+
+void BaseForm::onSelectMe()
+{
+
+}
+
+
+
+
+
+void BaseForm::mouseMoveEvent(QMouseEvent *event)
+{
+
+}
+
+void BaseForm::mousePressEvent(QMouseEvent *event)
+{
+
+}
+
+void BaseForm::mouseReleaseEvent(QMouseEvent *event)
+{
+
+}
+
+void BaseForm::paintEvent(QPaintEvent *)
+{
+
+}
+
 NewLayout::NewLayout(QSize nsize,QWidget *parent):
     FormResizer(parent)
 {
@@ -574,6 +612,17 @@ NewLayout::NewLayout(QSize nsize,QWidget *parent):
     this->setObjectName(this->metaObject()->className());
     setStyleSheet("NewLayout#%s{border: 0.5px solid #929292;}" % LAYOUT);
     setFocusPolicy(Qt::ClickFocus);
+
+//    // 使用调色板来改顔色
+//    QPalette Pal(m_frame->palette());
+
+//    // set black background
+//    Pal.setColor(QPalette::Background, "#DDE4A7");
+//    m_frame->setAutoFillBackground(true);
+//    m_frame->setPalette(Pal);
+//    m_frame->update();
+      m_frame->setStyleSheet("background-color: #DAE4A7;");
+
     show();
 }
 
@@ -652,8 +701,10 @@ void NewLayout::mousePressEvent(QMouseEvent *event)
         QMenu *contextMenu = new QMenu(this);
         QAction delme("删除当前布局",this);
         connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
+        QAction saveTemp("保存成控件",this);
+        connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
         contextMenu->addAction(&delme);
-
+        contextMenu->addAction(&saveTemp);
         contextMenu->exec(mapToGlobal(event->pos()));
     }
 
@@ -676,6 +727,40 @@ void NewLayout::onDeleteMe()
 
     //delMySelf();
     mWindow->cManager->activeSS()->delSelectedLayout();
+
+}
+
+void NewLayout::onBeComeTemplateWidget()
+{
+
+    QDialog namedig(this);
+    QHBoxLayout *hb = new QHBoxLayout();
+    hb->addWidget(new QLabel("请输入控件名称:"));
+    QLineEdit *txt = new QLineEdit();
+    txt->setToolTip("最大四个中文字符");
+    txt->setMaxLength(4);
+    txt->setText(QString("Wid%1").arg(QString::number(mWindow->ComCtrl->mCWidgetCount)));
+    hb->addWidget(txt);
+    namedig.setLayout(hb);
+    namedig.exec();
+
+
+    QJsonObject json ;
+    writeToJson(json);
+
+    QFile saveFile;
+    saveFile.setFileName(QDir::currentPath()+"/widgets/" + txt->text() + ".json");
+    if (!saveFile.open(QIODevice::WriteOnly)) {
+        qWarning("Couldn't open save file.");
+
+    }
+    QJsonDocument jsonDoc(json);
+    saveFile.write(jsonDoc.toJson());
+
+    // 加载到当前工程里面去.
+
+
+
 
 }
 
@@ -762,6 +847,7 @@ void NewLayout::deleteObject(QWidget *w)
 
 }
 
+
 void NewLayout::writeToJson(QJsonObject &json)
 {
 
@@ -820,3 +906,123 @@ void NewLayout::readFromJson(const QJsonArray &array)
         }
     }
 }
+
+
+NewLayer::NewLayer(QSize nsize, QWidget *parent)
+    :BaseForm(parent),
+     mWindow(((ScenesScreen*)parent)->mWindow)
+{
+
+    setMinimumSize(nsize ); // 最小尺寸
+    setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
+    this->setObjectName(this->metaObject()->className());
+    setStyleSheet("NewLayout#%s{border: 0.5px solid #929292;}" % LAYER);
+    setFocusPolicy(Qt::ClickFocus);
+     m_frame->setStyleSheet("background-color: #C0DCC0;");
+    show();
+
+
+}
+
+
+void NewLayer::onSelectMe()
+{
+
+    //clearOtherObjectStyleSheet();
+    mWindow->cManager->activeSS()->setSelectObject(this);
+    mWindow->posWidget->setConnectNewQWidget(this);
+    mWindow->propertyWidget->createPropertyBox(this);
+    mWindow->imgPropertyWidget->delPropertyBox();
+    this->blockSignals(true);
+}
+
+
+void NewLayer::DeleteMe()
+{
+     mWindow->cManager->activeSS()->delSelectedLayer();
+}
+
+void NewLayer::onDeleteMe()
+{
+    DeleteMe();
+}
+
+//void NewLayer::mousePressEvent(QMouseEvent *event)
+//{
+//    if (event->button() == Qt::LeftButton)
+//    {
+//        mOffset = event->pos();
+//        onSelectMe();
+//    }else if(event->button() == Qt::RightButton)
+//    {
+//        QMenu *contextMenu = new QMenu(this);
+//        QAction delme("删除当前图层",this);
+//        connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
+//        contextMenu->addAction(&delme);
+
+//        contextMenu->exec(mapToGlobal(event->pos()));
+//    }
+
+//}
+//void NewLayer::mouseMoveEvent(QMouseEvent *event)
+//{
+//    if (event->buttons() & Qt::LeftButton)
+//    {
+//        move(this->pos() + (event->pos() - mOffset));
+//        /* 把新的位置更新到右边属性框 */
+//        mWindow->posWidget->updatePosition(this->pos());
+//        this->blockSignals(true);
+//    }
+//}
+
+//void NewLayer::mouseReleaseEvent(QMouseEvent *event)
+//{
+//    /* 放开鼠标时检查它的是否出了边界要 */
+//    QWidget *p = this->parentWidget();
+//    QPoint pos = this->pos();
+//    if(this->x() < 0)
+//    {
+//        pos.setX(0 - MARGIN_SIZE.width() /2);
+//        this->move(pos);
+
+//    }
+//    if(this->y() < 0 )
+//    {
+//        pos.setY(0 -MARGIN_SIZE.width() /2);
+//        this->move(pos);
+//    }
+
+//    QSize ms = p->size();
+//    //左出界检查
+//    if((this->x()  + this->size().width()) > ms.width())
+//    {
+//        pos.setX( ms.width() - this->size().width() + MARGIN_SIZE.width() /2 );
+//        this->move(pos);
+
+//    }
+
+//    //上出界检查
+//    if((this->y() + this->size().height()) > ms.height())
+//    {
+//        pos.setY(ms.height() - this->size().height() + MARGIN_SIZE.height() /2);
+//        this->move(pos);
+//    }
+
+//    // 这里只能在释放鼠标时改变左边的控件值
+//    mWindow->posWidget->updateSize(this->size());
+
+//}
+
+
+
+//void NewLayer::clearOtherObjectStyleSheet()
+//{
+//    /* 清除控件的红线框 */
+//    QList<NewLayout*> nflist =  m_frame->findChildren<NewLayout*>();
+//    foreach(NewLayout *x,nflist)
+//    {
+//           x->setStyleSheet("");
+
+//    }
+
+//}

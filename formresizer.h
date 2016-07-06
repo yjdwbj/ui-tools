@@ -56,8 +56,6 @@ private:
     QSize decorationSize() const;
     QWidget *mainContainer();
     QPoint mOffset;
-
-
     typedef QVector<SizeHandleRect*> Handles;
     Handles m_handles;
   //  QDesignerFormWindowInterface * m_formWindow;

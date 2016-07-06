@@ -21,6 +21,7 @@ CanvasManager::CanvasManager(MainWindow *w):
     delPage(new QPushButton(tr("删除当前页"))),
     savePrj(new QPushButton(tr("保存工程"))),
     PrjIsChanged(false)
+
 {
     // w->ui->centralWidget;
     newPage->setEnabled(false);

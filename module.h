@@ -97,7 +97,7 @@ class NewFrame :public FormResizer,public Compoent
 {
     Q_OBJECT
 public:
-     QPoint mOffset;
+
     NewFrame(QWidget *parent=0);
 
     void addMainWindow(QObject *mw);
@@ -106,6 +106,7 @@ public:
     void writeToJson(QJsonObject &json);
 
     MainWindow *mWindow;
+    QPoint mOffset;
 private slots:
 
     void onXYWHChangedValue(int v);
@@ -140,22 +141,20 @@ public:
     void writeToJson(QJsonObject &json);
     void readFromJson(const QJsonArray &array);
 
+
     MainWindow *mWindow;
 
 
 private:
-    QPoint mOffset;
-    QWidgetList mChList;
-
-
     void clearOtherObjectStyleSheet();
 
+    QPoint mOffset;
+    QWidgetList mChList;
 
 public slots:
     void onXYWHChangedValue(int v);
     void onDeleteMe();
-
-
+    void onBeComeTemplateWidget();
 
 protected:
 
@@ -166,19 +165,57 @@ protected:
 };
 
 
-class NewLayer : public FormResizer
+// 图层与布局的基础控件.
+class BaseForm: public FormResizer
+{
+    Q_OBJECT
+public:
+    explicit BaseForm(QWidget *parent=0);
+    void onSelectMe();
+
+    MainWindow *mWindow;
+
+
+
+    virtual void DeleteMe() = 0;
+    void HideMe();
+
+
+private:
+  //  void clearOtherObjectStyleSheet();
+    QPoint mOffset;
+
+
+
+protected:
+    void mouseMoveEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
+    void paintEvent(QPaintEvent *);
+
+
+
+};
+
+
+// 场景下面放图层,图层下面放布局,布局下面放控件.
+class NewLayer : public BaseForm
 {
     Q_OBJECT
 public:
     explicit NewLayer(QSize nsize, QWidget *parent=0);
+    void onSelectMe();
+
     MainWindow *mWindow;
+    void DeleteMe();
 
-
+public slots:
+    void onDeleteMe();
 private:
+    void clearOtherObjectStyleSheet();
     QPoint mOffset;
 
-protected:
-
+//protected:
 //    void mouseMoveEvent(QMouseEvent *event);
 //    void mousePressEvent(QMouseEvent *event);
 //    void mouseReleaseEvent(QMouseEvent *event);

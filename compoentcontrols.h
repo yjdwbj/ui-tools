@@ -75,11 +75,14 @@ public:
     NewFrame *ReadObjectFromJson(QVariantMap qvm, QObject *, QString txt, QString objname);
    // QWidget *CcWidgetList,ProWidgetList,ImgWidgetList;
 
+     int mCWidgetCount; // 自定义控件的个数.
+
 private:
      MainWindow *mWindow;
      QVariantMap mJsonMap;
      //QGridLayout* mainLayout;
      QVBoxLayout* mainLayout;
+     QWidget *mainWidget;
      QString mJsonFile;
      QWidgetList comList;
      QJsonArray comJsonArr;
@@ -89,13 +92,15 @@ private:
 
      void CreateButtonList();
      QWidget *getQWidgetByName(QString name) const;
-     void ReadJsonFile();
+     void ReadTemplateWidgetFile(QString file);
+    // void ReadCustomWidgetFiles(QString file);
 
 signals:
 
 public slots:
      void onCreateCompoentToCanvas();
      void onCreateNewLayout();
+     void onCreateNewLayer();
 };
 
 #endif // COMPOENTCONTROLS_H

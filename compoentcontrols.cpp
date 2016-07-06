@@ -149,6 +149,9 @@ ComProperty::ComProperty(QString title,QWidget *parent):
     this->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
     QHBoxLayout *hb = new QHBoxLayout(this);
     hb->setSpacing(0);
+    hb->setMargin(0);
+    hb->setContentsMargins(0,4,0,0);
+    hb->setSpacing(0);
     this->setLayout(hb);
     mainWidget = new QWidget();
 
@@ -383,40 +386,76 @@ void removeWidFromLayout(QLayout *layout)
 
 CompoentControls::CompoentControls(MainWindow *mw, QWidget *parent)
     : QGroupBox(parent),
+    //:QWidget(parent),
       mainLayout(new QVBoxLayout()),
+      mainWidget(new QWidget()),
+      mCWidgetCount(0),
       mWindow(mw)
 {
 
     // MainWindow *m ;
   //  this->setFixedHeight((parent->height()-50) * 0.15);
-    setStyleSheet("{border: 1px solid gray;}");
+  //  setStyleSheet("{border: 1px solid gray;}");
 
     setTitle(tr("控件列表"));
-    setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");
-    this->setLayout(mainLayout);
-    mainLayout->setSpacing(1);
+    setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}"\
+                  "QPushButton::hover{"\
+                  "background: #F48024;}");
+    //this->setLayout(mainLayout);
+    mainLayout->setSpacing(2);
+    mainLayout->setContentsMargins(2,2,2,2);
+    mainLayout->setMargin(1);
     mainLayout->setSizeConstraint(QLayout::SetFixedSize);
-    this->setFixedHeight(200);
+   // this->setFixedHeight(200);
 
    // mSizePolicy.setVerticalPolicy(QSizePolicy::Preferred);
 
+    QVBoxLayout *hb = new QVBoxLayout(this);
+   // hb->addWidget(new QLabel("控件列表"));
+    hb->setSpacing(0);
+    hb->setMargin(0);
+    hb->setContentsMargins(0,4,0,0);
+    this->setLayout(hb);
 
+   // mainWidget = new QWidget();
+
+    QScrollArea *scroll =  new QScrollArea();
+   // scroll->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+   // scroll->setAlignment(Qt::AlignCenter);
+   // scroll->setParent(this);
+
+    hb->addWidget(scroll);
+    scroll->setWidget(mainWidget);
+    mainWidget->setLayout(mainLayout);
+    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+
+    // 读取控件目录下的所有控件文件.
 
    // mJsonFile =  QDir::currentPath() + "/menu_strip.json";
-    mJsonFile = QDir::currentPath() + "/control.json";
-    qDebug() << " json file name " << mJsonFile;
-    QFileInfo qfi(mJsonFile);
+    QString file = QDir::currentPath() + "/control.json";
+    qDebug() << " json file name " << file;
+    QFileInfo qfi(file);
     if(!qfi.exists())
     {
         QMessageBox::warning(this,tr("错误"),tr("找不到控件文件"));
         return;
     }
+    ReadTemplateWidgetFile(file);
+ //   QString customdir = QDir::currentPath() + "/widgets";
+    QDirIterator it(QDir::currentPath() + "/widgets", QStringList() << "*.json", QDir::Files, QDirIterator::Subdirectories);
+    while (it.hasNext())
+    {
+        // 读取每一个自定义控件的JSON文件
+        ReadTemplateWidgetFile(it.next());
+        mCWidgetCount++;
+    }
 
-
-    ReadJsonFile();
     CreateButtonList();
 
 }
+
 
 QWidget *CompoentControls::getQWidgetByName(QString name) const
 {
@@ -433,10 +472,9 @@ QWidget *CompoentControls::getQWidgetByName(QString name) const
     return (QWidget*)0;
 }
 
-void CompoentControls::ReadJsonFile()
+void CompoentControls::ReadTemplateWidgetFile(QString file)
 {
-
-    QFile data(mJsonFile);
+    QFile data(file);
     if (data.open(QFile::ReadOnly|QIODevice::Text)) {
         QByteArray qba = data.readAll();
         QTextStream in(&data);
@@ -447,7 +485,6 @@ void CompoentControls::ReadJsonFile()
         QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
         if(json_error.error == QJsonParseError::NoError)
         {
-
             QPoint mpos;
             if(qd.isObject())
             {
@@ -455,17 +492,15 @@ void CompoentControls::ReadJsonFile()
                 {
                     comJsonArr =  qd.object()["compoents"].toArray();
                 }
-
             }
         }else{
             // qDebug() << " read Json file error";
             qDebug() << json_error.errorString();
         }
-
-
     }
-
 }
+
+
 
 void CompoentControls::CreateButtonList()
 {
@@ -499,18 +534,33 @@ void CompoentControls::CreateButtonList()
 
     // mainLayout->addWidget(new QPushButton());
     QVBoxLayout *v = new QVBoxLayout();
+    v->setMargin(1);
+    v->setSpacing(1);
+    v->setContentsMargins(1,1,1,1);
     mainLayout->addLayout(v);
     mainLayout->addLayout(comLayout);
-    comLayout->setSizeConstraint(QLayout::SetFixedSize);
+  //  comLayout->setSizeConstraint(QLayout::SetFixedSize);
 
     comLayout->setVerticalSpacing(1);
     comLayout->setHorizontalSpacing(1);
+    comLayout->setMargin(1);
+    comLayout->setContentsMargins(1,1,1,1);
+    QPushButton *layer = new QPushButton(tr("图层"));
+    connect(layer,SIGNAL(clicked(bool)),SLOT(onCreateNewLayer()));
+    layer->setFixedHeight(50);
+   // layer->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    v->addWidget(layer);
+
 
     QPushButton *l = new QPushButton(tr("布局"));
 
+    l->setFixedHeight(50);
     //l->setSizePolicy(mSizePolicy);
+   // l->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
     connect(l,SIGNAL(clicked(bool)),SLOT(onCreateNewLayout()));
     v->addWidget(l);
+
+
 
     foreach (QJsonValue qjv, comJsonArr)
     {
@@ -523,6 +573,7 @@ void CompoentControls::CreateButtonList()
         btnTest->setProperty(DKEY_CATEGORY,objname);
 
        // btnTest->setSizePolicy(mSizePolicy);
+        btnTest->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
         if(qjm.contains(ICON))
             btnTest->setIcon(QIcon(qjv.toObject()[ICON].toString()));
 
@@ -540,6 +591,8 @@ void CompoentControls::CreateButtonList()
 //    QSpacerItem *verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 //    comLayout->addItem(verticalSpacer,++row,0,1,1);
 }
+
+
 
 void CompoentControls::onCreateCompoentToCanvas()
 {
@@ -765,5 +818,20 @@ void CompoentControls::onCreateNewLayout()
         ProMap[nl->property(DKEY_LOCALSEQ).toString()] = nl;
         //comList.append(nl);
         mWindow->tree->addItemToRoot(nl->property(DKEY_LOCALSEQ).toString(),btn->text());
+    }
+}
+
+void CompoentControls::onCreateNewLayer()
+{
+    ScenesScreen *ss = mWindow->cManager->activeSS();
+    if(ss)
+    {
+        ss->createNewLayer();
+        QPushButton *btn = (QPushButton*)(QObject::sender());
+
+        NewLayer *nlayer =  ss->activeLayer();
+        ProMap[nlayer->property(DKEY_LOCALSEQ).toString()] = nlayer;
+        //comList.append(nl);
+        mWindow->tree->addItemToRoot(nlayer->property(DKEY_LOCALSEQ).toString(),btn->text());
     }
 }

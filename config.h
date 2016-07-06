@@ -21,6 +21,7 @@ static QString NAME = "-name";
 static QString WIDGET ="widget";
 static QString CLASS = "-class";
 static QString LAYOUT ="layout";
+static QString LAYER = "layer";
 static QString PROPERTY = "property";
 static QString ITEM="item";
 static QString SIZE = "size";

@@ -37,6 +37,7 @@ public:
     MainWindow *mWindow;
     bool PrjIsChanged;
 
+
 private slots:
     void onCreateNewProject();
     void onCreateNewScenesScreen();

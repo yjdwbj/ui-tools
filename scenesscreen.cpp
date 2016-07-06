@@ -115,6 +115,16 @@ void ScenesScreen::createNewLayout()
     nl->onSelectMe();
 }
 
+
+void ScenesScreen::createNewLayer()
+{
+    NewLayer *nlayer = new NewLayer(QSize(200,200) + MARGIN_SIZE,this);
+    LayerList.append(nlayer);
+    nlayer->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("图层",QString::number(LayerList.size()-1)));
+    nlayer->onSelectMe();
+
+}
+
 void ScenesScreen::readLayout(const QJsonArray &array)
 {
     foreach (QJsonValue val, array) {
@@ -179,6 +189,12 @@ void ScenesScreen::setSelectObject(FormResizer *obj)
 
     mWindow->tree->setSelectTreeItem(obj);
 }
+
+void ScenesScreen::delSelectedLayer()
+{
+
+}
+
 
 void ScenesScreen::delSelectedLayout()
 {

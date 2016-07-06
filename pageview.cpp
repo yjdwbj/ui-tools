@@ -13,11 +13,11 @@
 PageView::PageView(MainWindow *mw)
     :mWindow(mw),mImgList(new QListWidget)
 {
-    QWidget *main = new QWidget(this);
-    QVBoxLayout *vb = new QVBoxLayout(main);
-    main->setLayout(vb);
-    setWidget(main);
-    main->setStyleSheet("QListWidget{background-color: #C0DCC0;}");
+   // QWidget *main = new QWidget(this);
+   // QVBoxLayout *vb = new QVBoxLayout(main);
+ //   main->setLayout(vb);
+ //   setWidget(main);
+   // main->setStyleSheet("QListWidget{background-color: #C0DCC0;}");
 
    mImgList->setViewMode(QListWidget::IconMode);
    mImgList->setIconSize(QSize(200,180));
@@ -27,7 +27,10 @@ PageView::PageView(MainWindow *mw)
    mImgList->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
 
-    vb->addWidget(mImgList);
+   // vb->addWidget(mImgList);
+    setStyleSheet("QListWidget{background-color: #C0DCC0;}");
+    setWidget(mImgList);
+
     setMinimumHeight(mWindow->size().height()-60);
     setMaximumHeight(mWindow->size().height());
 

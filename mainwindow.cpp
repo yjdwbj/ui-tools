@@ -33,7 +33,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QString stylestr = "QPushButton::hover{"\
                         "background: #F48024}";
                        //"background: #5EBA7D}";
-    qDebug() << " styleSheet " << ui->pushButton->styleSheet();
+
 
     setStyleSheet(stylestr);
     setCentralWidget(bk);
@@ -50,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent) :
    // lDock->setStyleSheet("QWidget{border: 0.5px solid red;}");
     lDock->setEnabled(false);
     lDock->setAllowedAreas( Qt::LeftDockWidgetArea);
-    lDock->setFeatures(QDockWidget::DockWidgetVerticalTitleBar);
+    lDock->setFeatures(QDockWidget::NoDockWidgetFeatures);
     lDock->setFixedWidth(this->size().width() * 0.14);
     lDock->setObjectName("LeftDock");
 
@@ -62,6 +62,10 @@ MainWindow::MainWindow(QWidget *parent) :
     lDockWidget->setObjectName("lDockWidget");
     lDockWidget->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
     QVBoxLayout *leftLayout = new QVBoxLayout(lDockWidget);
+    leftLayout->setSpacing(2);
+    leftLayout->setMargin(0);
+    leftLayout->setContentsMargins(0,0,0,0);
+
 
     leftLayout->setObjectName("leftLayout");
    // leftLayout->setSizeConstraint(QLayout::SetFixedSize);
@@ -90,7 +94,7 @@ MainWindow::MainWindow(QWidget *parent) :
    // pageView->setFloating(true);
     pageView->addMainWindow(this);
     pageView->setAllowedAreas( Qt::RightDockWidgetArea);
-    pageView->setFeatures(QDockWidget::DockWidgetVerticalTitleBar);
+    pageView->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
     addDockWidget(Qt::RightDockWidgetArea,pageView);
 

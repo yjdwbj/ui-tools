@@ -9,6 +9,7 @@
 //#include "mainwindow.h"
 class MainWindow;
 class NewLayout;
+class NewLayer;
 class Compoentcontrol;
 class FormResizer;
 class ScenesScreen : public QFrame
@@ -21,12 +22,19 @@ public:
     NewLayout *activeLayout() {
         return mActiveIdx == -1 ? (NewLayout*)0 :
                                   (NewLayout*)(LayoutList.at(mActiveIdx));}
+    NewLayer *activeLayer() {
+        return mActiveLaySeq == -1 ? 0 : (NewLayer*)(LayerList.at(mActiveLaySeq));
+    }
+
     int getActiveIndex() { return mActiveIdx;}
+    int getActiveLayerIndex() { return mActiveLaySeq;}
     void createNewLayout();
+    void createNewLayer();
     void addMainWindow(MainWindow* m) { mWindow = m;}
     void setActiveIdx(int index) { mActiveIdx = index;}
     void setSelectObject(FormResizer *obj);
     void delSelectedLayout();
+    void delSelectedLayer();
 
     void readLayout(const QJsonArray &array);
    // void delSelectedObject();
@@ -36,6 +44,7 @@ public:
     void delAllObjects();
 
     QWidgetList LayoutList;
+    QWidgetList LayerList;
     MainWindow* mWindow;
 
 
@@ -49,7 +58,9 @@ public slots:
 
 private:
    void keyReleaseEvent(QKeyEvent *);
-   int mActiveIdx; //  当前激活的图层.
+   int mActiveIdx; //  当前激活的布局.
+   int mActiveLaySeq;
+
    QWidget *activeObj;
 protected:
    void mousePressEvent(QMouseEvent *);
