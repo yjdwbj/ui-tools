@@ -19,19 +19,19 @@ class ScenesScreen : public QFrame
 public:
     explicit ScenesScreen(QSize size,QWidget *parent = 0);
     ~ScenesScreen();
-    NewLayout *activeLayout() {
-        return mActiveIdx == -1 ? (NewLayout*)0 :
-                                  (NewLayout*)(LayoutList.at(mActiveIdx));}
+//    NewLayout *activeLayout() {
+//        return mActiveIdx == -1 ? (NewLayout*)0 :
+//                                  (NewLayout*)(LayoutList.at(mActiveIdx));}
     NewLayer *activeLayer() {
         return mActiveLaySeq == -1 ? 0 : (NewLayer*)(LayerList.at(mActiveLaySeq));
     }
 
-    int getActiveIndex() { return mActiveIdx;}
+   // int getActiveIndex() { return mActiveIdx;}
     int getActiveLayerIndex() { return mActiveLaySeq;}
-    void createNewLayout();
+   // void createNewLayout();
     void createNewLayer();
     void addMainWindow(MainWindow* m) { mWindow = m;}
-    void setActiveIdx(int index) { mActiveIdx = index;}
+   // void setActiveIdx(int index) { mActiveIdx = index;}
     void setSelectObject(FormResizer *obj);
     void delSelectedLayout();
     void delSelectedLayer();

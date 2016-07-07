@@ -8,7 +8,9 @@
 ScenesScreen::ScenesScreen(QSize size, QWidget *parent)
     : QFrame(parent),
       mWindow((MainWindow*)parent),
-      mActiveIdx(-1),activeObj(0)
+      mActiveIdx(-1),
+      activeObj(0),
+      mActiveLaySeq(-1)
 {
     setObjectName("PageScreen");
     setStyleSheet("QFrame#PageScreen{border: 1.5px solid gray;"\
@@ -103,23 +105,24 @@ void ScenesScreen::onChangedBackgroundColor()
     delete color;
 }
 
-void ScenesScreen::createNewLayout()
-{
-    NewLayout *nl = new NewLayout(QSize(150,200)+MARGIN_SIZE,this);
-    nl->addMainWindow(mWindow);
-    LayoutList.append(nl);
-    mActiveIdx = LayoutList.size() - 1;
-    //nl->setObjectName(QString("%1_%2").arg(nl->metaObject()->className(),QString::number(mActiveIdx)));
-    nl->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("布局",QString::number(mActiveIdx)));
+//void ScenesScreen::createNewLayout()
+//{
+//    NewLayout *nl = new NewLayout(QSize(150,200)+MARGIN_SIZE,this);
+//    nl->addMainWindow(mWindow);
+//    LayoutList.append(nl);
+//    mActiveIdx = LayoutList.size() - 1;
+//    //nl->setObjectName(QString("%1_%2").arg(nl->metaObject()->className(),QString::number(mActiveIdx)));
+//    nl->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("布局",QString::number(mActiveIdx)));
 
-    nl->onSelectMe();
-}
+//    nl->onSelectMe();
+//}
 
 
 void ScenesScreen::createNewLayer()
 {
     NewLayer *nlayer = new NewLayer(QSize(200,200) + MARGIN_SIZE,this);
     LayerList.append(nlayer);
+    mActiveLaySeq = LayerList.size() - 1;
     nlayer->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("图层",QString::number(LayerList.size()-1)));
     nlayer->onSelectMe();
 

@@ -22,6 +22,7 @@ static QString WIDGET ="widget";
 static QString CLASS = "-class";
 static QString LAYOUT ="layout";
 static QString LAYER = "layer";
+static QString COMPOENTS ="compoents";
 static QString PROPERTY = "property";
 static QString ITEM="item";
 static QString SIZE = "size";
@@ -40,7 +41,9 @@ static QString ACTPAGE = "activePage";
 static QString PAGES = "pages";
 static QString UID = "id";
 static QString COLOR = "color";
+static QString STRUCT = "struct";
 static QString BkIMAGE = "background-image";
+static QString WTYPE = "-type";
 
 
 static const char  DKEY_CAPTION[] = "caption";
@@ -57,12 +60,15 @@ static const char DKEY_SHOT[] = "screenshot";
 static const char DKEY_TXT[] = "ViewName";
 static const char DKEY_CATEGORY[] = "Category";
 static const char DKEY_LOCALSEQ[] = "LocalSeq";
+static const char DKEY_JSONSTR[] = "JsonString";
 
 /* Class Name */
 static const QString CN_NEWLAYOUT = "NewLayout";
 static const QString CN_NEWFRAME = "NewFrame";
 static const QString CN_NEWLABEL = "NewLabel";
 static const QString CN_NEWLAYER = "NewLayer";
+static const QString CN_LAYER = "Layer";
+static const QString CN_LAYOUT = "Layout";
 static const QString CN_SSNAME = "ScenesScreen";
 
 /*  ini format */

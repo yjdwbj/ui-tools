@@ -24,6 +24,20 @@ class NewFrame;
 
 void removeWidFromLayout(QLayout *layout);
 
+
+// 内边框显示的类
+class Border: public QGroupBox
+{
+    Q_OBJECT
+public:
+    explicit Border(QWidget *parent=0);
+    QSpinBox *left,*top,*right,*bottom;
+    QPushButton *color;
+
+};
+
+
+//坐标类
 class Position: public QGroupBox
 {
     Q_OBJECT
@@ -50,6 +64,7 @@ public:
     ~ComProperty(){}
 
     void createPropertyBox(QWidget *p);
+    void parseJsonToWidget(QWidget *p, const QVariantList &qvl, QLayout *layout);
     void delPropertyBox();
     void updateImageComboBox(QString key, int index, const QStringList &list);
     QWidget* getPropertyObject(QString key) const { return widgetMap.value(key);}

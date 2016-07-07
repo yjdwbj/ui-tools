@@ -36,7 +36,10 @@ public:
     //QVariantMap dynValues;
     //QJsonValue dynValues;
     QJsonObject dynValues;
+};
 
+class JsonHandle
+{
 
 };
 
@@ -131,15 +134,19 @@ public:
     void addMainWindow(MainWindow *m) { mWindow = m;}
 
     void clearOtherSelectHandler();
-    void appendChildObj(QWidget *w) { mChList.append(w);}
+  //  void appendChildObj(QWidget *w) { mChList.append(w);}
     void deleteObject(int index);
     void deleteObject(QWidget *w);
-    const QWidgetList &getChildrenList() { return mChList;}
+    const QWidgetList &getChildrenList() { return NewFrameList;}
 
     void delMySelf();
 
     void writeToJson(QJsonObject &json);
     void readFromJson(const QJsonArray &array);
+
+    void createNewFrameObject(const QJsonObject &json);
+    QWidget *CreateObjectFromJson(const QVariantMap &qvm, QWidget *pobj);
+    QWidget* CreateObjectFromJson(const QJsonObject &json,QWidget *pobj);
 
 
     MainWindow *mWindow;
@@ -149,7 +156,7 @@ private:
     void clearOtherObjectStyleSheet();
 
     QPoint mOffset;
-    QWidgetList mChList;
+    QWidgetList NewFrameList;
 
 public slots:
     void onXYWHChangedValue(int v);
@@ -178,16 +185,20 @@ public:
 
 
     virtual void DeleteMe() = 0;
+
     void HideMe();
 
+public slots:
+    void onXYWHChangedValue(int v);
 
 private:
-  //  void clearOtherObjectStyleSheet();
+
     QPoint mOffset;
 
 
 
 protected:
+    virtual  void clearOtherObjectStyleSheet() = 0;
     void mouseMoveEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
@@ -206,14 +217,22 @@ public:
     explicit NewLayer(QSize nsize, QWidget *parent=0);
     void onSelectMe();
 
-    MainWindow *mWindow;
+   // MainWindow *mWindow;
     void DeleteMe();
+    void createNewLayout();
+    NewLayout *activeLayout() {
+            return mActiveIdx == -1 ? (NewLayout*)0 :
+                                      (NewLayout*)(LayoutList.at(mActiveIdx));}
 
 public slots:
     void onDeleteMe();
+
 private:
     void clearOtherObjectStyleSheet();
     QPoint mOffset;
+    int mActiveIdx;
+    QWidgetList LayoutList; // 它下面的布局子控件.
+
 
 //protected:
 //    void mouseMoveEvent(QMouseEvent *event);

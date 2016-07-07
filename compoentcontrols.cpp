@@ -184,7 +184,7 @@ void ComProperty::createPropertyBox(QWidget *p)
         return;
 
     // 删除之前的重新画一个新的.
-    QString className = p->metaObject()->className();
+
    // QString nkeyuid ;
     if(mainLayout)
     {
@@ -206,143 +206,153 @@ void ComProperty::createPropertyBox(QWidget *p)
     mainLayout->addSpacing(0);
 
     QVariantList qvl = p->property(DKEY_DYN).toList();
+    parseJsonToWidget(p,qvl,mainLayout);
 
+}
 
+void ComProperty::parseJsonToWidget(QWidget *p,const QVariantList &qvl,QLayout *layout)
+{
+
+     QString className = p->metaObject()->className();
     foreach(QVariant qv, qvl)
     {
 
         QWidget *wid = 0;
         QVariant val;
-        if(qv.type() == QVariant::Map)
+
+        QVariantMap qvm = qv.toMap();
+        QString uname =  qvm[NAME].toString();
+        QString caption =  qvm[CAPTION].toString();
+        if(qvm.contains(ENUM))
         {
-            QVariantMap qvm = qv.toMap();
-            QString uname =  qvm[NAME].toString();
-            QString caption =  qvm[CAPTION].toString();
-            if(qvm.contains(ENUM))
+            QComboBox *cb = new QComboBox();
+            cb->setObjectName(uname);
+            cb->setProperty(DKEY_CAPTION,caption);
+            cb->setProperty(DKEY_VALTYPE,ENUM);
+            QVariantList qvlist = qvm[ENUM].toList();
+            for(QVariantList::const_iterator it = qvlist.begin();
+                it != qvlist.end();++it)
             {
-                QComboBox *cb = new QComboBox();
-                cb->setObjectName(uname);
-                cb->setProperty(DKEY_CAPTION,caption);
-                cb->setProperty(DKEY_VALTYPE,ENUM);
-                QVariantList qvlist = qvm[ENUM].toList();
-                for(QVariantList::const_iterator it = qvlist.begin();
-                    it != qvlist.end();++it)
+                cb->addItem((*it).toMap().firstKey());
+            }
+            QLabel * l = new QLabel(uname);
+            mainLayout->addWidget(l);
+            mainLayout->addWidget(cb);
+            wid = cb;
+            connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onEnumItemChanged(QString)));
+
+        }else if(qvm.contains(LIST))
+        {
+            QComboBox *cb = new QComboBox();
+            cb->setObjectName(uname);
+            cb->setProperty(DKEY_VALTYPE,LIST);
+            // 这里通过它的JSON组数的位置去找它.
+            //  cb->setObjectName(LISTIMAGE);
+            //p->setProperty(DKEY_IMGIDX,0); // 当前选择的行号
+            QString cbkey =QString("%1_%2").arg(uname,QString::number(widgetMap.size()));
+            widgetMap[cbkey] = cb;
+            //  QString className = p->metaObject()->className();
+            wid = cb;
+            QLabel * l = new QLabel(uname);
+            mainLayout->addWidget(l);
+            QPushButton *b = new QPushButton(tr("添加图片"));
+            b->setObjectName(cbkey);
+            connect(b,SIGNAL(clicked(bool)),p,SLOT(onPictureDialog(bool)));
+            mainLayout->addWidget(b);
+            mainLayout->addWidget(cb);
+            // 绑定QComoBox的更改信号,更改它的值就要在相应的画版控件更新图片
+            connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onListImageChanged(QString)));
+        }else if(qvm.contains(IMAGE) ) /* 跳过这一行.*/
+        {
+
+        }else if(qvm.contains(STRUCT))
+        {
+            // 这里要做成一组属对应于一个结构体.
+            parseJsonToWidget(p,qvm[STRUCT].toList(),layout);
+
+        }
+        else{
+            if(uname.compare(GEOMETRY))
+            {
+
+                QVariant::Type t = qvm[DEFAULT].type();
+                QLabel *title = new QLabel(uname);
+                if(qvm.contains(UID))
                 {
-                    cb->addItem((*it).toMap().firstKey());
+
+                    title->setFixedHeight(labHeight);
+
+                    mainLayout->addWidget(title);
+                    QLabel *id = new QLabel(p->property(DKEY_UID).toString());
+                    id->setStyleSheet("*{border: 0.5px solid gray;}");
+                    id->setFixedHeight(labHeight);
+                    mainLayout->addWidget(id);
+                    // 这里是一个特殊属性,唯一序号
+                }else if(qvm.contains(COLOR))
+                {
+                    mainLayout->addWidget(title);
+
                 }
-                QLabel * l = new QLabel(uname);
-                mainLayout->addWidget(l);
-                mainLayout->addWidget(cb);
-                wid = cb;
-                connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onEnumItemChanged(QString)));
-
-            }else if(qvm.contains(LIST))
-            {
-                QComboBox *cb = new QComboBox();
-                cb->setObjectName(uname);
-                cb->setProperty(DKEY_VALTYPE,LIST);
-                // 这里通过它的JSON组数的位置去找它.
-              //  cb->setObjectName(LISTIMAGE);
-                //p->setProperty(DKEY_IMGIDX,0); // 当前选择的行号
-                QString cbkey =QString("%1_%2").arg(uname,QString::number(widgetMap.size()));
-                widgetMap[cbkey] = cb;
-              //  QString className = p->metaObject()->className();
-                wid = cb;
-                QLabel * l = new QLabel(uname);
-                mainLayout->addWidget(l);
-                QPushButton *b = new QPushButton(tr("添加图片"));
-                b->setObjectName(cbkey);
-                connect(b,SIGNAL(clicked(bool)),p,SLOT(onPictureDialog(bool)));
-                mainLayout->addWidget(b);
-                mainLayout->addWidget(cb);
-                // 绑定QComoBox的更改信号,更改它的值就要在相应的画版控件更新图片
-                connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onListImageChanged(QString)));
-            }else if(qvm.contains(IMAGE) ) /* 跳过这一行.*/
-            {
-
-            }
-            else{
-                if(uname.compare(GEOMETRY))
+                else if(qvm.contains(BkIMAGE))
                 {
 
-                    QVariant::Type t = qvm[DEFAULT].type();
-                    QLabel *title = new QLabel(uname);
-                    if(qvm.contains(UID))
+                }
+                else if(t == QVariant::Int)
+                {
+
+                    mainLayout->addWidget(title);
+                    QSpinBox *s = new QSpinBox();
+
+                    s->setObjectName(uname);
+
+                    s->setProperty(DKEY_VALTYPE,NUMBER);
+                    //要保存每一次修改过的值.
+                    mainLayout->addWidget(s);
+                    wid = s;
+
+                    if(qvm.contains(MAX))
                     {
-
-                        title->setFixedHeight(labHeight);
-
-                        mainLayout->addWidget(title);
-                        QLabel *id = new QLabel(p->property(DKEY_UID).toString());
-                        id->setStyleSheet("*{border: 0.5px solid gray;}");
-                        id->setFixedHeight(labHeight);
-                        mainLayout->addWidget(id);
-                        // 这里是一个特殊属性,唯一序号
-                    }else if(qvm.contains(COLOR))
+                        s->setMaximum(qvm[MAX].toInt());
+                    }
+                    if(qvm.contains(MIN))
                     {
-                          mainLayout->addWidget(title);
-
+                        s->setMinimum(qvm[MIN].toInt());
                     }
-                    else if(qvm.contains(BkIMAGE))
+                    connect(s,SIGNAL(valueChanged(int)),p,SLOT(onNumberChanged(int)));
+                }
+                else if(t == QVariant::String ){
+                    QLineEdit *txt = new QLineEdit(qvm[DEFAULT].toString());
+                    txt->setObjectName(uname);
+                    txt->setProperty(DKEY_VALTYPE,TEXT);
+
+                    if(qvm.contains(MAXLEN))
                     {
-
+                        txt->setMaxLength(qvm[MAXLEN].toDouble());
                     }
-                    else if(t == QVariant::Int)
-                    {
 
-                        mainLayout->addWidget(title);
-                        QSpinBox *s = new QSpinBox();
+                    wid = txt;
+                    // QLabel * l = new QLabel(uname);
+                    mainLayout->addWidget(title);
+                    mainLayout->addWidget(txt);
+                    txt->setFixedHeight(25);
+                    connect(txt,SIGNAL(textChanged(QString)),p,SLOT(onTextChanged(QString)));
 
-                        s->setObjectName(uname);
-
-                        s->setProperty(DKEY_VALTYPE,NUMBER);
-                        //要保存每一次修改过的值.
-                        mainLayout->addWidget(s);
-                        wid = s;
-
-                        if(qvm.contains(MAX))
-                        {
-                            s->setMaximum(qvm[MAX].toInt());
-                        }
-                        if(qvm.contains(MIN))
-                        {
-                            s->setMinimum(qvm[MIN].toInt());
-                        }
-                        connect(s,SIGNAL(valueChanged(int)),p,SLOT(onNumberChanged(int)));
-                    }
-                    else if(t == QVariant::String ){
-                        QLineEdit *txt = new QLineEdit(qvm[DEFAULT].toString());
-                        txt->setObjectName(uname);
-                        txt->setProperty(DKEY_VALTYPE,TEXT);
-
-                        if(qvm.contains(MAXLEN))
-                        {
-                            txt->setMaxLength(qvm[MAXLEN].toDouble());
-                        }
-
-                        wid = txt;
-                       // QLabel * l = new QLabel(uname);
-                        mainLayout->addWidget(title);
-                        mainLayout->addWidget(txt);
-                        txt->setFixedHeight(25);
-                        connect(txt,SIGNAL(textChanged(QString)),p,SLOT(onTextChanged(QString)));
-
-                    }
                 }
             }
+        }
 
-            if(!wid)
-                continue;
-            if(!className.compare(CN_NEWFRAME))
-            {
-                ((NewFrame*)p)->onBindValue(wid,qvm);
-            }else{
-                ((NewLabel*)p)->onBindValue(wid,qvm);
-            }
-
+        if(!wid)
+            continue;
+        if(!className.compare(CN_NEWFRAME))
+        {
+            ((NewFrame*)p)->onBindValue(wid,qvm);
+        }else{
+            ((NewLabel*)p)->onBindValue(wid,qvm);
         }
 
     }
+
+
     mainLayout->setSizeConstraint(QLayout::SetFixedSize);
     oldobject = p;
 
@@ -443,6 +453,7 @@ CompoentControls::CompoentControls(MainWindow *mw, QWidget *parent)
         return;
     }
     ReadTemplateWidgetFile(file);
+    CreateButtonList();
  //   QString customdir = QDir::currentPath() + "/widgets";
     QDirIterator it(QDir::currentPath() + "/widgets", QStringList() << "*.json", QDir::Files, QDirIterator::Subdirectories);
     while (it.hasNext())
@@ -545,20 +556,20 @@ void CompoentControls::CreateButtonList()
     comLayout->setHorizontalSpacing(1);
     comLayout->setMargin(1);
     comLayout->setContentsMargins(1,1,1,1);
-    QPushButton *layer = new QPushButton(tr("图层"));
-    connect(layer,SIGNAL(clicked(bool)),SLOT(onCreateNewLayer()));
-    layer->setFixedHeight(50);
-   // layer->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
-    v->addWidget(layer);
+//    QPushButton *layer = new QPushButton(tr("图层"));
+//    connect(layer,SIGNAL(clicked(bool)),SLOT(onCreateNewLayer()));
+//    layer->setFixedHeight(50);
+//   // layer->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+//    v->addWidget(layer);
 
 
-    QPushButton *l = new QPushButton(tr("布局"));
+//    QPushButton *l = new QPushButton(tr("布局"));
 
-    l->setFixedHeight(50);
-    //l->setSizePolicy(mSizePolicy);
-   // l->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
-    connect(l,SIGNAL(clicked(bool)),SLOT(onCreateNewLayout()));
-    v->addWidget(l);
+//    l->setFixedHeight(50);
+//    //l->setSizePolicy(mSizePolicy);
+//   // l->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+//    connect(l,SIGNAL(clicked(bool)),SLOT(onCreateNewLayout()));
+//    v->addWidget(l);
 
 
 
@@ -571,25 +582,38 @@ void CompoentControls::CreateButtonList()
         comMap[caption] = qjm;
         QPushButton *btnTest = new QPushButton(caption);
         btnTest->setProperty(DKEY_CATEGORY,objname);
+        btnTest->setProperty(DKEY_JSONSTR,qjv.toVariant()); // 这个按钮绑定这一个JSON控件.
 
        // btnTest->setSizePolicy(mSizePolicy);
-        btnTest->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
+
         if(qjm.contains(ICON))
             btnTest->setIcon(QIcon(qjv.toObject()[ICON].toString()));
 
-       // btnTest->setFixedSize(40,40);
-        if(col == 2)
+        QString wtype = qjv.toObject()[WTYPE].toString();
+        if(!wtype.compare(CN_NEWLAYER)  || !wtype.compare(CN_LAYER))
         {
-            col = 0;
-            row++;
+            v->addWidget(btnTest);
+            btnTest->setFixedHeight(50);
+            connect(btnTest,SIGNAL(clicked(bool)),SLOT(onCreateNewLayer()));
         }
-        comLayout->addWidget(btnTest,row,col++);
-        connect(btnTest,SIGNAL(clicked(bool)),this,SLOT(onCreateCompoentToCanvas()));
+        else if(!wtype.compare(CN_NEWLAYOUT) || !wtype.compare(CN_LAYOUT) )
+        {
+            v->addWidget(btnTest);
+            btnTest->setFixedHeight(50);
+            connect(btnTest,SIGNAL(clicked(bool)),SLOT(onCreateNewLayout()));
 
+        }else{
+             btnTest->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
+            if(col == 2)
+            {
+                col = 0;
+                row++;
+            }
+            comLayout->addWidget(btnTest,row,col++);
+            connect(btnTest,SIGNAL(clicked(bool)),this,SLOT(onCreateCompoentToCanvas()));
+        }
     }
-    //  comLayout->setRowStretch(row,0);
-//    QSpacerItem *verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
-//    comLayout->addItem(verticalSpacer,++row,0,1,1);
+
 }
 
 
@@ -598,7 +622,15 @@ void CompoentControls::onCreateCompoentToCanvas()
 {
     // QObject *sender = QObject::sender(); /* 确定的那一个按钮被点击了 */
 
-    NewLayout *activeLayout = mWindow->cManager->activeSS()->activeLayout();
+    //这里要区分一下控件的类型,在没有图层的情况下,要先建图层,再在图层下面新建布局.
+   // NewLayout *activeLayout = mWindow->cManager->activeSS()->activeLayout();
+    NewLayer  *activeLayer = mWindow->cManager->activeSS()->activeLayer();
+    if(!activeLayer)
+    {
+        QMessageBox::warning(0,tr("提示"),tr("请选择一个图层或者新建一个并选中它."));
+        return;
+    }
+    NewLayout *activeLayout = activeLayer->activeLayout();
     if(!activeLayout)
     {
         QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
@@ -606,6 +638,8 @@ void CompoentControls::onCreateCompoentToCanvas()
     }
 
     QPushButton *btn = (QPushButton*)(QObject::sender());
+    QJsonValue val =QJsonValue::fromVariant(btn->property(DKEY_JSONSTR));
+    activeLayout->createNewFrameObject(val.toObject());
 //    NewFrame* ww = (NewFrame *)CreateObjectFromJson(comMap[btn->text()],activeLayout->m_frame);
 //    //mWindow->Scenes->activeLayer()->m_frame);
 //    ww->setObjectName(btn->property(DKEY_CATEGORY).toString());
@@ -619,30 +653,31 @@ void CompoentControls::onCreateCompoentToCanvas()
 //    // 找出图层,把新建的控件添加进去.
 //    mWindow->tree->addObjectToLayout(ww);
 //    ww->show();
-   NewFrame* ww =  ReadObjectFromJson(comMap[btn->text()],activeLayout->m_frame,btn->text(),
-            btn->property(DKEY_CATEGORY).toString());
-    uint number = qHash(QDateTime::currentDateTime().toMSecsSinceEpoch());
-    ww->setProperty(DKEY_UID,QString::number(number));
-    ww->onSelectMe();
+
+//   NewFrame* ww =  ReadObjectFromJson(comMap[btn->text()],activeLayout->m_frame,btn->text(),
+//            btn->property(DKEY_CATEGORY).toString());
+//    uint number = qHash(QDateTime::currentDateTime().toMSecsSinceEpoch());
+//    ww->setProperty(DKEY_UID,QString::number(number));
+//    ww->onSelectMe();
 }
 
 NewFrame* CompoentControls::ReadObjectFromJson(QVariantMap qvm, QObject *pobj,QString txt,QString objname)
 {
-    NewLayout *activeLayout = mWindow->cManager->activeSS()->activeLayout();
-    NewFrame* ww = (NewFrame *)CreateObjectFromJson(qvm,pobj);
-    //mWindow->Scenes->activeLayer()->m_frame);
-    ww->setObjectName(objname);
-    //ww->setObjectName(QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
-    ww->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg(txt,QString::number(comList.size())));
-    activeLayout->appendChildObj(ww);
-    // 做treeWidget区分的名字.
-    ProMap[ww->property(DKEY_LOCALSEQ).toString()] = ww;
-    comList.append(ww);
+//    NewLayout *activeLayout = mWindow->cManager->activeSS()->activeLayer()->activeLayout();
+//    NewFrame* ww = (NewFrame *)CreateObjectFromJson(qvm,pobj);
+//    //mWindow->Scenes->activeLayer()->m_frame);
+//    ww->setObjectName(objname);
+//    //ww->setObjectName(QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
+//    ww->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg(txt,QString::number(comList.size())));
+//    //  activeLayout->appendChildObj(ww);
+//    // 做treeWidget区分的名字.
+//    ProMap[ww->property(DKEY_LOCALSEQ).toString()] = ww;
+//    comList.append(ww);
 
-    // 找出图层,把新建的控件添加进去.
-    mWindow->tree->addObjectToLayout(ww);
-    ww->show();
-    return ww;
+//    // 找出图层,把新建的控件添加进去.
+//    mWindow->tree->addObjectToLayout(ww);
+//    ww->show();
+//    return ww;
 }
 
 
@@ -808,17 +843,29 @@ QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
 
 void CompoentControls::onCreateNewLayout()
 {
+      //布局只能创建在图层上.
+     NewLayer *activelayer = mWindow->cManager->activeSS()->activeLayer();
+     if(!activelayer)
+     {
+         QMessageBox::warning(0,tr("提示"),tr("请选择一个图层或者新建一个图层,并选中它."));
+         return;
+     }
+     activelayer->createNewLayout();
 
-    ScenesScreen *ss = mWindow->cManager->activeSS();
-    if(ss)
-    {
-        ss->createNewLayout();
-        QPushButton *btn = (QPushButton*)(QObject::sender());
-        NewLayout *nl =  ss->activeLayout();
-        ProMap[nl->property(DKEY_LOCALSEQ).toString()] = nl;
-        //comList.append(nl);
-        mWindow->tree->addItemToRoot(nl->property(DKEY_LOCALSEQ).toString(),btn->text());
-    }
+
+
+
+
+//    ScenesScreen *ss = mWindow->cManager->activeSS();
+//    if(ss)
+//    {
+//        ss->createNewLayout();
+//        QPushButton *btn = (QPushButton*)(QObject::sender());
+//        NewLayout *nl =  ss->activeLayout();
+//        ProMap[nl->property(DKEY_LOCALSEQ).toString()] = nl;
+//        //comList.append(nl);
+//        mWindow->tree->addItemToRoot(nl->property(DKEY_LOCALSEQ).toString(),btn->text());
+//    }
 }
 
 void CompoentControls::onCreateNewLayer()
