@@ -27,6 +27,7 @@ class Compoent
 {
 
 public:
+     Compoent(){}
      void onBindValue(QWidget *w, const QVariantMap &map);
      QJsonObject getRectJson(QWidget* w);
      void copyProperty(const QVariant &va);
@@ -45,7 +46,7 @@ class JsonHandle
 
 
 
-class NewLabel :public QLabel ,public Compoent
+class NewLabel :public QLabel,public Compoent
 {
    // friend class PropertyBox;
     friend class ComProperty;
@@ -145,8 +146,11 @@ public:
     void readFromJson(const QJsonArray &array);
 
     void createNewFrameObject(const QJsonObject &json);
-    QWidget *CreateObjectFromJson(const QVariantMap &qvm, QWidget *pobj);
-    QWidget* CreateObjectFromJson(const QJsonObject &json,QWidget *pobj);
+   // QWidget *CreateObjectFromJson(const QVariantMap &qvm, QWidget *pobj);
+    QWidget* createObjectFromJson(const QJsonObject &json,QWidget *pobj);
+
+
+    void parseJsonProperty(QWidget *nobj, const QJsonArray &array);
 
 
     MainWindow *mWindow;
@@ -206,6 +210,7 @@ protected:
 
 
 
+
 };
 
 
@@ -232,7 +237,8 @@ private:
     QPoint mOffset;
     int mActiveIdx;
     QWidgetList LayoutList; // 它下面的布局子控件.
-
+protected:
+    void resizeEvent(QResizeEvent *event);
 
 //protected:
 //    void mouseMoveEvent(QMouseEvent *event);

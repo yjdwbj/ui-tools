@@ -162,13 +162,25 @@ void TreeDock::onItemPressed(QTreeWidgetItem *item,int col)
     treeWidget->setCurrentItem(item);
 }
 
+void TreeDock::addChildObject(QString root, QString node, QString property)
+{
+    QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(root,
+                              Qt::MatchFixedString | Qt::MatchRecursive);
+
+    if(qwilist.count())
+    {
+        QTreeWidgetItem *nqwi =  new QTreeWidgetItem(qwilist.at(0), QStringList() << node << property);
+        treeWidget->setCurrentItem(nqwi);
+    }
+}
+
 void TreeDock::addItemToRoot(QString node, QString property)
 {
      QTreeWidgetItem *nroot = new QTreeWidgetItem(treeWidget,QStringList() << node << property);
      treeWidget->setCurrentItem(nroot);
 }
 
-void TreeDock::addObjectToLayout(QWidget *ww)
+void TreeDock::addObjectToCurrentItem(QWidget *ww)
 {
 
    //     qDebug() << "Tree  row Size " << mWindow->tree->treeWidget->children().size();

@@ -39,6 +39,7 @@ public:
 
    // void setFormWindow(QDesignerFormWindowInterface *fw);
     QFrame *m_frame;
+    QRect mBorder;
 signals:
     void formWindowSizeChanged(const QRect &oldGeo, const QRect &newGeo);
 
@@ -51,6 +52,7 @@ protected:
 
 private slots:
    // void mainContainerChanged();
+    void onBorderChangedValue(int v);
 
 private:
     QSize decorationSize() const;
@@ -58,6 +60,9 @@ private:
     QPoint mOffset;
     typedef QVector<SizeHandleRect*> Handles;
     Handles m_handles;
+
+    QString mBorderColor;
+
   //  QDesignerFormWindowInterface * m_formWindow;
 };
 

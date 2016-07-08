@@ -23,10 +23,12 @@ public:
 //    void addCompoentControls(CompoentControls *cc);
 //    void addPropBox(PropertyBox *p);
 
-    void addObjectToLayout(QWidget *ww);
+    void addObjectToCurrentItem(QWidget *ww);
+    void addChildObject(QString root,QString node,QString property);
 
     void deleteAllitem();
     void deleteItem(QWidget *obj);
+
 
     QTreeWidgetItem *getRoot()const { return root;}
 

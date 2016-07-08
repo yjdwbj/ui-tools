@@ -19,6 +19,7 @@ static QString ENUM = "enum";
 static QString IMAGE = "image";
 static QString NAME = "-name";
 static QString WIDGET ="widget";
+static QString BORDER="border";
 static QString CLASS = "-class";
 static QString LAYOUT ="layout";
 static QString LAYER = "layer";
@@ -42,7 +43,8 @@ static QString PAGES = "pages";
 static QString UID = "id";
 static QString COLOR = "color";
 static QString STRUCT = "struct";
-static QString BkIMAGE = "background-image";
+static QString BAKIMAGE = "background-image";
+static QString BAKCOLOR = "background-color";
 static QString WTYPE = "-type";
 
 

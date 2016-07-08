@@ -133,7 +133,7 @@ void CanvasManager::setActiveSS(int index)
             QString key = w->property(DKEY_LOCALSEQ).toString();
             mWindow->tree->addItemToRoot(key,"布局");
             foreach (QWidget *ww, ((NewLayout*)w)->getChildrenList()) {
-                mWindow->tree->addObjectToLayout(ww);
+                mWindow->tree->addObjectToCurrentItem(ww);
             }
         }
         stack->setGeometry(stackRect);

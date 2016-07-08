@@ -7,6 +7,7 @@
 #include <QPalette>
 #include <QLayout>
 #include <QFrame>
+#include "config.h"
 
 enum { debugFormResizer = 0 };
 
@@ -126,6 +127,7 @@ void FormResizer::resizeEvent(QResizeEvent *event)
     QWidget::resizeEvent(event);
     if (debugFormResizer)
         qDebug() << "<FormResizer::resizeEvent";
+
 }
 
 QSize FormResizer::decorationSize() const
@@ -134,6 +136,42 @@ QSize FormResizer::decorationSize() const
     const int margin = 2 * SELECTION_MARGIN + 2 * m_frame->lineWidth();
    // qDebug() << " margin " << margin;
     return QSize(margin, margin);
+}
+
+
+void FormResizer::onBorderChangedValue(int v)
+{
+    QString name = QObject::sender()->objectName();
+    if(!name.compare(X))
+    {
+
+        mBorder.setX(v);
+    }else if(!name.compare(Y))
+    {
+
+        mBorder.setY(v);
+    }else if(!name.compare(W))
+    {
+
+        mBorder.setWidth(v);
+    }else if(!name.compare(H))
+    {
+
+        mBorder.setHeight(v);
+    }
+    mBorderColor = "#FFFFFF";
+    QString str = QString("border-left: %1px solid %5;"\
+                          "border-top: %2px solid %5;" \
+                          "border-right: %3px solid %5;"\
+                          "border-bottom: %4px solid %5;").arg(QString::number(mBorder.x()),
+                                                                 QString::number(mBorder.y()),
+                                                                 QString::number(mBorder.width()),
+                                                                 QString::number(mBorder.height()),
+                                                                 mBorderColor);
+    m_frame->setStyleSheet(str);
+    qDebug() << " border style string " << str;
+    m_frame->update();
+    this->blockSignals(true);
 }
 
 //QWidget *FormResizer::mainContainer()
