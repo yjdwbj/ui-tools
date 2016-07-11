@@ -42,6 +42,7 @@ static QString ACTPAGE = "activePage";
 static QString PAGES = "pages";
 static QString UID = "id";
 static QString COLOR = "color";
+static QString GRAYCOLOR = "gray-color";
 static QString STRUCT = "struct";
 static QString BAKIMAGE = "background-image";
 static QString BAKCOLOR = "background-color";
@@ -63,6 +64,7 @@ static const char DKEY_TXT[] = "ViewName";
 static const char DKEY_CATEGORY[] = "Category";
 static const char DKEY_LOCALSEQ[] = "LocalSeq";
 static const char DKEY_JSONSTR[] = "JsonString";
+static const char DKEY_COLOR[] = "btncolor";
 
 /* Class Name */
 static const QString CN_NEWLAYOUT = "NewLayout";

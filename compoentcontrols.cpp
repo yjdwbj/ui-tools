@@ -114,8 +114,8 @@ Position::Position(QWidget *parent)
 
     Xpos->setObjectName(X);
     Ypos->setObjectName(Y);
-    Wpos->setObjectName(H);
-    Hpos->setObjectName(W);
+    Wpos->setObjectName(W);
+    Hpos->setObjectName(H);
 
     xywh->setContentsMargins(0,15,0,0);
 }
@@ -170,6 +170,7 @@ void Position::updateSize(QSize size)
 {
     Wpos->setValue(size.width());
     Hpos->setValue(size.height());
+    this->blockSignals(true);
 }
 
 void Position::resetValues()
@@ -356,7 +357,9 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
               mainLayout->addWidget(b);
               QPushButton *btn = new QPushButton(tr("边框顔色"));
               mainLayout->addWidget(btn);
-
+              btn->setObjectName(uname);
+              connect(btn,SIGNAL(clicked(bool)),p,SLOT(onColorButtonClicked()));
+              wid = btn;
            }else if(object.contains(UID))
            {
                mainLayout->addWidget(title);
@@ -379,8 +382,12 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
            else if(object.contains(BAKCOLOR))
            {
                QPushButton *bkcolor = new QPushButton(tr("背景顔色"));
+               bkcolor->setObjectName(uname);
                mainLayout->addWidget(bkcolor);
+               connect(bkcolor,SIGNAL(clicked(bool)),p,SLOT(onColorButtonClicked()));
+               wid = bkcolor;
            }else{
+              //下面是通JSON值类型来区分来创建不同类型的控件.
                if(object[DEFAULT].isString())
                {
 

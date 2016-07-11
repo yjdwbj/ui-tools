@@ -92,7 +92,9 @@ void ScenesScreen::onChangedBackgroundColor()
 //    color->setWindowModality(Qt::ApplicationModal);
     color->setWindowFlags(Qt::Window|Qt::WindowStaysOnTopHint);
 //     color->setModal(true);
+    color->setOption(QColorDialog::DontUseNativeDialog);
     color->exec();
+
     QColor c =  color->selectedColor();
 
     if(c.isValid())
@@ -293,11 +295,11 @@ void ScenesScreen::writeToJson(QJsonObject &json)
     QJsonArray layoutarr;
     //qDebug() << "ScenesScreen parent obj " << &json ;
 
-    foreach (QWidget *w, LayoutList) {
+    foreach (QWidget *w, LayerList) {
         QJsonObject layoutObj;
        // qDebug() << "ScenesScreen  sub object " << &layoutObj;
         layoutObj[NAME] = w->objectName();
-        ((NewLayout*)w)->writeToJson(layoutObj);
+        ((NewLayer*)w)->writeToJson(layoutObj);
        // qDebug() << " LayoutObj " << layoutObj;
         layoutarr.append(layoutObj);
     }

@@ -30,6 +30,7 @@ FormResizer::FormResizer(QWidget *parent) :
     m_frame->setFrameStyle(QFrame::Panel | QFrame::Raised);
     QVBoxLayout *layout = new QVBoxLayout(m_frame);
     layout->setMargin(0);
+    layout->setContentsMargins(0,0,0,0);
     // handles
     m_handles.reserve(SizeHandleRect::Left);
     for (int i = SizeHandleRect::LeftTop; i <= SizeHandleRect::Left; ++i) {
@@ -164,10 +165,10 @@ void FormResizer::onBorderChangedValue(int v)
                           "border-top: %2px solid %5;" \
                           "border-right: %3px solid %5;"\
                           "border-bottom: %4px solid %5;").arg(QString::number(mBorder.x()),
-                                                                 QString::number(mBorder.y()),
-                                                                 QString::number(mBorder.width()),
-                                                                 QString::number(mBorder.height()),
-                                                                 mBorderColor);
+                                                               QString::number(mBorder.y()),
+                                                               QString::number(mBorder.width()),
+                                                               QString::number(mBorder.height()),
+                                                               mBorderColor);
     m_frame->setStyleSheet(str);
     qDebug() << " border style string " << str;
     m_frame->update();

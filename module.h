@@ -31,8 +31,12 @@ public:
      void onBindValue(QWidget *w, const QVariantMap &map);
      QJsonObject getRectJson(QWidget* w);
      void copyProperty(const QVariant &va);
+     QVariant getJsonValue(const QJsonArray &arr,QString key) const;
+     QVariant getJsonValue(QString key) const;
      void changeJsonValue(QString key, QVariant val);
-    QVariant getJsonValue(QString key) const;
+     void changeJsonValue( QJsonArray &json,QString key,
+                                    const QVariant &val);
+
     void updateJsonArray(QString key,const QJsonArray &arr);
     //QVariantMap dynValues;
     //QJsonValue dynValues;
@@ -117,6 +121,8 @@ private slots:
     void onTextChanged(QString str);
     void onNumberChanged(int num);
     void onEnumItemChanged(QString txt);
+    void onColorButtonClicked();
+    void onColorButtonChanged();
 
 protected:
     void clearOtherObjectStyleSheet();
@@ -182,7 +188,7 @@ class BaseForm: public FormResizer
     Q_OBJECT
 public:
     explicit BaseForm(QWidget *parent=0);
-    void onSelectMe();
+
 
     MainWindow *mWindow;
 
@@ -228,6 +234,7 @@ public:
     NewLayout *activeLayout() {
             return mActiveIdx == -1 ? (NewLayout*)0 :
                                       (NewLayout*)(LayoutList.at(mActiveIdx));}
+    void writeToJson(QJsonObject &json);
 
 public slots:
     void onDeleteMe();

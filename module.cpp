@@ -14,56 +14,98 @@
 #include <QSignalMapper>
 #include <QLineEdit>
 #include <QFileDialog>
+#include <QColorDialog>
+#include <QRgb>
 
 #include "config.h"
 #include "scenesscreen.h"
 #include "canvasmanager.h"
 
-void Compoent::changeJsonValue(QString key, QVariant val)
+void Compoent::changeJsonValue(QJsonArray &parr,QString key,
+                               const QVariant &val)
 {
-   QJsonArray parr = dynValues[DKEY_DYN].toArray();
     int asize = parr.size();
     for(int i = 0;i < asize;i++)
     {
         QJsonObject obj = parr[i].toObject();
+        if(obj.contains(STRUCT))
+        {
+            QJsonArray arr = obj[STRUCT].toArray();
+            changeJsonValue(arr,key,val);
+            obj[STRUCT] = arr;
+            parr[i] = obj;
+            continue;
+        }
         // 这里必需要有-name 这个属性名.
         if(obj[NAME].toString().contains(key) )
         {
             if(obj.contains(DEFAULT))
             {
                 obj[DEFAULT] = QJsonValue::fromVariant(val);
-                parr[i] = obj;
-                break;
+
             }else if(obj.contains(IMAGE))
             {
                 obj[IMAGE] = QJsonValue::fromVariant(val);
-                parr[i] = obj;
-                break;
-            }else if(obj.contains(LIST))
+//                parr[i] = obj;
+//                break;
+            }
+            else if(obj.contains(LIST))
             {
                 obj[LIST] = QJsonValue::fromVariant(val);
-                parr[i] = obj;
-                break;
-            }
+//                parr[i] = obj;
+//                break;
+            }else if(obj.contains(GRAYCOLOR)){
 
+                obj[GRAYCOLOR] = QJsonValue::fromVariant(val);
+//                parr[i] = obj;
+//                break;
+            }else if(obj.contains(COLOR))
+            {
+               obj[COLOR] = QJsonValue::fromVariant(val);
+            }else if(obj.contains(BAKCOLOR))
+            {
+               obj[BAKCOLOR] = QJsonValue::fromVariant(val);
+            }
+            parr[i] = obj;
+            break;
         }
     }
+}
+
+void Compoent::changeJsonValue(QString key, QVariant val)
+{
+   QJsonArray parr = dynValues[DKEY_DYN].toArray();
+   changeJsonValue(parr,key,val);
+    int asize = parr.size();
+
     // 这个QJsonObject 都是只读的,修改之后必需重新赋值.
     dynValues[DKEY_DYN] = parr;
 }
 
-QVariant Compoent::getJsonValue(QString key) const
+QVariant Compoent::getJsonValue(const QJsonArray &parr,QString key) const
 {
-    QJsonArray parr = dynValues[DKEY_DYN].toArray();
     int asize = parr.size();
     for(int i = 0;i < asize;i++)
     {
         QJsonObject obj = parr[i].toObject();
+        if(obj.contains(STRUCT))
+        {
+            return getJsonValue(obj[STRUCT].toArray(),key);
+        }
         if(obj[NAME].toString().contains(key))
         {
             if(obj.contains(DEFAULT))
             {
                 return obj[DEFAULT].toVariant();
+            }else if(obj.contains(COLOR))
+            {
+                return obj[COLOR].toVariant();
+            }else if(obj.contains(GRAYCOLOR))
+            {
+                return obj[GRAYCOLOR].toVariant();
+            }else if(obj.contains(BAKCOLOR))
+            {
+                return obj[BAKCOLOR].toVariant();
             }
 
         }
@@ -71,10 +113,42 @@ QVariant Compoent::getJsonValue(QString key) const
     return QVariant("");
 }
 
+QVariant Compoent::getJsonValue(QString key) const
+{
+
+    return getJsonValue(dynValues[DKEY_DYN].toArray(),key);
+
+//    int asize = parr.size();
+//    for(int i = 0;i < asize;i++)
+//    {
+//        QJsonObject obj = parr[i].toObject();
+//        if(obj.contains(STRUCT))
+//        {
+//            return getJsonValue(obj[STRUCT].toArray(),key);
+//        }
+//        if(obj[NAME].toString().contains(key))
+//        {
+//            if(obj.contains(DEFAULT))
+//            {
+//                return obj[DEFAULT].toVariant();
+//            }else if(obj.contains(COLOR))
+//            {
+//                return obj[COLOR].toVariant();
+//            }else if(obj.contains(GRAYCOLOR))
+//            {
+//                return obj[GRAYCOLOR].toVariant();
+//            }
+
+//        }
+//    }
+//    return QVariant("");
+}
+
 
 void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
 {
  //   qDebug() << " dyn size " << dynValues.size();
+     // 通过关键字来设置控件的默认值.
      QString n = w->metaObject()->className();
      QString uname = w->objectName();
      if(!n.compare("QLineEdit"))
@@ -123,6 +197,33 @@ void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
          QSpinBox *sp = (QSpinBox *)w;
          sp->setValue(getJsonValue(uname).toDouble());
      }
+     else if(!n.compare("QPushButton"))
+     {
+           QColor c;
+          if(!uname.compare(BAKCOLOR))
+          {
+               c = getJsonValue(BAKCOLOR).toString() ;
+//              QPixmap p(12,12);
+//              p.fill(c);
+
+//            ((QPushButton*)w)->setIcon(p);
+//            ((QPushButton*)w)->setProperty(DKEY_COLOR,c);
+
+          }
+          else if(!uname.compare(BORDER))
+          {
+              unsigned int n = getJsonValue(BORDER).toUInt();
+              //灰度转成ＲＧＢ
+             // QColor c(n & 0xfff00000,n &0xfff00,n & 0xff);
+              QColor c = QColor::fromRgb(n);
+
+          }
+          QPixmap p(12,12);
+          p.fill(c);
+
+          ((QPushButton*)w)->setIcon(p);
+          ((QPushButton*)w)->setProperty(DKEY_COLOR,c);
+     }
  }
 
 
@@ -168,31 +269,6 @@ void NewLabel::onTextChanged(QString str)
 
 /*------------------------------------------------------------------------*/
 
-void NewFrame::onEnumItemChanged(QString txt)
-{
-   QComboBox *cb =(QComboBox *)(QObject::sender());
- //  qDebug() << " Frame enum value changed " << txt << cb->currentText();
- //  dynValues[cb->objectName()] = txt;
- changeJsonValue(cb->objectName(),txt);
-
-    this->signalsBlocked();
-}
-
-void NewFrame::onNumberChanged(int num)
-{
-
-    QSpinBox *sp = (QSpinBox *)(QObject::sender());
-    changeJsonValue(sp->objectName(),num);
-  //  dynValues[sp->objectName()] = num;
-}
-
-void NewFrame::onTextChanged(QString str)
-{
-    QLineEdit *txt = (QLineEdit *)(QObject::sender());
-  //  qDebug() << " txt changed" << txt->toPlainText();
-    changeJsonValue(txt->objectName(),str);
-  //  dynValues[txt->objectName()] = str;
-}
 
 
 NewLabel::NewLabel(QWidget *parent)
@@ -520,6 +596,72 @@ void NewFrame::onXYWHChangedValue(int v)
 
 }
 
+
+void NewFrame::onEnumItemChanged(QString txt)
+{
+   QComboBox *cb =(QComboBox *)(QObject::sender());
+ //  qDebug() << " Frame enum value changed " << txt << cb->currentText();
+ //  dynValues[cb->objectName()] = txt;
+ changeJsonValue(cb->objectName(),txt);
+
+    this->signalsBlocked();
+}
+
+void NewFrame::onNumberChanged(int num)
+{
+
+    QSpinBox *sp = (QSpinBox *)(QObject::sender());
+    changeJsonValue(sp->objectName(),num);
+  //  dynValues[sp->objectName()] = num;
+}
+
+void NewFrame::onTextChanged(QString str)
+{
+    QLineEdit *txt = (QLineEdit *)(QObject::sender());
+
+    changeJsonValue(txt->objectName(),str);
+  //  dynValues[txt->objectName()] = str;
+}
+
+void NewFrame::onColorButtonChanged()
+{
+    QPalette p;
+
+}
+
+void NewFrame::onColorButtonClicked()
+{
+    QPushButton *btn = (QPushButton*)QObject::sender();
+    QColor c = QColor::fromRgb(btn->property(DKEY_COLOR).toUInt());
+    QColorDialog *color =new  QColorDialog(c,  mWindow);
+    color->setOptions( QColorDialog::DontUseNativeDialog);
+
+
+    color->exec();
+    c =  color->selectedColor();
+
+    if(c.isValid())
+    {
+       // qDebug() << " you selected color is " << c.rgb();
+        QPixmap p(12,12);
+        p.fill(c);
+        btn->setIcon(p);
+        btn->update();
+        QString objname = btn->objectName();
+        if(!objname.compare(BAKCOLOR))
+        {
+            this->changeJsonValue(BAKCOLOR,c.name());
+        }
+        else if(!objname.compare(BORDER))
+        {
+
+            this->changeJsonValue(BORDER,qGray(c.rgb()));
+        }
+
+    }
+
+}
+
 void NewFrame::writeToJson(QJsonObject &json)
 {
 
@@ -576,20 +718,6 @@ BaseForm::BaseForm(QWidget *parent)
 
 }
 
-void BaseForm::onSelectMe()
-{
-//    clearOtherObjectStyleSheet();
-//    mWindow->cManager->activeSS()->setSelectObject(this);
-//    mWindow->posWidget->setConnectNewQWidget(this);
-//    mWindow->propertyWidget->createPropertyBox(this);
-//    mWindow->imgPropertyWidget->delPropertyBox();
-//    this->blockSignals(true);
-
-}
-
-
-
-
 
 void BaseForm::mouseMoveEvent(QMouseEvent *event)
 {
@@ -625,6 +753,40 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
 void BaseForm::mouseReleaseEvent(QMouseEvent *event)
 {
 
+
+    /* 放开鼠标时检查它的是否出了边界要 */
+    QWidget *p = this->parentWidget();
+    QPoint pos = this->pos();
+    if(this->x() < 0)
+    {
+        pos.setX(0 - MARGIN_SIZE.width() /2);
+        this->move(pos);
+
+    }
+    if(this->y() < 0 )
+    {
+        pos.setY(0 -MARGIN_SIZE.width() /2);
+        this->move(pos);
+    }
+
+    QSize ms = p->size();
+    //左出界检查
+    if((this->x()  + this->size().width()) > ms.width())
+    {
+        pos.setX( ms.width() - this->size().width() + MARGIN_SIZE.width() /2 );
+        this->move(pos);
+
+    }
+
+    //上出界检查
+    if((this->y() + this->size().height()) > ms.height())
+    {
+        pos.setY(ms.height() - this->size().height() + MARGIN_SIZE.height() /2);
+        this->move(pos);
+    }
+
+    // 这里只能在释放鼠标时改变左边的控件值
+    mWindow->posWidget->updateSize(this->size());
 }
 
 void BaseForm::paintEvent(QPaintEvent *)
@@ -856,13 +1018,13 @@ void NewLayout::mouseReleaseEvent(QMouseEvent *event)
     QPoint pos = this->pos();
     if(this->x() < 0)
     {
-        pos.setX(0 - MARGIN_SIZE.width() /2);
+        pos.setX(0 );
         this->move(pos);
 
     }
     if(this->y() < 0 )
     {
-        pos.setY(0 -MARGIN_SIZE.width() /2);
+        pos.setY(0 );
         this->move(pos);
     }
 
@@ -870,7 +1032,7 @@ void NewLayout::mouseReleaseEvent(QMouseEvent *event)
     //左出界检查
     if((this->x()  + this->size().width()) > ms.width())
     {
-        pos.setX( ms.width() - this->size().width() + MARGIN_SIZE.width() /2 );
+        pos.setX( ms.width() - this->size().width()  );
         this->move(pos);
 
     }
@@ -878,7 +1040,7 @@ void NewLayout::mouseReleaseEvent(QMouseEvent *event)
     //上出界检查
     if((this->y() + this->size().height()) > ms.height())
     {
-        pos.setY(ms.height() - this->size().height() + MARGIN_SIZE.height() /2);
+        pos.setY(ms.height() - this->size().height() );
         this->move(pos);
     }
 
@@ -1246,6 +1408,21 @@ void NewLayer::DeleteMe()
 void NewLayer::onDeleteMe()
 {
     DeleteMe();
+}
+
+void NewLayer::writeToJson(QJsonObject &json)
+{
+    QJsonArray layoutarr;
+    foreach (QWidget *w, LayoutList) {
+        QJsonObject layoutObj;
+       // qDebug() << "ScenesScreen  sub object " << &layoutObj;
+        layoutObj[NAME] = w->objectName();
+        ((NewLayout*)w)->writeToJson(layoutObj);
+       // qDebug() << " LayoutObj " << layoutObj;
+        layoutarr.append(layoutObj);
+    }
+    json[CAPTION] = this->property(DKEY_TXT).toString();
+    json[metaObject()->className()] = layoutarr;
 }
 
 void NewLayer::resizeEvent(QResizeEvent *event)
