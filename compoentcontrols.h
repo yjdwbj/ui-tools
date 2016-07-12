@@ -92,6 +92,9 @@ class CompoentControls : public QGroupBox
 {
     friend class PropertyBox;
     friend class TreeDock;
+    friend class NewLayer;
+    friend class NewLayout;
+    friend class ScenesScreen;
     Q_OBJECT
 public:
     explicit CompoentControls(MainWindow *mw,QWidget *parent = 0);
@@ -109,20 +112,24 @@ private:
      QWidget *mainWidget;
      QString mJsonFile;
      QWidgetList comList;
-     QJsonArray comJsonArr;
+     //QJsonArray comJsonArr;
      QMap<QString,QVariantMap> comMap;
      QMap<QString,FormResizer*> ProMap; // 新生成的控件.
      //QSizePolicy mSizePolicy;
 
-     void CreateButtonList();
+     void CreateButtonList(const QJsonArray &comJsonArr);
+     QWidget *createCustomObject(const QJsonArray &comJsonArr);
+     QWidget *createCustomWidget(const QJsonValue &json, QWidget *parent);
+
      QWidget *getQWidgetByName(QString name) const;
-     void ReadTemplateWidgetFile(QString file);
+     QJsonArray ReadTemplateWidgetFile(QString file) const;
     // void ReadCustomWidgetFiles(QString file);
 
 signals:
 
 public slots:
      void onCreateCompoentToCanvas();
+     void onCreateCustomWidget();
      void onCreateNewLayout();
      void onCreateNewLayer();
 };

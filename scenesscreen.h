@@ -25,6 +25,9 @@ public:
     NewLayer *activeLayer() {
         return mActiveLaySeq == -1 ? 0 : (NewLayer*)(LayerList.at(mActiveLaySeq));
     }
+    QWidget *activeObject() {
+        return activeObj;
+    }
 
    // int getActiveIndex() { return mActiveIdx;}
     int getActiveLayerIndex() { return mActiveLaySeq;}

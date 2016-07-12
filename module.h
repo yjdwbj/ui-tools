@@ -30,12 +30,15 @@ public:
      Compoent(){}
      void onBindValue(QWidget *w, const QVariantMap &map);
      QJsonObject getRectJson(QWidget* w);
+     QJsonObject getBorderJson(QWidget *w);
      void copyProperty(const QVariant &va);
      QVariant getJsonValue(const QJsonArray &arr,QString key) const;
      QVariant getJsonValue(QString key) const;
      void changeJsonValue(QString key, QVariant val);
      void changeJsonValue( QJsonArray &json,QString key,
                                     const QVariant &val);
+
+     void updateRBJsonValue(QJsonArray &json,QWidget *w); // 更新UID,RECT,BORDER三个属性
 
     void updateJsonArray(QString key,const QJsonArray &arr);
     //QVariantMap dynValues;
@@ -132,6 +135,8 @@ protected:
 //class NewLayout :public QFrame
 class NewLayout :public FormResizer
 {
+    friend class ScenesScreen;
+    friend class CompoentControls;
     Q_OBJECT
 public:
     explicit NewLayout(QSize nsize, QWidget *parent=0);
@@ -144,7 +149,7 @@ public:
   //  void appendChildObj(QWidget *w) { mChList.append(w);}
     void deleteObject(int index);
     void deleteObject(QWidget *w);
-    const QWidgetList &getChildrenList() { return NewFrameList;}
+    const QWidgetList &getChildrenList() { return childlist;}
 
     void delMySelf();
 
@@ -157,6 +162,7 @@ public:
 
 
     void parseJsonProperty(QWidget *nobj, const QJsonArray &array);
+    void addNewObject(QWidget *w) { childlist.append(w);}
 
 
     MainWindow *mWindow;
@@ -166,7 +172,7 @@ private:
     void clearOtherObjectStyleSheet();
 
     QPoint mOffset;
-    QWidgetList NewFrameList;
+    QWidgetList childlist;
 
 public slots:
     void onXYWHChangedValue(int v);
@@ -231,9 +237,11 @@ public:
    // MainWindow *mWindow;
     void DeleteMe();
     void createNewLayout();
+    void createNewLayout(QWidget *parent);
     NewLayout *activeLayout() {
             return mActiveIdx == -1 ? (NewLayout*)0 :
                                       (NewLayout*)(LayoutList.at(mActiveIdx));}
+    void setActiveLayout(QWidget *w) { mActiveIdx = LayoutList.indexOf(w);}
     void writeToJson(QJsonObject &json);
 
 public slots:

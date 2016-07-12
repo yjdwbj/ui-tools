@@ -30,7 +30,7 @@ FormResizer::FormResizer(QWidget *parent) :
     m_frame->setFrameStyle(QFrame::Panel | QFrame::Raised);
     QVBoxLayout *layout = new QVBoxLayout(m_frame);
     layout->setMargin(0);
-    layout->setContentsMargins(0,0,0,0);
+    //layout->setContentsMargins(0,0,0,0);
     // handles
     m_handles.reserve(SizeHandleRect::Left);
     for (int i = SizeHandleRect::LeftTop; i <= SizeHandleRect::Left; ++i) {

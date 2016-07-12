@@ -36,7 +36,6 @@ public:
     QTreeWidget *treeWidget;
 
 
-
 public slots:
     void onItemPressed(QTreeWidgetItem *item, int col);
 

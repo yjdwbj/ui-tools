@@ -125,8 +125,12 @@ void ScenesScreen::createNewLayer()
     NewLayer *nlayer = new NewLayer(QSize(200,200) + MARGIN_SIZE,this);
     LayerList.append(nlayer);
     mActiveLaySeq = LayerList.size() - 1;
-    nlayer->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("图层",QString::number(LayerList.size()-1)));
+   // nlayer->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("图层",QString::number(LayerList.size()-1)));
+    nlayer->setProperty(DKEY_LOCALSEQ,
+    QString("%1_%2").arg("图层",QString::number( mWindow->ComCtrl->ProMap.size())));
     nlayer->onSelectMe();
+    mWindow->ComCtrl->ProMap[nlayer->property(DKEY_LOCALSEQ).toString()] = nlayer;
+    nlayer->setToolTip(nlayer->property(DKEY_LOCALSEQ).toString());
 
 }
 
@@ -187,9 +191,11 @@ void ScenesScreen::setSelectObject(FormResizer *obj)
 
     activeObj = obj;
     //qDebug() << " active object is " << obj->objectName();
-    if(!CN_NEWLAYOUT.compare(obj->metaObject()->className()))
+    QString clsname = obj->metaObject()->className();
+    if(!CN_NEWLAYOUT.compare(clsname))
     {
         mActiveIdx = LayoutList.indexOf(obj);  // 这里只是布局控件才更改它的数值
+
     }
 
     mWindow->tree->setSelectTreeItem(obj);

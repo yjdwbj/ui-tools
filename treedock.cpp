@@ -188,10 +188,12 @@ void TreeDock::addObjectToCurrentItem(QWidget *ww)
         if(qwi)
         {
            QStringList tlist;
-           tlist << ww->property(DKEY_LOCALSEQ).toString() << ww->metaObject()->className();
+           QString key = ww->property(DKEY_LOCALSEQ).toString();
+           tlist << key << ww->metaObject()->className();
             //qDebug() << " add child to " << qwi->text(0) << qwi->text(1);
            QTreeWidgetItem *nqwi =  new QTreeWidgetItem(!qwi->text(1).compare(CN_NEWFRAME) ? qwi->parent()
                                                                     : qwi, tlist);
+           mWindow->ComCtrl->ProMap[key] = (FormResizer*)ww;
            treeWidget->setCurrentItem(nqwi);
         }
 }
@@ -207,6 +209,7 @@ void TreeDock::deleteItem(QWidget *obj)
        if(!qwi->text(0).compare(key))
        {
            treeWidget->removeItemWidget(qwi,0);
+           mWindow->ComCtrl->ProMap.remove(key);
            delete qwi;
            break;
        }
