@@ -949,7 +949,7 @@ void NewLayout::delMySelf()
 
     mWindow->tree->deleteItem(this);
     mWindow->posWidget->resetValues();
-
+    mWindow->ComCtrl->ProMap.remove(property(DKEY_LOCALSEQ).toString());
     deleteLater();
 }
 
@@ -1030,17 +1030,6 @@ void NewLayout::onDeleteMe()
 void NewLayout::onBeComeTemplateWidget()
 {
 
-//    QDialog namedig(this);
-//    QHBoxLayout *hb = new QHBoxLayout();
-//    hb->addWidget(new QLabel("请输入控件名称:"));
-//    QLineEdit *txt = new QLineEdit();
-//    txt->setToolTip("最大四个中文字符");
-//    txt->setMaxLength(4);
-//    txt->setText(QString("Wid%1").arg(QString::number(mWindow->ComCtrl->mCWidgetCount)));
-//    hb->addWidget(txt);
-//    namedig.setLayout(hb);
-//    namedig.exec();
-
    QString fpath =  QFileDialog::getSaveFileName(this,"保存成自定义控件,不要保存到目录,否则无法加载它.",QDir::currentPath() + "/widgets",
             "Json files (*.json);;All files (*.*)",
                 new QString("Json files (*.json)"),QFileDialog::ShowDirsOnly|QFileDialog::ReadOnly);
@@ -1052,21 +1041,45 @@ void NewLayout::onBeComeTemplateWidget()
 
 //   qDebug() << " save path " << fpath;
 
-
     QJsonObject json ;
-    QJsonArray arr ;
-    QJsonObject wid;
 
-
+     QJsonObject wid;
     writeToJson(wid);
+
+
+    QJsonArray property = wid[PROPERTY].toArray();
+
+    for (int i =0 ;i < property.size();i++) {
+        QJsonObject tt = property.at(i).toObject();
+        if(tt.contains(KEY_RECT))
+        {
+            QJsonObject rect = tt[KEY_RECT].toObject();
+            QVariantMap vmap ;
+            vmap["x"] = QString::number(0);
+            vmap["y"] = QString::number(0);
+            vmap[WIDTH] =rect[WIDTH].toString();
+            vmap[HEIGHT] = rect[HEIGHT].toString();
+            tt[KEY_RECT] = QJsonObject::fromVariantMap(vmap);
+
+            property[i] = tt;
+            break;
+        }
+
+
+    }
+    QJsonArray arr ;
+
+    wid[PROPERTY] = property;
     arr.append(wid);
     json[COMPOENTS] = arr;
+   // arr.append(json);
+
+  //  json[COMPOENTS] = arr;
 
     QFile saveFile;
     saveFile.setFileName(fpath);
     if (!saveFile.open(QIODevice::WriteOnly)) {
         qWarning("Couldn't open save file.");
-
     }
     QJsonDocument jsonDoc(json);
     saveFile.write(jsonDoc.toJson());
@@ -1150,7 +1163,14 @@ void NewLayout::deleteObject(QWidget *w)
 {
     int i = childlist.indexOf(w);
     childlist.removeAt(i);
-    ((NewFrame*)w)->delMySelf();
+    QString clsname = w->metaObject()->className();
+    if(!clsname.compare(CN_NEWLAYOUT))
+    {
+        ((NewLayout*)w)->delMySelf();
+    }else {
+        ((NewFrame*)w)->delMySelf();
+    }
+
 
 }
 
@@ -1162,10 +1182,20 @@ void NewLayout::writeToJson(QJsonObject &json)
       //  qDebug() << "NewLayout  parent object " << &json;
 
         foreach (QWidget *w, childlist) {
-            QJsonObject frameObj;
-            frameObj[NAME] = w->objectName();
-            ((NewFrame*)w)->writeToJson(frameObj);
-            layoutarr.append(frameObj);
+            QJsonObject outjson;
+            outjson[NAME] = w->objectName();
+            qDebug() << " childlist  " << w->metaObject()->className();
+            // 这里只有两种对像类型,NewLayout , NewFrame;
+            QString clsname = w->metaObject()->className();
+
+            if(!clsname.compare(CN_NEWLAYOUT))
+            {
+                ((NewLayout*)w)->writeToJson(outjson);
+            }else{
+                ((NewFrame*)w)->writeToJson(outjson);
+            }
+
+            layoutarr.append(outjson);
         }
         // 这一句必需要在这个偱环后面.
         json[LAYOUT] = layoutarr;
@@ -1186,32 +1216,53 @@ void NewLayout::writeToJson(QJsonObject &json)
         json[PROPERTY] = projson;
 }
 
-void NewLayout::readFromJson(const QJsonArray &array)
+
+void NewLayout::readFromJson(const QJsonObject &valobj)
 {
-    foreach (QJsonValue val, array) {
-        switch (val.type()) {
-        case QJsonValue::Object:
-        {
-            QJsonObject valobj = val.toObject();
-             NewFrame *nf =  mWindow->ComCtrl->ReadObjectFromJson(valobj.toVariantMap(),m_frame,
-                                                 valobj[CAPTION].toString(),valobj[NAME].toString());
+           // QJsonObject valobj = val.toObject();
+//            QSize valsize(valobj[SIZE].toObject()[WIDTH].toString().toInt(),
+//                          valobj[SIZE].toObject()[HEIGHT].toString().toInt());
 
-             foreach (QJsonValue pval, valobj[PROPERTY].toArray()) {
-                 QJsonObject pobj = pval.toObject();
-                 if(pobj.contains(UID))
-                 {
-                     nf->setProperty(DKEY_UID,pobj[UID].toString());
-                 }
-             }
-             nf->onSelectMe();
+            QJsonObject rectobj;
+            foreach (QJsonValue pval, valobj[PROPERTY].toArray()) {
+                QJsonObject pobj = pval.toObject();
+                if(pobj.contains(KEY_RECT))
+                {
+                    rectobj = pobj[KEY_RECT].toObject();
 
-        }
+                    break;
+                }
+            }
+            QVariantMap rect =  rectobj.toVariantMap();
+            QRect oldrect = QRect(rect["x"].toString().toInt(),
+                    rect["y"].toString().toInt(),
+                    rect["width"].toString().toInt(),
+                    rect["height"].toString().toInt());
 
-            break;
-        default:
-            break;
-        }
-    }
+            // 下面这种粗暴的取值方式是一定含有:　　"-class": "Classname" 的条目.
+            QString clsName = valobj[CLASS].toString();
+            if(!clsName.compare(CN_NEWLAYOUT) || !clsName.compare(LAYOUT))
+            {
+                NewLayout *newlayout = new NewLayout(oldrect.size(),this);
+
+                newlayout->setProperty(DKEY_LOCALSEQ,valobj[CAPTION].toString());
+                newlayout->setGeometry(oldrect);
+                newlayout->addMainWindow(mWindow);
+                childlist.append(newlayout);
+                mWindow->tree->addObjectToCurrentItem(newlayout);
+                //   LayoutList.append(nl);
+                newlayout->onSelectMe();
+
+                // 这里一定是Layout 嵌套了.
+                foreach (QJsonValue item, valobj[LAYOUT].toArray()) {
+                    newlayout->readFromJson(item.toObject());
+                }
+
+
+            }else if(!clsName.compare(CN_NEWFRAME) || !clsName.compare(QFRAME))
+            {
+                mWindow->ComCtrl->createLayoutFromJson(valobj,this);
+            }
 }
 
 
@@ -1232,6 +1283,7 @@ void NewLayout::createNewFrameObject(const QJsonObject &json)
     mWindow->tree->addObjectToCurrentItem(ww);
     ww->show();
 }
+
 QWidget* NewLayout::createObjectFromJson(const QJsonObject &json,QWidget *pobj)
 {
     QWidget *nobj;
@@ -1440,11 +1492,67 @@ void NewLayer::createNewLayout()
 
 }
 
+void NewLayer::readFromJson(const QJsonArray &array)
+{
+    foreach (QJsonValue val, array) {
+        switch (val.type()) {
+        case QJsonValue::Object:
+        {
+            QJsonObject valobj = val.toObject();
+//            QSize valsize(valobj[SIZE].toObject()[WIDTH].toString().toInt(),
+//                          valobj[SIZE].toObject()[HEIGHT].toString().toInt());
+
+            QJsonObject rectobj;
+            foreach (QJsonValue pval, valobj[PROPERTY].toArray()) {
+                QJsonObject pobj = pval.toObject();
+                if(pobj.contains(KEY_RECT))
+                {
+                    rectobj = pobj[KEY_RECT].toObject();
+
+                    break;
+                }
+            }
+            QVariantMap rect =  rectobj.toVariantMap();
+            QRect oldrect = QRect(rect["x"].toString().toInt(),
+                    rect["y"].toString().toInt(),
+                    rect["width"].toString().toInt(),
+                    rect["height"].toString().toInt());
+
+               // 下面这种粗暴的取值方式是一定含有:　　"-class": "Classname" 的条目.
+              QString clsName = valobj[CLASS].toString();
+              if(!clsName.compare(CN_NEWLAYOUT) || !clsName.compare(LAYOUT))
+              {
+                  NewLayout *newlayout = new NewLayout(oldrect.size(),this);
+
+                  newlayout->setProperty(DKEY_LOCALSEQ,valobj[CAPTION].toString());
+                  newlayout->setGeometry(oldrect);
+                  newlayout->addMainWindow(mWindow);
+                  mWindow->tree->addObjectToCurrentItem(newlayout);
+
+                  LayoutList.append(LayoutList);
+                  newlayout->onSelectMe();
+                  foreach (QJsonValue item, valobj[LAYOUT].toArray()) {
+                      newlayout->readFromJson(item.toObject());
+                  }
+
+
+              }
+        }
+
+            break;
+        default:
+            break;
+        }
+    }
+
+}
+
 void NewLayer::createNewLayout(QWidget *parent)
 {
     NewLayout *nl = new NewLayout(QSize(150,200)+MARGIN_SIZE,parent);
     nl->addMainWindow(mWindow);
     LayoutList.append(nl);
+    mWindow->cManager->activeSS()->LayoutList.append(nl);
     mActiveIdx = LayoutList.size() - 1;
 
 
@@ -1454,7 +1562,7 @@ void NewLayer::createNewLayout(QWidget *parent)
 //    mWindow->tree->addChildObject(this->property(DKEY_LOCALSEQ).toString(),
 //                                  nl->property(DKEY_LOCALSEQ).toString(),
 //                                  nl->metaObject()->className());
-    mWindow->ComCtrl->ProMap[nl->property(DKEY_LOCALSEQ).toString()] = nl;
+  //  mWindow->ComCtrl->ProMap[nl->property(DKEY_LOCALSEQ).toString()] = nl;
     mWindow->tree->addObjectToCurrentItem(nl);
     nl->setToolTip(nl->property(DKEY_LOCALSEQ).toString());
 
@@ -1501,8 +1609,9 @@ void NewLayer::writeToJson(QJsonObject &json)
        // qDebug() << " LayoutObj " << layoutObj;
         layoutarr.append(layoutObj);
     }
-    json[CAPTION] = this->property(DKEY_TXT).toString();
-    json[metaObject()->className()] = layoutarr;
+    json[CAPTION] = this->property(DKEY_LOCALSEQ).toString();
+    json[CLASS] = this->metaObject()->className();
+    json[LAYOUT] = layoutarr;
 }
 
 void NewLayer::resizeEvent(QResizeEvent *event)

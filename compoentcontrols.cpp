@@ -709,8 +709,6 @@ CompoentControls::CompoentControls(MainWindow *mw, QWidget *parent)
     mainWidget->setLayout(mainLayout);
     scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-
-
     // 读取控件目录下的所有控件文件.
 
    // mJsonFile =  QDir::currentPath() + "/menu_strip.json";
@@ -733,16 +731,12 @@ CompoentControls::CompoentControls(MainWindow *mw, QWidget *parent)
     while (it.hasNext())
     {
         // 读取每一个自定义控件的JSON文件
-        foreach(QJsonValue val, ReadTemplateWidgetFile(it.next()))
-        {
+        foreach (QJsonValue val, ReadTemplateWidgetFile(it.next())) {
             array.append(val);
         }
         mCWidgetCount++;
     }
     mainLayout->addWidget(createCustomObject(array));
-
-
-
 }
 
 
@@ -763,7 +757,7 @@ QWidget *CompoentControls::getQWidgetByName(QString name) const
 
 QJsonArray CompoentControls::ReadTemplateWidgetFile(QString file) const
 {
-    QJsonArray comJsonArr;
+    QJsonArray obj;
     QFile data(file);
     if (data.open(QFile::ReadOnly|QIODevice::Text)) {
         QByteArray qba = data.readAll();
@@ -778,9 +772,9 @@ QJsonArray CompoentControls::ReadTemplateWidgetFile(QString file) const
             QPoint mpos;
             if(qd.isObject())
             {
-                if(qd.object().contains("compoents"))
+                if(qd.object().contains(COMPOENTS))
                 {
-                    comJsonArr =  qd.object()["compoents"].toArray();
+                   obj = qd.object()[COMPOENTS].toArray();
                 }
             }
         }else{
@@ -788,7 +782,7 @@ QJsonArray CompoentControls::ReadTemplateWidgetFile(QString file) const
             qDebug() << json_error.errorString();
         }
     }
-    return comJsonArr;
+    return obj;
 }
 
 
@@ -855,10 +849,30 @@ void CompoentControls::onCreateCustomWidget()
         QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
         return;
     }
-
     QPushButton *btn = (QPushButton*)(QObject::sender());
-    QJsonValue val =QJsonValue::fromVariant(btn->property(DKEY_JSONSTR));
-    createCustomWidget(val,wid);
+    QJsonValue value = QJsonValue::fromVariant(btn->property(DKEY_JSONSTR));
+    QJsonObject rect = value.toObject()[PROPERTY].toObject();
+    QString clsname = wid->metaObject()->className();
+    if(!clsname.compare(CN_NEWLAYOUT))
+    {
+       ((NewLayout*)wid)->readFromJson(value.toObject());
+       // ((NewLayout*)wid)->readFromJson(value.toArray());
+    }
+    else if(!clsname.compare(CN_NEWFRAME))
+    {
+        // 选择它的父控件.
+       ((NewLayout*)wid->parentWidget())->readFromJson(value.toObject());
+    }
+    else
+    {
+        QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
+        return;
+    }
+
+//    QPushButton *btn = (QPushButton*)(QObject::sender());
+//    QJsonValue val =QJsonValue::fromVariant(btn->property(DKEY_JSONSTR));
+//    QJsonObject obj = val.toObject();
+//    createLayoutFromJson(obj,wid);
 //    QString clsname = wid->metaObject()->className();
 //    if(!clsname.compare(CN_NEWFRAME))
 //    {
@@ -868,71 +882,156 @@ void CompoentControls::onCreateCustomWidget()
 //    }
 }
 
-QWidget *CompoentControls::createCustomWidget(const QJsonValue &json, QWidget *parent)
+QWidget *CompoentControls::createLayoutFromJson(const QJsonObject &object, QWidget *parent)
 {
-
-    switch (json.type()) {
-    case QJsonValue::String:
+    qDebug() << " Jsonval is Object " << object;
+   // QJsonObject object = json.toObject();
+    NewLayout *nlayout = 0;
+    for(QJsonObject::const_iterator it= object.constBegin();it != object.constEnd();++it)
     {
-
-    }
-
-        break;
-    case QJsonValue::Array:
-    {
-        foreach (QJsonValue val, json.toArray()) {
-
-            createCustomWidget(val,parent);
-        }
-
-    }
-        break;
-    case QJsonValue::Double:
-        break;
-    case QJsonValue::Object:
-    {
-        qDebug() << " Jsonval is Object " << json;
-        QJsonObject object = json.toObject();
-        for(QJsonObject::const_iterator it= object.constBegin();it != object.constEnd();++it)
+        QString key = it.key();
+        if(it.value().type() == QJsonValue::Array)
         {
-            QString key = it.key();
-            if(!key.compare(NAME))
+            if(!key.compare(LAYOUT))
             {
-
-            }
-            if(it.value().type() == QJsonValue::Array)
-            {
-                if(!key.compare(LAYOUT))
-                {
-
-                }else if(!key.compare(WIDGET))
-                {
-                }
-            }
-            else if(it.value().type() == QJsonValue::Object)
-            {
-
-            }
-            else if(it.value().type() == QJsonValue::String)
-            {
-                QString str = it.value().toString();
-                if(!str.compare(CN_NEWLAYOUT)) // 创建布局
-                {
-                    qDebug() << "create layout";
-
+                foreach (QJsonValue val, it.value().toArray()) {
+                   // onCreateCompoentToCanvas()
+                 createLayoutFromJson(val.toObject(),nlayout);
                 }
             }
         }
+        else if(it.value().type() == QJsonValue::Object)
+        {
+
+            qDebug() << " object is " << it.value();
+
+        }
+        else if(it.value().type() == QJsonValue::String)
+        {
+            QString str = it.value().toString();
+            if(!str.compare(CN_NEWLAYOUT) && !key.compare(CLASS)) // 创建布局
+            {
+                qDebug() << "create layout";
+                nlayout = new NewLayout(QSize(150,200)+MARGIN_SIZE,((NewLayout*)parent)->m_frame);
+                nlayout->addMainWindow(mWindow);
+                ((NewLayout*)parent)->addNewObject(nlayout);
+
+                int n = mWindow->ComCtrl->ProMap.size();
+        //        LayoutList.append(nl);
+        //        mActiveIdx = LayoutList.size() - 1;
+
+                nlayout->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("布局",
+                                QString::number(n)));
+
+                mWindow->tree->addObjectToCurrentItem(nlayout);
+               // mWindow->ComCtrl->ProMap[nlayout->property(DKEY_LOCALSEQ).toString()] = nlayout;
+
+                nlayout->onSelectMe();
+                nlayout->setToolTip(nlayout->property(DKEY_LOCALSEQ).toString());
 
 
-     }
-        break;
-
-    default:
-        break;
+            }
+            else if(!key.compare(CLASS)
+                    &&(!str.compare(CN_NEWFRAME) || !str.compare(QFRAME) ))
+            {
+                ((NewLayout*)parent)->createNewFrameObject(object);
+            }
+        }
     }
 
 }
+
+//QWidget *CompoentControls::createCustomWidget(const QJsonValue &json, QWidget *parent)
+//{
+
+//    switch (json.type()) {
+//    case QJsonValue::String:
+//    {
+
+//    }
+
+//        break;
+//    case QJsonValue::Array:
+//    {
+//        foreach (QJsonValue val, json.toArray()) {
+
+//            createCustomWidget(val,parent);
+//        }
+
+//    }
+//        break;
+//    case QJsonValue::Double:
+//        break;
+//    case QJsonValue::Object:
+//    {
+//        qDebug() << " Jsonval is Object " << json;
+//        QJsonObject object = json.toObject();
+//        NewLayout *nlayout = 0;
+//        for(QJsonObject::const_iterator it= object.constBegin();it != object.constEnd();++it)
+//        {
+
+//            QString key = it.key();
+
+//            if(it.value().type() == QJsonValue::Array)
+//            {
+//                if(!key.compare(LAYOUT))
+//                {
+//                    foreach (QJsonValue val, it.value().toArray()) {
+//                       // onCreateCompoentToCanvas();
+
+
+//                     createCustomWidget(val,nlayout);
+//                    }
+
+//                }
+//            }
+//            else if(it.value().type() == QJsonValue::Object)
+//            {
+
+//                qDebug() << " object is " << it.value();
+//                createCustomObject(it.value().toObject(),nlayout);
+//            }
+//            else if(it.value().type() == QJsonValue::String)
+//            {
+//                QString str = it.value().toString();
+//                if(!str.compare(CN_NEWLAYOUT)) // 创建布局
+//                {
+//                    qDebug() << "create layout";
+//                    nlayout = new NewLayout(QSize(150,200)+MARGIN_SIZE,((NewLayout*)parent)->m_frame);
+//                    nlayout->addMainWindow(mWindow);
+//                    ((NewLayout*)parent)->addNewObject(nlayout);
+
+//                    int n = mWindow->ComCtrl->ProMap.size();
+//            //        LayoutList.append(nl);
+//            //        mActiveIdx = LayoutList.size() - 1;
+
+//                    nlayout->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("布局",
+//                                    QString::number(n)));
+
+//                    mWindow->tree->addObjectToCurrentItem(nlayout);
+//                    mWindow->ComCtrl->ProMap[nlayout->property(DKEY_LOCALSEQ).toString()] = nlayout;
+
+//                    nlayout->onSelectMe();
+//                    nlayout->setToolTip(nlayout->property(DKEY_LOCALSEQ).toString());
+
+
+//                }
+//                else if(!str.compare(CN_NEWFRAME) || !str.compare(QFRAME))
+//                {
+//                    nlayout->createNewFrameObject(object);
+//                }
+//            }
+//        }
+
+
+//     }
+//        break;
+
+//    default:
+//        break;
+//    }
+
+//}
 
 void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
 {
@@ -1305,16 +1404,15 @@ void CompoentControls::onCreateNewLayout()
         ((NewLayout*)w)->addNewObject(nl);
 
         int n = mWindow->ComCtrl->ProMap.size();
+        mWindow->cManager->activeSS()->LayoutList.append(nl);
 //        LayoutList.append(nl);
 //        mActiveIdx = LayoutList.size() - 1;
 
         nl->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("布局",
                         QString::number(n)));
-    //    mWindow->tree->addChildObject(this->property(DKEY_LOCALSEQ).toString(),
-    //                                  nl->property(DKEY_LOCALSEQ).toString(),
-    //                                  nl->metaObject()->className());
+
         mWindow->tree->addObjectToCurrentItem(nl);
-        mWindow->ComCtrl->ProMap[nl->property(DKEY_LOCALSEQ).toString()] = nl;
+      //  mWindow->ComCtrl->ProMap[nl->property(DKEY_LOCALSEQ).toString()] = nl;
 
         nl->onSelectMe();
         nl->setToolTip(nl->property(DKEY_LOCALSEQ).toString());

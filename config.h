@@ -47,6 +47,8 @@ static QString STRUCT = "struct";
 static QString BAKIMAGE = "background-image";
 static QString BAKCOLOR = "background-color";
 static QString WTYPE = "-type";
+static QString PLUGIN = "plugin";
+
 
 
 static const char  DKEY_CAPTION[] = "caption";

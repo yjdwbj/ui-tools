@@ -140,6 +140,7 @@ class NewLayout :public FormResizer
     Q_OBJECT
 public:
     explicit NewLayout(QSize nsize, QWidget *parent=0);
+//    NewLayout (const QJsonObject &json,QWidget *parent=0);
     NewLayout (int width,int height,QWidget *parent=0);
 
     void onSelectMe();
@@ -154,7 +155,7 @@ public:
     void delMySelf();
 
     void writeToJson(QJsonObject &json);
-    void readFromJson(const QJsonArray &array);
+    void readFromJson(const QJsonObject &array);
 
     void createNewFrameObject(const QJsonObject &json);
    // QWidget *CreateObjectFromJson(const QVariantMap &qvm, QWidget *pobj);
@@ -237,6 +238,7 @@ public:
    // MainWindow *mWindow;
     void DeleteMe();
     void createNewLayout();
+    void readFromJson(const QJsonArray &array);
     void createNewLayout(QWidget *parent);
     NewLayout *activeLayout() {
             return mActiveIdx == -1 ? (NewLayout*)0 :

@@ -119,7 +119,8 @@ private:
 
      void CreateButtonList(const QJsonArray &comJsonArr);
      QWidget *createCustomObject(const QJsonArray &comJsonArr);
-     QWidget *createCustomWidget(const QJsonValue &json, QWidget *parent);
+     QWidget *createLayoutFromJson(const QJsonObject &json,QWidget *parent);
+    // QWidget *createCustomWidget(const QJsonValue &json, QWidget *parent);
 
      QWidget *getQWidgetByName(QString name) const;
      QJsonArray ReadTemplateWidgetFile(QString file) const;

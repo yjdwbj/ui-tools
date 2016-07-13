@@ -120,7 +120,7 @@ void ScenesScreen::onChangedBackgroundColor()
 //}
 
 
-void ScenesScreen::createNewLayer()
+NewLayer* ScenesScreen::createNewLayer()
 {
     NewLayer *nlayer = new NewLayer(QSize(200,200) + MARGIN_SIZE,this);
     LayerList.append(nlayer);
@@ -129,8 +129,59 @@ void ScenesScreen::createNewLayer()
     nlayer->setProperty(DKEY_LOCALSEQ,
     QString("%1_%2").arg("图层",QString::number( mWindow->ComCtrl->ProMap.size())));
     nlayer->onSelectMe();
-    mWindow->ComCtrl->ProMap[nlayer->property(DKEY_LOCALSEQ).toString()] = nlayer;
+    //mWindow->ComCtrl->ProMap[nlayer->property(DKEY_LOCALSEQ).toString()] = nlayer;
+    mWindow->tree->addObjectToCurrentItem(nlayer);
     nlayer->setToolTip(nlayer->property(DKEY_LOCALSEQ).toString());
+    return nlayer;
+
+}
+
+void ScenesScreen::readLayer(const QJsonArray &array)
+{
+    foreach (QJsonValue val, array) {
+        switch (val.type()) {
+        case QJsonValue::Object:
+        {
+            QJsonObject valobj = val.toObject();
+//            QSize valsize(valobj[SIZE].toObject()[WIDTH].toString().toInt(),
+//                          valobj[SIZE].toObject()[HEIGHT].toString().toInt());
+
+            QJsonObject rectobj;
+            foreach (QJsonValue pval, valobj[PROPERTY].toArray()) {
+                QJsonObject pobj = pval.toObject();
+                if(pobj.contains(KEY_RECT))
+                {
+                    rectobj = pobj[KEY_RECT].toObject();
+
+                    break;
+                }
+            }
+            QVariantMap rect =  rectobj.toVariantMap();
+            QRect oldrect = QRect(rect["x"].toString().toInt(),
+                    rect["y"].toString().toInt(),
+                    rect["width"].toString().toInt(),
+                    rect["height"].toString().toInt());
+
+             NewLayer *nlayer = createNewLayer();
+
+             nlayer->readFromJson(valobj[LAYOUT].toArray());
+
+//            NewLayout *nl = new NewLayout(oldrect.size(),this);
+//            nl->setProperty(DKEY_LOCALSEQ,valobj[CAPTION].toString());
+//            nl->setGeometry(oldrect);
+//            nl->addMainWindow(mWindow);
+//            LayoutList.append(nl);
+//            mActiveIdx = LayoutList.size() -1;
+
+//            nl->readFromJson(valobj[LAYOUT].toArray());
+//            nl->onSelectMe();
+        }
+
+            break;
+        default:
+            break;
+        }
+    }
 
 }
 
@@ -167,7 +218,10 @@ void ScenesScreen::readLayout(const QJsonArray &array)
             LayoutList.append(nl);
             mActiveIdx = LayoutList.size() -1;
 
-            nl->readFromJson(valobj[LAYOUT].toArray());
+            foreach (QJsonValue item, valobj[LAYOUT].toArray()) {
+                nl->readFromJson(item.toObject());
+            }
+          //  nl->readFromJson(valobj[LAYOUT].toArray());
             nl->onSelectMe();
         }
 
@@ -230,10 +284,8 @@ void ScenesScreen::delSelectedLayout()
            int index = LayoutList.indexOf(activeObj);
 
            //QWidget *p = LayoutList.takeAt(index);
-
-           ((NewLayout*)activeObj)->delMySelf();
-
            LayoutList.removeOne(activeObj);
+            ((NewLayout*)activeObj)->delMySelf();
            if(LayoutList.size())
            {
                if((index - 1) <  0  )
@@ -244,6 +296,7 @@ void ScenesScreen::delSelectedLayout()
                }
            }else{
                mActiveIdx = -1;
+               activeObj = 0;
            }
 
         }
@@ -329,7 +382,8 @@ void ScenesScreen::writeToJson(QJsonObject &json)
     json[PROPERTY] = projson;
 
     json[CAPTION] = this->property(DKEY_TXT).toString();
-    json[metaObject()->className()] = layoutarr;
+    json[CLASS] = this->metaObject()->className();
+    json[LAYER] = layoutarr;
     //qDebug() << "ScenesScreen array " << layoutarr;
 }
 

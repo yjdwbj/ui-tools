@@ -32,7 +32,7 @@ public:
    // int getActiveIndex() { return mActiveIdx;}
     int getActiveLayerIndex() { return mActiveLaySeq;}
    // void createNewLayout();
-    void createNewLayer();
+    NewLayer *createNewLayer();
     void addMainWindow(MainWindow* m) { mWindow = m;}
    // void setActiveIdx(int index) { mActiveIdx = index;}
     void setSelectObject(FormResizer *obj);
@@ -40,6 +40,7 @@ public:
     void delSelectedLayer();
 
     void readLayout(const QJsonArray &array);
+    void readLayer(const QJsonArray &array);
    // void delSelectedObject();
 
     void writeToJson(QJsonObject &json);

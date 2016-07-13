@@ -85,10 +85,13 @@ ScenesScreen * CanvasManager::createNewCanvas()
     Scenes->addMainWindow(mWindow);
     Scenes->move(mWindow->width() * 0.12,mWindow->height()* 0.3);  // 按屏幕比例调整
     Scenes->setProperty(DKEY_SHOT,false);  // 检查该页面是否创建过截图.
-    mCanvasList.append(Scenes);
+
+
     // 这里不能改变它的对像名,用一个动态属
 //    // Scenes->setObjectName(QString("Page_%1").arg(QString::number(ssList.size()-1)));
-    Scenes->setProperty(DKEY_TXT,QString("页面_%1").arg(QString::number(mCanvasList.size()-1)));
+    Scenes->setProperty(DKEY_TXT,QString("页面_%1").arg(QString::number(mCanvasList.size())));
+    Scenes->setToolTip(Scenes->property(DKEY_TXT).toString());
+    mCanvasList.append(Scenes);
     currentSS = Scenes;
     mWindow->lDock->setEnabled(true);
     stack->addWidget(Scenes);
@@ -278,7 +281,7 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
     bool readflag = false;
     foreach (QJsonValue val, array) {
         readflag = true;
-        QVariantMap  qjm = val.toObject().toVariantMap();
+       // QVariantMap  qjm = val.toObject().toVariantMap();
         // 创建一个页面.
         switch (val.type()) {
         case QJsonValue::Object:
@@ -300,7 +303,8 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
                 setDefaultPageSize(QSize(w,h));
                 ScenesScreen *Scenes = createNewCanvas();
                 // 递归读取它的页面.
-                Scenes->readLayout(valobj[CN_SSNAME].toArray());
+                //Scenes->readLayout(valobj[CN_SSNAME].toArray());
+                Scenes->readLayer(valobj[CN_SSNAME].toArray());
         }
 
             break;
