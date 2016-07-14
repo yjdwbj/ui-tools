@@ -99,7 +99,7 @@ class CompoentControls : public QGroupBox
 public:
     explicit CompoentControls(MainWindow *mw,QWidget *parent = 0);
     QObject* CreateObjectFromJson(QVariantMap qvm, QObject *pobj);
-    NewFrame *ReadObjectFromJson(QVariantMap qvm, QObject *, QString txt, QString objname);
+
    // QWidget *CcWidgetList,ProWidgetList,ImgWidgetList;
 
      int mCWidgetCount; // 自定义控件的个数.
@@ -130,6 +130,7 @@ signals:
 
 public slots:
      void onCreateCompoentToCanvas();
+     void onCreateListWidget();
      void onCreateCustomWidget();
      void onCreateNewLayout();
      void onCreateNewLayer();

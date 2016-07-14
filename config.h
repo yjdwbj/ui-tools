@@ -73,6 +73,7 @@ static const QString CN_NEWLAYOUT = "NewLayout";
 static const QString CN_NEWFRAME = "NewFrame";
 static const QString CN_NEWLABEL = "NewLabel";
 static const QString CN_NEWLAYER = "NewLayer";
+static const QString CN_NEWLIST = "NewList";
 static const QString CN_LAYER = "Layer";
 static const QString CN_LAYOUT = "Layout";
 static const QString CN_SSNAME = "ScenesScreen";
@@ -82,6 +83,10 @@ static const QString INI_PRJSIZE = "Project/Size";
 static const QString INI_PRJBAKIMG = "Project/Background";
 static const QString INI_PRJLAST = "Project/LastOpen";
 static const QString INI_PRJDIR = "Project/Dir";
+
+
+static const char HIDE_ICON[] = ":/icon/icons/hide-30x30.png";
+static const char SHOW_ICON[] = ":/icon/icons/visibility-30x30.png";
 
 
 const QMargins propertyMarg = QMargins(2,12,2,50);

@@ -6,6 +6,8 @@
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QHeaderView>
+#include <QAction>
+#include <QMenu>
 #include "compoentcontrols.h"
 //#include "propertybox.h"
 
@@ -20,6 +22,7 @@ class TreeDock : public QDockWidget
 public:
     explicit TreeDock(QWidget *parent=Q_NULLPTR);
     void addItemToRoot(QString node,QString property);
+    void addItemToRoot(QWidget *ww);
 //    void addCompoentControls(CompoentControls *cc);
 //    void addPropBox(PropertyBox *p);
 
@@ -28,6 +31,8 @@ public:
 
     void deleteAllitem();
     void deleteItem(QWidget *obj);
+    void swapIconForItem(QString txt);
+
 
 
     QTreeWidgetItem *getRoot()const { return root;}
@@ -38,6 +43,8 @@ public:
 
 public slots:
     void onItemPressed(QTreeWidgetItem *item, int col);
+    void onCustomContextMenu(const QPoint &point);
+    void onSwapShowHideObject(bool);
 
 
 
@@ -48,6 +55,8 @@ private:
   //  CompoentControls *comC;
    // PropertyBox *pb;
     QTreeWidgetItem *root;
+    QMenu *contextMenu ;
+
 };
 
 

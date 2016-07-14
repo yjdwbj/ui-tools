@@ -23,6 +23,7 @@
 class MainWindow;
 class ScenesScreen;
 
+
 class Compoent
 {
 
@@ -104,6 +105,8 @@ private:
 
 };
 
+
+
 class NewFrame :public FormResizer,public Compoent
 {
     Q_OBJECT
@@ -130,6 +133,27 @@ private slots:
 protected:
     void clearOtherObjectStyleSheet();
 
+};
+
+class NewList :public FormResizer,public Compoent
+{
+    Q_OBJECT
+public:
+    NewList(QWidget *parent=0);
+    void onSelectMe();
+
+
+     MainWindow *mWindow;
+     QListWidget *lwid; // 列表控件.
+
+private:
+      QPoint mOffset;
+
+protected:
+
+    void mouseMoveEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseReleaseEvent(QMouseEvent *event);
 };
 
 //class NewLayout :public QFrame
@@ -189,6 +213,8 @@ protected:
 };
 
 
+
+
 // 图层与布局的基础控件.
 class BaseForm: public FormResizer
 {
@@ -207,6 +233,7 @@ public:
 
 public slots:
     void onXYWHChangedValue(int v);
+    void onSwapViewObject(bool b);
 
 private:
 

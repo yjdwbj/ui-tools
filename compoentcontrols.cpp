@@ -1122,7 +1122,8 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
             btnTest->setFixedHeight(50);
             connect(btnTest,SIGNAL(clicked(bool)),SLOT(onCreateNewLayout()));
 
-        }else{
+        }
+        else{
              btnTest->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
             if(col == 2)
             {
@@ -1130,6 +1131,11 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
                 row++;
             }
             comLayout->addWidget(btnTest,row,col++);
+//            if(!wtype.compare(CN_NEWLIST))
+//            {
+//                connect(btnTest,SIGNAL(clicked(bool)),SLOT(onCreateListWidget()));
+//                continue;
+//            }
             connect(btnTest,SIGNAL(clicked(bool)),this,SLOT(onCreateCompoentToCanvas()));
         }
     }
@@ -1137,6 +1143,42 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
 }
 
 
+void CompoentControls::onCreateListWidget()
+{
+    // 这里尝试创建一个列表控件.
+    NewLayer  *activeLayer = mWindow->cManager->activeSS()->activeLayer();
+    if(!activeLayer)
+    {
+        QMessageBox::warning(0,tr("提示"),tr("请选择一个图层或者新建一个并选中它."));
+        return;
+    }
+//    NewLayout *activeLayout = activeLayer->activeLayout();
+
+//    if(!activeLayout)
+//    {
+//        QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
+//        return;
+//    }
+    QWidget *wid = mWindow->cManager->activeSS()->activeObject();
+    if(!wid)
+    {
+        QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
+        return;
+    }
+
+    QPushButton *btn = (QPushButton*)(QObject::sender());
+    QJsonValue val =QJsonValue::fromVariant(btn->property(DKEY_JSONSTR));
+    QString clsname = wid->metaObject()->className();
+    if(!clsname.compare(CN_NEWFRAME))
+    {
+        ((NewLayout*)wid->parentWidget()->parentWidget())->createNewFrameObject(val.toObject());
+    }else {
+        ((NewLayout*)wid)->createNewFrameObject(val.toObject());
+    }
+
+
+
+}
 
 void CompoentControls::onCreateCompoentToCanvas()
 {
@@ -1195,24 +1237,7 @@ void CompoentControls::onCreateCompoentToCanvas()
 //    ww->onSelectMe();
 }
 
-NewFrame* CompoentControls::ReadObjectFromJson(QVariantMap qvm, QObject *pobj,QString txt,QString objname)
-{
-//    NewLayout *activeLayout = mWindow->cManager->activeSS()->activeLayer()->activeLayout();
-//    NewFrame* ww = (NewFrame *)CreateObjectFromJson(qvm,pobj);
-//    //mWindow->Scenes->activeLayer()->m_frame);
-//    ww->setObjectName(objname);
-//    //ww->setObjectName(QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
-//    ww->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg(txt,QString::number(comList.size())));
-//    //  activeLayout->appendChildObj(ww);
-//    // 做treeWidget区分的名字.
-//    ProMap[ww->property(DKEY_LOCALSEQ).toString()] = ww;
-//    comList.append(ww);
 
-//    // 找出图层,把新建的控件添加进去.
-//    mWindow->tree->addObjectToCurrentItem(ww);
-//    ww->show();
-//    return ww;
-}
 
 
 QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
@@ -1442,11 +1467,12 @@ void CompoentControls::onCreateNewLayer()
     {
 
         QPushButton *btn = (QPushButton*)(QObject::sender());
-        ss->createNewLayer();
+        NewLayer *nlayer  = ss->createNewLayer();
 
-        NewLayer *nlayer =  ss->activeLayer();
+
        // ProMap[nlayer->property(DKEY_LOCALSEQ).toString()] = nlayer;
         //comList.append(nl);
-        mWindow->tree->addItemToRoot(nlayer->property(DKEY_LOCALSEQ).toString(),btn->text());
+        mWindow->tree->addItemToRoot(nlayer);
+       // mWindow->tree->addItemToRoot(nlayer->property(DKEY_LOCALSEQ).toString(),btn->text());
     }
 }

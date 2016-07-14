@@ -45,5 +45,5 @@ CONFIG += c++11
 
 
 RESOURCES += \
-    ut-tools.qrc
+    icons.qrc
 

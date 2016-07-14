@@ -130,7 +130,7 @@ NewLayer* ScenesScreen::createNewLayer()
     QString("%1_%2").arg("图层",QString::number( mWindow->ComCtrl->ProMap.size())));
     nlayer->onSelectMe();
     //mWindow->ComCtrl->ProMap[nlayer->property(DKEY_LOCALSEQ).toString()] = nlayer;
-    mWindow->tree->addObjectToCurrentItem(nlayer);
+  //  mWindow->tree->addObjectToCurrentItem(nlayer);
     nlayer->setToolTip(nlayer->property(DKEY_LOCALSEQ).toString());
     return nlayer;
 

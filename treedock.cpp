@@ -104,7 +104,10 @@ this->setWidget(treeWidget);
 setFixedHeight(mWindow->size().height()-50);
 setFixedWidth(200);
 treeWidget->setFixedHeight(mWindow->size().height()-80);
+treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 //setFeatures(QDockWidget::DockWidgetVerticalTitleBar);
+
+connect(treeWidget,SIGNAL(customContextMenuRequested(QPoint)),SLOT(onCustomContextMenu(QPoint)));
 
 
 }
@@ -133,6 +136,77 @@ void TreeDock::setSelectTreeItem(QWidget *obj)
        }
     }
       //  treeWidget->setCurrentItem(it);
+}
+
+
+void TreeDock::swapIconForItem(QString txt)
+{
+
+    QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(txt,
+                                                            Qt::MatchFixedString | Qt::MatchRecursive);
+
+    if(qwilist.count())
+    {
+        QTreeWidgetItem *item = qwilist.at(0);
+        QWidget *w = mWindow->ComCtrl->ProMap[txt];
+        item->setIcon(0,w->isHidden() ? QIcon(HIDE_ICON) : QIcon(SHOW_ICON));
+    }
+
+}
+
+void TreeDock::onCustomContextMenu(const QPoint &point)
+{
+    QModelIndex index = treeWidget->indexAt(point);
+
+    QTreeWidgetItem *item = treeWidget->itemAt(point);
+    if(item)
+    {
+        qDebug() << " item is " << item->text(0) << " pos " << point;
+       // contextMenu->exec(treeWidget->mapToGlobal(point));
+        if(!item->parent()) // 顶级
+        {
+            QIcon icon = item->icon(0);
+            QWidget *w = mWindow->ComCtrl->ProMap[item->text(0)];
+            QMenu *menu = new QMenu(treeWidget);
+            QAction hideit("隐藏",treeWidget);
+          //  hideit.setMenu(menu);
+            QAction viewit("显示",treeWidget);
+         //   viewit.setMenu(menu);
+            if(w->isHidden())
+            {
+                viewit.setIcon(QIcon(SHOW_ICON));
+                connect(&viewit,SIGNAL(triggered(bool)),SLOT(onSwapShowHideObject(bool)));
+                menu->addAction(&viewit);
+            }else
+            {
+                hideit.setIcon(QIcon(HIDE_ICON));
+                menu->addAction(&hideit);
+                connect(&hideit,SIGNAL(triggered(bool)),SLOT(onSwapShowHideObject(bool)));
+            }
+            menu->exec(treeWidget->viewport()->mapToGlobal(point));
+            delete menu;
+        }
+    }
+}
+
+
+void TreeDock::onSwapShowHideObject(bool)
+{
+    QTreeWidgetItem *item = treeWidget->currentItem();
+    if(item)
+    {
+        QString text = item->text(0);
+        QWidget *ww = mWindow->ComCtrl->ProMap[text];
+        //qDebug() << " item " << text << " is hide " << ww->isHidden();
+        item->setExpanded(ww->isHidden());
+        for(int i = 0; i < item->childCount();i++)
+        {
+            item->child(i)->setHidden(!ww->isHidden());
+        }
+        ww->setHidden(!ww->isHidden());
+       // ww->update();
+        swapIconForItem(text);
+    }
 }
 
 void TreeDock::onItemPressed(QTreeWidgetItem *item,int col)
@@ -177,7 +251,21 @@ void TreeDock::addChildObject(QString root, QString node, QString property)
 void TreeDock::addItemToRoot(QString node, QString property)
 {
      QTreeWidgetItem *nroot = new QTreeWidgetItem(treeWidget,QStringList() << node << property);
+     nroot->setIcon(0,QIcon(SHOW_ICON));
      treeWidget->setCurrentItem(nroot);
+}
+
+void TreeDock::addItemToRoot(QWidget *ww)
+{
+
+    QString key = ww->property(DKEY_LOCALSEQ).toString();
+  //  tlist << key << ww->metaObject()->className();
+     QTreeWidgetItem *nroot = new QTreeWidgetItem(treeWidget,
+                          QStringList()  << key << ww->metaObject()->className());
+     nroot->setIcon(0,QIcon(SHOW_ICON));
+
+     treeWidget->setCurrentItem(nroot);
+     mWindow->ComCtrl->ProMap[key] = (FormResizer*)ww;
 }
 
 void TreeDock::addObjectToCurrentItem(QWidget *ww)

@@ -810,13 +810,39 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
         QMenu *contextMenu = new QMenu(this);
         QAction delme(QString("删除当前-%1").arg(this->property(DKEY_CAPTION).toString()),this);
         connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
-        QAction saveTemp("保存成控件",this);
-        connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
+
+
+
+        QAction hideobj("隐藏",this);
+
+        connect(&hideobj,SIGNAL(triggered(bool)),SLOT(onSwapViewObject(bool)));
+
         contextMenu->addAction(&delme);
-        contextMenu->addAction(&saveTemp);
+        if(!CN_NEWLAYOUT.compare(metaObject()->className()))
+        {
+            QAction saveTemp("保存成控件",this);
+            contextMenu->addAction(&saveTemp);
+            connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
+        }
+
+        contextMenu->addAction(&hideobj);
         contextMenu->exec(mapToGlobal(event->pos()));
     }
 
+}
+
+void BaseForm::onSwapViewObject(bool b)
+{
+//    QWidget *sender = (QWidget *)(QObject::sender());
+//    qDebug() << " will hide  object " << sender->metaObject()->className();
+//    qDebug() << " sender parent "
+//             << sender->parentWidget()->metaObject()->className()
+//             << " bool " << b;
+//    sender->parentWidget()->hide();
+
+//    mWindow->tree->swapIconForItem(sender->parentWidget()->property(DKEY_LOCALSEQ).toString());
+
+    mWindow->tree->onSwapShowHideObject(false);
 }
 
 void BaseForm::mouseReleaseEvent(QMouseEvent *event)
@@ -900,6 +926,120 @@ void BaseForm::onXYWHChangedValue(int v)
     }
     this->blockSignals(true);
 }
+
+NewList::NewList(QWidget *parent):
+    FormResizer(parent)
+{
+  //  setMinimumSize(nsize ); // 最小尺寸
+   // setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
+    this->setObjectName(this->metaObject()->className());
+    setStyleSheet("NewList#%s{border: 0.5px solid #828292;}" % LAYOUT);
+    setFocusPolicy(Qt::ClickFocus);
+    setMinimumSize(90,90);
+    QVBoxLayout *hbb = new QVBoxLayout(this);
+    hbb->setMargin(0);
+    setLayout(hbb);
+
+
+
+    QWidget *wid = new QWidget();
+
+    QScrollArea *scroll =  new QScrollArea(this);
+    scroll->setFixedHeight(80);
+    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+  //  scroll->setParent(this);
+    hbb->addWidget(scroll);
+    scroll->setWidget(wid);
+
+
+
+
+    QVBoxLayout *vb = new QVBoxLayout();
+    wid->setLayout(vb);
+    for(int i = 0;i < 20;i++)
+    {
+        QLabel * l = new QLabel(QString::number(i),wid);
+        vb->addWidget(l);
+
+    }
+
+    show();
+}
+
+
+void NewList::onSelectMe()
+{
+
+}
+
+void NewList::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton)
+    {
+        mOffset = event->pos();
+        onSelectMe();
+    }else if(event->button() == Qt::RightButton)
+    {
+        QMenu *contextMenu = new QMenu(this);
+        QAction delme("删除当前布局",this);
+        connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
+        QAction saveTemp("保存成控件",this);
+        connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
+        contextMenu->addAction(&delme);
+        contextMenu->addAction(&saveTemp);
+        contextMenu->exec(mapToGlobal(event->pos()));
+    }
+
+}
+void NewList::mouseMoveEvent(QMouseEvent *event)
+{
+    if (event->buttons() & Qt::LeftButton)
+    {
+        move(this->pos() + (event->pos() - mOffset));
+        /* 把新的位置更新到右边属性框 */
+        mWindow->posWidget->updatePosition(this->pos());
+        this->blockSignals(true);
+    }
+
+}
+
+void NewList::mouseReleaseEvent(QMouseEvent *event)
+{
+    /* 放开鼠标时检查它的是否出了边界要 */
+    QWidget *p = this->parentWidget();
+    QPoint pos = this->pos();
+    if(this->x() < 0)
+    {
+        pos.setX(0 );
+        this->move(pos);
+
+    }
+    if(this->y() < 0 )
+    {
+        pos.setY(0 );
+        this->move(pos);
+    }
+
+    QSize ms = p->size();
+    //左出界检查
+    if((this->x()  + this->size().width()) > ms.width())
+    {
+        pos.setX( ms.width() - this->size().width()  );
+        this->move(pos);
+
+    }
+
+    //上出界检查
+    if((this->y() + this->size().height()) > ms.height())
+    {
+        pos.setY(ms.height() - this->size().height() );
+        this->move(pos);
+    }
+
+    // 这里只能在释放鼠标时改变左边的控件值
+    mWindow->posWidget->updateSize(this->size());
+}
+
 
 
 NewLayout::NewLayout(QSize nsize,QWidget *parent):
@@ -1018,6 +1158,43 @@ void NewLayout::mouseMoveEvent(QMouseEvent *event)
 
 }
 
+void NewLayout::mouseReleaseEvent(QMouseEvent *event)
+{
+    /* 放开鼠标时检查它的是否出了边界要 */
+    QWidget *p = this->parentWidget();
+    QPoint pos = this->pos();
+    if(this->x() < 0)
+    {
+        pos.setX(0 );
+        this->move(pos);
+
+    }
+    if(this->y() < 0 )
+    {
+        pos.setY(0 );
+        this->move(pos);
+    }
+
+    QSize ms = p->size();
+    //左出界检查
+    if((this->x()  + this->size().width()) > ms.width())
+    {
+        pos.setX( ms.width() - this->size().width()  );
+        this->move(pos);
+
+    }
+
+    //上出界检查
+    if((this->y() + this->size().height()) > ms.height())
+    {
+        pos.setY(ms.height() - this->size().height() );
+        this->move(pos);
+    }
+
+    // 这里只能在释放鼠标时改变左边的控件值
+    mWindow->posWidget->updateSize(this->size());
+}
+
 void NewLayout::onDeleteMe()
 {
     //这里不能绕过它的父控件.
@@ -1086,42 +1263,7 @@ void NewLayout::onBeComeTemplateWidget()
     // 加载到当前工程里面去.
 }
 
-void NewLayout::mouseReleaseEvent(QMouseEvent *event)
-{
-    /* 放开鼠标时检查它的是否出了边界要 */
-    QWidget *p = this->parentWidget();
-    QPoint pos = this->pos();
-    if(this->x() < 0)
-    {
-        pos.setX(0 );
-        this->move(pos);
 
-    }
-    if(this->y() < 0 )
-    {
-        pos.setY(0 );
-        this->move(pos);
-    }
-
-    QSize ms = p->size();
-    //左出界检查
-    if((this->x()  + this->size().width()) > ms.width())
-    {
-        pos.setX( ms.width() - this->size().width()  );
-        this->move(pos);
-
-    }
-
-    //上出界检查
-    if((this->y() + this->size().height()) > ms.height())
-    {
-        pos.setY(ms.height() - this->size().height() );
-        this->move(pos);
-    }
-
-    // 这里只能在释放鼠标时改变左边的控件值
-    mWindow->posWidget->updateSize(this->size());
-}
 
 void NewLayout::clearOtherObjectStyleSheet()
 {
@@ -1322,6 +1464,11 @@ QWidget* NewLayout::createObjectFromJson(const QJsonObject &json,QWidget *pobj)
                         // qDebug() << " NewLabel dyn property " << ((NewLabel*)nobj)->dynValues;
                     }
 
+                }else if(!cval.compare(CN_NEWLIST))
+                {
+                    // 尝试创建列表控件.
+                    NewList *n = new NewList(pobj);
+                    nobj = (QWidget*)n;
                 }
             }
             else if(!key.compare(NAME))
@@ -1367,10 +1514,10 @@ QWidget* NewLayout::createObjectFromJson(const QJsonObject &json,QWidget *pobj)
     QJsonArray array ;
     QString clsName = nobj->metaObject()->className();
     bool isFrame = !clsName.compare(CN_NEWFRAME) ;// 二元判断,不是控件就是图片.
-    if(isFrame)
+    if(!clsName.compare(CN_NEWFRAME))
     {
         array = ((NewFrame*)nobj)->dynValues[DKEY_DYN].toArray();
-    }else
+    }else if(!clsName.compare(CN_NEWLABEL))
     {
         array = ((NewLabel*)nobj)->dynValues[DKEY_DYN].toArray();
     }
