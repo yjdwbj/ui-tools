@@ -933,43 +933,44 @@ NewList::NewList(QWidget *parent):
   //  setMinimumSize(nsize ); // 最小尺寸
    // setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
     this->setObjectName(this->metaObject()->className());
-    setStyleSheet("NewList#%s{border: 0.5px solid #828292;}" % LAYOUT);
+    setStyleSheet("border: 0.5px solid #79AEC8;" );
     setFocusPolicy(Qt::ClickFocus);
-    setMinimumSize(90,90);
-    QVBoxLayout *hbb = new QVBoxLayout(this);
-    hbb->setMargin(0);
-    setLayout(hbb);
+    setMinimumSize(QSize(90,90));
+    mainWidget = new QWidget();
+    mainScroll =  new QScrollArea(m_frame);
+    mainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    mainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    mainScroll->setWidget(mainWidget);
+    mainScroll->setWidgetResizable(true);
+    listLayout = new QVBoxLayout();
+    listLayout->setMargin(0);
+    listLayout->setSpacing(0);
 
+    mainWidget->setLayout(listLayout);
+    //mainWidget->setContentsMargins(0,0,0,0);
 
+    m_frame->setStyleSheet("background-color: #79AEC8;");
+//  scroll->setStyleSheet("background-color: #79AEC8;");
+//    qDebug() << "this geometry "  << this->geometry()
+//             << " m_frame geometry " << m_frame->geometry()
+//             << " scroll geometry  " << mainScroll->geometry();
 
-    QWidget *wid = new QWidget();
+    mainScroll->resize(this->size());
+    update();
+    qDebug() << " NewList m_frame size " << m_frame->geometry() << " this geometry " << this->geometry();
 
-    QScrollArea *scroll =  new QScrollArea(this);
-    scroll->setFixedHeight(80);
-    scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-  //  scroll->setParent(this);
-    hbb->addWidget(scroll);
-    scroll->setWidget(wid);
-
-
-
-
-    QVBoxLayout *vb = new QVBoxLayout();
-    wid->setLayout(vb);
-    for(int i = 0;i < 20;i++)
-    {
-        QLabel * l = new QLabel(QString::number(i),wid);
-        vb->addWidget(l);
-
-    }
-
-    show();
 }
 
 
 void NewList::onSelectMe()
 {
+   // clearOtherObjectStyleSheet();
+    mWindow->cManager->activeSS()->setSelectObject(this);
+    mWindow->posWidget->setConnectNewQWidget(this);
+    mWindow->propertyWidget->createPropertyBox(this);
+    mWindow->imgPropertyWidget->delPropertyBox();
 
+    this->blockSignals(true);
 }
 
 void NewList::mousePressEvent(QMouseEvent *event)
@@ -981,16 +982,38 @@ void NewList::mousePressEvent(QMouseEvent *event)
     }else if(event->button() == Qt::RightButton)
     {
         QMenu *contextMenu = new QMenu(this);
-        QAction delme("删除当前布局",this);
+        QAction delme("删除当前控件",this);
         connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
-        QAction saveTemp("保存成控件",this);
-        connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
+     //   QAction saveTemp("保存成控件",this);
+     //   connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
         contextMenu->addAction(&delme);
-        contextMenu->addAction(&saveTemp);
+     //   contextMenu->addAction(&saveTemp);
+        QAction addline("添加一行",this);
+        contextMenu->addAction(&addline);
+        connect(&addline,SIGNAL(triggered(bool)),SLOT(onAddOneLine()));
         contextMenu->exec(mapToGlobal(event->pos()));
     }
 
 }
+
+void NewList::onAddOneLine()
+{
+    NewLayout *nl = new NewLayout(this->size(),m_frame);
+    nl->addMainWindow(mWindow);
+    listwidget.append(nl);
+
+    int n = mWindow->ComCtrl->ProMap.size();
+    mWindow->cManager->activeSS()->LayoutList.append(nl);
+
+    nl->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("布局",
+                    QString::number(n)));
+    mWindow->tree->addObjectToCurrentItem(nl);
+    nl->onSelectMe();
+    nl->setToolTip(nl->property(DKEY_LOCALSEQ).toString());
+    listLayout->addWidget(nl);
+    m_frame->adjustSize();
+}
+
 void NewList::mouseMoveEvent(QMouseEvent *event)
 {
     if (event->buttons() & Qt::LeftButton)
@@ -1001,6 +1024,7 @@ void NewList::mouseMoveEvent(QMouseEvent *event)
         this->blockSignals(true);
     }
 
+
 }
 
 void NewList::mouseReleaseEvent(QMouseEvent *event)
@@ -1008,6 +1032,7 @@ void NewList::mouseReleaseEvent(QMouseEvent *event)
     /* 放开鼠标时检查它的是否出了边界要 */
     QWidget *p = this->parentWidget();
     QPoint pos = this->pos();
+
     if(this->x() < 0)
     {
         pos.setX(0 );
@@ -1021,6 +1046,8 @@ void NewList::mouseReleaseEvent(QMouseEvent *event)
     }
 
     QSize ms = p->size();
+
+
     //左出界检查
     if((this->x()  + this->size().width()) > ms.width())
     {
@@ -1036,6 +1063,10 @@ void NewList::mouseReleaseEvent(QMouseEvent *event)
         this->move(pos);
     }
 
+
+    // 把　QScrollArea　的大小调成与父控件一样大.
+    mainScroll->resize(m_frame->size());
+     qDebug() << " NewList m_frame size " << m_frame->geometry() << " this geometry " << this->geometry();
     // 这里只能在释放鼠标时改变左边的控件值
     mWindow->posWidget->updateSize(this->size());
 }
@@ -1464,10 +1495,18 @@ QWidget* NewLayout::createObjectFromJson(const QJsonObject &json,QWidget *pobj)
                         // qDebug() << " NewLabel dyn property " << ((NewLabel*)nobj)->dynValues;
                     }
 
-                }else if(!cval.compare(CN_NEWLIST))
+                }
+                 else if(!cval.compare(CN_NEWLIST))
                 {
                     // 尝试创建列表控件.
                     NewList *n = new NewList(pobj);
+                    n->mWindow = mWindow;
+                    if(json.contains(PROPERTY))
+                    {
+
+                        n->copyProperty(json[PROPERTY]);
+                        // qDebug() << " NewLabel dyn property " << ((NewLabel*)nobj)->dynValues;
+                    }
                     nobj = (QWidget*)n;
                 }
             }
@@ -1705,11 +1744,7 @@ void NewLayer::createNewLayout(QWidget *parent)
 
     nl->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("布局",
                     QString::number(mWindow->ComCtrl->ProMap.size())));
-                    //QString::number(mActiveIdx)));
-//    mWindow->tree->addChildObject(this->property(DKEY_LOCALSEQ).toString(),
-//                                  nl->property(DKEY_LOCALSEQ).toString(),
-//                                  nl->metaObject()->className());
-  //  mWindow->ComCtrl->ProMap[nl->property(DKEY_LOCALSEQ).toString()] = nl;
+
     mWindow->tree->addObjectToCurrentItem(nl);
     nl->setToolTip(nl->property(DKEY_LOCALSEQ).toString());
 

@@ -135,7 +135,7 @@ QSize FormResizer::decorationSize() const
 {
 
     const int margin = 2 * SELECTION_MARGIN + 2 * m_frame->lineWidth();
-   // qDebug() << " margin " << margin;
+    qDebug() << " margin " << margin;
     return QSize(margin, margin);
 }
 

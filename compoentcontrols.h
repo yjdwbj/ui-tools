@@ -94,11 +94,12 @@ class CompoentControls : public QGroupBox
     friend class TreeDock;
     friend class NewLayer;
     friend class NewLayout;
+    friend class NewList;
     friend class ScenesScreen;
     Q_OBJECT
 public:
     explicit CompoentControls(MainWindow *mw,QWidget *parent = 0);
-    QObject* CreateObjectFromJson(QVariantMap qvm, QObject *pobj);
+  //  QObject* CreateObjectFromJson(QVariantMap qvm, QObject *pobj);
 
    // QWidget *CcWidgetList,ProWidgetList,ImgWidgetList;
 

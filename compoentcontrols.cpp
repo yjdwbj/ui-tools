@@ -452,8 +452,11 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
         if(!className.compare(CN_NEWFRAME))
         {
             ((NewFrame*)p)->onBindValue(wid,item.toObject().toVariantMap());
-        }else{
+        }else if(!className.compare(CN_NEWLABEL)){
             ((NewLabel*)p)->onBindValue(wid,item.toObject().toVariantMap());
+        }
+        else if(!className.compare(CN_NEWLIST))
+        {
         }
 
     }
@@ -1240,164 +1243,164 @@ void CompoentControls::onCreateCompoentToCanvas()
 
 
 
-QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
-{
-    QObject *nobj;
-    QVariant property;
-    for(QVariantMap::const_iterator it = qvm.begin();it != qvm.end();++it)
-    {
-        QString key = it.key();
-        // qDebug() << "json key is " << key;
-        QVariant::Type qvt = it.value().type();
+//QObject* CompoentControls::CreateObjectFromJson(QVariantMap qvm, QObject *pobj)
+//{
+//    QObject *nobj;
+//    QVariant property;
+//    for(QVariantMap::const_iterator it = qvm.begin();it != qvm.end();++it)
+//    {
+//        QString key = it.key();
+//        // qDebug() << "json key is " << key;
+//        QVariant::Type qvt = it.value().type();
 
 
-        switch (qvt) {
-        case QVariant::String:
-            if(!key.compare(CLASS))
-            {
-                QString cval = it.value().toString();
+//        switch (qvt) {
+//        case QVariant::String:
+//            if(!key.compare(CLASS))
+//            {
+//                QString cval = it.value().toString();
 
-                if(!cval.compare(QFRAME) || !cval.compare(CN_NEWFRAME))
-                {
+//                if(!cval.compare(QFRAME) || !cval.compare(CN_NEWFRAME))
+//                {
 
-                    //创建父控件
-                    NewFrame  *n = new NewFrame((QWidget*)pobj);
-                    //  n->addMainWindow(pobj->parent());
-                    if(qvm.contains(PROPERTY))
-                    {
-                        // QJsonObject vp =QJsonObject::fromVariantMap(qvm[PROPERTY]);
-                        n->copyProperty(qvm[PROPERTY]);
-                    }
-                    nobj =qobject_cast<QObject*>(n);
-                  //  nobj->setProperty(DKEY_CLSNAME,cval);
-                }
-                else if(!cval.compare(QLABEL) || !cval.compare(CN_NEWLABEL))
-                {
-                    NewFrame *np = (NewFrame*)pobj;
-                    nobj =qobject_cast<QObject*>(new NewLabel(np->m_frame));
-                    if(qvm.contains(PROPERTY))
-                    {
+//                    //创建父控件
+//                    NewFrame  *n = new NewFrame((QWidget*)pobj);
+//                    //  n->addMainWindow(pobj->parent());
+//                    if(qvm.contains(PROPERTY))
+//                    {
+//                        // QJsonObject vp =QJsonObject::fromVariantMap(qvm[PROPERTY]);
+//                        n->copyProperty(qvm[PROPERTY]);
+//                    }
+//                    nobj =qobject_cast<QObject*>(n);
+//                  //  nobj->setProperty(DKEY_CLSNAME,cval);
+//                }
+//                else if(!cval.compare(QLABEL) || !cval.compare(CN_NEWLABEL))
+//                {
+//                    NewFrame *np = (NewFrame*)pobj;
+//                    nobj =qobject_cast<QObject*>(new NewLabel(np->m_frame));
+//                    if(qvm.contains(PROPERTY))
+//                    {
 
-                        ((NewLabel*)nobj)->copyProperty(qvm[PROPERTY]);
-                        // qDebug() << " NewLabel dyn property " << ((NewLabel*)nobj)->dynValues;
-                    }
+//                        ((NewLabel*)nobj)->copyProperty(qvm[PROPERTY]);
+//                        // qDebug() << " NewLabel dyn property " << ((NewLabel*)nobj)->dynValues;
+//                    }
 
-                }
-            }
-            else if(!key.compare(NAME))
-            {
-                nobj->setObjectName(it.value().toString());
-            }
-            else if(!key.compare(CAPTION)) /* 界面显示的名称 */
-            {
-                nobj->setProperty(DKEY_CAPTION,it.value().toString());
-            }
-            break;
-        case QVariant::List:
-        {
-            if(!key.compare(PROPERTY))
-            {
-                // nobj->setProperty("dynProperty",it.value());
-                property = it.value();
-            }else {
-                QVariantList qvl = it.value().toList();
-               // QStringList chlist;
-                foreach(QVariant qv, qvl)
-                {
-                    // qDebug() << qv.type();
-                    if(qv.type() == QVariant::Map)
-                    {
-                        QObject *cobj = CreateObjectFromJson(qv.toMap(),nobj);
-                       // chlist.append(cobj->objectName());
-                    }
+//                }
+//            }
+//            else if(!key.compare(NAME))
+//            {
+//                nobj->setObjectName(it.value().toString());
+//            }
+//            else if(!key.compare(CAPTION)) /* 界面显示的名称 */
+//            {
+//                nobj->setProperty(DKEY_CAPTION,it.value().toString());
+//            }
+//            break;
+//        case QVariant::List:
+//        {
+//            if(!key.compare(PROPERTY))
+//            {
+//                // nobj->setProperty("dynProperty",it.value());
+//                property = it.value();
+//            }else {
+//                QVariantList qvl = it.value().toList();
+//               // QStringList chlist;
+//                foreach(QVariant qv, qvl)
+//                {
+//                    // qDebug() << qv.type();
+//                    if(qv.type() == QVariant::Map)
+//                    {
+//                        QObject *cobj = CreateObjectFromJson(qv.toMap(),nobj);
+//                       // chlist.append(cobj->objectName());
+//                    }
 
-                }
+//                }
 
-                //pobj->setProperty("chlist",chlist);
+//                //pobj->setProperty("chlist",chlist);
 
-            }
-        }
-            break;
-        case QVariant::Map:
-            //  CreateObjectFromJson(it.value().toMap());
-            // qDebug() << " type is Map " << it.value().toMap();
-            break;
-        case QVariant::Double:
-            //qDebug()  << " Value is Int : " << it.value().toInt();
-            break;
-        default:
-            break;
-        }
-    }
-    nobj->setProperty(DKEY_DYN,property);
-   // nobj->setProperty(DKEY_UID,QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch()));
+//            }
+//        }
+//            break;
+//        case QVariant::Map:
+//            //  CreateObjectFromJson(it.value().toMap());
+//            // qDebug() << " type is Map " << it.value().toMap();
+//            break;
+//        case QVariant::Double:
+//            //qDebug()  << " Value is Int : " << it.value().toInt();
+//            break;
+//        default:
+//            break;
+//        }
+//    }
+//    nobj->setProperty(DKEY_DYN,property);
+//   // nobj->setProperty(DKEY_UID,QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch()));
 
-    /*  处理每一个json对像的property部分 */
-    // qDebug() << "Dynamic Property Count " << nobj->dynamicPropertyNames().count();
-    foreach(QByteArray qba,nobj->dynamicPropertyNames())
-    {
-        QVariantList qvl = nobj->property(qba).toList();
-        foreach(QVariant qv, qvl)
-        {
-            // qDebug()  << " Property Val List :" << qv.type();
-            if(qv.type() == QVariant::Map)
-            {
-                QVariantMap qvm = qv.toMap();
+//    /*  处理每一个json对像的property部分 */
+//    // qDebug() << "Dynamic Property Count " << nobj->dynamicPropertyNames().count();
+//    foreach(QByteArray qba,nobj->dynamicPropertyNames())
+//    {
+//        QVariantList qvl = nobj->property(qba).toList();
+//        foreach(QVariant qv, qvl)
+//        {
+//            // qDebug()  << " Property Val List :" << qv.type();
+//            if(qv.type() == QVariant::Map)
+//            {
+//                QVariantMap qvm = qv.toMap();
 
-                for(QVariantMap::const_iterator it = qvm.begin();it != qvm.end();++it)
-                {
-                    QString key = it.key();
-                    if(!key.compare(KEY_RECT)) /* 这里直接处理json "rect" 对像字段 */
-                    {
-                      //  QString clsName = nobj->property(DKEY_CLSNAME).toString();
-                        QVariantMap rect = it.value().toMap();
-                        QRect r = QRect(rect["x"].toString().toInt(),
-                                rect["y"].toString().toInt(),
-                                rect["width"].toString().toInt(),
-                                rect["height"].toString().toInt());
+//                for(QVariantMap::const_iterator it = qvm.begin();it != qvm.end();++it)
+//                {
+//                    QString key = it.key();
+//                    if(!key.compare(KEY_RECT)) /* 这里直接处理json "rect" 对像字段 */
+//                    {
+//                      //  QString clsName = nobj->property(DKEY_CLSNAME).toString();
+//                        QVariantMap rect = it.value().toMap();
+//                        QRect r = QRect(rect["x"].toString().toInt(),
+//                                rect["y"].toString().toInt(),
+//                                rect["width"].toString().toInt(),
+//                                rect["height"].toString().toInt());
 
-                        //if(!clsName.compare(QFRAME))
-                        if(!CN_NEWFRAME.compare(nobj->metaObject()->className()))
-                        {
+//                        //if(!clsName.compare(QFRAME))
+//                        if(!CN_NEWFRAME.compare(nobj->metaObject()->className()))
+//                        {
 
-                            qobject_cast<NewFrame *>(nobj)->setGeometry(r);
-                            ((NewFrame*)nobj)->m_frame->setGeometry(r);
-                            ((NewFrame*)nobj)->updateGeometry();
+//                            qobject_cast<NewFrame *>(nobj)->setGeometry(r);
+//                            ((NewFrame*)nobj)->m_frame->setGeometry(r);
+//                            ((NewFrame*)nobj)->updateGeometry();
 
-                            // 外面８个点的实际位置.
-                           ((NewFrame*)nobj)->setFixedSize(r.size()/*+MARGIN_SIZE*/);
-                           // ((NewFrame*)nobj)->setFixedSize(r.size());
+//                            // 外面８个点的实际位置.
+//                           ((NewFrame*)nobj)->setFixedSize(r.size()/*+MARGIN_SIZE*/);
+//                           // ((NewFrame*)nobj)->setFixedSize(r.size());
 
-                        }else{
-                            qobject_cast<NewLabel *>(nobj)->setGeometry(r);
-                            //  qDebug() << " label geometry " << qobject_cast<NewLabel *>(nobj)->geometry();
-                        }
-                    }
-                    else if(!key.compare(IMAGE)) // 这里中处理了这一个图片属性.
-                    {
-                        QPixmap p;
-                        QString path = it.value().toString();
-                        if(path.contains("\\"))
-                        {
-                            path.replace("\\","/");
-                        }
-                        p.load(path);
-                        qobject_cast<NewLabel *>(nobj)->setPixmap(p);
-                        qobject_cast<NewLabel *>(nobj)->setFixedSize(p.size());
-                    }
-                    else {
+//                        }else{
+//                            qobject_cast<NewLabel *>(nobj)->setGeometry(r);
+//                            //  qDebug() << " label geometry " << qobject_cast<NewLabel *>(nobj)->geometry();
+//                        }
+//                    }
+//                    else if(!key.compare(IMAGE)) // 这里中处理了这一个图片属性.
+//                    {
+//                        QPixmap p;
+//                        QString path = it.value().toString();
+//                        if(path.contains("\\"))
+//                        {
+//                            path.replace("\\","/");
+//                        }
+//                        p.load(path);
+//                        qobject_cast<NewLabel *>(nobj)->setPixmap(p);
+//                        qobject_cast<NewLabel *>(nobj)->setFixedSize(p.size());
+//                    }
+//                    else {
 
-                        //  qDebug() << "other property Key : " << key  << " Val : " << it.value();
-                    }
+//                        //  qDebug() << "other property Key : " << key  << " Val : " << it.value();
+//                    }
 
-                }
-            }
-        }
+//                }
+//            }
+//        }
 
-    }
+//    }
 
-    return nobj;
-}
+//    return nobj;
+//}
 
 
 void CompoentControls::onCreateNewLayout()
@@ -1430,15 +1433,10 @@ void CompoentControls::onCreateNewLayout()
 
         int n = mWindow->ComCtrl->ProMap.size();
         mWindow->cManager->activeSS()->LayoutList.append(nl);
-//        LayoutList.append(nl);
-//        mActiveIdx = LayoutList.size() - 1;
 
         nl->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("布局",
                         QString::number(n)));
-
         mWindow->tree->addObjectToCurrentItem(nl);
-      //  mWindow->ComCtrl->ProMap[nl->property(DKEY_LOCALSEQ).toString()] = nl;
-
         nl->onSelectMe();
         nl->setToolTip(nl->property(DKEY_LOCALSEQ).toString());
 
@@ -1448,16 +1446,6 @@ void CompoentControls::onCreateNewLayout()
         ((NewLayer*)w)->createNewLayout();
     }
 
-//    ScenesScreen *ss = mWindow->cManager->activeSS();
-//    if(ss)
-//    {
-//        ss->createNewLayout();
-//        QPushButton *btn = (QPushButton*)(QObject::sender());
-//        NewLayout *nl =  ss->activeLayout();
-//        ProMap[nl->property(DKEY_LOCALSEQ).toString()] = nl;
-//        //comList.append(nl);
-//        mWindow->tree->addItemToRoot(nl->property(DKEY_LOCALSEQ).toString(),btn->text());
-//    }
 }
 
 void CompoentControls::onCreateNewLayer()

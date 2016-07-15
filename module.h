@@ -148,6 +148,13 @@ public:
 
 private:
       QPoint mOffset;
+      QWidget *mainWidget;
+      QScrollArea *mainScroll;
+      QVBoxLayout *listLayout;
+      QWidgetList listwidget;
+
+public slots:
+      void onAddOneLine();
 
 protected:
 
