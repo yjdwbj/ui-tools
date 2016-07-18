@@ -150,11 +150,19 @@ private:
       QPoint mOffset;
       QWidget *mainWidget;
       QScrollArea *mainScroll;
+      QListWidget *mainListWidget;
       QVBoxLayout *listLayout;
       QWidgetList listwidget;
 
 public slots:
       void onAddOneLine();
+      void onDeleteMe();
+      void onColorButtonClicked();
+      void onAdjustSize();
+      void onListItemSizeChanged();
+      void onXYWHChangedValue(int v);
+
+
 
 protected:
 
@@ -210,6 +218,9 @@ public slots:
     void onXYWHChangedValue(int v);
     void onDeleteMe();
     void onBeComeTemplateWidget();
+
+signals:
+      void sizeChanged();
 
 protected:
 

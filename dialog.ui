@@ -95,7 +95,7 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QWidget" name="">
+  <widget class="QWidget" name="layoutWidget">
    <property name="geometry">
     <rect>
      <x>20</x>
@@ -114,6 +114,9 @@
     </item>
     <item>
      <widget class="QLineEdit" name="lineEdit">
+      <property name="text">
+       <string>test</string>
+      </property>
       <property name="maxLength">
        <number>255</number>
       </property>

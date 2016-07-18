@@ -16,6 +16,7 @@
 #include <QFileDialog>
 #include <QColorDialog>
 #include <QRgb>
+#include <QScrollBar>
 
 #include "config.h"
 #include "scenesscreen.h"
@@ -932,32 +933,40 @@ NewList::NewList(QWidget *parent):
 {
   //  setMinimumSize(nsize ); // 最小尺寸
    // setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
+    mWindow = ((NewLayout*)parent->parentWidget())->mWindow;
     this->setObjectName(this->metaObject()->className());
     setStyleSheet("border: 0.5px solid #79AEC8;" );
     setFocusPolicy(Qt::ClickFocus);
     setMinimumSize(QSize(90,90));
+   // mainListWidget = new QListWidget(this);
+
     mainWidget = new QWidget();
     mainScroll =  new QScrollArea(m_frame);
     mainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    mainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    mainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     mainScroll->setWidget(mainWidget);
     mainScroll->setWidgetResizable(true);
     listLayout = new QVBoxLayout();
     listLayout->setMargin(0);
     listLayout->setSpacing(0);
+    listLayout->setContentsMargins(0,0,0,0);
+    listLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
+
 
     mainWidget->setLayout(listLayout);
-    //mainWidget->setContentsMargins(0,0,0,0);
-
+    mainWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    m_frame->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
+    mainScroll->resize(m_frame->size());
     m_frame->setStyleSheet("background-color: #79AEC8;");
-//  scroll->setStyleSheet("background-color: #79AEC8;");
-//    qDebug() << "this geometry "  << this->geometry()
-//             << " m_frame geometry " << m_frame->geometry()
-//             << " scroll geometry  " << mainScroll->geometry();
 
-    mainScroll->resize(this->size());
-    update();
-    qDebug() << " NewList m_frame size " << m_frame->geometry() << " this geometry " << this->geometry();
+
+
+    int n = mWindow->ComCtrl->ProMap.size();
+    QString str = QString("%1_%2").arg("列表",QString::number(n));
+    setProperty(DKEY_LOCALSEQ,str);
+    setToolTip(str);
+    onSelectMe();
+
 
 }
 
@@ -991,27 +1000,104 @@ void NewList::mousePressEvent(QMouseEvent *event)
         QAction addline("添加一行",this);
         contextMenu->addAction(&addline);
         connect(&addline,SIGNAL(triggered(bool)),SLOT(onAddOneLine()));
+
+        QAction adjust("自动调整",this);
+        connect(&adjust,SIGNAL(triggered(bool)),SLOT(onAdjustSize()));
+        contextMenu->addAction(&adjust);
         contextMenu->exec(mapToGlobal(event->pos()));
     }
 
 }
 
+void NewList::onAdjustSize()
+{
+   // mainListWidget->adjustSize();
+
+
+//    mainScroll->adjustSize();
+//    mainScroll->verticalScrollBar()->width();
+//    mainScroll->resize(mainScroll->size());
+//    mainScroll->widget()->adjustSize();
+}
+
+
+void NewList::onDeleteMe()
+{
+
+}
+
+void NewList::onColorButtonClicked()
+{
+
+}
+
+
+void NewList::onXYWHChangedValue(int v)
+{
+    /* 绑定坐标控件的更新 */
+    QWidget *sender =(QWidget *)(QObject::sender());
+    if(!sender->objectName().compare(X))
+    {
+        QPoint pos = this->pos();
+        pos.setX(v);
+        this->move(pos);
+    }else if(!sender->objectName().compare(Y))
+    {
+        QPoint pos = this->pos();
+        pos.setY(v);
+        this->move(pos );
+    }else if(!sender->objectName().compare(W))
+    {
+        if((this->pos().x() + v )> this->parentWidget()->size().width())
+            return;
+        QSize n(this->size());
+        n.setWidth(v);
+        this->resize(n);
+    }else if(!sender->objectName().compare(H))
+    {
+        if((this->pos().y() + v )> this->parentWidget()->size().height())
+            return;
+        QSize n(this->size());
+        n.setHeight(v);
+        this->resize(n);
+    }
+    this->blockSignals(true);
+}
+
 void NewList::onAddOneLine()
 {
-    NewLayout *nl = new NewLayout(this->size(),m_frame);
+    onSelectMe();
+    NewLayout *nl = new NewLayout(m_frame->size()-QSize(15,15),mainWidget);
+    connect(nl,SIGNAL(sizeChanged()),SLOT(onListItemSizeChanged()));
+    emit nl->sizeChanged();;
     nl->addMainWindow(mWindow);
     listwidget.append(nl);
+
 
     int n = mWindow->ComCtrl->ProMap.size();
     mWindow->cManager->activeSS()->LayoutList.append(nl);
 
-    nl->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("布局",
-                    QString::number(n)));
+    QString val = QString("%1_%2").arg("布局",QString::number(n));
+
+    nl->setProperty(DKEY_LOCALSEQ,val);
     mWindow->tree->addObjectToCurrentItem(nl);
     nl->onSelectMe();
     nl->setToolTip(nl->property(DKEY_LOCALSEQ).toString());
+
+//    QListWidgetItem *item = new QListWidgetItem();
+//    mainListWidget->addItem(item);
+//    mainListWidget->setItemWidget(item,nl);
     listLayout->addWidget(nl);
+
+
+
     m_frame->adjustSize();
+}
+
+void NewList::onListItemSizeChanged()
+{
+
+    qDebug() << " list item size changed " << QObject::sender()->metaObject()->className() ;
 }
 
 void NewList::mouseMoveEvent(QMouseEvent *event)
@@ -1063,12 +1149,29 @@ void NewList::mouseReleaseEvent(QMouseEvent *event)
         this->move(pos);
     }
 
+//    mainListWidget->resize(m_frame->size());
 
     // 把　QScrollArea　的大小调成与父控件一样大.
     mainScroll->resize(m_frame->size());
-     qDebug() << " NewList m_frame size " << m_frame->geometry() << " this geometry " << this->geometry();
+    mainWidget->resize(m_frame->size());
+
+
+  //   qDebug() << " NewList m_frame size " << m_frame->geometry() << " this geometry " << this->geometry();
     // 这里只能在释放鼠标时改变左边的控件值
+//     qDebug() << " v bar " << mainScroll->verticalScrollBar()->width()
+//             << " h bar " << mainScroll->horizontalScrollBar()->width();
+
     mWindow->posWidget->updateSize(this->size());
+  //  mainWidget->move(0,0);
+    mainWidget->setGeometry(mainScroll->geometry());
+
+    qDebug() << " this geomerty " << this->geometry()
+             << "| scroll geoerty " << this->geometry()
+             << "| mainWidget geomerty " << mainWidget->geometry()
+             << "| listLayout geomerty " << listLayout->geometry();
+    qDebug() << " m_frame geomerty " << m_frame->geometry();
+    update();
+
 }
 
 
@@ -1077,7 +1180,8 @@ NewLayout::NewLayout(QSize nsize,QWidget *parent):
     FormResizer(parent)
 {
     setMinimumSize(nsize ); // 最小尺寸
-    setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
+    if(parent)
+        setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
     this->setObjectName(this->metaObject()->className());
     setStyleSheet("NewLayout#%s{border: 0.5px solid #929292;}" % LAYOUT);
     setFocusPolicy(Qt::ClickFocus);
@@ -1092,6 +1196,8 @@ NewLayout::NewLayout(QSize nsize,QWidget *parent):
 //    m_frame->setPalette(Pal);
 //    m_frame->update();
       m_frame->setStyleSheet("background-color: #DAE4A7;");
+
+
 
     show();
 }
@@ -1160,6 +1266,9 @@ void NewLayout::onXYWHChangedValue(int v)
 
 void NewLayout::mousePressEvent(QMouseEvent *event)
 {
+  //  emit sizeChanged();
+    setMaximumSize(this->parentWidget()->size());
+
     if (event->button() == Qt::LeftButton)
     {
         mOffset = event->pos();
@@ -1171,6 +1280,7 @@ void NewLayout::mousePressEvent(QMouseEvent *event)
         connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
         QAction saveTemp("保存成控件",this);
         connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
+
         contextMenu->addAction(&delme);
         contextMenu->addAction(&saveTemp);
         contextMenu->exec(mapToGlobal(event->pos()));
@@ -1179,6 +1289,13 @@ void NewLayout::mousePressEvent(QMouseEvent *event)
 }
 void NewLayout::mouseMoveEvent(QMouseEvent *event)
 {
+
+    QString clsname = parentWidget()->parentWidget()->metaObject()->className();
+     qDebug() << " parent class name " <<  clsname;
+     // 这里主要防止它在列表的拖动事件.
+    if(CN_NEWLAYOUT.compare(clsname) && CN_NEWLAYER.compare(clsname) ) return;
+
+
     if (event->buttons() & Qt::LeftButton)
     {
         move(this->pos() + (event->pos() - mOffset));
@@ -1224,6 +1341,9 @@ void NewLayout::mouseReleaseEvent(QMouseEvent *event)
 
     // 这里只能在释放鼠标时改变左边的控件值
     mWindow->posWidget->updateSize(this->size());
+
+
+
 }
 
 void NewLayout::onDeleteMe()
@@ -1559,6 +1679,9 @@ QWidget* NewLayout::createObjectFromJson(const QJsonObject &json,QWidget *pobj)
     }else if(!clsName.compare(CN_NEWLABEL))
     {
         array = ((NewLabel*)nobj)->dynValues[DKEY_DYN].toArray();
+    }else if(!clsName.compare(CN_NEWLIST))
+    {
+        array = ((NewList*)nobj)->dynValues[DKEY_DYN].toArray();
     }
     parseJsonProperty(nobj,array); // 读取坐标与图片属性.
     return nobj;
@@ -1608,7 +1731,7 @@ void NewLayout::parseJsonProperty(QWidget *nobj, const QJsonArray &array)
                         rect["y"].toString().toInt(),
                         rect["width"].toString().toInt(),
                         rect["height"].toString().toInt());
-                if(isFrame)
+                if(!clsName.compare(CN_NEWFRAME))
                 {
                     qobject_cast<NewFrame *>(nobj)->setGeometry(r);
                     ((NewFrame*)nobj)->m_frame->setGeometry(r);
@@ -1618,7 +1741,11 @@ void NewLayout::parseJsonProperty(QWidget *nobj, const QJsonArray &array)
                     ((NewFrame*)nobj)->setFixedSize(r.size()+MARGIN_SIZE);
                     qDebug() << "after update geometry NewFrame size " << nobj->size();
                     // ((NewFrame*)nobj)->setFixedSize(r.size());
-                }else
+                }else if(!clsName.compare(CN_NEWLIST))
+                {
+                    ((NewList*)nobj)->setGeometry(r);
+                }
+                else if(!clsName.compare(CN_NEWLABEL))
                 {
                     ((NewLabel *)nobj)->setGeometry(r);
                     qDebug() << "after update geometry NewLabel size " << nobj->size();
@@ -1662,19 +1789,7 @@ void NewLayer::createNewLayout()
 {
     // 在些新建一个布局为当前的子控件.
     createNewLayout(m_frame);
-//    NewLayout *nl = new NewLayout(QSize(150,200)+MARGIN_SIZE,this);
-//    nl->addMainWindow(mWindow);
-//    LayoutList.append(nl);
-//    mActiveIdx = LayoutList.size() - 1;
-//    //nl->setObjectName(QString("%1_%2").arg(nl->metaObject()->className(),QString::number(mActiveIdx)));
-//    nl->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("布局",
-//                    QString::number(mActiveIdx)));
-////    mWindow->tree->addChildObject(this->property(DKEY_LOCALSEQ).toString(),
-////                                  nl->property(DKEY_LOCALSEQ).toString(),
-////                                  nl->metaObject()->className());
-//    mWindow->tree->addObjectToCurrentItem(nl);
 
-//    nl->onSelectMe();
 
 }
 

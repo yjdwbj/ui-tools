@@ -24,12 +24,16 @@ FormResizer::FormResizer(QWidget *parent) :
 
     QVBoxLayout *handleLayout = new QVBoxLayout(this);
     handleLayout->setMargin(SELECTION_MARGIN);
+    // 如果设置下面两行,控制只能看到一半的内点.
+    handleLayout->setSpacing(0);
+    handleLayout->setContentsMargins(0,0,0,0);
     //handleLayout->setMargin(1);
     handleLayout->addWidget(m_frame);
 
     m_frame->setFrameStyle(QFrame::Panel | QFrame::Raised);
-    QVBoxLayout *layout = new QVBoxLayout(m_frame);
-    layout->setMargin(0);
+//    QVBoxLayout *layout = new QVBoxLayout(m_frame);
+//    layout->setMargin(0);
+
     //layout->setContentsMargins(0,0,0,0);
     // handles
     m_handles.reserve(SizeHandleRect::Left);
