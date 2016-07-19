@@ -42,6 +42,7 @@ public:
      void updateRBJsonValue(QJsonArray &json,QWidget *w); // 更新UID,RECT,BORDER三个属性
 
     void updateJsonArray(QString key,const QJsonArray &arr);
+     QJsonObject getRectFromStruct(const QJsonArray &arr);
     //QVariantMap dynValues;
     //QJsonValue dynValues;
     QJsonObject dynValues;
@@ -132,6 +133,9 @@ private slots:
 
 protected:
     void clearOtherObjectStyleSheet();
+    void mousePressEvent(QMouseEvent *ev);
+    void mouseMoveEvent(QMouseEvent *event);
+   // void paintEvent(QPaintEvent *);
 
 };
 
@@ -141,6 +145,8 @@ class NewList :public FormResizer,public Compoent
 public:
     NewList(QWidget *parent=0);
     void onSelectMe();
+    void writeToJson(QJsonObject &json);
+    void readFromJson(const QJsonObject &valobj);
 
 
      MainWindow *mWindow;
@@ -161,6 +167,7 @@ public slots:
       void onAdjustSize();
       void onListItemSizeChanged();
       void onXYWHChangedValue(int v);
+      void onTextChanged(QString str);
 
 
 
@@ -172,7 +179,7 @@ protected:
 };
 
 //class NewLayout :public QFrame
-class NewLayout :public FormResizer
+class NewLayout :public FormResizer , public Compoent
 {
     friend class ScenesScreen;
     friend class CompoentControls;

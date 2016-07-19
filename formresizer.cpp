@@ -15,7 +15,8 @@ enum { debugFormResizer = 0 };
 
 FormResizer::FormResizer(QWidget *parent) :
     QWidget(parent),
-    m_frame(new QFrame)
+    m_frame(new QFrame),
+    mBorderColor("#FFFFFF")
  //   m_formWindow(0)
 {
     // Make the resize grip of a mainwindow form find us as resizable window.
@@ -31,8 +32,8 @@ FormResizer::FormResizer(QWidget *parent) :
     handleLayout->addWidget(m_frame);
 
     m_frame->setFrameStyle(QFrame::Panel | QFrame::Raised);
-//    QVBoxLayout *layout = new QVBoxLayout(m_frame);
-//    layout->setMargin(0);
+    QVBoxLayout *layout = new QVBoxLayout(m_frame);
+    layout->setMargin(0);
 
     //layout->setContentsMargins(0,0,0,0);
     // handles
@@ -164,19 +165,39 @@ void FormResizer::onBorderChangedValue(int v)
 
         mBorder.setHeight(v);
     }
-    mBorderColor = "#FFFFFF";
-    QString str = QString("border-left: %1px solid %5;"\
-                          "border-top: %2px solid %5;" \
-                          "border-right: %3px solid %5;"\
-                          "border-bottom: %4px solid %5;").arg(QString::number(mBorder.x()),
+
+    updateBorderColor();
+
+//    QString str = QString("border-left: %1px solid %5;"\
+//                          "border-top: %2px solid %5;" \
+//                          "border-right: %3px solid %5;"\
+//                          "border-bottom: %4px solid %5;").arg(QString::number(mBorder.x()),
+//                                                               QString::number(mBorder.y()),
+//                                                               QString::number(mBorder.width()),
+//                                                               QString::number(mBorder.height()),
+//                                                               mBorderColor);
+//    m_frame->setStyleSheet(str);
+//    qDebug() << " border style string " << str;
+    m_frame->update();
+    this->blockSignals(true);
+}
+
+void FormResizer::updateBorderColor()
+{
+    QString str = QString("border-style: solid;"\
+                          "border-color: %5;"\
+                          "subcontrol-origin: padding;"\
+                          "subcontrol-position: right bottom;"\
+
+                          "border-left-width: %1px;"\
+                          "border-top-width: %2px;" \
+                          "border-right-width: %3px;"\
+                          "border-bottom-width: %4px;").arg(QString::number(mBorder.x()),
                                                                QString::number(mBorder.y()),
                                                                QString::number(mBorder.width()),
                                                                QString::number(mBorder.height()),
                                                                mBorderColor);
-    m_frame->setStyleSheet(str);
-    qDebug() << " border style string " << str;
-    m_frame->update();
-    this->blockSignals(true);
+    this->setStyleSheet(str);
 }
 
 //QWidget *FormResizer::mainContainer()

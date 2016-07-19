@@ -122,7 +122,7 @@ void ScenesScreen::onChangedBackgroundColor()
 
 NewLayer* ScenesScreen::createNewLayer()
 {
-    NewLayer *nlayer = new NewLayer(QSize(200,200) + MARGIN_SIZE,this);
+    NewLayer *nlayer = new NewLayer(QSize(200,200)/* + MARGIN_SIZE*/,this);
     LayerList.append(nlayer);
     mActiveLaySeq = LayerList.size() - 1;
    // nlayer->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("图层",QString::number(LayerList.size()-1)));

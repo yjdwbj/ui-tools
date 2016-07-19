@@ -11,8 +11,6 @@
 //static int pwidth = 20;
 
 
-
-
 Border::Border(QWidget *parent)
     :QGroupBox(parent),
       Left(new QSpinBox()),
@@ -145,9 +143,9 @@ void Position::setConnectNewQWidget(QWidget *com)
     Hpos->setValue(com->geometry().height());
 
     // 非NewLayout控件大小不能调整
-    bool isLayout = !CN_NEWLAYOUT.compare(com->metaObject()->className());
-    Wpos->setEnabled(isLayout);
-    Hpos->setEnabled(isLayout);
+//    bool isLayout = !CN_NEWLAYOUT.compare(com->metaObject()->className());
+//    Wpos->setEnabled(isLayout);
+//    Hpos->setEnabled(isLayout);
 
     QSize psize = com->parentWidget()->size();
     Hpos->setMaximum(psize.height());
@@ -192,22 +190,7 @@ void Position::resetValues()
 
 Position::~Position()
 {
-//    QLayoutItem* child;
-//    QLayout *layout = this->layout();
-//    while(layout->count()!=0)
-//    {
-//        child = layout->takeAt(0);
-//        if(child->layout() != 0)
-//        {
-//            removeWidFromLayout(child->layout());
-//        }
-//        else if(child->widget() != 0)
-//        {
-//            delete child->widget();
-//        }
 
-//        delete child;
-//    }
 }
 
 ComProperty::ComProperty(QString title,QWidget *parent):
@@ -236,8 +219,6 @@ ComProperty::ComProperty(QString title,QWidget *parent):
     scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
    // setTitle(tr("控件属性"));
-
-
 }
 
 
@@ -361,6 +342,7 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
               mainLayout->addWidget(btn);
               btn->setObjectName(uname);
               connect(btn,SIGNAL(clicked(bool)),p,SLOT(onColorButtonClicked()));
+
               wid = btn;
            }else if(object.contains(UID))
            {
@@ -368,10 +350,14 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                mainLayout->addWidget(title);
 
                QLineEdit *nameEdt = new QLineEdit();
+               nameEdt->setObjectName(uname);
+
                nameEdt->setMaxLength(8);
                nameEdt->setInputMask("nnnnnnnn;"); // or NNNNNNNN;_
                nameEdt->setCursorPosition(0);
                mainLayout->addWidget(nameEdt);
+               connect(nameEdt,SIGNAL(textChanged(QString)),p,SLOT(onTextChanged(QString)));
+               wid = nameEdt;
 //               id->setStyleSheet("*{border: 0.5px solid gray;}");
 //               id->setFixedHeight(labHeight);
 //               mainLayout->addWidget(id);
@@ -915,7 +901,7 @@ QWidget *CompoentControls::createLayoutFromJson(const QJsonObject &object, QWidg
             if(!str.compare(CN_NEWLAYOUT) && !key.compare(CLASS)) // 创建布局
             {
                 qDebug() << "create layout";
-                nlayout = new NewLayout(QSize(150,200)+MARGIN_SIZE,((NewLayout*)parent)->m_frame);
+                nlayout = new NewLayout(QSize(150,200)/*+MARGIN_SIZE*/,((NewLayout*)parent)->m_frame);
                 nlayout->addMainWindow(mWindow);
                 ((NewLayout*)parent)->addNewObject(nlayout);
 
@@ -1195,13 +1181,7 @@ void CompoentControls::onCreateCompoentToCanvas()
         QMessageBox::warning(0,tr("提示"),tr("请选择一个图层或者新建一个并选中它."));
         return;
     }
-//    NewLayout *activeLayout = activeLayer->activeLayout();
 
-//    if(!activeLayout)
-//    {
-//        QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
-//        return;
-//    }
     QWidget *wid = mWindow->cManager->activeSS()->activeObject();
     if(!wid)
     {
@@ -1212,32 +1192,14 @@ void CompoentControls::onCreateCompoentToCanvas()
     QPushButton *btn = (QPushButton*)(QObject::sender());
     QJsonValue val =QJsonValue::fromVariant(btn->property(DKEY_JSONSTR));
     QString clsname = wid->metaObject()->className();
-    if(!clsname.compare(CN_NEWFRAME))
+    if(!clsname.compare(CN_NEWFRAME) || !clsname.compare(CN_NEWLIST))
     {
         ((NewLayout*)wid->parentWidget()->parentWidget())->createNewFrameObject(val.toObject());
-    }else {
+    }
+    else {
         ((NewLayout*)wid)->createNewFrameObject(val.toObject());
     }
 
-//    NewFrame* ww = (NewFrame *)CreateObjectFromJson(comMap[btn->text()],activeLayout->m_frame);
-//    //mWindow->Scenes->activeLayer()->m_frame);
-//    ww->setObjectName(btn->property(DKEY_CATEGORY).toString());
-//    //ww->setObjectName(QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
-//    ww->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg(btn->text(),QString::number(comList.size())));
-//    activeLayout->appendChildObj(ww);
-//    // 做treeWidget区分的名字.
-//    ProMap[ww->property(DKEY_LOCALSEQ).toString()] = ww;
-//    comList.append(ww);
-//    ww->onSelectMe();
-//    // 找出图层,把新建的控件添加进去.
-//    mWindow->tree->addObjectToCurrentItem(ww);
-//    ww->show();
-
-//   NewFrame* ww =  ReadObjectFromJson(comMap[btn->text()],activeLayout->m_frame,btn->text(),
-//            btn->property(DKEY_CATEGORY).toString());
-//    uint number = qHash(QDateTime::currentDateTime().toMSecsSinceEpoch());
-//    ww->setProperty(DKEY_UID,QString::number(number));
-//    ww->onSelectMe();
 }
 
 
@@ -1427,7 +1389,7 @@ void CompoentControls::onCreateNewLayout()
     if(!CN_LAYOUT.compare(clsname)
             || !CN_NEWLAYOUT.compare(clsname))
     {
-        NewLayout *nl = new NewLayout(QSize(150,200)+MARGIN_SIZE,((NewLayout*)w)->m_frame);
+        NewLayout *nl = new NewLayout(QSize(150,200)/*+MARGIN_SIZE*/,((NewLayout*)w)->m_frame);
         nl->addMainWindow(mWindow);
         ((NewLayout*)w)->addNewObject(nl);
 

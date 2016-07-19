@@ -163,6 +163,7 @@ void TreeDock::onCustomContextMenu(const QPoint &point)
     {
         qDebug() << " item is " << item->text(0) << " pos " << point;
        // contextMenu->exec(treeWidget->mapToGlobal(point));
+        // 这里只能隐
         if(!item->parent()) // 顶级
         {
             QIcon icon = item->icon(0);
