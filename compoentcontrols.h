@@ -36,6 +36,7 @@ public:
     void setConnectNewQWidget(QWidget *com);
     void updatePosition(QPoint pos);
     void updateSize(QSize size);
+    void updateMaxSize(QSize size);
     void resetValues();
 private:
     QSpinBox *Xpos,*Ypos,*Wpos,*Hpos;
@@ -131,7 +132,7 @@ signals:
 
 public slots:
      void onCreateCompoentToCanvas();
-     void onCreateListWidget();
+   //  void onCreateListWidget();
      void onCreateCustomWidget();
      void onCreateNewLayout();
      void onCreateNewLayer();

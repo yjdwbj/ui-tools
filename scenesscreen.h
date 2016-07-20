@@ -12,6 +12,7 @@ class NewLayout;
 class NewLayer;
 class Compoentcontrol;
 class FormResizer;
+class Compoent;
 class ScenesScreen : public QFrame
 {
     friend class Compoentcontrol;
@@ -32,15 +33,14 @@ public:
    // int getActiveIndex() { return mActiveIdx;}
     int getActiveLayerIndex() { return mActiveLaySeq;}
    // void createNewLayout();
-    NewLayer *createNewLayer();
+    NewLayer *createNewLayer(const QJsonObject &json);
     void addMainWindow(MainWindow* m) { mWindow = m;}
    // void setActiveIdx(int index) { mActiveIdx = index;}
     void setSelectObject(FormResizer *obj);
     void delSelectedLayout();
     void delSelectedLayer();
-
-    void readLayout(const QJsonArray &array);
     void readLayer(const QJsonArray &array);
+  //  QRect getRectFromStruct(const QJsonArray &arr) const;
    // void delSelectedObject();
 
     void writeToJson(QJsonObject &json);

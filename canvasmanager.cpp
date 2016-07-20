@@ -308,8 +308,7 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
                         break;
                     }
                 }
-//                QSize valsize(valobj[SIZE].toObject()[WIDTH].toString().toInt(),
-//                              valobj[SIZE].toObject()[HEIGHT].toString().toInt());
+
                 setDefaultPageSize(QSize(w,h));
                 ScenesScreen *Scenes = createNewCanvas();
                 // 递归读取它的页面.

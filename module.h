@@ -42,7 +42,8 @@ public:
      void updateRBJsonValue(QJsonArray &json,QWidget *w); // 更新UID,RECT,BORDER三个属性
 
     void updateJsonArray(QString key,const QJsonArray &arr);
-     QJsonObject getRectFromStruct(const QJsonArray &arr);
+    static QRect getRectFromStruct(const QJsonArray &arr) ;
+     QRect getRectFromJson(const QJsonObject &json) const;
     //QVariantMap dynValues;
     //QJsonValue dynValues;
     QJsonObject dynValues;
@@ -150,24 +151,27 @@ public:
 
 
      MainWindow *mWindow;
-     QListWidget *lwid; // 列表控件.
+
+     QScrollArea *mainScroll;
+     QWidgetList listwidget;
+
 
 private:
       QPoint mOffset;
       QWidget *mainWidget;
-      QScrollArea *mainScroll;
+
       QListWidget *mainListWidget;
       QVBoxLayout *listLayout;
-      QWidgetList listwidget;
 
 public slots:
       void onAddOneLine();
       void onDeleteMe();
       void onColorButtonClicked();
       void onAdjustSize();
-      void onListItemSizeChanged();
+
       void onXYWHChangedValue(int v);
       void onTextChanged(QString str);
+      void onSliderValueChanaged(int v);
 
 
 
@@ -213,6 +217,7 @@ public:
 
 
     MainWindow *mWindow;
+    QWidget *parentList; // 特意用来存放的
 
 
 private:
@@ -280,7 +285,7 @@ protected:
 
 
 // 场景下面放图层,图层下面放布局,布局下面放控件.
-class NewLayer : public BaseForm
+class NewLayer : public BaseForm, public Compoent
 {
     Q_OBJECT
 public:
@@ -289,9 +294,9 @@ public:
 
    // MainWindow *mWindow;
     void DeleteMe();
-    void createNewLayout();
+    void createNewLayout(QSize size);
     void readFromJson(const QJsonArray &array);
-    void createNewLayout(QWidget *parent);
+    void createNewLayout(QWidget *parent,QSize size);
     NewLayout *activeLayout() {
             return mActiveIdx == -1 ? (NewLayout*)0 :
                                       (NewLayout*)(LayoutList.at(mActiveIdx));}
