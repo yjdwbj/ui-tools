@@ -105,6 +105,8 @@ setFixedHeight(mWindow->size().height()-50);
 setFixedWidth(200);
 treeWidget->setFixedHeight(mWindow->size().height()-80);
 treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+//treeWidget->header()->setStretchLastSection(false);
+treeWidget->header()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
 //setFeatures(QDockWidget::DockWidgetVerticalTitleBar);
 
 connect(treeWidget,SIGNAL(customContextMenuRequested(QPoint)),SLOT(onCustomContextMenu(QPoint)));
@@ -217,23 +219,10 @@ void TreeDock::onItemPressed(QTreeWidgetItem *item,int col)
     //    return;
 
     qDebug() << " clicked tree : " << item->text(0);
-
-   // foreach (QWidget *w, mWindow->ComCtrl->comList) {
-  //  QString key = w->property(DKEY_LOCALSEQ).toString();
     if(mWindow->ComCtrl->ProMap.contains(item->text(0)))
     {
         ((FormResizer*)mWindow->ComCtrl->ProMap[item->text(0)])->onSelectMe();
     }
-//    foreach (QWidget *w, mWindow->ComCtrl->comList) {
-//       // if(!w->objectName().compare(item->text(0)))
-//        QString key = w->property(DKEY_LOCALSEQ).toString();
-//        if(!key.compare(item->text(0)))
-//        {
-//              ((FormResizer*)w)->onSelectMe();
-//                 break;
-//        }
-
-//    }
     treeWidget->setCurrentItem(item);
 }
 
@@ -280,8 +269,10 @@ void TreeDock::addObjectToCurrentItem(QWidget *ww)
            QString key = ww->property(DKEY_LOCALSEQ).toString();
            tlist << key << ww->metaObject()->className();
             //qDebug() << " add child to " << qwi->text(0) << qwi->text(1);
-           QTreeWidgetItem *nqwi =  new QTreeWidgetItem(!qwi->text(1).compare(CN_NEWFRAME) ? qwi->parent()
-                                                                    : qwi, tlist);
+          // 如果是NEWFRAME 或者NEWLIST 就选择它的父节点.
+           bool pbool = !qwi->text(1).compare(CN_NEWFRAME)/* || !qwi->text(1).compare(CN_NEWLIST)*/;
+           QTreeWidgetItem *nqwi =  new QTreeWidgetItem(pbool ? qwi->parent() : qwi, tlist);
+
            mWindow->ComCtrl->ProMap[key] = (FormResizer*)ww;
            treeWidget->setCurrentItem(nqwi);
         }

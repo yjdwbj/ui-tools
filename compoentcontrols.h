@@ -96,7 +96,9 @@ class CompoentControls : public QGroupBox
     friend class NewLayer;
     friend class NewLayout;
     friend class NewList;
+    friend class NewFrame;
     friend class ScenesScreen;
+    friend class CanvasManager;
     Q_OBJECT
 public:
     explicit CompoentControls(MainWindow *mw,QWidget *parent = 0);
@@ -121,7 +123,7 @@ private:
 
      void CreateButtonList(const QJsonArray &comJsonArr);
      QWidget *createCustomObject(const QJsonArray &comJsonArr);
-     QWidget *createLayoutFromJson(const QJsonObject &json,QWidget *parent);
+    // QWidget *createLayoutFromJson(const QJsonObject &json,QWidget *parent);
     // QWidget *createCustomWidget(const QJsonValue &json, QWidget *parent);
 
      QWidget *getQWidgetByName(QString name) const;

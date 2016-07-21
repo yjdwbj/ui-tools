@@ -116,52 +116,51 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     else
     {
-      bk->backImage = bakimageMap.first();
+        if(!bakimageMap.isEmpty())
+            bk->backImage = bakimageMap[0];
     }
 
     this->centralWidget()->update();
 
     // 如果可以自动打开上次的工程
-//    QVariant prjvar = globalSet->value(INI_PRJLAST);
-//    QFile PrjFile;
-//    if(prjvar.isValid())
-//    {
+    QVariant prjvar = globalSet->value(INI_PRJLAST);
+    QFile PrjFile;
+    if(prjvar.isValid())
+    {
 
-//        PrjFile.setFileName(prjvar.toString());
-//    }
-//    else
-//    {
-//        PrjFile.setFileName("save.json");
-//    }
+        PrjFile.setFileName(prjvar.toString());
+    }
+    else
+    {
+        PrjFile.setFileName("save.json");
+    }
 
+    if (PrjFile.open(QFile::ReadOnly|QIODevice::Text)) {
+        QByteArray qba = PrjFile.readAll();
+        QTextStream in(&PrjFile);
+        QString str;
+        int ans = 0;
+        in >> str >> ans;
+        QJsonParseError json_error;
+        QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
+        if(json_error.error == QJsonParseError::NoError)
+        {
 
+            QPoint mpos;
+            if(qd.isObject())
+            {
+                QJsonObject  qdobj = qd.object();
+                setWindowTitle(qdobj[NAME].toString());
 
-//    if (PrjFile.open(QFile::ReadOnly|QIODevice::Text)) {
-//        QByteArray qba = PrjFile.readAll();
-//        QTextStream in(&PrjFile);
-//        QString str;
-//        int ans = 0;
-//        in >> str >> ans;
-//        QJsonParseError json_error;
-//        QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
-//        if(json_error.error == QJsonParseError::NoError)
-//        {
+                cManager->readProjectJson(qdobj[PAGES].toArray());
+                cManager->setActiveSS(qdobj[ACTPAGE].toInt());
 
-//            QPoint mpos;
-//            if(qd.isObject())
-//            {
-//                QJsonObject  qdobj = qd.object();
-//                setWindowTitle(qdobj[NAME].toString());
-
-//                cManager->readProjectJson(qdobj[PAGES].toArray());
-//                cManager->setActiveSS(qdobj[ACTPAGE].toInt());
-
-//            }
-//        }else{
-//            // qDebug() << " read Json file error";
-//            qDebug() << json_error.errorString();
-//        }
-//    }
+            }
+        }else{
+            // qDebug() << " read Json file error";
+            qDebug() << json_error.errorString();
+        }
+    }
 
 }
 

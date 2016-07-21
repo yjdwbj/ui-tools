@@ -124,35 +124,21 @@ void CanvasManager::setActiveSS(int index)
       //  qDebug() << " show previous object" << index;
         screenshot();
         stack->setCurrentIndex(index);
-
-
         // 清理treeWidget 的行
         mWindow->tree->deleteAllitem();
         ScenesScreen *Scenes = (ScenesScreen*)(stack->currentWidget());
         // 把当前页的布局重新添加到treeWidget上
-
-//        foreach (QWidget *w, Scenes->LayoutList) {
-//           // mWindow->tree->addItemToRoot(w->objectName(),"布局");
-//            QString key = w->property(DKEY_LOCALSEQ).toString();
-//            mWindow->tree->addItemToRoot(key,"布局");
-//            foreach (QWidget *ww, ((NewLayout*)w)->getChildrenList()) {
-//                mWindow->tree->addObjectToCurrentItem(ww);
-//            }
-//        }
-
         foreach (QWidget *w, Scenes->LayerList) {
             // mWindow->tree->addItemToRoot(w->objectName(),"布局");
             QString key = w->property(DKEY_LOCALSEQ).toString();
           //  mWindow->tree->addItemToRoot(key,"布局");
             mWindow->tree->addItemToRoot(w);
-//            foreach (QWidget *ww, ((NewLayout*)w)->getChildrenList()) {
-//                mWindow->tree->addObjectToCurrentItem(ww);
-//            }
+            qDebug() << " class name " << w->metaObject()->className()
+                     << " object name " << w->objectName();
+            ((NewLayer*)w)->addChildrenToTree();
         }
         stack->setGeometry(stackRect);
-
     }
-   // mWindow->centralWidget()->update();
 
 }
 
@@ -234,6 +220,7 @@ void CanvasManager::closeCurrentProject()
     foreach (QWidget *w, mCanvasList) {
        deleteCurrentPage();
     }
+    mWindow->ComCtrl->ProMap.clear();
 }
 
 void CanvasManager::onCreateNewScenesScreen()
@@ -313,7 +300,7 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
                 ScenesScreen *Scenes = createNewCanvas();
                 // 递归读取它的页面.
                 //Scenes->readLayout(valobj[CN_SSNAME].toArray());
-                Scenes->readLayer(valobj[CN_SSNAME].toArray());
+                Scenes->readLayer(valobj[LAYER].toArray());
         }
 
             break;

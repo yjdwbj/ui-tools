@@ -148,6 +148,9 @@ QSize FormResizer::decorationSize() const
 void FormResizer::onBorderChangedValue(int v)
 {
     QString name = QObject::sender()->objectName();
+//    qDebug() << " my object name is " << this->objectName()
+//             << " class name " << this->metaObject()->className()
+//             << " parent class name " << this->parentWidget()->metaObject()->className();
     if(!name.compare(X))
     {
 
@@ -197,7 +200,8 @@ void FormResizer::updateBorderColor()
                                                                QString::number(mBorder.width()),
                                                                QString::number(mBorder.height()),
                                                                mBorderColor);
-    this->setStyleSheet(str);
+    this->setStyleSheet(QString("%1{%2}").arg(this->metaObject()->className(),str));
+    qDebug()  << " this stylesheet " << this->styleSheet();
 }
 
 //QWidget *FormResizer::mainContainer()

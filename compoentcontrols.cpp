@@ -135,9 +135,24 @@ void Position::setConnectNewQWidget(QWidget *com)
     Ypos->disconnect();
     Wpos->disconnect();
     Hpos->disconnect();
+    QString clsname = com->parentWidget()->metaObject()->className();
 
-    Xpos->setValue(com->geometry().x());
-    Ypos->setValue(com->geometry().y());
+    QVariant variant = com->property(DKEY_INTOLIST);
+    bool isLW = false;
+    if(variant.isValid())
+    {
+        isLW = variant.toBool();
+    }
+    Xpos->setEnabled(!isLW);
+    Ypos->setEnabled(!isLW);
+    if(!isLW)
+    {
+        connections << QObject::connect(Xpos,SIGNAL(valueChanged(int)),com,SLOT(onXYWHChangedValue(int)));
+        connections << QObject::connect(Ypos,SIGNAL(valueChanged(int)),com,SLOT(onXYWHChangedValue(int)));
+    }
+
+    Xpos->setValue(isLW ? 0 : com->geometry().x());
+    Ypos->setValue(isLW ? 0 : com->geometry().y());
     Wpos->setValue(com->geometry().width());
     Hpos->setValue(com->geometry().height());
 
@@ -146,11 +161,13 @@ void Position::setConnectNewQWidget(QWidget *com)
 //    Wpos->setEnabled(isLayout);
 //    Hpos->setEnabled(isLayout);
 
+
+
+
     QSize psize = com->parentWidget()->size();
     Hpos->setMaximum(psize.height());
     Wpos->setMaximum(psize.width());
-    connections << QObject::connect(Xpos,SIGNAL(valueChanged(int)),com,SLOT(onXYWHChangedValue(int)));
-    connections << QObject::connect(Ypos,SIGNAL(valueChanged(int)),com,SLOT(onXYWHChangedValue(int)));
+
     connections << QObject::connect(Wpos,SIGNAL(valueChanged(int)),com,SLOT(onXYWHChangedValue(int)));
     connections << QObject::connect(Hpos,SIGNAL(valueChanged(int)),com,SLOT(onXYWHChangedValue(int)));
 
@@ -863,68 +880,68 @@ void CompoentControls::onCreateCustomWidget()
 
 }
 
-QWidget *CompoentControls::createLayoutFromJson(const QJsonObject &object, QWidget *parent)
-{
-    qDebug() << " Jsonval is Object " << object;
-   // QJsonObject object = json.toObject();
-    NewLayout *nlayout = 0;
-    for(QJsonObject::const_iterator it= object.constBegin();it != object.constEnd();++it)
-    {
-        QString key = it.key();
-        if(it.value().type() == QJsonValue::Array)
-        {
-            if(!key.compare(LAYOUT))
-            {
-                foreach (QJsonValue val, it.value().toArray()) {
-                 createLayoutFromJson(val.toObject(),nlayout);
-                }
-            }
-        }
-        else if(it.value().type() == QJsonValue::Object)
-        {
+//QWidget *CompoentControls::createLayoutFromJson(const QJsonObject &object, QWidget *parent)
+//{
+//    qDebug() << " Jsonval is Object " << object;
+//   // QJsonObject object = json.toObject();
+//    NewLayout *nlayout = 0;
+//    for(QJsonObject::const_iterator it= object.constBegin();it != object.constEnd();++it)
+//    {
+//        QString key = it.key();
+//        if(it.value().type() == QJsonValue::Array)
+//        {
+//            if(!key.compare(LAYOUT))
+//            {
+//                foreach (QJsonValue val, it.value().toArray()) {
+//                 createLayoutFromJson(val.toObject(),nlayout);
+//                }
+//            }
+//        }
+//        else if(it.value().type() == QJsonValue::Object)
+//        {
 
-            qDebug() << " object is " << it.value();
+//            qDebug() << " object is " << it.value();
 
-        }
-        else if(it.value().type() == QJsonValue::String)
-        {
-            QString str = it.value().toString();
-            if(!str.compare(CN_NEWLAYOUT) && !key.compare(CLASS)) // 创建布局
-            {
+//        }
+//        else if(it.value().type() == QJsonValue::String)
+//        {
+//            QString str = it.value().toString();
+//            if(!str.compare(CN_NEWLAYOUT) && !key.compare(CLASS)) // 创建布局
+//            {
 
-                QRect rect = Compoent::getRectFromStruct(object[PROPERTY].toArray());
-                if(rect.isEmpty())
-                {
-                    rect.setWidth(150);
-                    rect.setHeight(200);
-                }
+//                QRect rect = Compoent::getRectFromStruct(object[PROPERTY].toArray());
+//                if(rect.isEmpty())
+//                {
+//                    rect.setWidth(150);
+//                    rect.setHeight(200);
+//                }
 
-                nlayout = new NewLayout(rect.size()/*+MARGIN_SIZE*/,((NewLayout*)parent)->m_frame);
-                nlayout->addMainWindow(mWindow);
-                ((NewLayout*)parent)->addNewObject(nlayout);
+//                nlayout = new NewLayout(rect.size()/*+MARGIN_SIZE*/,mWindow,((NewLayout*)parent)->m_frame);
+//               // nlayout->addMainWindow(mWindow);
+//                ((NewLayout*)parent)->addNewObject(nlayout);
 
-                int n = mWindow->ComCtrl->ProMap.size();
-        //        LayoutList.append(nl);
-        //        mActiveIdx = LayoutList.size() - 1;
+//                int n = mWindow->ComCtrl->ProMap.size();
+//        //        LayoutList.append(nl);
+//        //        mActiveIdx = LayoutList.size() - 1;
 
-                nlayout->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("布局",
-                                QString::number(n)));
+//                nlayout->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("布局",
+//                                QString::number(n)));
 
-                mWindow->tree->addObjectToCurrentItem(nlayout);
-               // mWindow->ComCtrl->ProMap[nlayout->property(DKEY_LOCALSEQ).toString()] = nlayout;
+//                mWindow->tree->addObjectToCurrentItem(nlayout);
+//               // mWindow->ComCtrl->ProMap[nlayout->property(DKEY_LOCALSEQ).toString()] = nlayout;
 
-                nlayout->onSelectMe();
-                nlayout->setToolTip(nlayout->property(DKEY_LOCALSEQ).toString());
-            }
-            else if(!key.compare(CLASS)
-                    &&(!str.compare(CN_NEWFRAME) || !str.compare(QFRAME) ))
-            {
-                ((NewLayout*)parent)->createNewFrameObject(object);
-            }
-        }
-    }
+//                nlayout->onSelectMe();
+//                nlayout->setToolTip(nlayout->property(DKEY_LOCALSEQ).toString());
+//            }
+//            else if(!key.compare(CLASS)
+//                    &&(!str.compare(CN_NEWFRAME) || !str.compare(QFRAME) ))
+//            {
+//                ((NewLayout*)parent)->createNewFrameObject(object);
+//            }
+//        }
+//    }
 
-}
+//}
 
 
 
@@ -1083,23 +1100,25 @@ void CompoentControls::onCreateNewLayout()
             || !CN_NEWLAYOUT.compare(clsname))
     {
         // 这里是在布局上面创建布局,嵌套.
-        NewLayout *nl = new NewLayout(oldrect.size() /*+MARGIN_SIZE*/,((NewLayout*)w)->m_frame);
-        nl->addMainWindow(mWindow);
-        ((NewLayout*)w)->addNewObject(nl);
+        ((NewLayout*)w)->readFromJson(json);
+//        NewLayout *nl = new NewLayout(oldrect.size() /*+MARGIN_SIZE*/,((NewLayout*)w)->m_frame);
+//        nl->addMainWindow(mWindow);
+//        ((NewLayout*)w)->addNewObject(nl);
 
-        int n = mWindow->ComCtrl->ProMap.size();
-        mWindow->cManager->activeSS()->LayoutList.append(nl);
+//        int n = mWindow->ComCtrl->ProMap.size();
+//        mWindow->cManager->activeSS()->LayoutList.append(nl);
 
-        nl->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("布局",
-                        QString::number(n)));
-        mWindow->tree->addObjectToCurrentItem(nl);
-        nl->onSelectMe();
-        nl->setToolTip(nl->property(DKEY_LOCALSEQ).toString());
+//        nl->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("布局",
+//                        QString::number(n)));
+//        mWindow->tree->addObjectToCurrentItem(nl);
+//        nl->onSelectMe();
+//        nl->setToolTip(nl->property(DKEY_LOCALSEQ).toString());
 
     }
     else if(!CN_NEWLAYER.compare(clsname) || !CN_LAYER.compare(clsname))
     {
-        ((NewLayer*)w)->createNewLayout(oldrect.size());
+      //  ((NewLayer*)w)->createNewLayout(oldrect.size());
+        ((NewLayer*)w)->readFromJson(json);
     }
 
 }
@@ -1112,13 +1131,7 @@ void CompoentControls::onCreateNewLayer()
         QPushButton *btn = (QPushButton*)(QObject::sender());
         QVariant variant = btn->property(DKEY_JSONSTR);
         QJsonObject json = QJsonValue::fromVariant(variant).toObject();
-        NewLayer *nlayer  = ss->createNewLayer(json);
-        if(json.contains(PROPERTY))
-        {
-            nlayer->copyProperty(json[PROPERTY].toVariant());
-            nlayer->setProperty(DKEY_DYN,json[PROPERTY].toVariant());
-        }
-        mWindow->tree->addItemToRoot(nlayer);
-
+        NewLayer *nlayer  = ss->createNewLayer(json);       
+       // mWindow->tree->addItemToRoot(nlayer);
     }
 }

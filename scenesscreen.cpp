@@ -112,17 +112,25 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonObject &json)
         oldrect.setHeight(200);
     }
 
+
     NewLayer *nlayer = new NewLayer(oldrect.size() /* + MARGIN_SIZE*/,this);
     nlayer->setGeometry(oldrect);
     LayerList.append(nlayer);
     mActiveLaySeq = LayerList.size() - 1;
-   // nlayer->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("图层",QString::number(LayerList.size()-1)));
-    nlayer->setProperty(DKEY_LOCALSEQ,
-    QString("%1_%2").arg("图层",QString::number( mWindow->ComCtrl->ProMap.size())));
+    QVariant variant = json.value(PROPERTY).toVariant();
+    nlayer->setProperty(DKEY_TXT,json[CAPTION].toString());
+    if(json.contains(PROPERTY))
+    {
+        nlayer->copyProperty(variant);
+        nlayer->setProperty(DKEY_DYN,variant);
+    }
+
     nlayer->onSelectMe();
-    //mWindow->ComCtrl->ProMap[nlayer->property(DKEY_LOCALSEQ).toString()] = nlayer;
-  //  mWindow->tree->addObjectToCurrentItem(nlayer);
-    nlayer->setToolTip(nlayer->property(DKEY_LOCALSEQ).toString());
+    mWindow->tree->addItemToRoot(nlayer);
+  //  nlayer->setToolTip(nlayer->property(DKEY_LOCALSEQ).toString());
+    foreach (QJsonValue layout, json[LAYOUT].toArray()) {
+        nlayer->readFromJson(layout.toObject());
+    }
     return nlayer;
 
 }
@@ -135,7 +143,8 @@ void ScenesScreen::readLayer(const QJsonArray &array)
         {
             QJsonObject valobj = val.toObject();
              NewLayer *nlayer = createNewLayer(valobj);
-             nlayer->readFromJson(valobj[LAYOUT].toArray());
+
+           //  nlayer->readFromJson(valobj[LAYOUT].toArray());
         }
 
             break;
@@ -268,8 +277,6 @@ void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
 void ScenesScreen::writeToJson(QJsonObject &json)
 {
     QJsonArray layoutarr;
-    //qDebug() << "ScenesScreen parent obj " << &json ;
-
     foreach (QWidget *w, LayerList) {
         QJsonObject layoutObj;
        // qDebug() << "ScenesScreen  sub object " << &layoutObj;
@@ -280,18 +287,9 @@ void ScenesScreen::writeToJson(QJsonObject &json)
     }
 
     QJsonArray projson;
-    QVariantMap vmap ;
-    vmap[LX] = QString::number(this->x());
-    vmap[LY] = QString::number(this->y());
-    vmap[WIDTH] =QString::number(this->width());
-    vmap[HEIGHT] = QString::number(this->height());
-
-    QJsonObject rect;
-
-    rect[KEY_RECT] = QJsonObject::fromVariantMap(vmap);
-    projson.append(rect);
+    projson.append(Compoent::getRectJson(this));
     json[PROPERTY] = projson;
-
+   // json[NAME] = this->objectName();
     json[CAPTION] = this->property(DKEY_TXT).toString();
     json[CLASS] = this->metaObject()->className();
     json[LAYER] = layoutarr;

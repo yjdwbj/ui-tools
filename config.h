@@ -29,7 +29,7 @@ static QString LAYER = "layer";
 static QString COMPOENTS ="compoents";
 static QString PROPERTY = "property";
 static QString ITEM="item";
-static QString SIZE = "size";
+static QString KEY_SIZE = "size";
 static QString KEY_RECT ="rect";
 static QString QFRAME = "QFrame";
 static QString QLABEL = "QLabel";
@@ -56,6 +56,7 @@ static QString PLUGIN = "plugin";
 
 
 static const char  DKEY_CAPTION[] = "caption";
+static const char DKEY_INTOLIST[] = "intoList";
 
 static const char DKEY_IMGIDX[] = "ImageIndex";
 static const char DKEY_IMAGELST[] = "ImageList";

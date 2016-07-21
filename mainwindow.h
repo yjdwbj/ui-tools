@@ -52,7 +52,6 @@ public:
 
 protected:
     void paintEvent(QPaintEvent *);
-
 };
 
 class MainWindow : public QMainWindow
