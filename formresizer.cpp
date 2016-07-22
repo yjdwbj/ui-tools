@@ -15,8 +15,8 @@ enum { debugFormResizer = 0 };
 
 FormResizer::FormResizer(QWidget *parent) :
     QWidget(parent),
-    m_frame(new QFrame),
-    mBorderColor("#FFFFFF")
+    m_frame(new QFrame)
+
  //   m_formWindow(0)
 {
     // Make the resize grip of a mainwindow form find us as resizable window.
@@ -145,64 +145,64 @@ QSize FormResizer::decorationSize() const
 }
 
 
-void FormResizer::onBorderChangedValue(int v)
-{
-    QString name = QObject::sender()->objectName();
-//    qDebug() << " my object name is " << this->objectName()
-//             << " class name " << this->metaObject()->className()
-//             << " parent class name " << this->parentWidget()->metaObject()->className();
-    if(!name.compare(X))
-    {
+//void FormResizer::onBorderChangedValue(int v)
+//{
+//    QString name = QObject::sender()->objectName();
+////    qDebug() << " my object name is " << this->objectName()
+////             << " class name " << this->metaObject()->className()
+////             << " parent class name " << this->parentWidget()->metaObject()->className();
+//    if(!name.compare(X))
+//    {
 
-        mBorder.setX(v);
-    }else if(!name.compare(Y))
-    {
+//        mBorder.setX(v);
+//    }else if(!name.compare(Y))
+//    {
 
-        mBorder.setY(v);
-    }else if(!name.compare(W))
-    {
+//        mBorder.setY(v);
+//    }else if(!name.compare(W))
+//    {
 
-        mBorder.setWidth(v);
-    }else if(!name.compare(H))
-    {
+//        mBorder.setWidth(v);
+//    }else if(!name.compare(H))
+//    {
 
-        mBorder.setHeight(v);
-    }
+//        mBorder.setHeight(v);
+//    }
 
-    updateBorderColor();
+//    updateBorderColor();
 
-//    QString str = QString("border-left: %1px solid %5;"\
-//                          "border-top: %2px solid %5;" \
-//                          "border-right: %3px solid %5;"\
-//                          "border-bottom: %4px solid %5;").arg(QString::number(mBorder.x()),
+////    QString str = QString("border-left: %1px solid %5;"\
+////                          "border-top: %2px solid %5;" \
+////                          "border-right: %3px solid %5;"\
+////                          "border-bottom: %4px solid %5;").arg(QString::number(mBorder.x()),
+////                                                               QString::number(mBorder.y()),
+////                                                               QString::number(mBorder.width()),
+////                                                               QString::number(mBorder.height()),
+////                                                               mBorderColor);
+////    m_frame->setStyleSheet(str);
+////    qDebug() << " border style string " << str;
+//    m_frame->update();
+//    this->blockSignals(true);
+//}
+
+//void FormResizer::updateBorderColor()
+//{
+//    QString str = QString("border-style: solid;"\
+//                          "border-color: %5;"\
+//                          "subcontrol-origin: padding;"\
+//                          "subcontrol-position: right bottom;"\
+
+//                          "border-left-width: %1px;"\
+//                          "border-top-width: %2px;" \
+//                          "border-right-width: %3px;"\
+//                          "border-bottom-width: %4px;").arg(QString::number(mBorder.x()),
 //                                                               QString::number(mBorder.y()),
 //                                                               QString::number(mBorder.width()),
 //                                                               QString::number(mBorder.height()),
 //                                                               mBorderColor);
-//    m_frame->setStyleSheet(str);
-//    qDebug() << " border style string " << str;
-    m_frame->update();
-    this->blockSignals(true);
-}
-
-void FormResizer::updateBorderColor()
-{
-    QString str = QString("border-style: solid;"\
-                          "border-color: %5;"\
-                          "subcontrol-origin: padding;"\
-                          "subcontrol-position: right bottom;"\
-
-                          "border-left-width: %1px;"\
-                          "border-top-width: %2px;" \
-                          "border-right-width: %3px;"\
-                          "border-bottom-width: %4px;").arg(QString::number(mBorder.x()),
-                                                               QString::number(mBorder.y()),
-                                                               QString::number(mBorder.width()),
-                                                               QString::number(mBorder.height()),
-                                                               mBorderColor);
-    this->setStyleSheet(QString("%1{%2}").arg(this->metaObject()->className(),str));
-    qDebug()  << " this stylesheet " << this->styleSheet();
-}
+//    this->setStyleSheet(QString("%1{%2}").arg(this->metaObject()->className(),str));
+//    qDebug()  << " this stylesheet " << this->styleSheet();
+//}
 
 //QWidget *FormResizer::mainContainer()
 //{

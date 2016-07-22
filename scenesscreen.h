@@ -37,8 +37,8 @@ public:
     void addMainWindow(MainWindow* m) { mWindow = m;}
    // void setActiveIdx(int index) { mActiveIdx = index;}
     void setSelectObject(FormResizer *obj);
-    void delSelectedLayout();
-    void delSelectedLayer();
+    //void delSelectedLayout();
+   // void delSelectedLayer();
     void readLayer(const QJsonArray &array);
   //  QRect getRectFromStruct(const QJsonArray &arr) const;
    // void delSelectedObject();
@@ -47,7 +47,7 @@ public:
 
     void delAllObjects();
 
-    QWidgetList LayoutList;
+    //QWidgetList LayoutList;
     QWidgetList LayerList;
     MainWindow* mWindow;
 

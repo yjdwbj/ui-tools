@@ -35,13 +35,13 @@ public:
     void setState(SelectionHandleState st);
     void update();
     virtual void onSelectMe() =0;
-    void updateBorderColor();
+   // void updateBorderColor();
    // virtual void onBindValue(QWidget *w,const QVariant &val) =0;
 
    // void setFormWindow(QDesignerFormWindowInterface *fw);
     QFrame *m_frame;
-    QRect mBorder;
-    QString mBorderColor;
+//    QRect mBorder;
+//    QString mBorderColor;
 
 signals:
     void formWindowSizeChanged(const QRect &oldGeo, const QRect &newGeo);
@@ -55,7 +55,7 @@ protected:
 
 private slots:
    // void mainContainerChanged();
-    void onBorderChangedValue(int v);
+   // void onBorderChangedValue(int v);
 
 
 private:

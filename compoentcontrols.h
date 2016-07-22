@@ -18,7 +18,7 @@
 class TreeDock;
 class MainWindow;
 class ScenesScreen;
-class FormResizer;
+class BaseForm;
 class NewFrame;
 
 
@@ -107,6 +107,7 @@ public:
    // QWidget *CcWidgetList,ProWidgetList,ImgWidgetList;
 
      int mCWidgetCount; // 自定义控件的个数.
+     QMap<QString,QWidget*> ProMap; // 新生成的控件.
 
 private:
      MainWindow *mWindow;
@@ -118,7 +119,7 @@ private:
      QWidgetList comList;
      //QJsonArray comJsonArr;
      QMap<QString,QVariantMap> comMap;
-     QMap<QString,FormResizer*> ProMap; // 新生成的控件.
+
      //QSizePolicy mSizePolicy;
 
      void CreateButtonList(const QJsonArray &comJsonArr);

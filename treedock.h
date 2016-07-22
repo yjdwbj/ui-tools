@@ -14,6 +14,8 @@
 class MainWindow;
 //class PropertyBox;
 class CompoentControls;
+class CanvasManager;
+class ScenesScreen;
 
 
 class TreeDock : public QDockWidget
@@ -38,6 +40,8 @@ public:
     QTreeWidgetItem *getRoot()const { return root;}
 
     void setSelectTreeItem(QWidget *);
+
+    void setMyParentNode();
     QTreeWidget *treeWidget;
 
 

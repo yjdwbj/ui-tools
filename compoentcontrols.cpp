@@ -68,10 +68,15 @@ void Border::setConnectNewQWidget(QWidget *com)
     Bottom->disconnect();
 
 
-    Left->setValue(((FormResizer*)com)->mBorder.x());
-    Top->setValue(((FormResizer*)com)->mBorder.y());
-    Right->setValue(((FormResizer*)com)->mBorder.height());
-    Bottom->setValue(((FormResizer*)com)->mBorder.width());
+//    Left->setValue(((FormResizer*)com)->mBorder.x());
+//    Top->setValue(((FormResizer*)com)->mBorder.y());
+//    Right->setValue(((FormResizer*)com)->mBorder.height());
+//    Bottom->setValue(((FormResizer*)com)->mBorder.width());
+
+    Left->setValue(((BaseForm*)com)->mBorder.x());
+    Top->setValue(((BaseForm*)com)->mBorder.y());
+    Right->setValue(((BaseForm*)com)->mBorder.height());
+    Bottom->setValue(((BaseForm*)com)->mBorder.width());
 
 
     connections << QObject::connect(Left,SIGNAL(valueChanged(int)),com,SLOT(onBorderChangedValue(int)));
@@ -153,6 +158,9 @@ void Position::setConnectNewQWidget(QWidget *com)
 
     Xpos->setValue(isLW ? 0 : com->geometry().x());
     Ypos->setValue(isLW ? 0 : com->geometry().y());
+    QSize psize = com->parentWidget()->size();
+    Hpos->setMaximum(psize.height());
+    Wpos->setMaximum(psize.width());
     Wpos->setValue(com->geometry().width());
     Hpos->setValue(com->geometry().height());
 
@@ -160,13 +168,6 @@ void Position::setConnectNewQWidget(QWidget *com)
 //    bool isLayout = !CN_NEWLAYOUT.compare(com->metaObject()->className());
 //    Wpos->setEnabled(isLayout);
 //    Hpos->setEnabled(isLayout);
-
-
-
-
-    QSize psize = com->parentWidget()->size();
-    Hpos->setMaximum(psize.height());
-    Wpos->setMaximum(psize.width());
 
     connections << QObject::connect(Wpos,SIGNAL(valueChanged(int)),com,SLOT(onXYWHChangedValue(int)));
     connections << QObject::connect(Hpos,SIGNAL(valueChanged(int)),com,SLOT(onXYWHChangedValue(int)));
@@ -341,7 +342,7 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onEnumItemChanged(QString)));
            }else if(object.contains(LIST))
            {
-               QLabel *title = new QLabel(caption);
+               //QLabel *title = new QLabel(caption);
                QComboBox *cb = new QComboBox();
                cb->setObjectName(uname);
                cb->setProperty(DKEY_VALTYPE,LIST);
@@ -430,7 +431,7 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                }else if(object[DEFAULT].isDouble())
                {
                    QLabel *title = new QLabel(caption);
-                   int val = object[DEFAULT].toDouble();
+                   //int val = object[DEFAULT].toDouble();
                    mainLayout->addWidget(title);
                    QSpinBox *s = new QSpinBox();
 
@@ -477,27 +478,7 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
     }
 }
 
-void ComProperty::parseJsonToWidget(QWidget *p, const QJsonObject &json, QLayout *layout)
-{
-//    for(QJsonObject::const_iterator it = json.begin();it != json.end();++it)
-//    {
-//        QString key = it.key();
-//        switch (it.value().type()) {
-//        case QJsonValue::String:
 
-
-//            break;
-//        case QJsonValue::Object:
-//            parseJsonToWidget(p,it.value().toObject());
-//            break;
-//        case QJsonValue::Array:
-//            parseJsonToWidget(p,it.value().toArray());
-//            break;
-//        default:
-//            break;
-//        }
-//    }
-}
 //void ComProperty::parseJsonToWidget(QWidget *p,const QVariantList &qvl,QLayout *layout)
 //{
 
@@ -1050,7 +1031,9 @@ void CompoentControls::onCreateCompoentToCanvas()
     }
 
     QWidget *wid = mWindow->cManager->activeSS()->activeObject();
-    if(!wid)
+    QString clsname = wid->metaObject()->className();
+//    if(!wid || clsname.compare(CN_NEWLAYOUT))
+    if(wid == activeLayer)
     {
         QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
         return;
@@ -1058,7 +1041,7 @@ void CompoentControls::onCreateCompoentToCanvas()
 
     QPushButton *btn = (QPushButton*)(QObject::sender());
     QJsonValue val =QJsonValue::fromVariant(btn->property(DKEY_JSONSTR));
-    QString clsname = wid->metaObject()->className();
+   // QString clsname = wid->metaObject()->className();
     if(!clsname.compare(CN_NEWFRAME) || !clsname.compare(CN_NEWLIST))
     {
         ((NewLayout*)wid->parentWidget()->parentWidget())->readFromJson(val.toObject());

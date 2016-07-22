@@ -227,6 +227,9 @@ void CanvasManager::onCreateNewScenesScreen()
 {
     createNewCanvas();
     delPage->setEnabled(true);
+    mWindow->propertyWidget->delPropertyBox();
+    mWindow->imgPropertyWidget->delPropertyBox();
+    mWindow->posWidget->resetValues();
 }
 
 void CanvasManager::onSaveProject()

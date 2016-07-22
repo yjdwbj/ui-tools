@@ -55,9 +55,20 @@ class BaseForm: public FormResizer,public Compoent
 public:
     explicit BaseForm(QWidget *parent=0);
     MainWindow *mWindow;
-    void DeleteMe();
+    QRect mBorder;
+    QPoint mOffset;
+    QList<BaseForm*> childlist;
+
+
+
+
+    void onSelectMe();
+    virtual void DeleteMe();
     void HideMe();
     void addChildrenToTree();
+    void updateBorderColor();
+
+
 
 public slots:
     void onXYWHChangedValue(int v);
@@ -67,11 +78,15 @@ public slots:
     void onNumberChanged(int num);
     void onEnumItemChanged(QString txt);
     void onColorButtonClicked();
+    void onBorderChangedValue(int v);
+
 
 
 
 private:
-    QPoint mOffset;
+
+
+    QString mBorderColor;
 
 
 
@@ -80,7 +95,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
-    void paintEvent(QPaintEvent *);
+    //void paintEvent(QPaintEvent *);
 
 };
 
@@ -148,21 +163,15 @@ public:
     NewFrame(QWidget *parent=0);
 
     void addMainWindow(QObject *mw);
-    void onSelectMe();
+  //  void onSelectMe();
     void delMySelf();
     void writeToJson(QJsonObject &json);
     void readFromJson(const QJsonObject &json);
 
-    MainWindow *mWindow;
-    QPoint mOffset;
+    //MainWindow *mWindow;
+   // QPoint mOffset;
     QWidgetList childlist;
-private slots:
 
-//    void onXYWHChangedValue(int v);
-//    void onTextChanged(QString str);
-//    void onNumberChanged(int num);
-//    void onEnumItemChanged(QString txt);
-//    void onColorButtonClicked();
 
 protected:
     void clearOtherObjectStyleSheet();
@@ -172,32 +181,30 @@ protected:
 
 };
 
-class NewList :public FormResizer,public Compoent
+//class NewList :public FormResizer,public Compoent
+class NewList :public BaseForm
 {
     Q_OBJECT
 public:
-    NewList(QWidget *parent=0);
-    void onSelectMe();
+    NewList(const QSize size,QWidget *parent=0);
+    //void onSelectMe();
     void writeToJson(QJsonObject &json);
     void readFromJson(const QJsonObject &valobj);
     void addChildrenToTree();
 
-     MainWindow *mWindow;
+    // MainWindow *mWindow;
      QScrollArea *mainScroll;
-     QWidgetList listwidget;
+    // QWidgetList listwidget;
 
 private:
-      QPoint mOffset;
+     // QPoint mOffset;
       QWidget *mainWidget;
-
-      QListWidget *mainListWidget;
       QVBoxLayout *listLayout;
 
 public slots:
       void onAddOneLine();
       void onDeleteMe();
       void onColorButtonClicked();
-      void onAdjustSize();
 
       void onXYWHChangedValue(int v);
       void onTextChanged(QString str);
@@ -225,13 +232,14 @@ public:
     NewLayout (int width,int height,QWidget *parent=0);
 
     void onSelectMe();
+    void DeleteMe();
     void addMainWindow(MainWindow *m) { mWindow = m;}
 
     void clearOtherSelectHandler();
   //  void appendChildObj(QWidget *w) { mChList.append(w);}
     void deleteObject(int index);
     void deleteObject(QWidget *w);
-    const QWidgetList &getChildrenList() { return childlist;}
+ //   const QList<BaseForm*> &getChildrenList() { return childlist;}
 
     void delMySelf();
 
@@ -241,23 +249,23 @@ public:
 
     void createNewFrameObject(const QJsonObject &json);
    // QWidget *CreateObjectFromJson(const QVariantMap &qvm, QWidget *pobj);
-    QWidget* createObjectFromJson(const QJsonObject &json,QWidget *pobj);
+   //  QWidget* createObjectFromJson(const QJsonObject &json,QWidget *pobj);
     QWidget* createObjectFromJson(const QJsonObject &json);
 
 
-    void parseJsonProperty(QWidget *nobj, const QJsonArray &array);
-    void addNewObject(QWidget *w) { childlist.append(w);}
+    //void parseJsonProperty(QWidget *nobj, const QJsonArray &array);
+   // void addNewObject(QWidget *w) { childlist.append(w);}
 
 
-    MainWindow *mWindow;
+   // MainWindow *mWindow;
     QWidget *parentList; // 特意用来存放的
 
 
 private:
     void clearOtherObjectStyleSheet();
 
-    QPoint mOffset;
-    QWidgetList childlist;
+   // QPoint mOffset;
+   // QWidgetList childlist;
 
 public slots:
     void onXYWHChangedValue(int v);
@@ -280,19 +288,19 @@ class NewLayer : public BaseForm
     Q_OBJECT
 public:
     explicit NewLayer(QSize nsize, QWidget *parent=0);
-    void onSelectMe();
+   // void onSelectMe();
 
    // MainWindow *mWindow;
-    void DeleteMe();
+   // void DeleteMe();
    // void createNewLayout(QSize size);
     void readFromJson(const QJsonObject &json);
    // void createNewLayout(QWidget *parent,QSize size);
-    NewLayout *activeLayout() {
-            return mActiveIdx == -1 ? (NewLayout*)0 :
-                                      (NewLayout*)(LayoutList.at(mActiveIdx));}
-    void setActiveLayout(QWidget *w) { mActiveIdx = LayoutList.indexOf(w);}
+//    NewLayout *activeLayout() {
+//            return mActiveIdx == -1 ? (NewLayout*)0 :
+//                                      (NewLayout*)(LayoutList.at(mActiveIdx));}
+  //  void setActiveLayout(QWidget *w) { mActiveIdx = childlist.indexOf(w);}
     void writeToJson(QJsonObject &json);
-    const QWidgetList &getChidren() const { return LayoutList;}
+   // const QWidgetList &getChidren() const { return LayoutList;}
     void addChildrenToTree();
 
 public slots:
@@ -300,9 +308,9 @@ public slots:
 
 private:
     void clearOtherObjectStyleSheet();
-    QPoint mOffset;
+   // QPoint mOffset;
     int mActiveIdx;
-    QWidgetList LayoutList; // 它下面的布局子控件.
+  //  QWidgetList LayoutList; // 它下面的布局子控件.
 protected:
     void resizeEvent(QResizeEvent *event);
 

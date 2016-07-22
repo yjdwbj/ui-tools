@@ -173,80 +173,92 @@ void ScenesScreen::setSelectObject(FormResizer *obj)
     QString clsname = obj->metaObject()->className();
     if(!CN_NEWLAYOUT.compare(clsname))
     {
-        mActiveIdx = LayoutList.indexOf(obj);  // 这里只是布局控件才更改它的数值
+        mActiveIdx = LayerList.indexOf(obj);  // 这里只是布局控件才更改它的数值
 
     }
 
     mWindow->tree->setSelectTreeItem(obj);
 }
 
-void ScenesScreen::delSelectedLayer()
-{
+//void ScenesScreen::delSelectedLayer()
+//{
 
-}
-
-
-void ScenesScreen::delSelectedLayout()
-{
-
-    if(!CN_NEWLAYOUT.compare(activeObj->metaObject()->className()))
-    {
-        //删除布局控件
-        QMessageBox msgBox;
-        msgBox.setWindowTitle("删除提示");
-        msgBox.setText("你真的要删除当前布局吗?删除之后不可以撤消,请选择<删除>删除.");
-        // msgBox.setInformativeText("Do you want to save your changes?");
-        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-        msgBox.setButtonText(QMessageBox::Yes,"删除");
-        msgBox.setButtonText(QMessageBox::Cancel,"取消");
-        msgBox.setDefaultButton(QMessageBox::Cancel);
-        int ret = msgBox.exec();
-        //qDebug() << " QMessageBox result " << ret;
-        if(ret == QMessageBox::Yes)
-        {
-            // cManager->deleteCurrentPage();
-           // ScenesScreen *ss = activeObj->parentWidget();
-           int index = LayoutList.indexOf(activeObj);
-
-           //QWidget *p = LayoutList.takeAt(index);
-           LayoutList.removeOne(activeObj);
-            ((NewLayout*)activeObj)->delMySelf();
-           if(LayoutList.size())
-           {
-               if((index - 1) <  0  )
-               {
-                   setSelectObject((NewLayout*)(LayoutList.last()));
-               }else{
-                   setSelectObject((NewLayout*)(LayoutList.at(index-1)));
-               }
-           }else{
-               mActiveIdx = -1;
-               activeObj = 0;
-           }
-
-        }
-
-    }else {
-        //删除控件
-        NewLayout *nl = (NewLayout*)(activeObj->parentWidget()->parentWidget());
-
-        nl->deleteObject(activeObj);  // 从它的父控件删除它.
-
-        setSelectObject(nl); // 选中它父控件.
-
-    }
+//    if(!CN_NEWLAYER.compare(activeObj->metaObject()->className()))
+//    {
+//        //删除布局控件
+//        QMessageBox msgBox;
+//        msgBox.setWindowTitle("删除提示");
+//        msgBox.setText("你真的要删除当前图层吗?删除之后不可以撤消,请选择<删除>删除.");
+//        // msgBox.setInformativeText("Do you want to save your changes?");
+//        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+//        msgBox.setButtonText(QMessageBox::Yes,"删除");
+//        msgBox.setButtonText(QMessageBox::Cancel,"取消");
+//        msgBox.setDefaultButton(QMessageBox::Cancel);
+//        int ret = msgBox.exec();
+//        //qDebug() << " QMessageBox result " << ret;
+//        if(ret == QMessageBox::Yes)
+//        {
 
 
-}
+//        }
+
+//    }else {
+//        //删除控件
+//        NewLayout *nl = (NewLayout*)(activeObj->parentWidget()->parentWidget());
+
+//        nl->deleteObject(activeObj);  // 从它的父控件删除它.
+
+//        setSelectObject(nl); // 选中它父控件.
+
+//    }
+//}
+
+
+//void ScenesScreen::delSelectedLayout()
+//{
+
+//    QString clsname = activeObj->metaObject()->className();
+//    if(!CN_NEWLAYOUT.compare(clsname) || !CN_NEWLAYER.compare(clsname))
+//    {
+//        //删除布局控件
+//        QMessageBox msgBox;
+//        msgBox.setWindowTitle("删除提示");
+//        msgBox.setText("你真的要删除当前布局吗?删除之后不可以撤消,请选择<删除>删除.");
+//        // msgBox.setInformativeText("Do you want to save your changes?");
+//        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+//        msgBox.setButtonText(QMessageBox::Yes,"删除");
+//        msgBox.setButtonText(QMessageBox::Cancel,"取消");
+//        msgBox.setDefaultButton(QMessageBox::Cancel);
+//        int ret = msgBox.exec();
+//        //qDebug() << " QMessageBox result " << ret;
+//        if(ret == QMessageBox::Yes)
+//        {
+
+
+//        }
+
+//    }else {
+//        //删除控件
+
+////        NewLayout *nl = (NewLayout*)(activeObj->parentWidget()->parentWidget());
+
+////        nl->deleteObject(activeObj);  // 从它的父控件删除它.
+
+////        setSelectObject(nl); // 选中它父控件.
+
+//    }
+
+
+//}
 
 void ScenesScreen::delAllObjects()
 {
-    foreach (QWidget *w, LayoutList) {
+    foreach (QWidget *w, LayerList) {
         // 这里递归删每一个新建的控件
         QString cname = w->metaObject()->className();
         if(!CN_NEWLAYOUT.compare(cname))
         {
-            ((NewLayout*)w)->delMySelf();
+            ((NewLayout*)w)->DeleteMe();
         }
         else if(!CN_NEWFRAME.compare(cname))
         {
@@ -265,7 +277,7 @@ void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
         if(activeObj)
         {
           //  qDebug() << " you pressed Delete " << "active object " << activeObj->objectName();
-            delSelectedLayout();
+          //  delSelectedLayout();
         }
 
         break;

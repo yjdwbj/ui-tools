@@ -4,6 +4,8 @@
 #include <QMetaObject>
 #include <QMetaProperty>
 #include "formresizer.h"
+#include "scenesscreen.h"
+#include "canvasmanager.h"
 
 static QString HeadCol = "结点,属性";
 
@@ -212,6 +214,17 @@ void TreeDock::onSwapShowHideObject(bool)
     }
 }
 
+void TreeDock::setMyParentNode()
+{
+    QTreeWidgetItem *item= treeWidget->currentItem()->parent();
+    if(item)
+    {
+        QWidget *w = mWindow->ComCtrl->ProMap[item->text(0)];
+        mWindow->cManager->activeSS()->setSelectObject((FormResizer*)w);
+
+    }
+}
+
 void TreeDock::onItemPressed(QTreeWidgetItem *item,int col)
 {
 
@@ -255,7 +268,7 @@ void TreeDock::addItemToRoot(QWidget *ww)
      nroot->setIcon(0,QIcon(SHOW_ICON));
 
      treeWidget->setCurrentItem(nroot);
-     mWindow->ComCtrl->ProMap[key] = (FormResizer*)ww;
+     mWindow->ComCtrl->ProMap[key] = ww;
 }
 
 void TreeDock::addObjectToCurrentItem(QWidget *ww)
@@ -273,7 +286,7 @@ void TreeDock::addObjectToCurrentItem(QWidget *ww)
            bool pbool = !qwi->text(1).compare(CN_NEWFRAME)/* || !qwi->text(1).compare(CN_NEWLIST)*/;
            QTreeWidgetItem *nqwi =  new QTreeWidgetItem(pbool ? qwi->parent() : qwi, tlist);
 
-           mWindow->ComCtrl->ProMap[key] = (FormResizer*)ww;
+           mWindow->ComCtrl->ProMap[key] = ww;
            treeWidget->setCurrentItem(nqwi);
         }
 }
