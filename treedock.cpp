@@ -6,6 +6,8 @@
 #include "formresizer.h"
 #include "scenesscreen.h"
 #include "canvasmanager.h"
+#include "module.h"
+
 
 static QString HeadCol = "结点,属性";
 
@@ -284,6 +286,8 @@ void TreeDock::addObjectToCurrentItem(QWidget *ww)
             //qDebug() << " add child to " << qwi->text(0) << qwi->text(1);
           // 如果是NEWFRAME 或者NEWLIST 就选择它的父节点.
            bool pbool = !qwi->text(1).compare(CN_NEWFRAME)/* || !qwi->text(1).compare(CN_NEWLIST)*/;
+
+
            QTreeWidgetItem *nqwi =  new QTreeWidgetItem(pbool ? qwi->parent() : qwi, tlist);
 
            mWindow->ComCtrl->ProMap[key] = ww;
@@ -301,6 +305,17 @@ void TreeDock::deleteItem(QWidget *obj)
         //qDebug() << " this text " << qwi->text(0);
        if(!qwi->text(0).compare(key))
        {
+           // 在它的父控件里的列表里找到它,移除它.
+           if(qwi->parent())
+           {
+               QWidget *parentControl =mWindow->ComCtrl->ProMap[qwi->parent()->text(0)];
+               ((BaseForm*)parentControl)->removeChild(obj);
+           }else
+           {
+               // 这里是顶层了.
+               mWindow->cManager->activeSS()->LayerList.removeOne(obj);
+           }
+
            treeWidget->removeItemWidget(qwi,0);
            mWindow->ComCtrl->ProMap.remove(key);
            delete qwi;

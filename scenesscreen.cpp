@@ -8,7 +8,7 @@
 ScenesScreen::ScenesScreen(QSize size, QWidget *parent)
     : QFrame(parent),
       mWindow((MainWindow*)parent),
-      mActiveIdx(-1),
+   //   mActiveIdx(-1),
       activeObj(0),
       mActiveLaySeq(-1)
 {
@@ -170,12 +170,12 @@ void ScenesScreen::setSelectObject(FormResizer *obj)
 
     activeObj = obj;
     //qDebug() << " active object is " << obj->objectName();
-    QString clsname = obj->metaObject()->className();
-    if(!CN_NEWLAYOUT.compare(clsname))
-    {
-        mActiveIdx = LayerList.indexOf(obj);  // 这里只是布局控件才更改它的数值
+//    QString clsname = obj->metaObject()->className();
+//    if(!CN_NEWLAYOUT.compare(clsname))
+//    {
+//        mActiveIdx = LayerList.indexOf(obj);  // 这里只是布局控件才更改它的数值
 
-    }
+//    }
 
     mWindow->tree->setSelectTreeItem(obj);
 }

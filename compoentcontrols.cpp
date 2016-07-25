@@ -1031,13 +1031,14 @@ void CompoentControls::onCreateCompoentToCanvas()
     }
 
     QWidget *wid = mWindow->cManager->activeSS()->activeObject();
-    QString clsname = wid->metaObject()->className();
+
 //    if(!wid || clsname.compare(CN_NEWLAYOUT))
-    if(wid == activeLayer)
+    if(!wid || wid == activeLayer)
     {
         QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
         return;
     }
+    QString clsname = wid->metaObject()->className();
 
     QPushButton *btn = (QPushButton*)(QObject::sender());
     QJsonValue val =QJsonValue::fromVariant(btn->property(DKEY_JSONSTR));
@@ -1084,24 +1085,14 @@ void CompoentControls::onCreateNewLayout()
     {
         // 这里是在布局上面创建布局,嵌套.
         ((NewLayout*)w)->readFromJson(json);
-//        NewLayout *nl = new NewLayout(oldrect.size() /*+MARGIN_SIZE*/,((NewLayout*)w)->m_frame);
-//        nl->addMainWindow(mWindow);
-//        ((NewLayout*)w)->addNewObject(nl);
-
-//        int n = mWindow->ComCtrl->ProMap.size();
-//        mWindow->cManager->activeSS()->LayoutList.append(nl);
-
-//        nl->setProperty(DKEY_LOCALSEQ,QString("%1_%2").arg("布局",
-//                        QString::number(n)));
-//        mWindow->tree->addObjectToCurrentItem(nl);
-//        nl->onSelectMe();
-//        nl->setToolTip(nl->property(DKEY_LOCALSEQ).toString());
-
     }
     else if(!CN_NEWLAYER.compare(clsname) || !CN_LAYER.compare(clsname))
     {
       //  ((NewLayer*)w)->createNewLayout(oldrect.size());
         ((NewLayer*)w)->readFromJson(json);
+    }else if(!CN_NEWFRAME.compare(clsname))
+    {
+        ((NewLayout*)w->parentWidget()->parentWidget())->readFromJson(json);
     }
 
 }

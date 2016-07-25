@@ -16,6 +16,7 @@ class MainWindow;
 class CompoentControls;
 class CanvasManager;
 class ScenesScreen;
+class BaseForm;
 
 
 class TreeDock : public QDockWidget

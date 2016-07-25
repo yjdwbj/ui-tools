@@ -441,15 +441,25 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
     //NewFrame *p =(NewFrame*) (this->parentWidget());
     // 下面如果它的父控件是NewFrame->m_frame
     NewFrame *p =(NewFrame*) (this->parentWidget()->parentWidget());
-   // p->setState(SelectionHandleActive);
-    mWindow->cManager->activeSS()->setSelectObject(p);
+    if(ev->button() == Qt::RightButton)
+    {
+        QMenu *contextMenu = new QMenu(this);
+        QAction delme(QString("删除当前-%1").arg(p->property(DKEY_TXT).toString()),this);
+        connect(&delme,SIGNAL(triggered(bool)),p,SLOT(onDeleteMe()));
+        contextMenu->addAction(&delme);
+        contextMenu->exec(mapToGlobal(ev->pos()));
+    }else
+    {
+        // p->setState(SelectionHandleActive);
+         mWindow->cManager->activeSS()->setSelectObject(p);
 
-  //  p->setStyleSheet("NewFrame{border: 0.5px solid red;}");
+       //  p->setStyleSheet("NewFrame{border: 0.5px solid red;}");
 
-    clearOtherObjectStyleSheet();
-    mWindow->posWidget->setConnectNewQWidget(p);
-    mWindow->propertyWidget->createPropertyBox(p);
-    mWindow->imgPropertyWidget->delPropertyBox();
+         clearOtherObjectStyleSheet();
+         mWindow->posWidget->setConnectNewQWidget(p);
+         mWindow->propertyWidget->createPropertyBox(p);
+         mWindow->imgPropertyWidget->delPropertyBox();
+    }
     mOffset = ev->pos();
     setCursor(Qt::ClosedHandCursor);
 }
@@ -624,7 +634,7 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
     }else if(event->button() == Qt::RightButton)
     {
         QMenu *contextMenu = new QMenu(this);
-        QAction delme(QString("删除当前-%1").arg(this->property(DKEY_CAPTION).toString()),this);
+        QAction delme(QString("删除当前-%1").arg(this->property(DKEY_TXT).toString()),this);
         connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
 
 
@@ -649,15 +659,6 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
 
 void BaseForm::onSwapViewObject(bool b)
 {
-//    QWidget *sender = (QWidget *)(QObject::sender());
-//    qDebug() << " will hide  object " << sender->metaObject()->className();
-//    qDebug() << " sender parent "
-//             << sender->parentWidget()->metaObject()->className()
-//             << " bool " << b;
-//    sender->parentWidget()->hide();
-
-//    mWindow->tree->swapIconForItem(sender->parentWidget()->property(DKEY_LOCALSEQ).toString());
-
     mWindow->tree->onSwapShowHideObject(false);
 }
 
@@ -699,17 +700,6 @@ void BaseForm::mouseReleaseEvent(QMouseEvent *event)
     // 这里只能在释放鼠标时改变左边的控件值
     mWindow->posWidget->updateSize(this->size());
 }
-
-//void BaseForm::paintEvent(QPaintEvent *)
-//{
-
-//    qDebug() << " entery BaseForm paintEvent ";
-//    QStyleOption opt;
-//    opt.init(this);
-//    QPainter p(this);
-//    style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
-//}
-
 
 
 void BaseForm::onXYWHChangedValue(int v)
@@ -771,6 +761,11 @@ void BaseForm::addChildrenToTree()
 
 }
 
+void BaseForm::onDeleteMe()
+{
+    DeleteMe();
+}
+
 void BaseForm::onBorderChangedValue(int v)
 {
     QString name = QObject::sender()->objectName();
@@ -821,8 +816,9 @@ void BaseForm::updateBorderColor()
                                                                QString::number(mBorder.height()),
                                                                mBorderColor);
 
-    this->setStyleSheet(QString("#%1 { %2 }").arg(this->objectName(),str));
-    // setStyleSheet(str);
+     this->setStyleSheet(QString("BaseForm#%1 { %2 }").arg(this->objectName(),str));
+     //setStyleSheet(str);
+   // this->setAccessibleName();
     qDebug() << " this object name " << this->objectName();
     qDebug()  << " this stylesheet " << this->styleSheet();
 }
@@ -875,6 +871,11 @@ void BaseForm::onColorButtonClicked()
 }
 
 
+void BaseForm::removeChild(QWidget *w)
+{
+    childlist.removeOne(w);
+}
+
 void BaseForm::onSelectMe()
 {
   //  setStyleSheet("NewFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
@@ -890,24 +891,27 @@ void BaseForm::DeleteMe()
 {
    // QListIterator<QWidget*> nf(childlist);
 
-    QListIterator<BaseForm*> item(childlist);
+    QListIterator<QWidget*> item(childlist);
     while(item.hasNext())
     {
        // deleteObject(nf.next());
-        item.next()->DeleteMe();
+        QWidget *w = item.next();
+        if(!CN_NEWLABEL.compare(w->metaObject()->className()))
+        {
+            childlist.removeOne(w);
+            w->deleteLater();
+        }else{
+           ((BaseForm*)w)->DeleteMe();
+        }
+
     }
 
-
-    mWindow->tree->setMyParentNode();
+    mWindow->tree->setMyParentNode();  //选中它的父控件.
     mWindow->tree->deleteItem(this);
-
     mWindow->posWidget->resetValues();
     mWindow->ComCtrl->ProMap.remove(property(DKEY_LOCALSEQ).toString());
     // 它是否是列表控件的一员.
-//    if(!parentWidget()->objectName().compare(LISTWIDGET))
-//    {
-//        ((NewList*)parentList)->listwidget.removeOne(this);
-//    }
+
     deleteLater();
 }
 
@@ -943,6 +947,7 @@ void NewFrame::delMySelf()
        w->deleteLater();
    }
 
+   mWindow->tree->setMyParentNode();
    mWindow->tree->deleteItem(this);
    this->deleteLater();
    mWindow->propertyWidget->delPropertyBox();
@@ -960,6 +965,12 @@ void NewFrame::clearOtherObjectStyleSheet()
     }
 }
 
+
+void NewFrame::onDeleteMe()
+{
+    //delMySelf();
+    DeleteMe();
+}
 
 void NewFrame::readFromJson(const QJsonObject &json)
 {
@@ -1256,7 +1267,25 @@ void NewList::onAddOneLine()
 
 void NewList::onDeleteMe()
 {
-    DeleteMe();
+    if(childlist.size())
+    {
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("删除提示");
+        QString msg = QString("你真的要删除当前%1吗?删除之后不可以撤消,请选择<删除>删除.").arg(this->property(DKEY_TXT).toString());
+        msgBox.setText(msg);
+        // msgBox.setInformativeText("Do you want to save your changes?");
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+        msgBox.setButtonText(QMessageBox::Yes,"删除");
+        msgBox.setButtonText(QMessageBox::Cancel,"取消");
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+        int ret = msgBox.exec();
+        //qDebug() << " QMessageBox result " << ret;
+        if(ret == QMessageBox::Yes)
+        {
+
+            DeleteMe();
+        }
+    }
 }
 
 
@@ -1418,7 +1447,7 @@ NewLayout::NewLayout(QSize nsize, MainWindow *w, QWidget *parent):
     QString uname = QString("%1_%2").arg("布局",
                                          QString::number(mWindow->ComCtrl->ProMap.size()));
     setProperty(DKEY_LOCALSEQ,uname );
-    setObjectName(uname);
+    setObjectName(uname.toUtf8());
     setToolTip(uname);
 }
 
@@ -1450,22 +1479,14 @@ void NewLayout::onSelectMe()
 
 void NewLayout::DeleteMe()
 {
-//    QListIterator<QWidget*> nf(childlist);
-//    while(nf.hasNext())
-//    {
-//        deleteObject(nf.next());
-//    }
 
-//    mWindow->tree->deleteItem(this);
-//    mWindow->posWidget->resetValues();
-//    mWindow->ComCtrl->ProMap.remove(property(DKEY_LOCALSEQ).toString());
     // 它是否是列表控件的一员.
     if(!parentWidget()->objectName().compare(LISTWIDGET))
     {
         ((NewList*)parentList)->childlist.removeOne(this);
     }
     this->BaseForm::DeleteMe();
-    //deleteLater();
+
 }
 
 void NewLayout::addChildrenToTree()
@@ -2069,8 +2090,8 @@ QWidget* NewLayout::createObjectFromJson(const QJsonObject &json)
 
 
 NewLayer::NewLayer(QSize nsize, QWidget *parent)
-    :BaseForm(parent),
-      mActiveIdx(-1)
+    :BaseForm(parent)
+    // mActiveIdx(-1)
 
 {
 
@@ -2159,7 +2180,8 @@ void NewLayer::onDeleteMe()
     //删除布局控件
     QMessageBox msgBox;
     msgBox.setWindowTitle("删除提示");
-    msgBox.setText("你真的要删除当前图层吗?删除之后不可以撤消,请选择<删除>删除.");
+    QString msg = QString("你真的要删除当前%1吗?删除之后不可以撤消,请选择<删除>删除.").arg(this->property(DKEY_TXT).toString());
+    msgBox.setText(msg);
     // msgBox.setInformativeText("Do you want to save your changes?");
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
     msgBox.setButtonText(QMessageBox::Yes,"删除");

@@ -62,28 +62,28 @@ void FormResizer::updateGeometry()
         SizeHandleRect *hndl = *it;
         switch (hndl->dir()) {
         case SizeHandleRect::LeftTop:
-            hndl->move(geom.x() - w / 2, geom.y() - h / 2);
+            hndl->move(geom.x() - w / 2 + SELECTION_HANDLE_SIZE / 2, geom.y() - h / 2 + SELECTION_HANDLE_SIZE / 2);
             break;
         case SizeHandleRect::Top:
-            hndl->move(geom.x() + geom.width() / 2 - w / 2, geom.y() - h / 2);
+            hndl->move(geom.x() + geom.width() / 2 - w / 2, geom.y() - h / 2+ SELECTION_HANDLE_SIZE / 2);
             break;
         case SizeHandleRect::RightTop:
-            hndl->move(geom.x() + geom.width() - w / 2, geom.y() - h / 2);
+            hndl->move(geom.x() + geom.width() - w / 2 - SELECTION_HANDLE_SIZE / 2 , geom.y() - h / 2 + SELECTION_HANDLE_SIZE / 2 );
             break;
         case SizeHandleRect::Right:
-            hndl->move(geom.x() + geom.width() - w / 2, geom.y() + geom.height() / 2 - h / 2);
+            hndl->move(geom.x() + geom.width() - w / 2 - SELECTION_HANDLE_SIZE / 2, geom.y() + geom.height() / 2 - h / 2);
             break;
         case SizeHandleRect::RightBottom:
-            hndl->move(geom.x() + geom.width() - w / 2, geom.y() + geom.height() - h / 2);
+            hndl->move(geom.x() + geom.width() - w / 2 - SELECTION_HANDLE_SIZE / 2, geom.y() + geom.height() - h / 2 - SELECTION_HANDLE_SIZE / 2);
             break;
         case SizeHandleRect::Bottom:
-            hndl->move(geom.x() + geom.width() / 2 - w / 2, geom.y() + geom.height() - h / 2);
+            hndl->move(geom.x() + geom.width() / 2 - w / 2, geom.y() + geom.height() - h / 2 - SELECTION_HANDLE_SIZE / 2);
             break;
         case SizeHandleRect::LeftBottom:
-            hndl->move(geom.x() - w / 2, geom.y() + geom.height() - h / 2);
+            hndl->move(geom.x() - w / 2 + SELECTION_HANDLE_SIZE / 2, geom.y() + geom.height() - h / 2 - SELECTION_HANDLE_SIZE / 2);
             break;
         case SizeHandleRect::Left:
-            hndl->move(geom.x() - w / 2, geom.y() + geom.height() / 2 - h / 2);
+            hndl->move(geom.x() - w / 2 + SELECTION_HANDLE_SIZE / 2, geom.y() + geom.height() / 2 - h / 2 );
             break;
         default:
             break;
@@ -145,102 +145,3 @@ QSize FormResizer::decorationSize() const
 }
 
 
-//void FormResizer::onBorderChangedValue(int v)
-//{
-//    QString name = QObject::sender()->objectName();
-////    qDebug() << " my object name is " << this->objectName()
-////             << " class name " << this->metaObject()->className()
-////             << " parent class name " << this->parentWidget()->metaObject()->className();
-//    if(!name.compare(X))
-//    {
-
-//        mBorder.setX(v);
-//    }else if(!name.compare(Y))
-//    {
-
-//        mBorder.setY(v);
-//    }else if(!name.compare(W))
-//    {
-
-//        mBorder.setWidth(v);
-//    }else if(!name.compare(H))
-//    {
-
-//        mBorder.setHeight(v);
-//    }
-
-//    updateBorderColor();
-
-////    QString str = QString("border-left: %1px solid %5;"\
-////                          "border-top: %2px solid %5;" \
-////                          "border-right: %3px solid %5;"\
-////                          "border-bottom: %4px solid %5;").arg(QString::number(mBorder.x()),
-////                                                               QString::number(mBorder.y()),
-////                                                               QString::number(mBorder.width()),
-////                                                               QString::number(mBorder.height()),
-////                                                               mBorderColor);
-////    m_frame->setStyleSheet(str);
-////    qDebug() << " border style string " << str;
-//    m_frame->update();
-//    this->blockSignals(true);
-//}
-
-//void FormResizer::updateBorderColor()
-//{
-//    QString str = QString("border-style: solid;"\
-//                          "border-color: %5;"\
-//                          "subcontrol-origin: padding;"\
-//                          "subcontrol-position: right bottom;"\
-
-//                          "border-left-width: %1px;"\
-//                          "border-top-width: %2px;" \
-//                          "border-right-width: %3px;"\
-//                          "border-bottom-width: %4px;").arg(QString::number(mBorder.x()),
-//                                                               QString::number(mBorder.y()),
-//                                                               QString::number(mBorder.width()),
-//                                                               QString::number(mBorder.height()),
-//                                                               mBorderColor);
-//    this->setStyleSheet(QString("%1{%2}").arg(this->metaObject()->className(),str));
-//    qDebug()  << " this stylesheet " << this->styleSheet();
-//}
-
-//QWidget *FormResizer::mainContainer()
-//{
-//    if (m_formWindow)
-//        return m_formWindow->mainContainer();
-//    return 0;
-//}
-
-//void FormResizer::mainContainerChanged()
-//{
-//    const QSize maxWidgetSize = QSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
-//    if (const QWidget *mc = mainContainer()) {
-//        // Set Maximum size which is not handled via a hint (as opposed to minimum size)
-//        const QSize maxWidgetSize = QSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
-//        const QSize formMaxSize = mc->maximumSize();
-//        QSize newMaxSize = maxWidgetSize;
-//        if (formMaxSize != maxWidgetSize)
-//            newMaxSize = formMaxSize + decorationSize();
-//        if (debugFormResizer)
-//            qDebug() << "FormResizer::mainContainerChanged" <<  mc << " Size " << mc->size()<< newMaxSize;
-//        setMaximumSize(newMaxSize);
-//        resize(decorationSize() + mc->size());
-//    } else {
-//        setMaximumSize(maxWidgetSize);
-//    }
-//}
-
-//void FormResizer::mousePressEvent(QMouseEvent *e)
-//{
-//    mOffset = e->pos();
-//}
-
-//void FormResizer::mouseMoveEvent(QMouseEvent *e)
-//{
-//     move(this->pos() + (e->pos() - mOffset));
-//}
-
-//void FormResizer::mouseReleaseEvent(QMouseEvent *e)
-//{
-
-//}

@@ -57,16 +57,15 @@ public:
     MainWindow *mWindow;
     QRect mBorder;
     QPoint mOffset;
-    QList<BaseForm*> childlist;
-
-
-
+    QList<QWidget*> childlist;
+    QWidget *parentControl;
 
     void onSelectMe();
     virtual void DeleteMe();
     void HideMe();
     void addChildrenToTree();
     void updateBorderColor();
+    void removeChild(QWidget *w);
 
 
 
@@ -80,11 +79,12 @@ public slots:
     void onColorButtonClicked();
     void onBorderChangedValue(int v);
 
+    void onDeleteMe();
+
 
 
 
 private:
-
 
     QString mBorderColor;
 
@@ -170,7 +170,10 @@ public:
 
     //MainWindow *mWindow;
    // QPoint mOffset;
-    QWidgetList childlist;
+   //  QWidgetList childlist;
+
+public slots:
+    void onDeleteMe();
 
 
 protected:
@@ -309,7 +312,7 @@ public slots:
 private:
     void clearOtherObjectStyleSheet();
    // QPoint mOffset;
-    int mActiveIdx;
+   // int mActiveIdx;
   //  QWidgetList LayoutList; // 它下面的布局子控件.
 protected:
     void resizeEvent(QResizeEvent *event);
