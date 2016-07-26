@@ -27,6 +27,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 
     ui->setupUi(this);
+    ui->mainToolBar->setAllowedAreas(Qt::TopToolBarArea);
+
     QString iniFile  =  QStandardPaths::displayName(QStandardPaths::DataLocation) + "/ui-config";
     globalSet= new QSettings(iniFile,QSettings::IniFormat);
     bk = new Backgroud();
@@ -86,6 +88,7 @@ MainWindow::MainWindow(QWidget *parent) :
     tree = new TreeDock(this);
     // 左边两个并排的QDockWidget
     addDockWidget(Qt::LeftDockWidgetArea, tree);
+    tree->setFeatures(QDockWidget::NoDockWidgetFeatures);
     splitDockWidget(tree,lDock,Qt::Horizontal);
 
 

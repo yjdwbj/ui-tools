@@ -29,7 +29,7 @@ public:
 //    void addCompoentControls(CompoentControls *cc);
 //    void addPropBox(PropertyBox *p);
 
-    void addObjectToCurrentItem(QWidget *ww);
+    void addObjectToCurrentItem(QString root, QWidget *ww);
     void addChildObject(QString root,QString node,QString property);
 
     void deleteAllitem();

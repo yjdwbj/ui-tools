@@ -825,12 +825,12 @@ QWidget* CompoentControls::createCustomObject(const QJsonArray &comJsonArr)
 
 void CompoentControls::onCreateCustomWidget()
 {
-    NewLayer  *activeLayer = mWindow->cManager->activeSS()->activeLayer();
-    if(!activeLayer)
-    {
-        QMessageBox::warning(0,tr("提示"),tr("请选择一个图层或者新建一个并选中它."));
-        return;
-    }
+//    NewLayer  *activeLayer = mWindow->cManager->activeSS()->activeLayer();
+//    if(!activeLayer)
+//    {
+//        QMessageBox::warning(0,tr("提示"),tr("请选择一个图层或者新建一个并选中它."));
+//        return;
+//    }
 
     QWidget *wid = mWindow->cManager->activeSS()->activeObject();
     if(!wid)
@@ -838,10 +838,16 @@ void CompoentControls::onCreateCustomWidget()
         QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
         return;
     }
+    QString clsname = wid->metaObject()->className();
+    if(!clsname.compare(CN_NEWLAYER))
+    {
+        QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
+        return;
+    }
     QPushButton *btn = (QPushButton*)(QObject::sender());
     QJsonValue value = QJsonValue::fromVariant(btn->property(DKEY_JSONSTR));
 
-    QString clsname = wid->metaObject()->className();
+   // QString clsname = wid->metaObject()->className();
     if(!clsname.compare(CN_NEWLAYOUT))
     {
        ((NewLayout*)wid)->readFromJson(value.toObject());
@@ -1023,22 +1029,30 @@ void CompoentControls::onCreateCompoentToCanvas()
    // NewLayout *activeLayout = mWindow->cManager->activeSS()->activeLayout();
 
 
-    NewLayer  *activeLayer = mWindow->cManager->activeSS()->activeLayer();
-    if(!activeLayer)
-    {
-        QMessageBox::warning(0,tr("提示"),tr("请选择一个图层或者新建一个并选中它."));
-        return;
-    }
+//    NewLayer  *activeLayer = mWindow->cManager->activeSS()->activeLayer();
+//    if(!activeLayer)
+//    {
+//        QMessageBox::warning(0,tr("提示"),tr("请选择一个图层或者新建一个并选中它."));
+//        return;
+//    }
 
     QWidget *wid = mWindow->cManager->activeSS()->activeObject();
 
 //    if(!wid || clsname.compare(CN_NEWLAYOUT))
-    if(!wid || wid == activeLayer)
+    //QString clsname;
+    if(!wid)
+    {
+
+        QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
+        return;
+    }
+
+    QString clsname = wid->metaObject()->className();
+    if(!clsname.compare(CN_NEWLAYER))
     {
         QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
         return;
     }
-    QString clsname = wid->metaObject()->className();
 
     QPushButton *btn = (QPushButton*)(QObject::sender());
     QJsonValue val =QJsonValue::fromVariant(btn->property(DKEY_JSONSTR));
@@ -1058,14 +1072,13 @@ void CompoentControls::onCreateCompoentToCanvas()
 void CompoentControls::onCreateNewLayout()
 {
       //布局只能创建在图层上.
-
-    // 需求要改成嵌套使用布局.
     QWidget *w = mWindow->cManager->activeSS()->activeObject();
     if(!w)
     {
         QMessageBox::warning(0,tr("提示"),tr("请选择一个图层或者新建一个图层,并选中它."));
         return;
     }
+
 
     QString clsname = w->metaObject()->className();
 
@@ -1088,9 +1101,8 @@ void CompoentControls::onCreateNewLayout()
     }
     else if(!CN_NEWLAYER.compare(clsname) || !CN_LAYER.compare(clsname))
     {
-      //  ((NewLayer*)w)->createNewLayout(oldrect.size());
-        ((NewLayer*)w)->readFromJson(json);
-    }else if(!CN_NEWFRAME.compare(clsname))
+       ((NewLayer*)w)->readFromJson(json);
+    }else if(!CN_NEWFRAME.compare(clsname) || !CN_NEWLIST.compare(clsname))
     {
         ((NewLayout*)w->parentWidget()->parentWidget())->readFromJson(json);
     }

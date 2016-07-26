@@ -105,9 +105,8 @@ this->setWidget(treeWidget);
 //this->setFeatures(DockWidgetMovable|DockWidgetFloatable);
 //tree->setStyleSheet(style);
 
-setFixedHeight(mWindow->size().height()-50);
 setFixedWidth(200);
-treeWidget->setFixedHeight(mWindow->size().height()-80);
+//treeWidget->setFixedHeight(mWindow->size().height()-80);
 treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 //treeWidget->header()->setStretchLastSection(false);
 treeWidget->header()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
@@ -273,26 +272,49 @@ void TreeDock::addItemToRoot(QWidget *ww)
      mWindow->ComCtrl->ProMap[key] = ww;
 }
 
-void TreeDock::addObjectToCurrentItem(QWidget *ww)
+void TreeDock::addObjectToCurrentItem(QString root,QWidget *ww)
 {
+    QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(root,
+                              Qt::MatchFixedString | Qt::MatchRecursive);
+
+    if(qwilist.count())
+    {
+
+        QString key = ww->property(DKEY_LOCALSEQ).toString();
+
+        QTreeWidgetItem *nqwi =  new QTreeWidgetItem(qwilist.at(0),
+                                                     QStringList() << key << ww->metaObject()->className());
+
+        mWindow->ComCtrl->ProMap[key] = ww;
+        treeWidget->setCurrentItem(nqwi);
+
+    }
 
    //     qDebug() << "Tree  row Size " << mWindow->tree->treeWidget->children().size();
-        QTreeWidgetItem *qwi = treeWidget->currentItem();
-        if(qwi)
-        {
-           QStringList tlist;
-           QString key = ww->property(DKEY_LOCALSEQ).toString();
-           tlist << key << ww->metaObject()->className();
-            //qDebug() << " add child to " << qwi->text(0) << qwi->text(1);
-          // 如果是NEWFRAME 或者NEWLIST 就选择它的父节点.
-           bool pbool = !qwi->text(1).compare(CN_NEWFRAME)/* || !qwi->text(1).compare(CN_NEWLIST)*/;
+//        QTreeWidgetItem *qwi = treeWidget->currentItem();
+//        if(qwi)
+//        {
+//           QStringList tlist;
+//           QString key = ww->property(DKEY_LOCALSEQ).toString();
+//           QString clsname = ww->metaObject()->className();
+//           tlist << key <<  clsname;
+
+//            //qDebug() << " add child to " << qwi->text(0) << qwi->text(1);
+//          // 如果是NEWFRAME 或者NEWLIST 就选择它的父节点.
 
 
-           QTreeWidgetItem *nqwi =  new QTreeWidgetItem(pbool ? qwi->parent() : qwi, tlist);
+//           if(!clsname.compare(CN_NEWLAYOUT))
+//           {
 
-           mWindow->ComCtrl->ProMap[key] = ww;
-           treeWidget->setCurrentItem(nqwi);
-        }
+//           }
+//           bool pbool = !qwi->text(1).compare(CN_NEWFRAME) || !qwi->text(1).compare(CN_NEWLIST);
+
+
+//           QTreeWidgetItem *nqwi =  new QTreeWidgetItem(pbool ? qwi->parent() : qwi, tlist);
+
+//           mWindow->ComCtrl->ProMap[key] = ww;
+//           treeWidget->setCurrentItem(nqwi);
+//        }
 }
 
 void TreeDock::deleteItem(QWidget *obj)

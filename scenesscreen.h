@@ -20,19 +20,20 @@ class ScenesScreen : public QFrame
 public:
     explicit ScenesScreen(QSize size,QWidget *parent = 0);
     ~ScenesScreen();
-//    NewLayout *activeLayout() {
-//        return mActiveIdx == -1 ? (NewLayout*)0 :
-//                                  (NewLayout*)(LayoutList.at(mActiveIdx));}
-    NewLayer *activeLayer() {
-        return mActiveLaySeq == -1 ? 0 : (NewLayer*)(LayerList.at(mActiveLaySeq));
-    }
+
+//    NewLayer *activeLayer() {
+//        if(LayerList.size())
+//        {
+//            return (NewLayer *)(LayerList.at(mActiveLaySeq));
+//        }
+//        else return 0;
+     //   return mActiveLaySeq == -1 ? 0 : (NewLayer*)(LayerList.at(mActiveLaySeq));
+//   }
     QWidget *activeObject() {
         return activeObj;
     }
 
-   // int getActiveIndex() { return mActiveIdx;}
-    int getActiveLayerIndex() { return mActiveLaySeq;}
-   // void createNewLayout();
+
     NewLayer *createNewLayer(const QJsonObject &json);
     void addMainWindow(MainWindow* m) { mWindow = m;}
    // void setActiveIdx(int index) { mActiveIdx = index;}
@@ -40,8 +41,7 @@ public:
     //void delSelectedLayout();
    // void delSelectedLayer();
     void readLayer(const QJsonArray &array);
-  //  QRect getRectFromStruct(const QJsonArray &arr) const;
-   // void delSelectedObject();
+
 
     void writeToJson(QJsonObject &json);
 

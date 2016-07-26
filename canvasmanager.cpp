@@ -156,6 +156,7 @@ void CanvasManager::deleteCurrentPage()
         //ss->deleteLater();
         ss->delAllObjects();
         delPage->setEnabled(stack->count() == 0 ? false : true);
+        mWindow->lDock->setEnabled(stack->count() == 0 ? false : true);
     }
 }
 
