@@ -40,6 +40,12 @@ void Compoent::changeJsonValue(QJsonArray &parr,QString key,
         // 这里必需要有-name 这个属性名.
         if(obj[NAME].toString().contains(key) )
         {
+//           if(obj.contains(BORDER))
+//                    {
+//                        obj[BORDER] = QJsonValue::fromVariant(val);
+//                        parr[i] = obj;
+//                        break;
+//                    }
             if(obj.contains(DEFAULT))
             {
                 obj[DEFAULT] = QJsonValue::fromVariant(val);
@@ -57,13 +63,9 @@ void Compoent::changeJsonValue(QJsonArray &parr,QString key,
             else if(obj.contains(LIST))
             {
                 obj[LIST] = QJsonValue::fromVariant(val);
-//                parr[i] = obj;
-//                break;
             }else if(obj.contains(GRAYCOLOR)){
 
                 obj[GRAYCOLOR] = QJsonValue::fromVariant(val);
-//                parr[i] = obj;
-//                break;
             }else if(obj.contains(COLOR))
             {
                obj[COLOR] = QJsonValue::fromVariant(val);
@@ -73,7 +75,7 @@ void Compoent::changeJsonValue(QJsonArray &parr,QString key,
             }
             else if(obj.contains(BORDER))
             {
-
+               obj[BORDER] = QJsonValue::fromVariant(val);
             }else if(obj.contains(KEY_RECT))
             {
 
@@ -130,7 +132,7 @@ void Compoent::updateRBJsonValue(QJsonArray &projson, QWidget *w)
     }
 }
 
-QVariant Compoent::getJsonValue(const QJsonArray &parr,QString key) const
+QVariant Compoent::getJsonValue(const QJsonArray &parr,QString key)
 {
     int asize = parr.size();
     for(int i = 0;i < asize;i++)
@@ -230,13 +232,7 @@ void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
            QColor c;
           if(!uname.compare(BAKCOLOR))
           {
-               c = getJsonValue(BAKCOLOR).toString() ;
-//              QPixmap p(12,12);
-//              p.fill(c);
-
-//            ((QPushButton*)w)->setIcon(p);
-//            ((QPushButton*)w)->setProperty(DKEY_COLOR,c);
-
+               c = QColor(getJsonValue(BAKCOLOR).toString()) ;
           }
           else if(!uname.compare(BORDER))
           {
@@ -244,6 +240,8 @@ void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
               //灰度转成ＲＧＢ
              // QColor c(n & 0xfff00000,n &0xfff00,n & 0xff);
               //QColor c = QColor::fromRgb(n);
+              // 这里暂时有RGB颜色测试
+              c = QColor(getJsonValue(BORDER).toString());
 
           }
           QPixmap p(12,12);
@@ -267,47 +265,58 @@ QJsonObject Compoent::getRectJson(QWidget *w)
     return rect;
 }
 
- QRect Compoent::getRectFromStruct(const QJsonArray &arr)
+
+
+
+QRect Compoent::getRectFromStruct(const QJsonArray &arr,QString key)
 {
     QJsonObject rectobj ;
+
     foreach (QJsonValue pval, arr) {
         QJsonObject pobj = pval.toObject();
-        if(pobj.contains(KEY_RECT))
+        if(pobj.contains(key))
         {
-            rectobj =  pobj[KEY_RECT].toObject();
+            rectobj =  pobj[key].toObject();
             break;
-        }else if(pobj.contains(STRUCT)) {
-            return getRectFromStruct(pobj[STRUCT].toArray());
+        }
+        else if(pobj.contains(STRUCT)) {
+            return getRectFromStruct(pobj[STRUCT].toArray(),key);
         }
     }
     QRect rect(0,0,0,0);
     if(!rectobj.isEmpty())
     {
         QVariantMap obj =  rectobj.toVariantMap();
-        rect = QRect(obj[LX].toString().toInt(),
-                obj[LY].toString().toInt(),
-                obj[WIDTH].toString().toInt(),
-                obj[HEIGHT].toString().toInt());
+        if(!key.compare(BORDER))
+        {
+            rect.setLeft(obj[LEFT].toString().toInt());
+            rect.setBottom(obj[BOTTOM].toString().toInt());
+            rect.setRight(obj[RIGHT].toString().toInt());
+            rect.setTop(obj[TOP].toString().toInt());
+        }else if(!key.compare(KEY_RECT)) {
+            rect.setX(obj[LX].toString().toInt());
+            rect.setY(obj[LY].toString().toInt());
+            rect.setWidth(obj[WIDTH].toString().toInt());
+            rect.setHeight(obj[HEIGHT].toString().toInt());
+        }
+
     }
     return rect;
-
-
 }
-
-
 
 QJsonObject Compoent::getBorderJson(QWidget *w)
 {
     QJsonObject border;
     QVariantMap vmap ;
     BaseForm *fr = (BaseForm*)w;
-    vmap["left"] = fr->mBorder.x();
-    vmap["top"] = fr->mBorder.y();
-    vmap["right"] = fr->mBorder.width();
-    vmap["bottom"] = fr->mBorder.height();
+    vmap[LEFT] = fr->mBorder.left();
+    vmap[TOP] = fr->mBorder.top();
+    vmap[RIGHT] = fr->mBorder.right();
+    vmap[BOTTOM] = fr->mBorder.bottom();
     border[BORDER] = QJsonObject::fromVariantMap(vmap);
     return border;
 }
+
 
 void Compoent::copyProperty(const QVariant &va)
 {
@@ -607,7 +616,8 @@ void NewLabel::writeToJson(QJsonObject &json)
 
 
 BaseForm::BaseForm(QWidget *parent)
-    :FormResizer(parent), mBorderColor("#FFFFFF")
+    :FormResizer(parent), mBorderColor("#FFFFFF"),
+      mBorder(0,0,0,0)
 {
     setStyleSheet("");
 
@@ -770,60 +780,73 @@ void BaseForm::onDeleteMe()
 void BaseForm::onBorderChangedValue(int v)
 {
     QString name = QObject::sender()->objectName();
-//    qDebug() << " my object name is " << this->objectName()
-//             << " class name " << this->metaObject()->className()
-//             << " parent class name " << this->parentWidget()->metaObject()->className();
-    if(!name.compare(X))
+    if(!name.compare(LEFT))
     {
 
-        mBorder.setX(v);
-    }else if(!name.compare(Y))
+        mBorder.setLeft(v);
+    }else if(!name.compare(TOP))
     {
 
-        mBorder.setY(v);
-    }else if(!name.compare(W))
+        mBorder.setTop(v);
+    }else if(!name.compare(RIGHT))
     {
 
-        mBorder.setWidth(v);
-    }else if(!name.compare(H))
+        mBorder.setRight(v);
+    }else if(!name.compare(BOTTOM))
     {
 
-        mBorder.setHeight(v);
+        mBorder.setBottom(v);
     }
 
-    updateBorderColor();
+    updateStyleSheets();
+
+//    QJsonValue qv = getBorderJson(this).value(BORDER);
+//    changeJsonValue(BORDER,qv.toVariant());
   //  update();
-    //this->blockSignals(true);
+    this->blockSignals(true);
 }
 
-//void BaseForm::updateBorderColor()
-//{
-////     QString str =
-////                   "border-style: outset;"
-////                   "border-top-width: %1px;"
-////                   "border-left-width: %2px;"
-////                   "border-right-width: %3px;"
-////                   "border-bottom-width: %4px;"
-////                   "border-color: %5;";
 
-//    QString str = QString("border-style: outset; "\
-//                          "border-color: %5; "\
-//                          "border-left-width: %1px; "\
-//                          "border-top-width: %2px; " \
-//                          "border-right-width: %3px; "\
-//                          "border-bottom-width: %4px;").arg(QString::number(mBorder.x()),
-//                                                               QString::number(mBorder.y()),
-//                                                               QString::number(mBorder.width()),
-//                                                               QString::number(mBorder.height()),
-//                                                               mBorderColor);
+void BaseForm::updateStyleSheets()
+{
+    QString str = QString("background-color: %6;" \
+                          "border-style: outset; "\
+                          "border-color: %5; "\
+                          "border-left-width: %1px; "\
+                          "border-top-width: %2px; " \
+                          "border-right-width: %3px; "\
+                          "border-bottom-width: %4px;").arg(QString::number(mBorder.left()),
+                                                               QString::number(mBorder.top()),
+                                                               QString::number(mBorder.right()),
+                                                               QString::number(mBorder.bottom()),
+                                                               mBorderColor,
+                                                               mbkColor);
 
-//    // this->setStyleSheet(QString("BaseForm#%1 { %2 }").arg(this->objectName(),str));
-//    setStyleSheet(str);
-//   // this->setAccessibleName();
-//    qDebug() << " this object name " << this->objectName();
-//    qDebug()  << " this stylesheet " << this->styleSheet();
-//   // update();
-//}
+   setStyleSheet(QString("BaseForm#%1 { %2 }").arg(this->objectName(),str)); 
+   update();
+   repaint();
+   qDebug() << " object name " << objectName()
+             << " stylesheet " << this->styleSheet();
+}
+
+void BaseForm::paintEvent(QPaintEvent *ev)
+{
+    QStyleOption option;
+    option.init(this);
+    QPainter painter(this);
+    style()->drawPrimitive(QStyle::PE_Widget, &option, &painter, this);
+
+}
+
+void BaseForm::resizeEvent(QResizeEvent *event)
+{
+    // 这里要重写它的基类事件.
+    updateGeometry();
+    QWidget::resizeEvent(event);
+    foreach (QWidget* nl, childlist) {
+        nl->setMaximumSize(this->size());
+    }
+}
 
 void BaseForm::onEnumItemChanged(QString txt)
 {
@@ -857,7 +880,9 @@ void BaseForm::onColorButtonClicked()
         if(!objname.compare(BAKCOLOR))
         {
             this->changeJsonValue(BAKCOLOR,c.name());
-            setStyleSheet(QString("background-color: %1;").arg(c.name(QColor::HexRgb)));
+            this->mbkColor = c.name(QColor::HexArgb);
+           // setStyleSheet(QString("background-color: %1;").arg(c.name(QColor::HexRgb)));
+            changeJsonValue(BAKCOLOR,c);
 
         }
         else if(!objname.compare(BORDER))
@@ -865,8 +890,9 @@ void BaseForm::onColorButtonClicked()
 
             this->changeJsonValue(BORDER,qGray(c.rgb()));
             this->mBorderColor = c.name(QColor::HexArgb);
-            this->updateBorderColor();
+            changeJsonValue(BORDER,c);
         }
+        this->updateStyleSheets();
 
     }
 
@@ -882,6 +908,11 @@ void BaseForm::onSelectMe()
 {
   //  setStyleSheet("NewFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
   //  clearOtherObjectStyleSheet();
+
+    qDebug() << " our object name " << objectName()
+           << " clss name " << metaObject()->className();
+
+
     mWindow->cManager->activeSS()->setSelectObject(this);
     mWindow->posWidget->setConnectNewQWidget(this);
     mWindow->propertyWidget->createPropertyBox(this);
@@ -919,23 +950,18 @@ void BaseForm::DeleteMe()
     deleteLater();
 }
 
+void BaseForm::initJsonValue()
+{
+    mbkColor = Compoent::getJsonValue(BAKCOLOR).toString();
+    mBorderColor = Compoent::getJsonValue(BORDER).toString();
+    mBorder = Compoent::getRectFromStruct(dynValues[DKEY_DYN].toArray(),BORDER);
+}
 
-void BaseForm::paintEvent(QPaintEvent *ev)
+void BaseForm::onPictureDialog()
 {
 
-
-//    QPainter painter(this);
-//    painter.setPen(mBorderColor);
-//    painter.setBrush(QColor(mBorderColor));
-//    QRect rect =QRect(this->pos().x() - mBorder.x(),
-//                  pos().y() - mBorder.y(),
-//                  width() -mBorder.width() ,
-//                  height() -mBorder.height());
-//    qDebug() << "drawRect it " << rect;
-//   // painter.drawRect(rect);
-//    painter.fillRect(rect,QColor(mBorderColor));
-  //  QWidget::paintEvent(ev);
 }
+
 
 NewFrame::NewFrame(QString caption, QWidget *parent)
   //  :FormResizer(parent),Compoent()
@@ -952,6 +978,8 @@ NewFrame::NewFrame(QString caption, QWidget *parent)
 
     setProperty(DKEY_LOCALSEQ,uname);
     setObjectName(uname);
+    mbkColor = "#4285F4";
+    updateStyleSheets();
     setToolTip(uname);
 }
 
@@ -995,7 +1023,7 @@ void NewFrame::onDeleteMe()
 
 void NewFrame::readFromJson(const QJsonObject &json)
 {
-    QRect oldrect = Compoent::getRectFromStruct(json[PROPERTY].toArray());
+    QRect oldrect = Compoent::getRectFromStruct(json[PROPERTY].toArray(),KEY_RECT);
     // 下面这种粗暴的取值方式是一定含有:　　"-class": "Classname" 的条目.
     QString clsName = json[CLASS].toString();
     QString caption = json[CAPTION].toString();
@@ -1056,33 +1084,6 @@ void NewFrame::writeToJson(QJsonObject &json)
 
     projson = dynValues[DKEY_DYN].toArray();
     updateRBJsonValue(projson,this);
-//    int psize = projson.size();
-
-    // 更新一些属性.
-//    for(int i =0; i < psize;i++)
-//    {
-//        QJsonObject ov = projson.at(i).toObject();
-
-//        if(ov.contains(KEY_RECT))
-//        {
-
-//            //ov = getRectJson(this);
-//            ov[KEY_RECT] = getRectJson(this)[KEY_RECT];
-//            projson[i] = ov;
-
-//        }else if(ov.contains(UID))
-//        {
-//            ov[UID] = this->property(DKEY_UID).toString();
-//            projson[i] = ov;
-
-//        }
-//        else if(ov.contains(BORDER))
-//        {
-//            ov[BORDER] = getBorderJson(this)[BORDER];
-//            projson[i] = ov;
-//        }
-
-//    }
 
     json[PROPERTY] = projson;
     dynValues[DKEY_DYN] = projson;
@@ -1119,24 +1120,6 @@ void NewFrame::mouseMoveEvent(QMouseEvent *event)
 
 }
 
-void NewFrame::updateBorderColor()
-{
-    QString str = QString("border-style: outset; "\
-                          "border-color: %5; "\
-                          "border-left-width: %1px; "\
-                          "border-top-width: %2px; " \
-                          "border-right-width: %3px; "\
-                          "border-bottom-width: %4px;").arg(QString::number(mBorder.x()),
-                                                               QString::number(mBorder.y()),
-                                                               QString::number(mBorder.width()),
-                                                               QString::number(mBorder.height()),
-                                                               mBorderColor);
-
-     //this->setStyleSheet(QString("BaseForm#%1 { %2 }").arg(this->objectName(),str));
-    this->setStyleSheet(str);
-}
-
-
 
 NewList::NewList(QString caption, const QSize size, QWidget *parent):
     //FormResizer(parent)
@@ -1146,15 +1129,12 @@ NewList::NewList(QString caption, const QSize size, QWidget *parent):
    // setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
 
     mWindow = ((NewLayout*)parent->parentWidget())->mWindow;
-  //  this->setObjectName(this->metaObject()->className());
-    setStyleSheet("border: 0.5px solid #79AEC8;" );
     setFocusPolicy(Qt::ClickFocus);
-    //setMinimumSize(size);
-   // mainListWidget = new QListWidget(this);
     mainScroll =  new QScrollArea(m_frame);
 
     mainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     mainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    mainScroll->setAlignment(Qt::AlignCenter);
    // mainScroll->setWidgetResizable(true);
 
     mainWidget = new QWidget();
@@ -1162,28 +1142,32 @@ NewList::NewList(QString caption, const QSize size, QWidget *parent):
     mainScroll->setWidget(mainWidget);
 
 
+
     listLayout = new QVBoxLayout(mainWidget);
 
     listLayout->setMargin(0);
     listLayout->setSpacing(0);
+    listLayout->setContentsMargins(0,0,0,0);
     listLayout->setSizeConstraint(QLayout::SetFixedSize);
     mainWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
   //  m_frame->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
 
     //m_frame->setStyleSheet("background-color: #79AEC8;");
     int n = mWindow->ComCtrl->ProMap.size();
-    QString str = QString("%1_%2").arg("列表",QString::number(n));
+    QString str = QString("%1_%2").arg(caption,QString::number(n));
     setProperty(DKEY_LOCALSEQ,str);
     setProperty(DKEY_TXT,caption);
     setObjectName(str);
     mainWidget->setMaximumSize(999,999);
 
     setToolTip(str);
-    onSelectMe();
+
     show();
 
     resize(size);
     repaint();
+    mbkColor = "#00BCD4";
+    updateStyleSheets();
    // mainScroll->resize(this->size());
    // mainWidget->resize(this->size());
 
@@ -1192,10 +1176,11 @@ NewList::NewList(QString caption, const QSize size, QWidget *parent):
 
 void NewList::mousePressEvent(QMouseEvent *event)
 {
+    onSelectMe();
     if (event->button() == Qt::LeftButton)
     {
         mOffset = event->pos();
-        onSelectMe();
+
     }else if(event->button() == Qt::RightButton)
     {
         QMenu *contextMenu = new QMenu(this);
@@ -1211,17 +1196,6 @@ void NewList::mousePressEvent(QMouseEvent *event)
 
         contextMenu->exec(mapToGlobal(event->pos()));
     }
-
-}
-
-
-//void NewList::DeleteMe()
-//{
-
-//}
-
-void NewList::onColorButtonClicked()
-{
 
 }
 
@@ -1261,22 +1235,24 @@ void NewList::onXYWHChangedValue(int v)
 void NewList::onAddOneLine()
 {
     onSelectMe();
-    NewLayout *nl = new NewLayout("布局",m_frame->size()-QSize(15,15),mWindow,mainWidget);
-    nl->parentList = this;
+    NewLayout *newlayout = new NewLayout("布局",m_frame->size()-QSize(15,15),mWindow,mainWidget);
+    newlayout->parentList = this;
   //  nl->addMainWindow(mWindow);
-    childlist.append(nl);
+    childlist.append(newlayout);
     int n = mWindow->ComCtrl->ProMap.size();
-    //mWindow->cManager->activeSS()->LayoutList.append(nl);
-    nl->setProperty(DKEY_INTOLIST,true);
+    newlayout->copyProperty(mWindow->ComCtrl->Layout);
+    newlayout->setProperty(DKEY_DYN,mWindow->ComCtrl->Layout);
+    newlayout->initJsonValue();
 
-//    QString val = QString("%1_%2").arg("布局",QString::number(n));
+    newlayout->setProperty(DKEY_INTOLIST,true);
+    mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),newlayout);
 
-//    nl->setProperty(DKEY_LOCALSEQ,val);
-    mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),nl);
-    nl->onSelectMe();
-    nl->show();;
-    nl->setToolTip(nl->property(DKEY_LOCALSEQ).toString());
-    listLayout->addWidget(nl);
+
+
+    newlayout->onSelectMe();
+    newlayout->updateStyleSheets();
+    newlayout->show();;
+    listLayout->addWidget(newlayout);
 
   //  m_frame->adjustSize();
     int max = 0;
@@ -1411,7 +1387,7 @@ void NewList::writeToJson(QJsonObject &json)
 void NewList::readFromJson(const QJsonObject &valobj)
 {
 
-    QRect oldrect = getRectFromStruct(valobj[PROPERTY].toArray());
+    QRect oldrect = getRectFromStruct(valobj[PROPERTY].toArray(),KEY_RECT);
     // 下面这种粗暴的取值方式是一定含有:　　"-class": "Classname" 的条目.
     QString clsName = valobj[CLASS].toString();
     if(!clsName.compare(CN_NEWLAYOUT) || !clsName.compare(LAYOUT))
@@ -1426,10 +1402,6 @@ void NewList::readFromJson(const QJsonObject &valobj)
         }
         m_frame->adjustSize();
     }
-//    else if(!clsName.compare(CN_NEWFRAME) || !clsName.compare(QFRAME))
-//    {
-//        mWindow->ComCtrl->createLayoutFromJson(valobj,this);
-//    }
 
 }
 
@@ -1450,24 +1422,6 @@ void NewList::addChildrenToTree()
     }
 }
 
-void NewList::updateBorderColor()
-{
-    QString str = QString("border-style: outset; "\
-                          "border-color: %5; "\
-                          "border-left-width: %1px; "\
-                          "border-top-width: %2px; " \
-                          "border-right-width: %3px; "\
-                          "border-bottom-width: %4px;").arg(QString::number(mBorder.x()),
-                                                               QString::number(mBorder.y()),
-                                                               QString::number(mBorder.width()),
-                                                               QString::number(mBorder.height()),
-                                                               mBorderColor);
-
-     //this->setStyleSheet(QString("BaseForm#%1 { %2 }").arg(this->objectName(),str));
-    this->setStyleSheet(str);
-}
-
-
 NewLayout::NewLayout(QString caption, QSize nsize, MainWindow *w, QWidget *parent):
    // FormResizer(parent)
    BaseForm(parent),
@@ -1478,20 +1432,18 @@ NewLayout::NewLayout(QString caption, QSize nsize, MainWindow *w, QWidget *paren
     resize(nsize);
     if(parent)
         setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
-    //this->setObjectName(this->metaObject()->className());
-    //  setStyleSheet("NewLayout#%s{border: 0.5px solid #929292;}" % LAYOUT);
     setFocusPolicy(Qt::ClickFocus);
-   // m_frame->setStyleSheet("background-color: #DAE4A7;");
     setProperty(DKEY_INTOLIST,false);
-    m_frame->setStyleSheet(StyleStr);
     show();
+  //  mbkColor = "#DAE4A7";
 
 
     QString uname = QString("%1_%2").arg(caption,
                                          QString::number(mWindow->ComCtrl->ProMap.size()));
     setProperty(DKEY_LOCALSEQ,uname );
     setProperty(DKEY_TXT,caption);
-    setObjectName(uname.toUtf8());
+    setObjectName(uname);
+   // updateStyleSheets();
     setToolTip(uname);
 }
 
@@ -1826,7 +1778,7 @@ void NewLayout::writeToJson(QJsonObject &json)
 
 void NewLayout::readFromJson(const QJsonObject &valobj)
 {
-     QRect oldrect = Compoent::getRectFromStruct(valobj[PROPERTY].toArray());
+     QRect oldrect = Compoent::getRectFromStruct(valobj[PROPERTY].toArray(),KEY_RECT);
     // 下面这种粗暴的取值方式是一定含有:　　"-class": "Classname" 的条目.
     QString clsName = valobj[CLASS].toString();
     QString caption = valobj[CAPTION].toString();
@@ -1835,22 +1787,18 @@ void NewLayout::readFromJson(const QJsonObject &valobj)
     if(!clsName.compare(CN_NEWLAYOUT) || !clsName.compare(CN_LAYOUT))
     {
         NewLayout *newlayout = new NewLayout(caption,oldrect.size(),mWindow,m_frame);
-       // newlayout->setProperty(DKEY_TXT,caption);
         if(valobj.contains(PROPERTY))
         {
-            // QJsonObject vp =QJsonObject::fromVariantMap(qvm[PROPERTY]);
-
             newlayout->copyProperty(variant);
             newlayout->setProperty(DKEY_DYN,variant);
+            newlayout->initJsonValue();
         }
-
-     //   newlayout->setProperty(DKEY_LOCALSEQ,caption);
         newlayout->setGeometry(oldrect);
         newlayout->addMainWindow(mWindow);
         childlist.append(newlayout);
         mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),newlayout);
-        //   LayoutList.append(nl);
         newlayout->onSelectMe();
+        newlayout->updateStyleSheets();
 
         // 这里一定是Layout 嵌套了.
         foreach (QJsonValue item, valobj[LAYOUT].toArray()) {
@@ -1865,6 +1813,7 @@ void NewLayout::readFromJson(const QJsonObject &valobj)
       {
           nlist->copyProperty(variant);
           nlist->setProperty(DKEY_DYN,variant);
+          nlist->initJsonValue();
       }
       nlist->setGeometry(oldrect);
       mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),nlist);
@@ -1898,8 +1847,9 @@ QWidget* NewLayout::createObjectFromJson(const QJsonObject &json)
 
         newFrame->copyProperty(variant);
         newFrame->setProperty(DKEY_DYN,variant);
+        newFrame->initJsonValue();
     }
-    QRect rect = Compoent::getRectFromStruct(json[PROPERTY].toArray());
+    QRect rect = Compoent::getRectFromStruct(json[PROPERTY].toArray(),KEY_RECT);
 
  //   newlayout->setProperty(DKEY_LOCALSEQ,caption);
     newFrame->setProperty(DKEY_TXT,caption);
@@ -1916,80 +1866,31 @@ QWidget* NewLayout::createObjectFromJson(const QJsonObject &json)
 
 }
 
-void NewLayout::updateBorderColor()
-{
-    QString str = QString("border-style: outset; "\
-                          "border-color: %5; "\
-                          "border-left-width: %1px; "\
-                          "border-top-width: %2px; " \
-                          "border-right-width: %3px; "\
-                          "border-bottom-width: %4px;").arg(QString::number(mBorder.x()),
-                                                               QString::number(mBorder.y()),
-                                                               QString::number(mBorder.width()),
-                                                               QString::number(mBorder.height()),
-                                                               mBorderColor);
-
-    // this->setStyleSheet(QString("%1 { %2 }").arg(this->objectName(),str));
-  //  this->setStyleSheet(str);
-  //  m_frame->setStyleSheet("");
-    //m_frame->setStyleSheet(StyleStr);
-    update();
-}
-
-void NewLayout::paintEvent(QPaintEvent *ev)
-{
-    QStyleOption option;
-    option.init(this);
-    QPainter painter(this);
-    style()->drawPrimitive(QStyle::PE_Widget, &option, &painter, this);
-    QWidget::paintEvent(ev);
-//    QPainter painter(this);
-//    painter.setPen(mBorderColor);
-//    painter.setBrush(QColor(mBorderColor));
-//    QRect rect =QRect(this->pos().x() - mBorder.x(),
-//                      pos().y() - mBorder.y(),
-//                      width() -mBorder.width() ,
-//                      height() -mBorder.height());
-//    qDebug() << "drawRect it " << rect;
-//    // painter.drawRect(rect);
-//    painter.fillRect(rect,QBrush(QColor(mBorderColor)));
-}
-
 
 NewLayer::NewLayer(QString caption,QSize nsize, QWidget *parent)
     :BaseForm(parent)
     // mActiveIdx(-1)
 
 {
-
     mWindow = ((ScenesScreen*)parent)->mWindow;
-  //  setMinimumSize(nsize ); // 最小尺寸
     resize(nsize);
     setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
-    //this->setObjectName(this->metaObject()->className());
-   // setStyleSheet("%s{border: 0.5px solid #929292;}" % LAYER);
+
     setFocusPolicy(Qt::ClickFocus);
-    setStyleSheet("background-color: #C0DCC0;");
     show();
     QString key =QString("%1_%2").arg(caption,QString::number( mWindow->ComCtrl->ProMap.size()));
     setProperty(DKEY_LOCALSEQ,key);
     setProperty(DKEY_TXT,caption);
-
-//    QString n = QString("%1_%2").arg(metaObject()->className(),
-//                                     QString::number(mWindow->ComCtrl->ProMap.size()));
     setObjectName(key);
+   // updateStyleSheets();
     setToolTip(key);
 }
 
-//void NewLayer::createNewLayout(QSize size)
-//{
-//    // 在些新建一个布局为当前的子控件.
-//    createNewLayout(m_frame,size);
-//}
+
 
 void NewLayer::readFromJson(const QJsonObject &valobj)
 {
-    QRect oldrect = Compoent::getRectFromStruct(valobj[PROPERTY].toArray());
+    QRect oldrect = Compoent::getRectFromStruct(valobj[PROPERTY].toArray(),KEY_RECT);
    // 下面这种粗暴的取值方式是一定含有:　　"-class": "Classname" 的条目.
    QString clsName = valobj[CLASS].toString();
    QString caption = valobj[CAPTION].toString();
@@ -1998,22 +1899,18 @@ void NewLayer::readFromJson(const QJsonObject &valobj)
    if(!clsName.compare(CN_NEWLAYOUT) || !clsName.compare(CN_LAYOUT))
    {
        NewLayout *newlayout = new NewLayout(caption,oldrect.size(),mWindow,m_frame);
-     //  newlayout->setProperty(DKEY_TXT,caption);
        if(valobj.contains(PROPERTY))
        {
-           // QJsonObject vp =QJsonObject::fromVariantMap(qvm[PROPERTY]);
-
            newlayout->copyProperty(variant);
            newlayout->setProperty(DKEY_DYN,variant);
+           newlayout->initJsonValue();
        }
 
-    //   newlayout->setProperty(DKEY_LOCALSEQ,caption);
        newlayout->setGeometry(oldrect);
-    //   newlayout->addMainWindow(mWindow);
-     //  childlist.append(newlayout);
        mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),newlayout);
        childlist.append(newlayout);
        newlayout->onSelectMe();
+       newlayout->updateStyleSheets();
 
        // 这里一定是Layout 嵌套了.
        foreach (QJsonValue item, valobj[LAYOUT].toArray()) {
@@ -2027,8 +1924,6 @@ void NewLayer::readFromJson(const QJsonObject &valobj)
 
 void NewLayer::onDeleteMe()
 {
-
-
     //删除布局控件
     QMessageBox msgBox;
     msgBox.setWindowTitle("删除提示");
@@ -2081,39 +1976,7 @@ void NewLayer::writeToJson(QJsonObject &json)
     json[PROPERTY] = proterty;
 }
 
-void NewLayer::resizeEvent(QResizeEvent *event)
-{
-    // 这里要重写它的基类事件.
-    updateGeometry();
-    QWidget::resizeEvent(event);
-    foreach (QWidget* nl, childlist) {
-        nl->setMaximumSize(this->size());
-    }
-}
 
 
-void NewLayer::updateBorderColor()
-{
-    QString str = QString("border-style: outset; "\
-                          "border-color: %5; "\
-                          "border-left-width: %1px; "\
-                          "border-top-width: %2px; " \
-                          "border-right-width: %3px; "\
-                          "border-bottom-width: %4px;").arg(QString::number(mBorder.x()),
-                                                               QString::number(mBorder.y()),
-                                                               QString::number(mBorder.width()),
-                                                               QString::number(mBorder.height()),
-                                                               mBorderColor);
 
-   this->setStyleSheet(QString("BaseForm#%1 { %2 }").arg(this->objectName(),str));
-   // this->setStyleSheet(str);
-}
 
-void NewLayer::paintEvent(QPaintEvent *ev)
-{
-    QStyleOption option;
-    option.init(this);
-    QPainter painter(this);
-    style()->drawPrimitive(QStyle::PE_Widget, &option, &painter, this);
-
-}

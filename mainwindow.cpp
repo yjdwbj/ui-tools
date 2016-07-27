@@ -174,33 +174,30 @@ void MainWindow::addWidgetToToolBar(QWidget *w)
 
 
 
-bool MainWindow::eventFilter(QObject *obj, QEvent *event)
-{
+//bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+//{
 
 
-    if(obj == mCanvas)
-    {
-        if(event->type() == QEvent::MouseButtonPress)
-        {
-            QList<QFrame*> lst = mCanvas->findChildren<QFrame*>();
-            QListIterator<QFrame*> it(lst);
-            while(it.hasNext())
-            {
-                QFrame *qf = it.next();
-                qf->setStyleSheet("");
-            }
+//    if(obj == mCanvas)
+//    {
+//        if(event->type() == QEvent::MouseButtonPress)
+//        {
+//            QList<QFrame*> lst = mCanvas->findChildren<QFrame*>();
+//            QListIterator<QFrame*> it(lst);
+//            while(it.hasNext())
+//            {
+//                QFrame *qf = it.next();
+//                qf->setStyleSheet("");
+//            }
 
-        }else if(event->type() == QEvent::MouseMove)
-        {
+//        }
+//    }
 
-        }
-    }
-
-    if ( event->type() != QEvent::MouseButtonPress )
-        return false;
-    // event->accept();
-    return false;
-}
+//    if ( event->type() != QEvent::MouseButtonPress )
+//        return false;
+//    // event->accept();
+//    return false;
+//}
 
 
 void MainWindow::mousePressEvent(QMouseEvent *ev)

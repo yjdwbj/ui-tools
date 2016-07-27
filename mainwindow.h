@@ -70,7 +70,7 @@ public:
     void HandleObject(QJsonObject qjo);
     void HandleArrayObject(QJsonArray array);
     void setWidget(QObject &oob);
-    bool eventFilter(QObject *obj, QEvent *event);
+  //  bool eventFilter(QObject *obj, QEvent *event);
     void addWidgetToToolBar(QWidget *);
 
     //QGroupBox *propertyWidget;

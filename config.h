@@ -8,6 +8,10 @@ static QString W = "宽度:";
 static QString H = "高度:";
 static QString LX = "x";
 static QString LY = "y";
+static QString LEFT ="left";
+static QString TOP = "top";
+static QString RIGHT = "right";
+static QString BOTTOM="bottom";
 static QString WIDTH = "width";
 static QString HEIGHT="height";
 static QString COMOBJ = "comObj";
@@ -52,7 +56,6 @@ static QString BAKIMAGE = "background-image";
 static QString BAKCOLOR = "background-color";
 static QString WTYPE = "-type";
 static QString PLUGIN = "plugin";
-
 
 
 static const char  DKEY_CAPTION[] = "caption";

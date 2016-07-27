@@ -25,16 +25,6 @@ class SizeHandleRect;
  * Can be embedded into a QScrollArea. */
 
 
-class Canvas: public QFrame
-{
-public:
-    QPixmap backImage;
-    QString mBorderColor;
-    QRect mBorder;
-
-protected:
-    void paintEvent(QPaintEvent *);
-};
 
 
 class FormResizer : public QWidget
@@ -53,6 +43,7 @@ public:
 
    // void setFormWindow(QDesignerFormWindowInterface *fw);
     QFrame *m_frame;
+  // Canvas *m_frame;
 //    QRect mBorder;
 //    QString mBorderColor;
 

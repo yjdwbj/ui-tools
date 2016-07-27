@@ -24,6 +24,7 @@ class MainWindow;
 class ScenesScreen;
 
 
+
 class Compoent
 {
 public:
@@ -32,7 +33,7 @@ public:
      static QJsonObject getRectJson(QWidget* w);
      QJsonObject getBorderJson(QWidget *w);
      void copyProperty(const QVariant &va);
-     QVariant getJsonValue(const QJsonArray &arr,QString key) const;
+     static QVariant getJsonValue(const QJsonArray &arr,QString key);
      QVariant getJsonValue(QString key) const;
      void changeJsonValue(QString key, QVariant val);
      void changeJsonValue( QJsonArray &json,QString key,
@@ -41,10 +42,11 @@ public:
      void updateRBJsonValue(QJsonArray &json,QWidget *w); // 更新UID,RECT,BORDER三个属性
 
     void updateJsonArray(QString key,const QJsonArray &arr);
-    static QRect getRectFromStruct(const QJsonArray &arr) ;
+    static QRect getRectFromStruct(const QJsonArray &arr, QString key) ;
+
+
      QRect getRectFromJson(const QJsonObject &json) const;
-    //QVariantMap dynValues;
-    //QJsonValue dynValues;
+
     QJsonObject dynValues;
 };
 
@@ -63,14 +65,16 @@ public:
     QList<QWidget*> childlist;
     QWidget *parentControl;
     QString mBorderColor;
+    QString mbkColor;
 
 
     void onSelectMe();
     virtual void DeleteMe();
     void HideMe();
     void addChildrenToTree();
-    virtual void updateBorderColor() =0;
+    void updateStyleSheets() ;
     void removeChild(QWidget *w);
+    void initJsonValue();
 
 
 
@@ -83,6 +87,7 @@ public slots:
     void onEnumItemChanged(QString txt);
     void onColorButtonClicked();
     void onBorderChangedValue(int v);
+    void onPictureDialog();
 
     void onDeleteMe();
 
@@ -92,6 +97,7 @@ protected:
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
     void paintEvent(QPaintEvent *);
+    void resizeEvent(QResizeEvent *event);
 
 };
 
@@ -172,7 +178,7 @@ protected:
     void clearOtherObjectStyleSheet();
     void mousePressEvent(QMouseEvent *ev);
     void mouseMoveEvent(QMouseEvent *event);
-    void updateBorderColor();
+  //  void updateBorderColor();
    // void paintEvent(QPaintEvent *);
 
 };
@@ -200,7 +206,6 @@ private:
 public slots:
       void onAddOneLine();
       void onDeleteMe();
-      void onColorButtonClicked();
 
       void onXYWHChangedValue(int v);
       void onTextChanged(QString str);
@@ -209,7 +214,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *event);
     void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
-    void updateBorderColor();
+   // void updateBorderColor();
 };
 
 //class NewLayout :public QFrame
@@ -227,13 +232,10 @@ public:
     void onSelectMe();
     void DeleteMe();
     void addMainWindow(MainWindow *m) { mWindow = m;}
-
     void clearOtherSelectHandler();
-  //  void appendChildObj(QWidget *w) { mChList.append(w);}
+
     void deleteObject(int index);
     void deleteObject(QWidget *w);
- //   const QList<BaseForm*> &getChildrenList() { return childlist;}
-
     void delMySelf();
 
     void writeToJson(QJsonObject &json);
@@ -261,8 +263,8 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
-    void updateBorderColor();
-    void paintEvent(QPaintEvent *ev);
+   // void updateBorderColor();
+    //void paintEvent(QPaintEvent *ev);
 
 };
 
@@ -278,7 +280,7 @@ public:
     void writeToJson(QJsonObject &json);
    // const QWidgetList &getChidren() const { return LayoutList;}
     void addChildrenToTree();
-    void updateBorderColor();
+   // void updateBorderColor();
 
 public slots:
     void onDeleteMe();
@@ -286,9 +288,9 @@ public slots:
 private:
     void clearOtherObjectStyleSheet();
 
-protected:
-    void resizeEvent(QResizeEvent *event);
-    void paintEvent(QPaintEvent *);
+//protected:
+//    void resizeEvent(QResizeEvent *event);
+  //  void paintEvent(QPaintEvent *);
 
 //protected:
 //    void mouseMoveEvent(QMouseEvent *event);

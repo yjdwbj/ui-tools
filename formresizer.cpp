@@ -7,6 +7,8 @@
 #include <QPalette>
 #include <QLayout>
 #include <QFrame>
+#include <QStyleOption>
+#include <QPainter>
 #include "config.h"
 
 enum { debugFormResizer = 0 };
@@ -16,12 +18,13 @@ enum { debugFormResizer = 0 };
 FormResizer::FormResizer(QWidget *parent) :
     QWidget(parent),
     m_frame(new QFrame)
+    //m_frame(new Canvas)
 
  //   m_formWindow(0)
 {
     // Make the resize grip of a mainwindow form find us as resizable window.
     setWindowFlags(windowFlags() | Qt::SubWindow);
-    setBackgroundRole(QPalette::Base);
+   // setBackgroundRole(QPalette::Base);
 
     QVBoxLayout *handleLayout = new QVBoxLayout(this);
     handleLayout->setMargin(SELECTION_MARGIN);
@@ -31,9 +34,9 @@ FormResizer::FormResizer(QWidget *parent) :
     //handleLayout->setMargin(1);
     handleLayout->addWidget(m_frame);
 
-    m_frame->setFrameStyle(QFrame::Panel | QFrame::Raised);
-    QVBoxLayout *layout = new QVBoxLayout(m_frame);
-    layout->setMargin(0);
+   // m_frame->setFrameStyle(QFrame::Panel | QFrame::Raised);
+//    QVBoxLayout *layout = new QVBoxLayout(m_frame);
+//    layout->setMargin(0);
 
     //layout->setContentsMargins(0,0,0,0);
     // handles

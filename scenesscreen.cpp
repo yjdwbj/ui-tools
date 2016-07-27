@@ -105,7 +105,7 @@ void ScenesScreen::onChangedBackgroundColor()
 
 NewLayer* ScenesScreen::createNewLayer(const QJsonObject &json)
 {
-    QRect oldrect = Compoent::getRectFromStruct(json[PROPERTY].toArray());
+    QRect oldrect = Compoent::getRectFromStruct(json[PROPERTY].toArray(),KEY_RECT);
     if(oldrect.isEmpty())
     {
         oldrect.setWidth(200);
@@ -118,17 +118,20 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonObject &json)
     LayerList.append(nlayer);
     mActiveLaySeq = LayerList.size() - 1;
 
-    //nlayer->setProperty(DKEY_TXT,json[CAPTION].toString());
     if(json.contains(PROPERTY))
     {
         QVariant variant = json.value(PROPERTY).toVariant();
         nlayer->copyProperty(variant);
         nlayer->setProperty(DKEY_DYN,variant);
+        nlayer->initJsonValue();
+
     }
 
     nlayer->onSelectMe();
+    nlayer->updateStyleSheets();
+
+
     mWindow->tree->addItemToRoot(nlayer);
-  //  nlayer->setToolTip(nlayer->property(DKEY_LOCALSEQ).toString());
     foreach (QJsonValue layout, json[LAYOUT].toArray()) {
         nlayer->readFromJson(layout.toObject());
     }
@@ -144,8 +147,6 @@ void ScenesScreen::readLayer(const QJsonArray &array)
         {
             QJsonObject valobj = val.toObject();
              NewLayer *nlayer = createNewLayer(valobj);
-
-           //  nlayer->readFromJson(valobj[LAYOUT].toArray());
         }
 
             break;
@@ -170,87 +171,10 @@ void ScenesScreen::setSelectObject(FormResizer *obj)
     obj->setFocus();
 
     activeObj = obj;
-    //qDebug() << " active object is " << obj->objectName();
-//    QString clsname = obj->metaObject()->className();
-//    if(!CN_NEWLAYOUT.compare(clsname))
-//    {
-//        mActiveIdx = LayerList.indexOf(obj);  // 这里只是布局控件才更改它的数值
-
-//    }
 
     mWindow->tree->setSelectTreeItem(obj);
 }
 
-//void ScenesScreen::delSelectedLayer()
-//{
-
-//    if(!CN_NEWLAYER.compare(activeObj->metaObject()->className()))
-//    {
-//        //删除布局控件
-//        QMessageBox msgBox;
-//        msgBox.setWindowTitle("删除提示");
-//        msgBox.setText("你真的要删除当前图层吗?删除之后不可以撤消,请选择<删除>删除.");
-//        // msgBox.setInformativeText("Do you want to save your changes?");
-//        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-//        msgBox.setButtonText(QMessageBox::Yes,"删除");
-//        msgBox.setButtonText(QMessageBox::Cancel,"取消");
-//        msgBox.setDefaultButton(QMessageBox::Cancel);
-//        int ret = msgBox.exec();
-//        //qDebug() << " QMessageBox result " << ret;
-//        if(ret == QMessageBox::Yes)
-//        {
-
-
-//        }
-
-//    }else {
-//        //删除控件
-//        NewLayout *nl = (NewLayout*)(activeObj->parentWidget()->parentWidget());
-
-//        nl->deleteObject(activeObj);  // 从它的父控件删除它.
-
-//        setSelectObject(nl); // 选中它父控件.
-
-//    }
-//}
-
-
-//void ScenesScreen::delSelectedLayout()
-//{
-
-//    QString clsname = activeObj->metaObject()->className();
-//    if(!CN_NEWLAYOUT.compare(clsname) || !CN_NEWLAYER.compare(clsname))
-//    {
-//        //删除布局控件
-//        QMessageBox msgBox;
-//        msgBox.setWindowTitle("删除提示");
-//        msgBox.setText("你真的要删除当前布局吗?删除之后不可以撤消,请选择<删除>删除.");
-//        // msgBox.setInformativeText("Do you want to save your changes?");
-//        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-//        msgBox.setButtonText(QMessageBox::Yes,"删除");
-//        msgBox.setButtonText(QMessageBox::Cancel,"取消");
-//        msgBox.setDefaultButton(QMessageBox::Cancel);
-//        int ret = msgBox.exec();
-//        //qDebug() << " QMessageBox result " << ret;
-//        if(ret == QMessageBox::Yes)
-//        {
-
-
-//        }
-
-//    }else {
-//        //删除控件
-
-////        NewLayout *nl = (NewLayout*)(activeObj->parentWidget()->parentWidget());
-
-////        nl->deleteObject(activeObj);  // 从它的父控件删除它.
-
-////        setSelectObject(nl); // 选中它父控件.
-
-//    }
-
-
-//}
 
 void ScenesScreen::delAllObjects()
 {
