@@ -3,6 +3,9 @@
 #include <QMessageBox>
 #include "mainwindow.h"
 #include "canvasmanager.h"
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include <QQuickView>
 
 ImageFileDialog::ImageFileDialog(QStringList old, QWidget *parent)
     :QDialog(parent),
@@ -104,8 +107,6 @@ void ImageFileDialog::onListViewDoubleClicked(QModelIndex index)
     selstrList << QString("%1:%2").arg(s,fileModel->fileInfo(index).absoluteFilePath());
     flistview->setRowHidden(index.row(),true);
     hRows[s] = index;
-
-
 }
 
 void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
@@ -220,21 +221,6 @@ ProjectDialog::ProjectDialog(QWidget *parent):QDialog(parent),ui(new Ui::Project
     ui->spinBox_2->setMaximum(parent->height()*0.8);
     ui->spinBox->setValue(w);
     ui->spinBox_2->setValue(h);
-
-//    QSize ds = mWindow->cManager->getDefaultPageSize();
-
-//    if(ds.width() > pdsize.width() && ds.height() > pdsize.height())
-//    {
-//        // 记住上次的输入
-//        ui->spinBox->setValue(ds.width());
-//        ui->spinBox_2->setValue(ds.height());
-//    }else{
-//        ui->spinBox->setValue(pdsize.width());
-//        ui->spinBox_2->setValue(pdsize.height());
-//    }
-
-
-
     ui->buttonBox->button(QDialogButtonBox::Ok)->setText("创建");
     ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("取消");
 
@@ -288,3 +274,102 @@ void ProjectDialog::onSpinBoxVChanged(int v)
 {
     qDebug() << " spin box value changed " << v << " get " << ui->spinBox->value();
 }
+
+ImageListView::ImageListView(QString path, QWidget *parent)
+    :QDialog(parent),
+     fileModel(new QFileSystemModel),
+     treeModel(new QFileSystemModel),
+     treefile(new QTreeView()),
+     imglist(new QListWidget)
+{
+    QHBoxLayout *mh = new QHBoxLayout();
+    this->setLayout(mh);
+    this->setWindowTitle(tr("图片编辑"));
+    filters << "*.bmp" << "*.png" << "*.jpg";
+
+
+    treeModel->setRootPath(path);
+    treeModel->removeColumn(3);
+    treeModel->removeColumn(2);
+    treeModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
+
+
+    treeModel->setNameFilters(filters);
+
+
+    treefile->setModel(treeModel);
+    treefile->setRootIndex(treeModel->index(path));
+
+    treefile->hideColumn(3);
+    treefile->hideColumn(2);
+    treefile->hideColumn(1);
+
+
+
+    fileModel->setRootPath(path);
+
+
+    fileModel->setNameFilters(filters);
+    fileModel->setFilter(QDir::Files);
+//    imglist->setModel(fileModel);
+//    imglist->setRootIndex(fileModel->index(path));
+
+
+
+    imglist->setSelectionMode(QAbstractItemView::SingleSelection);
+    imglist->setViewMode(QListWidget::IconMode);
+    imglist->setIconSize(QSize(160,140));
+
+    mh->addWidget(treefile);
+    mh->addWidget(imglist);
+
+    updateListImages(path);
+    treefile->setFixedWidth(160);
+    connect(treefile,SIGNAL(clicked(QModelIndex)),SLOT(onTreeViewClicked(QModelIndex)));
+    connect(imglist,SIGNAL(itemDoubleClicked(QListWidgetItem*)),
+            parent,SLOT(onSelectedBackgroundImage(QListWidgetItem*)));
+
+}
+
+void ImageListView::updateListImages(QString path)
+{
+    imgMap.clear();
+    imglist->clear();
+
+    QDirIterator it(path,filters, QDir::Files, QDirIterator::Subdirectories);
+
+//    QQuickView qview;
+
+//    qview.setResizeMode(QQuickView::SizeRootObjectToView);
+//    qview.setSource(QUrl("qrc:/icon/busyindicator.qml"));
+//    qview.show();
+
+
+
+
+    while (it.hasNext())
+    {
+        QString fpath = it.next();
+        bool b = fpath.contains('/');
+        int idx = fpath.lastIndexOf(b ? '/' : '\\')+1;
+        //bakimageMap[fpath.mid(idx)] = QPixmap(fpath);
+        imgMap[fpath.mid(idx)] = fpath;
+        imglist->addItem(new QListWidgetItem(QIcon(QPixmap(fpath)),fpath.mid(idx)));
+    }
+    imglist->setProperty(DKEY_IMGMAP,imgMap);
+}
+
+void ImageListView::onTreeViewClicked(QModelIndex index)
+{
+    QString mPath = treeModel->fileInfo(index).absoluteFilePath();
+    qDebug() << " DirModel AbsoluteFile Path " << mPath;
+   // imglist->setRootIndex(fileModel->setRootPath(mPath));
+    updateListImages(mPath);
+
+    // dirModel->fetchMore(index);
+    treefile->setExpanded(index,true);
+    treefile->expand(index);
+    treefile->setCurrentIndex(treeModel->index(mPath));
+}
+
+

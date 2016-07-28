@@ -82,5 +82,25 @@ protected:
 
 };
 
+class ImageListView : public QDialog
+{
+    Q_OBJECT
+public:
+    explicit ImageListView(QString path = QDir::currentPath(),QWidget *parent = 0);
+private:
+
+    void updateListImages(QString path);
+    QFileSystemModel *fileModel;
+    QFileSystemModel *treeModel;
+//    QMap<QString,QString> imgMap;
+    QVariantMap imgMap;
+    QTreeView *treefile;
+    QListWidget *imglist;
+    QStringList filters;
+private slots:
+    void onTreeViewClicked(QModelIndex );
+
+};
+
 
 #endif // IMAGEFILEDIALOG_H

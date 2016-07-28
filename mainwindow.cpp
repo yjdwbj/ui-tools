@@ -103,7 +103,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // 缓存一些背景图片.
     QString dir = QDir::currentPath() + "/backgrounds";
-    QDirIterator it(dir, QStringList() << "*.jpg", QDir::Files, QDirIterator::Subdirectories);
+    QDirIterator it(dir, QStringList() << "*.jpg", QDir::Files/*, QDirIterator::Subdirectories*/);
     while (it.hasNext())
     {
         QString fpath = it.next();
@@ -172,32 +172,6 @@ void MainWindow::addWidgetToToolBar(QWidget *w)
     ui->mainToolBar->addWidget(w);
 }
 
-
-
-//bool MainWindow::eventFilter(QObject *obj, QEvent *event)
-//{
-
-
-//    if(obj == mCanvas)
-//    {
-//        if(event->type() == QEvent::MouseButtonPress)
-//        {
-//            QList<QFrame*> lst = mCanvas->findChildren<QFrame*>();
-//            QListIterator<QFrame*> it(lst);
-//            while(it.hasNext())
-//            {
-//                QFrame *qf = it.next();
-//                qf->setStyleSheet("");
-//            }
-
-//        }
-//    }
-
-//    if ( event->type() != QEvent::MouseButtonPress )
-//        return false;
-//    // event->accept();
-//    return false;
-//}
 
 
 void MainWindow::mousePressEvent(QMouseEvent *ev)

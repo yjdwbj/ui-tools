@@ -66,6 +66,7 @@ public:
     QWidget *parentControl;
     QString mBorderColor;
     QString mbkColor;
+    QString mbkImage;
 
 
     void onSelectMe();
@@ -87,7 +88,8 @@ public slots:
     void onEnumItemChanged(QString txt);
     void onColorButtonClicked();
     void onBorderChangedValue(int v);
-    void onPictureDialog();
+    void onBackgroundImageDialog();
+    void onSelectedBackgroundImage(QListWidgetItem *item);
 
     void onDeleteMe();
 
@@ -207,7 +209,7 @@ public slots:
       void onAddOneLine();
       void onDeleteMe();
 
-      void onXYWHChangedValue(int v);
+     // void onXYWHChangedValue(int v);
       void onTextChanged(QString str);
 
 protected:
@@ -253,7 +255,7 @@ private:
     void clearOtherObjectStyleSheet();
 
 public slots:
-    void onXYWHChangedValue(int v);
+   // void onXYWHChangedValue(int v);
     void onDeleteMe();
     void onBeComeTemplateWidget();
 

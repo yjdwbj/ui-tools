@@ -34,15 +34,15 @@ CanvasManager::CanvasManager(MainWindow *w):
     mWindow->addWidgetToToolBar(savePrj);
     mWindow->centralWidget()->setLayout(stack);
     // 按屏幕的大小比例调整.
-    stackRect = QRect( QPoint(mWindow->width() * 0.12,mWindow->height()* 0.3),mPageSize);
+  //  stackRect = QRect( QPoint(mWindow->width() * 0.12,mWindow->height()* 0.3),mPageSize);
    // mWindow->centralWidget()->setGeometry(stackRect);
 
     connect(newPrj,SIGNAL(clicked(bool)),SLOT(onCreateNewProject()));
     connect(newPage,SIGNAL(clicked(bool)),SLOT(onCreateNewScenesScreen()));
     connect(delPage,SIGNAL(clicked(bool)),SLOT(onDelCurrentScenesScreen()));
     connect(savePrj,SIGNAL(clicked(bool)),SLOT(onSaveProject()));
-    qDebug() << "centralWidget pos" << mWindow->centralWidget()->geometry()
-             << " stack pos " << stackRect;
+//    qDebug() << "centralWidget pos" << mWindow->centralWidget()->geometry()
+//             << " stack pos " << stackRect;
     //stack->setGeometry(stackRect);
    // stack->update();
 }
@@ -63,7 +63,7 @@ void CanvasManager::screenshot()
             {
                 mWindow->pageView->addNewPage(pixmap,
                                               stack->currentWidget()->property(DKEY_TXT).toString());
-                // stack->currentWidget()->objectName());
+
                 //pixmap.save("test.png");　//　这里如果有需要可以保存成文件.
                 stack->currentWidget()->setProperty(DKEY_SHOT,true);
             }else{
@@ -96,7 +96,7 @@ ScenesScreen * CanvasManager::createNewCanvas()
     mWindow->lDock->setEnabled(true);
     stack->addWidget(Scenes);
     stack->setCurrentWidget(Scenes);
-    stack->setGeometry(stackRect);
+   // stack->setGeometry(stackRect);
     // 清理treeWidget 的行
     mWindow->tree->deleteAllitem();
     return Scenes;
@@ -117,8 +117,8 @@ int CanvasManager::activeIndex()
 void CanvasManager::setActiveSS(int index)
 {
 
-    qDebug() << "centralWidget pos" << mWindow->centralWidget()->geometry()
-             << " this pos " << stack->geometry();
+//    qDebug() << "centralWidget pos" << mWindow->centralWidget()->geometry()
+//             << " this pos " << stack->geometry();
     if(index < mCanvasList.size())
     {
       //  qDebug() << " show previous object" << index;
@@ -129,15 +129,12 @@ void CanvasManager::setActiveSS(int index)
         ScenesScreen *Scenes = (ScenesScreen*)(stack->currentWidget());
         // 把当前页的布局重新添加到treeWidget上
         foreach (QWidget *w, Scenes->LayerList) {
-            // mWindow->tree->addItemToRoot(w->objectName(),"布局");
             QString key = w->property(DKEY_LOCALSEQ).toString();
-          //  mWindow->tree->addItemToRoot(key,"布局");
             mWindow->tree->addItemToRoot(w);
-            qDebug() << " class name " << w->metaObject()->className()
-                     << " object name " << w->objectName();
+
             ((NewLayer*)w)->addChildrenToTree();
         }
-        stack->setGeometry(stackRect);
+      //  stack->setGeometry(stackRect);
     }
 
 }
@@ -153,7 +150,7 @@ void CanvasManager::deleteCurrentPage()
         mWindow->pageView->delPage(index);
         mWindow->tree->deleteAllitem();
         mCanvasList.removeAt(index);
-        //ss->deleteLater();
+
         ss->delAllObjects();
         delPage->setEnabled(stack->count() == 0 ? false : true);
         mWindow->lDock->setEnabled(stack->count() == 0 ? false : true);
@@ -303,7 +300,7 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
                 setDefaultPageSize(QSize(w,h));
                 ScenesScreen *Scenes = createNewCanvas();
                 // 递归读取它的页面.
-                //Scenes->readLayout(valobj[CN_SSNAME].toArray());
+
                 Scenes->readLayer(valobj[LAYER].toArray());
         }
 

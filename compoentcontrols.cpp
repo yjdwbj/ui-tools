@@ -144,23 +144,27 @@ void Position::setConnectNewQWidget(QWidget *com)
     }
     Xpos->setEnabled(!isLW);
     Ypos->setEnabled(!isLW);
+
+
+  //  qDebug() << " net QWidget pos " << com->pos() << " size " << com->size();
+
+    QSize psize = com->parentWidget()->size();
+    Hpos->setMaximum(psize.height());
+    Wpos->setMaximum(psize.width());
+//    qDebug() << " xpos max " << Xpos->maximum()
+//             << " set new xpos max " << psize.width() - com->width();
+    Xpos->setMaximum(psize.width()-com->width());
+    Ypos->setMaximum(psize.height()-com->height());
+
+    // 一定要设置值再连接信号.
+    Xpos->setValue(isLW ? 0 : com->pos().x());
+    Ypos->setValue(isLW ? 0 : com->pos().y());
     if(!isLW)
     {
         connections << QObject::connect(Xpos,SIGNAL(valueChanged(int)),com,SLOT(onXYWHChangedValue(int)));
         connections << QObject::connect(Ypos,SIGNAL(valueChanged(int)),com,SLOT(onXYWHChangedValue(int)));
     }
 
-    Xpos->setValue(isLW ? 0 : com->geometry().x());
-    Ypos->setValue(isLW ? 0 : com->geometry().y());
-    QWidget *p = com->parentWidget();
-    QWidget *pp = com->parentWidget()->parentWidget();
-//    qDebug() << " parent object " << p->objectName()
-//             << " p parent object " << pp->objectName();
-    QSize psize = com->parentWidget()->size();
-    Hpos->setMaximum(psize.height());
-    Wpos->setMaximum(psize.width());
-    Xpos->setMaximum(psize.width()-com->width());
-    Ypos->setMaximum(psize.height()-com->height());
     Wpos->setValue(com->geometry().width());
     Hpos->setValue(com->geometry().height());
 
@@ -177,16 +181,31 @@ void Position::setConnectNewQWidget(QWidget *com)
 
 void Position::updatePosition(QPoint pos)
 {
+    Xpos->blockSignals(true);
+    Ypos->blockSignals(true);
     Xpos->setValue(pos.x());
     Ypos->setValue(pos.y());
+
+    Xpos->blockSignals(false);
+    Ypos->blockSignals(false);
+
+
+//    this->blockSignals(false);
+//    update();
+
 }
 
 void Position::updateSize(QSize size)
 {
+    Wpos->blockSignals(true);
+    Hpos->blockSignals(true);
     Wpos->setValue(size.width());
     Hpos->setValue(size.height());
-    update();
-   // this->blockSignals(true);
+    Wpos->blockSignals(false);
+    Hpos->blockSignals(false);
+//    this->blockSignals(false);
+//    update();
+
 }
 
 void Position::updateMaxSize(QSize size)
@@ -396,6 +415,7 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
            {
                QPushButton *bkimage = new QPushButton(caption);
                mainLayout->addWidget(bkimage);
+               connect(bkimage,SIGNAL(clicked(bool)),p,SLOT(onBackgroundImageDialog()));
            }
            else if(object.contains(BAKCOLOR))
            {
@@ -465,7 +485,13 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
 
         if(!wid)
             continue;
-          ((BaseForm*)p)->onBindValue(wid,item.toObject().toVariantMap());
+        qDebug() << " class name  " << p->metaObject()->className();
+        if(!CN_NEWLABEL.compare(p->metaObject()->className()))
+        {
+            ((NewLabel*)p)->onBindValue(wid,item.toObject().toVariantMap());
+        }else{
+            ((BaseForm*)p)->onBindValue(wid,item.toObject().toVariantMap());
+        }
 //        if(!className.compare(CN_NEWFRAME))
 //        {
 //            ((NewFrame*)p)->onBindValue(wid,item.toObject().toVariantMap());

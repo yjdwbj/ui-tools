@@ -620,6 +620,7 @@ BaseForm::BaseForm(QWidget *parent)
       mBorder(0,0,0,0)
 {
     setStyleSheet("");
+    mbkImage = "";
 
 }
 
@@ -716,6 +717,7 @@ void BaseForm::mouseReleaseEvent(QMouseEvent *event)
 void BaseForm::onXYWHChangedValue(int v)
 {
     /* 绑定坐标控件的更新 */
+
     QWidget *sender =(QWidget *)(QObject::sender());
     if(!sender->objectName().compare(X))
     {
@@ -746,7 +748,8 @@ void BaseForm::onXYWHChangedValue(int v)
         n.setHeight(v);
         this->resize(n);
     }
-    this->blockSignals(true);
+    qDebug() << " postwidget has changed " << sender->objectName() << " value " << v;
+
 }
 
 void BaseForm::onNumberChanged(int num)
@@ -821,6 +824,11 @@ void BaseForm::updateStyleSheets()
                                                                QString::number(mBorder.bottom()),
                                                                mBorderColor,
                                                                mbkColor);
+
+   if(!mbkImage.isEmpty())
+   {
+      str =  QString("background-image: url(%1); %2").arg(mbkImage,str);
+   }
 
    setStyleSheet(QString("BaseForm#%1 { %2 }").arg(this->objectName(),str)); 
    update();
@@ -957,11 +965,33 @@ void BaseForm::initJsonValue()
     mBorder = Compoent::getRectFromStruct(dynValues[DKEY_DYN].toArray(),BORDER);
 }
 
-void BaseForm::onPictureDialog()
+void BaseForm::onBackgroundImageDialog()
 {
 
+
+    ImageListView *imgview = new ImageListView(QDir::currentPath(),this);
+    imgview->setFixedSize(mWindow->size() * 0.6);
+    imgview->exec();
+    int ret = imgview->result() ;
 }
 
+
+void BaseForm::onSelectedBackgroundImage(QListWidgetItem *item)
+{
+    QWidget *sender = (QWidget*)(QObject::sender());
+    QVariantMap vmap =  sender->property(DKEY_IMGMAP).toMap();
+    qDebug() << " image text is " << item->text();
+
+    if(!vmap.isEmpty())
+    {
+        QString fpath = vmap[item->text()].toString();
+        mbkImage = fpath;
+
+        updateStyleSheets();
+
+    }
+
+}
 
 NewFrame::NewFrame(QString caption, QWidget *parent)
   //  :FormResizer(parent),Compoent()
@@ -1200,37 +1230,37 @@ void NewList::mousePressEvent(QMouseEvent *event)
 }
 
 
-void NewList::onXYWHChangedValue(int v)
-{
-    /* 绑定坐标控件的更新 */
-    QWidget *sender =(QWidget *)(QObject::sender());
-    if(!sender->objectName().compare(X))
-    {
-        QPoint pos = this->pos();
-        pos.setX(v);
-        this->move(pos);
-    }else if(!sender->objectName().compare(Y))
-    {
-        QPoint pos = this->pos();
-        pos.setY(v);
-        this->move(pos );
-    }else if(!sender->objectName().compare(W))
-    {
-        if((this->pos().x() + v )> this->parentWidget()->size().width())
-            return;
-        QSize n(this->size());
-        n.setWidth(v);
-        this->resize(n);
-    }else if(!sender->objectName().compare(H))
-    {
-        if((this->pos().y() + v )> this->parentWidget()->size().height())
-            return;
-        QSize n(this->size());
-        n.setHeight(v);
-        this->resize(n);
-    }
-    this->blockSignals(true);
-}
+//void NewList::onXYWHChangedValue(int v)
+//{
+//    /* 绑定坐标控件的更新 */
+//    QWidget *sender =(QWidget *)(QObject::sender());
+//    if(!sender->objectName().compare(X))
+//    {
+//        QPoint pos = this->pos();
+//        pos.setX(v);
+//        this->move(pos);
+//    }else if(!sender->objectName().compare(Y))
+//    {
+//        QPoint pos = this->pos();
+//        pos.setY(v);
+//        this->move(pos );
+//    }else if(!sender->objectName().compare(W))
+//    {
+//        if((this->pos().x() + v )> this->parentWidget()->size().width())
+//            return;
+//        QSize n(this->size());
+//        n.setWidth(v);
+//        this->resize(n);
+//    }else if(!sender->objectName().compare(H))
+//    {
+//        if((this->pos().y() + v )> this->parentWidget()->size().height())
+//            return;
+//        QSize n(this->size());
+//        n.setHeight(v);
+//        this->resize(n);
+//    }
+//    this->blockSignals(true);
+//}
 
 void NewList::onAddOneLine()
 {
@@ -1493,39 +1523,7 @@ void NewLayout::addChildrenToTree()
 }
 
 
-void NewLayout::onXYWHChangedValue(int v)
-{
-    /* 绑定坐标控件的更新 */
-    QWidget *sender =(QWidget *)(QObject::sender());
-    if(!sender->objectName().compare(X))
-    {
-        QPoint pos = this->pos();
-        pos.setX(v);
-        this->move(pos);
-    }else if(!sender->objectName().compare(Y))
-    {
-        QPoint pos = this->pos();
-        pos.setY(v);
-        this->move(pos );
-    }else if(!sender->objectName().compare(W))
-    {
-        if((this->pos().x() + v )> this->parentWidget()->size().width())
-            return;
-        QSize n(this->size());
-        n.setWidth(v);
-        this->resize(n);
-       // this->setFixedWidth(v);
-    }else if(!sender->objectName().compare(H))
-    {
-        if((this->pos().y() + v )> this->parentWidget()->size().height())
-            return;
-        QSize n(this->size());
-        n.setHeight(v);
-        this->resize(n);
-       // this->setFixedHeight(v);
-    }
-    this->blockSignals(true);
-}
+
 
 
 void NewLayout::mousePressEvent(QMouseEvent *event)
@@ -1601,6 +1599,7 @@ void NewLayout::mouseReleaseEvent(QMouseEvent *event)
     }
     // 这里只能在释放鼠标时改变左边的控件值
     mWindow->posWidget->updateSize(this->size());
+    mWindow->posWidget->updatePosition(this->pos());
 }
 
 void NewLayout::onDeleteMe()
