@@ -7,11 +7,11 @@
 #include <QQmlContext>
 #include <QQuickView>
 
-ImageFileDialog::ImageFileDialog(QStringList old, QWidget *parent)
+ImageFileDialog::ImageFileDialog(QVariantList old, QWidget *parent)
     :QDialog(parent),
       sellist(new QListWidget()),
       treefile(new QTreeView()),
-      flistview(new QListView()),
+      flistview(new QListWidget()),
       selstrList(old)
 {
 
@@ -21,6 +21,8 @@ ImageFileDialog::ImageFileDialog(QStringList old, QWidget *parent)
     this->setFixedSize(1000,600);
     sellist->setSelectionMode(QAbstractItemView::MultiSelection);
     flistview->setSelectionMode(QAbstractItemView::MultiSelection);
+    flistview->setViewMode(QListWidget::IconMode);
+   // flistview->setIconSize(QSize(200,180));
     //  dirModel->setReadOnly(true);
     //  fileModel->setReadOnly(true);
 
@@ -48,9 +50,9 @@ ImageFileDialog::ImageFileDialog(QStringList old, QWidget *parent)
     dirModel->removeColumn(2);
     dirModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
 
-    QStringList mlist;
-    mlist << "*.bmp" << "*.png" << "*.jpg";
-    dirModel->setNameFilters(mlist);
+
+    filters << "*.bmp" << "*.png" << "*.jpg";
+    dirModel->setNameFilters(filters);
 
 
     treefile->setModel(dirModel);
@@ -62,9 +64,10 @@ ImageFileDialog::ImageFileDialog(QStringList old, QWidget *parent)
 
 
     fileModel->setRootPath(imgpath);
-    fileModel->setNameFilters(mlist);
-    flistview->setModel(fileModel);
-    flistview->setRootIndex(fileModel->index(imgpath));
+    fileModel->setNameFilters(filters);
+    fileModel->setFilter(QDir::Files);
+//    flistview->setModel(fileModel);
+//    flistview->setRootIndex(fileModel->index(imgpath));
 
     connect(sellist,SIGNAL(doubleClicked(QModelIndex)),SLOT(onSelListViewDoubleClicked(QModelIndex)));
     connect(flistview,SIGNAL(doubleClicked(QModelIndex)),SLOT(onListViewDoubleClicked(QModelIndex)));
@@ -81,6 +84,25 @@ ImageFileDialog::ImageFileDialog(QStringList old, QWidget *parent)
    // exec();
 }
 
+
+void ImageFileDialog::updateListImages(QString path)
+{
+  //  imgMap.clear();
+    flistview->clear();
+
+    QDirIterator it(path,filters, QDir::Files, QDirIterator::Subdirectories);
+    while (it.hasNext())
+    {
+        QString fpath = it.next();
+        bool b = fpath.contains('/');
+        int idx = fpath.lastIndexOf(b ? '/' : '\\')+1;
+        //bakimageMap[fpath.mid(idx)] = QPixmap(fpath);
+      //  imgMap[fpath.mid(idx)] = fpath;
+        flistview->addItem(new QListWidgetItem(QIcon(QPixmap(fpath)),fpath.mid(idx)));
+    }
+  //  flistview->setProperty(DKEY_IMGMAP,imgMap);
+}
+
 void ImageFileDialog::onListViewDoubleClicked(QModelIndex index)
 {
     /* 双击添加到右框*/
@@ -90,7 +112,8 @@ void ImageFileDialog::onListViewDoubleClicked(QModelIndex index)
     QFileInfo qf = dirModel->fileInfo(index);
     if(qf.isDir())
     {
-        flistview->setRootIndex(fileModel->setRootPath(qf.absoluteFilePath()));
+       // flistview->setRootIndex(fileModel->setRootPath(qf.absoluteFilePath()));
+        updateListImages(qf.absoluteFilePath());
 
         // treefile->setExpanded(index,true);
         // treefile->expand(index);
@@ -182,7 +205,8 @@ void ImageFileDialog::onTreeViewClicked(QModelIndex index)
 {
     QString mPath = dirModel->fileInfo(index).absoluteFilePath();
     qDebug() << " DirModel AbsoluteFile Path " << mPath;
-    flistview->setRootIndex(fileModel->setRootPath(mPath));
+   // flistview->setRootIndex(fileModel->setRootPath(mPath));
+    updateListImages(mPath);
 
     // dirModel->fetchMore(index);
     treefile->setExpanded(index,true);

@@ -22,13 +22,22 @@
 #include "scenesscreen.h"
 #include "canvasmanager.h"
 
-void Compoent::changeJsonValue(QJsonArray &parr,QString key,
+void Compoent::changeJsonValue(const QJsonArray &parr,QString key,
                                const QVariant &val)
 {
     int asize = parr.size();
-    for(int i = 0;i < asize;i++)
+    int i = 0;
+    //for(int i = 0;i < asize;i++)
+    foreach (QJsonValue item, parr)
     {
-        QJsonObject obj = parr[i].toObject();
+
+        if(item.isArray())
+        {
+             changeJsonValue(item.toArray(),key,val);
+             continue;
+        }
+       // QJsonObject obj = parr[i].toObject();
+        QJsonObject obj = item.toObject();
         if(obj.contains(STRUCT))
         {
             QJsonArray arr = obj[STRUCT].toArray();
@@ -83,6 +92,7 @@ void Compoent::changeJsonValue(QJsonArray &parr,QString key,
             parr[i] = obj;
             break;
         }
+        i++;
     }
 }
 
@@ -96,12 +106,21 @@ void Compoent::changeJsonValue(QString key, QVariant val)
     dynValues[DKEY_DYN] = parr;
 }
 
-void Compoent::updateRBJsonValue(QJsonArray &projson, QWidget *w)
+void Compoent::updateRBJsonValue(const QJsonArray &projson, QWidget *w)
 {
     int psize =projson.size();
-    for(int i =0; i < psize;i++)
+   // for(int i =0; i < psize;i++)
+    int i = 0;
+    foreach (QJsonValue item, projson)
     {
-        QJsonObject ov = projson.at(i).toObject();
+        if(item.isArray())
+        {
+            updateRBJsonValue(item.toArray(),w);
+            continue;
+        }
+
+//        QJsonObject ov = projson.at(i).toObject();
+        QJsonObject ov = item.toObject();
 
         if(ov.contains(STRUCT))
         {
@@ -128,16 +147,23 @@ void Compoent::updateRBJsonValue(QJsonArray &projson, QWidget *w)
             ov[BORDER] = getBorderJson(w)[BORDER];
             projson[i] = ov;
         }
-
+        i++;
     }
 }
 
 QVariant Compoent::getJsonValue(const QJsonArray &parr,QString key)
 {
     int asize = parr.size();
-    for(int i = 0;i < asize;i++)
+   // for(int i = 0;i < asize;i++)
+    foreach (QJsonValue val, parr)
     {
-        QJsonObject obj = parr[i].toObject();
+        if(val.isArray())
+        {
+            return getJsonValue(val.toArray(),key);
+        }
+
+//        QJsonObject obj = parr[i].toObject();
+        QJsonObject obj = val.toObject();
         if(obj.contains(STRUCT))
         {
             return getJsonValue(obj[STRUCT].toArray(),key);
@@ -243,6 +269,14 @@ void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
               // 这里暂时有RGB颜色测试
               c = QColor(getJsonValue(BORDER).toString());
 
+          }else if(!uname.compare(BAKIMAGE))
+          {
+              QPixmap p(12,12);
+              QString img = getJsonValue(BAKIMAGE).toString();
+              p.load(img);
+              ((QPushButton*)w)->setIcon(p);
+              return;
+
           }
           QPixmap p(12,12);
           p.fill(c);
@@ -266,27 +300,45 @@ QJsonObject Compoent::getRectJson(QWidget *w)
 }
 
 
-
-
-QRect Compoent::getRectFromStruct(const QJsonArray &arr,QString key)
+QJsonObject Compoent::getValueFromProperty(const QJsonArray &arr, const QString &key)
 {
-    QJsonObject rectobj ;
-
+    QJsonObject ret;
     foreach (QJsonValue pval, arr) {
+        if(pval.isArray())
+        {
+            return getValueFromProperty(pval.toArray(),key);
+        }
         QJsonObject pobj = pval.toObject();
         if(pobj.contains(key))
         {
-            rectobj =  pobj[key].toObject();
-            break;
+            return pobj;
         }
         else if(pobj.contains(STRUCT)) {
-            return getRectFromStruct(pobj[STRUCT].toArray(),key);
+            return getValueFromProperty(pobj[STRUCT].toArray(),key);
         }
     }
+    return  ret;
+}
+
+QRect Compoent::getRectFromStruct(const QJsonArray &arr,QString key)
+{
+    QJsonObject rectobj  = getValueFromProperty(arr,key);
+
+//    foreach (QJsonValue pval, arr) {
+//        QJsonObject pobj = pval.toObject();
+//        if(pobj.contains(key))
+//        {
+//            rectobj =  pobj[key].toObject();
+//            break;
+//        }
+//        else if(pobj.contains(STRUCT)) {
+//            return getRectFromStruct(pobj[STRUCT].toArray(),key);
+//        }
+//    }
     QRect rect(0,0,0,0);
     if(!rectobj.isEmpty())
     {
-        QVariantMap obj =  rectobj.toVariantMap();
+        QVariantMap obj =  rectobj[key].toObject().toVariantMap();
         if(!key.compare(BORDER))
         {
             rect.setLeft(obj[LEFT].toString().toInt());
@@ -467,7 +519,7 @@ void NewLabel::mousePressEvent(QMouseEvent *ev)
          clearOtherObjectStyleSheet();
          mWindow->posWidget->setConnectNewQWidget(p);
          mWindow->propertyWidget->createPropertyBox(p);
-         mWindow->imgPropertyWidget->delPropertyBox();
+      //   mWindow->imgPropertyWidget->delPropertyBox();
     }
     mOffset = ev->pos();
     setCursor(Qt::ClosedHandCursor);
@@ -542,7 +594,7 @@ void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
 
     setStyleSheet("QLabel{border: 1px solid red;border-style: outset;}");
     mWindow->propertyWidget->createPropertyBox(p);
-    mWindow->imgPropertyWidget->createPropertyBox(this);
+   // mWindow->imgPropertyWidget->createPropertyBox(this);
 }
 
 
@@ -568,34 +620,34 @@ void NewLabel::updatePixmap(QString imgpath)
     this->setPixmap(QPixmap(imgpath));
 }
 
-void NewLabel::onPictureDialog(bool )
-{
-    QString key = QObject::sender()->objectName();
-    // QMessageBox::warning(this,"test","your clicked me: ");
-    ImageFileDialog *ifd = new ImageFileDialog(myImageList,this);
+//void NewLabel::onPictureDialog(bool )
+//{
+//    QString key = QObject::sender()->objectName();
+//    // QMessageBox::warning(this,"test","your clicked me: ");
+//    ImageFileDialog *ifd = new ImageFileDialog(myImageList,this);
 
-    ifd->exec();
-    qDebug() << " ImageFileDialog ";
-    //selectedMap sMap  = ifd->getSelectedMap();
-    myImageList = ifd->getSelectedList();
+//    ifd->exec();
+//    qDebug() << " ImageFileDialog ";
+//    //selectedMap sMap  = ifd->getSelectedMap();
+//    myImageList = ifd->getSelectedList();
 
-    disDefaultList = myImageList.size() ? true : false;
-    ifd->deleteLater();
-    QJsonObject json;
-    int rootlen  = QDir::currentPath().length()+1;
-    QJsonArray qa;
-   // qDebug() << " current path " << QDir::currentPath() << " len " << rootlen;
-    foreach (QString s, myImageList) {
-        // example for s   "alarm_du.bmp:/home/yjdwbj/build-ut-tools-Desktop_Qt_5_6_0_GCC_64bit-Debug/images/string/alarm_du.bmp
-        QString substr = s.section(':',1,1).mid(rootlen).replace("\\","/");
-        qa.append(substr);
-    }
-    json[LIST] = qa;
-    // 把新的列表更新的json中.
-    onBindValue(mWindow->imgPropertyWidget->getPropertyObject(key),json.toVariantMap());
-    this->blockSignals(true);
+//    disDefaultList = myImageList.size() ? true : false;
+//    ifd->deleteLater();
+//    QJsonObject json;
+//    int rootlen  = QDir::currentPath().length()+1;
+//    QJsonArray qa;
+//   // qDebug() << " current path " << QDir::currentPath() << " len " << rootlen;
+//    foreach (QString s, myImageList) {
+//        // example for s   "alarm_du.bmp:/home/yjdwbj/build-ut-tools-Desktop_Qt_5_6_0_GCC_64bit-Debug/images/string/alarm_du.bmp
+//        QString substr = s.section(':',1,1).mid(rootlen).replace("\\","/");
+//        qa.append(substr);
+//    }
+//    json[LIST] = qa;
+//    // 把新的列表更新的json中.
+//    onBindValue(mWindow->imgPropertyWidget->getPropertyObject(key),json.toVariantMap());
+//    this->blockSignals(true);
 
-}
+//}
 
 void NewLabel::updateComboItems(QComboBox *cb)
 {
@@ -924,7 +976,7 @@ void BaseForm::onSelectMe()
     mWindow->cManager->activeSS()->setSelectObject(this);
     mWindow->posWidget->setConnectNewQWidget(this);
     mWindow->propertyWidget->createPropertyBox(this);
-    mWindow->imgPropertyWidget->delPropertyBox();
+  //  mWindow->imgPropertyWidget->delPropertyBox();
     this->blockSignals(true);
 }
 
@@ -952,7 +1004,7 @@ void BaseForm::DeleteMe()
     mWindow->posWidget->resetValues();
     mWindow->ComCtrl->ProMap.remove(property(DKEY_LOCALSEQ).toString());
     mWindow->propertyWidget->delPropertyBox();
-    mWindow->imgPropertyWidget->delPropertyBox();
+  //  mWindow->imgPropertyWidget->delPropertyBox();
     // 它是否是列表控件的一员.
 
     deleteLater();
@@ -967,8 +1019,6 @@ void BaseForm::initJsonValue()
 
 void BaseForm::onBackgroundImageDialog()
 {
-
-
     ImageListView *imgview = new ImageListView(QDir::currentPath(),this);
     imgview->setFixedSize(mWindow->size() * 0.6);
     imgview->exec();
@@ -992,6 +1042,55 @@ void BaseForm::onSelectedBackgroundImage(QListWidgetItem *item)
     }
 
 }
+
+void BaseForm::onListImageChanged(QString img)
+{
+   QVariantList imglist = this->property(DKEY_IMAGELST).toList();
+   foreach (QVariant v, imglist) {
+       QString s = v.toString();
+       QString k = s.section(":",0,0);
+       if(!k.compare(img))
+       {
+           QString fpath = s.section(":",1,1);
+         //  this->setPixmap(QPixmap(fpath));/* 更新图片 */
+           int idx = QDir::currentPath().length() + 1;
+           this->changeJsonValue(BAKIMAGE,fpath.mid(idx));
+          // selIndex = imglist.indexOf(s);
+           break;
+       }
+   }
+
+}
+
+void BaseForm::onPictureDialog(bool )
+{
+    QString key = QObject::sender()->objectName();
+    // QMessageBox::warning(this,"test","your clicked me: ");
+    QVariantList imglist = this->property(DKEY_IMAGELST).toList();
+    ImageFileDialog *ifd = new ImageFileDialog(imglist,this);
+
+    ifd->exec();
+    qDebug() << " ImageFileDialog ";
+    //selectedMap sMap  = ifd->getSelectedMap();
+    imglist = ifd->getSelectedList();
+
+  //  disDefaultList = imglist.size() ? true : false;
+    ifd->deleteLater();
+    QJsonObject json;
+    int rootlen  = QDir::currentPath().length()+1;
+    QJsonArray qa;
+   // qDebug() << " current path " << QDir::currentPath() << " len " << rootlen;
+    foreach (QVariant v, imglist) {
+        QString s = v.toString();
+        // example for s   "alarm_du.bmp:/home/yjdwbj/build-ut-tools-Desktop_Qt_5_6_0_GCC_64bit-Debug/images/string/alarm_du.bmp
+        QString substr = s.section(':',1,1).mid(rootlen).replace("\\","/");
+        qa.append(substr);
+    }
+    json[LIST] = qa;
+    // 把新的列表更新的json中.
+   // onBindValue(mWindow->imgPropertyWidget->getPropertyObject(key),json.toVariantMap());
+}
+
 
 NewFrame::NewFrame(QString caption, QWidget *parent)
   //  :FormResizer(parent),Compoent()
@@ -1030,7 +1129,7 @@ void NewFrame::delMySelf()
    mWindow->tree->deleteItem(this);
    this->deleteLater();
    mWindow->propertyWidget->delPropertyBox();
-   mWindow->imgPropertyWidget->delPropertyBox();
+  // mWindow->imgPropertyWidget->delPropertyBox();
 
 }
 
@@ -1086,7 +1185,7 @@ void NewFrame::readFromJson(const QJsonObject &json)
                p.load(path);
                newLabel->setPixmap(p);
                break;
-               //  ((NewLabel *)nobj)->setFixedSize(p.size());
+
            }
 
         }
@@ -1150,6 +1249,15 @@ void NewFrame::mouseMoveEvent(QMouseEvent *event)
 
 }
 
+
+//void NewFrame::paintEvent(QPaintEvent *event)
+//{
+//    QPainter p(this);
+//    QPixmap img;
+//    img.load(mbkImage);
+//    p.drawPixmap(img.rect(),img);
+//    BaseForm::paintEvent(event);
+//}
 
 NewList::NewList(QString caption, const QSize size, QWidget *parent):
     //FormResizer(parent)
@@ -1857,9 +1965,23 @@ QWidget* NewLayout::createObjectFromJson(const QJsonObject &json)
     childlist.append(newFrame);
     mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),newFrame);
 
-    foreach (QJsonValue item, json[WIDGET].toArray()) {
-        newFrame->readFromJson(item.toObject());
+    QJsonObject obj = getValueFromProperty(json[PROPERTY].toArray(),BAKIMAGE);
+    if(!obj.isEmpty() && obj.contains(BAKIMAGE))
+    {
+       // QPixmap p;
+        QString path = obj[BAKIMAGE].toString();
+        if(path.contains("\\"))
+        {
+            path.replace("\\","/");
+        }
+        newFrame->mbkImage = path;
+        newFrame->updateStyleSheets();
     }
+
+    // 这里不再需要添加图片了.
+//    foreach (QJsonValue item, json[WIDGET].toArray()) {
+//        newFrame->readFromJson(item.toObject());
+//    }
     newFrame->show();
     newFrame->onSelectMe();
 
@@ -1937,12 +2059,8 @@ void NewLayer::onDeleteMe()
     //qDebug() << " QMessageBox result " << ret;
     if(ret == QMessageBox::Yes)
     {
-
         DeleteMe();
     }
-
-
-
 }
 
 

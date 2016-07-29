@@ -43,7 +43,7 @@ MainWindow::MainWindow(QWidget *parent) :
     cManager = new CanvasManager(this);
      posWidget = new Position(this);
     propertyWidget = new ComProperty("控件属性",this) ;
-    imgPropertyWidget = new ComProperty("图片属性",this);
+    //imgPropertyWidget = new ComProperty("图片属性",this);
 
     setWindowTitle(WIN_TITLE);
 
@@ -83,7 +83,7 @@ MainWindow::MainWindow(QWidget *parent) :
 //    // 控件属性框
 
     leftLayout->addWidget(propertyWidget);
-    leftLayout->addWidget(imgPropertyWidget);
+    //leftLayout->addWidget(imgPropertyWidget);
 
     tree = new TreeDock(this);
     // 左边两个并排的QDockWidget

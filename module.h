@@ -36,12 +36,14 @@ public:
      static QVariant getJsonValue(const QJsonArray &arr,QString key);
      QVariant getJsonValue(QString key) const;
      void changeJsonValue(QString key, QVariant val);
-     void changeJsonValue( QJsonArray &json,QString key,
+     void changeJsonValue( const QJsonArray &json,QString key,
                                     const QVariant &val);
 
-     void updateRBJsonValue(QJsonArray &json,QWidget *w); // 更新UID,RECT,BORDER三个属性
+     void updateRBJsonValue(const QJsonArray &json,QWidget *w); // 更新UID,RECT,BORDER三个属性
 
     void updateJsonArray(QString key,const QJsonArray &arr);
+    static QJsonObject getValueFromProperty(const QJsonArray &arr,const QString &key);
+
     static QRect getRectFromStruct(const QJsonArray &arr, QString key) ;
 
 
@@ -92,6 +94,8 @@ public slots:
     void onSelectedBackgroundImage(QListWidgetItem *item);
 
     void onDeleteMe();
+    void onPictureDialog(bool );
+    void onListImageChanged(QString);
 
 protected:
     void clearOtherObjectStyleSheet();
@@ -139,7 +143,7 @@ protected:
 
 private slots:
 
-    void onPictureDialog(bool );
+   // void onPictureDialog(bool );
     void onXYWHChangedValue(int);
     void onListImageChanged(QString);
     void onTextChanged(QString);
@@ -172,6 +176,8 @@ public:
     void writeToJson(QJsonObject &json);
     void readFromJson(const QJsonObject &json);
 
+
+
 public slots:
     void onDeleteMe();
 
@@ -181,7 +187,7 @@ protected:
     void mousePressEvent(QMouseEvent *ev);
     void mouseMoveEvent(QMouseEvent *event);
   //  void updateBorderColor();
-   // void paintEvent(QPaintEvent *);
+   // void paintEvent(QPaintEvent *event);
 
 };
 

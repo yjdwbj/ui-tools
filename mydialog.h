@@ -20,11 +20,12 @@ class ImageFileDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit ImageFileDialog(QStringList old,QWidget *parent = 0);
+    explicit ImageFileDialog(QVariantList old,QWidget *parent = 0);
     ~ImageFileDialog();
 
     //const selectedMap getSelectedMap() const { return selMap;}
-    const QStringList getSelectedList() const { return selstrList;}
+    const QVariantList getSelectedList() const { return selstrList;}
+    void updateListImages(QString path);
    // void setSelectedList(QStringList b) const { selstrList = b;}
 
 private slots:
@@ -38,15 +39,17 @@ private slots:
 private:
     QFileSystemModel *dirModel;
     QFileSystemModel *fileModel;
-    QListView *flistview;
+    QListWidget *flistview;
     QListWidget *sellist;
     QTreeView *treefile;
     QPushButton *add;
     QPushButton *del;
 
+    QStringList filters;
+
     QMap<QString,QModelIndex> hRows;
     //selectedMap selMap;
-    QStringList selstrList;
+    QVariantList selstrList;
 
 };
 
