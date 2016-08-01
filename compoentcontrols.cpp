@@ -188,11 +188,6 @@ void Position::updatePosition(QPoint pos)
 
     Xpos->blockSignals(false);
     Ypos->blockSignals(false);
-
-
-//    this->blockSignals(false);
-//    update();
-
 }
 
 void Position::updateSize(QSize size)
@@ -360,8 +355,8 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                QString cbkey =QString("%1_%2").arg(uname,QString::number(widgetMap.size()));
                widgetMap[cbkey] = cb;
                wid = cb;
-               QLabel * l = new QLabel(uname);
-               mainLayout->addWidget(l);
+//               QLabel * l = new QLabel(uname);
+//               mainLayout->addWidget(l);
                QPushButton *b = new QPushButton(tr("添加图片"));
                b->setObjectName(cbkey);
                connect(b,SIGNAL(clicked(bool)),p,SLOT(onPictureDialog(bool)));
@@ -472,26 +467,9 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
         default:
             break;
         }
-
         if(!wid)
             continue;
-        qDebug() << " class name  " << p->metaObject()->className();
-        if(!CN_NEWLABEL.compare(p->metaObject()->className()))
-        {
-            ((NewLabel*)p)->onBindValue(wid,item.toObject().toVariantMap());
-        }else{
-            ((BaseForm*)p)->onBindValue(wid,item.toObject().toVariantMap());
-        }
-//        if(!className.compare(CN_NEWFRAME))
-//        {
-//            ((NewFrame*)p)->onBindValue(wid,item.toObject().toVariantMap());
-//        }else if(!className.compare(CN_NEWLABEL)){
-//            ((NewLabel*)p)->onBindValue(wid,item.toObject().toVariantMap());
-//        }
-//        else if(!className.compare(CN_NEWLIST))
-//        {
-//            ((NewList*)p)->onBindValue(wid,item.toObject().toVariantMap());
-//        }
+         ((BaseForm*)p)->onBindValue(wid,item.toObject().toVariantMap());
 
     }
 }
@@ -816,7 +794,6 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
             v->addWidget(btnTest);
             btnTest->setFixedHeight(50);
             connect(btnTest,SIGNAL(clicked(bool)),SLOT(onCreateNewLayout()));
-
         }
         else{
              btnTest->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
@@ -839,17 +816,12 @@ void CompoentControls::onCreateCompoentToCanvas()
 
     //这里要区分一下控件的类型,在没有图层的情况下,要先建图层,再在图层下面新建布局.
    // NewLayout *activeLayout = mWindow->cManager->activeSS()->activeLayout();
-
-
-
-
     QWidget *wid = mWindow->cManager->activeSS()->activeObject();
 
 //    if(!wid || clsname.compare(CN_NEWLAYOUT))
     //QString clsname;
     if(!wid)
     {
-
         QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
         return;
     }

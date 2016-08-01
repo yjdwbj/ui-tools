@@ -14,7 +14,26 @@
 
 class MainWindow;
 
-typedef QMap<QString,QVariant> selectedMap;
+//typedef QMap<QString,QVariant> selectedMap;
+
+class CustomListWidget : public QListWidget
+{
+public:
+    CustomListWidget(QWidget *parent=0);
+    void performDrag();
+
+protected:
+    void dropEvent(QDropEvent *event);
+    void dragMoveEvent(QDragMoveEvent *e);
+    void dragEnterEvent(QDragEnterEvent *event);
+    void dragLeaveEvent(QDragLeaveEvent *e);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *e);
+
+private:
+    void checkMimeData(QDragMoveEvent *event);
+    QPoint startPos;
+};
 
 class ImageFileDialog: public QDialog
 {
@@ -37,10 +56,14 @@ private slots:
 
 
 private:
+    void appendSelectedItem(QModelIndex index);
+
     QFileSystemModel *dirModel;
     QFileSystemModel *fileModel;
-    QListWidget *flistview;
-    QListWidget *sellist;
+//    QListWidget *flistview;
+//    QListWidget *sellist;
+    CustomListWidget *flistview;
+    CustomListWidget *sellist;
     QTreeView *treefile;
     QPushButton *add;
     QPushButton *del;
@@ -48,8 +71,12 @@ private:
     QStringList filters;
 
     QMap<QString,QModelIndex> hRows;
+   // QMap<QString,QString> extMap;
+    QVariantMap extMap;
     //selectedMap selMap;
     QVariantList selstrList;
+protected:
+    void dragEnterEvent();
 
 };
 

@@ -36,7 +36,7 @@ public:
      static QVariant getJsonValue(const QJsonArray &arr,QString key);
      QVariant getJsonValue(QString key) const;
      void changeJsonValue(QString key, QVariant val);
-     void changeJsonValue( const QJsonArray &json,QString key,
+     QJsonValue changeJsonValue( const QJsonArray &json,QString key,
                                     const QVariant &val);
 
      void updateRBJsonValue(const QJsonArray &json,QWidget *w); // 更新UID,RECT,BORDER三个属性
@@ -109,56 +109,56 @@ protected:
 
 
 
-class NewLabel :public QLabel,public Compoent
-{
-   // friend class PropertyBox;
-    friend class ComProperty;
-    friend class ImgProperty;
-    Q_OBJECT
-signals:
-    void Clicked();
-public:
-    NewLabel(QWidget *parent=0);
-    //void createPropertyBox();
-    void addPropertyBoxSignal(QSpinBox *b);
-    void updatePixmap(QString imgpath);
-    void updateComboItems(QComboBox *cb);
-    void writeToJson(QJsonObject &json);
+//class NewLabel :public QLabel,public Compoent
+//{
+//   // friend class PropertyBox;
+//    friend class ComProperty;
+//    friend class ImgProperty;
+//    Q_OBJECT
+//signals:
+//    void Clicked();
+//public:
+//    NewLabel(QWidget *parent=0);
+//    //void createPropertyBox();
+//    void addPropertyBoxSignal(QSpinBox *b);
+//    void updatePixmap(QString imgpath);
+//    void updateComboItems(QComboBox *cb);
+//    void writeToJson(QJsonObject &json);
 
-    QString *defaultImg;
-    MainWindow *mWindow;
+//    QString *defaultImg;
+//    MainWindow *mWindow;
 
 
 
-protected:
-    void mousePressEvent(QMouseEvent *event) ;
-    void mouseReleaseEvent(QMouseEvent *ev);
-    void mouseDoubleClickEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    QWidget* getQWidgetByName(QString name) const;
-    QGroupBox* CreateXYWHGBox(QWidget *p);
-    void removeWidFromLayout(QLayout* layout);
-    void clearOtherObjectStyleSheet();
-  //  void onBindValue(QWidget *w,const QVariant &val);
+//protected:
+//    void mousePressEvent(QMouseEvent *event) ;
+//    void mouseReleaseEvent(QMouseEvent *ev);
+//    void mouseDoubleClickEvent(QMouseEvent *event);
+//    void mouseMoveEvent(QMouseEvent *event);
+//    QWidget* getQWidgetByName(QString name) const;
+//    QGroupBox* CreateXYWHGBox(QWidget *p);
+//    void removeWidFromLayout(QLayout* layout);
+//    void clearOtherObjectStyleSheet();
+//  //  void onBindValue(QWidget *w,const QVariant &val);
 
-private slots:
+//private slots:
 
-   // void onPictureDialog(bool );
-    void onXYWHChangedValue(int);
-    void onListImageChanged(QString);
-    void onTextChanged(QString);
-    void onNumberChanged(int num);
-    void onEnumItemChanged(QString txt);
+//   // void onPictureDialog(bool );
+//    void onXYWHChangedValue(int);
+//    void onListImageChanged(QString);
+//    void onTextChanged(QString);
+//    void onNumberChanged(int num);
+//    void onEnumItemChanged(QString txt);
 
-private:
-    void UpdateXYWHPos();
-    QPoint mOffset;
+//private:
+//    void UpdateXYWHPos();
+//    QPoint mOffset;
 
-    QStringList myImageList;
-    int selIndex; /* 选中的当前的图片号 */
-    bool disDefaultList; /* 屏闭默认的图片列表　*/
+//    QStringList myImageList;
+//    int selIndex; /* 选中的当前的图片号 */
+//    bool disDefaultList; /* 屏闭默认的图片列表　*/
 
-};
+//};
 
 
 

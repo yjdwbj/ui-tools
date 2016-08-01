@@ -6,23 +6,175 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickView>
+#include <QDrag>
+#include <QMimeData>
+#include <QDataStream>
+
+const static char DnditemData[] = "application/x-dnditemdata";
+
+
+CustomListWidget::CustomListWidget(QWidget *parent)
+    :QListWidget(parent)
+{
+    setAcceptDrops(true);
+}
+
+void CustomListWidget::dragLeaveEvent(QDragLeaveEvent *e)
+{
+
+}
+void CustomListWidget::dropEvent(QDropEvent *event)
+{
+
+    CustomListWidget *source =(CustomListWidget *)(event->source());
+      if (source && source != this) {
+          addItem(event->mimeData()->text());
+          event->setDropAction(Qt::MoveAction);
+          event->accept();
+      }
+}
+
+void CustomListWidget::checkMimeData(QDragMoveEvent *event)
+{
+
+    CustomListWidget *source =(CustomListWidget *)(event->source());
+       if (source && source != this) {
+           event->setDropAction(Qt::MoveAction);
+           event->accept();
+       }
+
+    qDebug() << " event source   " << event->source()
+             << " event " << event;
+//    if(event->mimeData()->hasFormat(DnditemData))
+//    {
+//        if(event->source() == this)
+//        {
+//            event->setDropAction(Qt::MoveAction);
+//            event->accept();
+//        }else {
+//            event->acceptProposedAction();
+//        }
+//    }else{
+//        event->ignore();
+//    }
+}
+
+void CustomListWidget::dragMoveEvent(QDragMoveEvent *event)
+{
+    checkMimeData(event);
+//    if(event->mimeData()->hasFormat(DnditemData))
+//    {
+//        if(event->source() == this)
+//        {
+//            event->setDropAction(Qt::MoveAction);
+//            event->accept();
+//        }else {
+//            event->acceptProposedAction();
+//        }
+//    }else{
+//        event->ignore();
+//    }
+}
+
+void CustomListWidget::dragEnterEvent(QDragEnterEvent *event)
+{
+//    if(event->mimeData()->hasFormat(DnditemData))
+//    {
+//        if(event->source() == this)
+//        {
+//            event->setDropAction(Qt::MoveAction);
+//            event->accept();
+//        }else{
+//            event->acceptProposedAction();
+//        }
+//    }else{
+//        event->ignore();
+//    }
+    checkMimeData(event);
+
+}
+
+void CustomListWidget::mouseMoveEvent(QMouseEvent *event)
+{
+    if (event->buttons() & Qt::LeftButton) {
+        int distance = (event->pos() - startPos).manhattanLength();
+        if (distance >= QApplication::startDragDistance())
+            performDrag();
+    }
+    QListWidget::mouseMoveEvent(event);
+}
+
+void CustomListWidget::performDrag()
+{
+    QListWidgetItem *item = currentItem();
+    if (item) {
+        QMimeData *mimeData = new QMimeData;
+        QString fname = item->text();
+        mimeData->setText(fname);
+
+        QDrag *drag = new QDrag(this);
+        drag->setMimeData(mimeData);
+        QVariantMap extMap = property(DKEY_EXTMAP).toMap();
+        drag->setPixmap(QPixmap(extMap[fname].toString()));
+        if (drag->exec(Qt::MoveAction) == Qt::MoveAction)
+            delete item;
+    }
+}
+
+void CustomListWidget::mousePressEvent(QMouseEvent *event)
+{
+
+    if (event->button() == Qt::LeftButton)
+           startPos = event->pos();
+
+     QListWidget::mousePressEvent(event);
+//    QListWidgetItem *item  = this->itemAt(event->pos());
+//    if(!item)
+//        return;
+
+
+//    QByteArray itemData;
+//    QDataStream dataStream(&itemData,QIODevice::WriteOnly);
+
+//    QString fname = item->text();
+//    dataStream << fname << event->pos() ;
+
+//    QMimeData *mimeData = new QMimeData;
+
+//    mimeData->setData(DnditemData,itemData);
+
+//    QDrag *drag = new QDrag(this);
+//    drag->setMimeData(mimeData);
+//    drag->setPixmap(QPixmap(fname));
+//    drag->setHotSpot(event->pos());
+
+
+}
+
 
 ImageFileDialog::ImageFileDialog(QVariantList old, QWidget *parent)
     :QDialog(parent),
-      sellist(new QListWidget()),
+      sellist(new CustomListWidget()),
+      flistview(new CustomListWidget()),
       treefile(new QTreeView()),
-      flistview(new QListWidget()),
       selstrList(old)
 {
 
+     flistview->setProperty(DKEY_EXTMAP,extMap);
      /* 填弃上一次的数据 */
     dirModel = new QFileSystemModel(this);
     fileModel = new QFileSystemModel(this);
     this->setFixedSize(1000,600);
+
     sellist->setSelectionMode(QAbstractItemView::MultiSelection);
-    flistview->setSelectionMode(QAbstractItemView::MultiSelection);
-    flistview->setViewMode(QListWidget::IconMode);
-   // flistview->setIconSize(QSize(200,180));
+    flistview->setSelectionMode(QAbstractItemView::ExtendedSelection);
+
+
+  //  flistview->setViewMode(QListWidget::IconMode);
+  //  sellist->setViewMode(QListWidget::IconMode);
+    flistview->setIconSize(QSize(80,60));
+    sellist->setIconSize(QSize(80,60));
+    // flistview->setIconSize(QSize(200,180));
     //  dirModel->setReadOnly(true);
     //  fileModel->setReadOnly(true);
 
@@ -90,7 +242,7 @@ void ImageFileDialog::updateListImages(QString path)
   //  imgMap.clear();
     flistview->clear();
 
-    QDirIterator it(path,filters, QDir::Files, QDirIterator::Subdirectories);
+    QDirIterator it(path,filters, QDir::Files /*,QDirIterator::Subdirectories*/);
     while (it.hasNext())
     {
         QString fpath = it.next();
@@ -98,6 +250,7 @@ void ImageFileDialog::updateListImages(QString path)
         int idx = fpath.lastIndexOf(b ? '/' : '\\')+1;
         //bakimageMap[fpath.mid(idx)] = QPixmap(fpath);
       //  imgMap[fpath.mid(idx)] = fpath;
+        extMap[fpath.mid(idx)] = fpath;
         flistview->addItem(new QListWidgetItem(QIcon(QPixmap(fpath)),fpath.mid(idx)));
     }
   //  flistview->setProperty(DKEY_IMGMAP,imgMap);
@@ -106,31 +259,25 @@ void ImageFileDialog::updateListImages(QString path)
 void ImageFileDialog::onListViewDoubleClicked(QModelIndex index)
 {
     /* 双击添加到右框*/
-    //  QString sstr = fileModel->data(index).toString();
-    //qDebug() << " here is dir or file " << sstr;
-    // fileModel->fileInfo(index).absolutePath();
-    QFileInfo qf = dirModel->fileInfo(index);
-    if(qf.isDir())
-    {
-       // flistview->setRootIndex(fileModel->setRootPath(qf.absoluteFilePath()));
-        updateListImages(qf.absoluteFilePath());
-
-        // treefile->setExpanded(index,true);
-        // treefile->expand(index);
-        QModelIndex mi = dirModel->index(qf.absoluteFilePath());
-        treefile->setCurrentIndex(mi);
-        treefile->expand(mi);
-        return;
-    }
-
-    QString s = fileModel->data(index).toString();
-    sellist->addItem(s);
-    //selMap[s] = fileModel->fileInfo(index).absoluteFilePath();
-    // 这里的每一条数据必需是下面格式:　　文件名:文件名的绝对完全路径
-    selstrList << QString("%1:%2").arg(s,fileModel->fileInfo(index).absoluteFilePath());
-    flistview->setRowHidden(index.row(),true);
-    hRows[s] = index;
+    appendSelectedItem(index);
 }
+
+void ImageFileDialog::appendSelectedItem(QModelIndex index)
+{
+    QString s = flistview->item(index.row())->text();
+
+    sellist->addItem(new QListWidgetItem(QPixmap(extMap[s].toString()),s));
+    //flistview->setRowHidden(index.row(),true);
+    QListWidgetItem *item = flistview->takeItem(index.row());
+    delete item;
+    hRows[s] = index;
+   // selMap[s] = fileModel->fileInfo(index).absoluteFilePath();
+    /* 这里不能使用MAP , QComobox 需要排序 */
+   // selstrList.append(QString("%1:%2").arg(s,fileModel->fileInfo(index).absoluteFilePath()));
+   // 这里的每一条数据必需是下面格式:　　文件名:文件名的绝对完全路径
+    selstrList.append(QString("%1:%1").arg(s,extMap[s].toString()));
+}
+
 
 void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
 {
@@ -178,19 +325,7 @@ void ImageFileDialog::onAddSelectedItems()
     QModelIndexList qil = flistview->selectionModel()->selectedIndexes();
     foreach(QModelIndex index, qil)
     {
-
-        QString s = fileModel->data(index).toString();
-        if(dirModel->fileInfo(index).isDir())
-            continue;
-        if(fileModel->fileInfo(index).isDir())
-            continue;
-        sellist->addItem(s);
-        flistview->setRowHidden(index.row(),true);
-        hRows[s] = index;
-       // selMap[s] = fileModel->fileInfo(index).absoluteFilePath();
-        /* 这里不能使用MAP , QComobox 需要排序 */
-        selstrList.append(QString("%1:%2").arg(s,fileModel->fileInfo(index).absoluteFilePath()));
-
+        appendSelectedItem(index);
     }
     flistview->clearSelection();
 }

@@ -129,8 +129,6 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonObject &json)
 
     nlayer->onSelectMe();
     nlayer->updateStyleSheets();
-
-
     mWindow->tree->addItemToRoot(nlayer);
     foreach (QJsonValue layout, json[LAYOUT].toArray()) {
         nlayer->readFromJson(layout.toObject());
@@ -226,7 +224,6 @@ void ScenesScreen::writeToJson(QJsonObject &json)
     QJsonArray projson;
     projson.append(Compoent::getRectJson(this));
     json[PROPERTY] = projson;
-   // json[NAME] = this->objectName();
     json[CAPTION] = this->property(DKEY_TXT).toString();
     json[CLASS] = this->metaObject()->className();
     json[LAYER] = layoutarr;

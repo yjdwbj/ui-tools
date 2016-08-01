@@ -77,6 +77,7 @@ static const char DKEY_JSONSTR[] = "JsonString";
 static const char DKEY_COLOR[] = "btncolor";
 static const char DKEY_BORDER_COLOR[] = "border_color";
 static const char DKEY_IMGMAP[] = "bkimage_map";
+static const char DKEY_EXTMAP[] = "extendMap";
 
 /* Class Name */
 static const QString CN_NEWLAYOUT = "NewLayout";
