@@ -4,5 +4,11 @@
         <file>icons/hide-30x30.png</file>
         <file>busyindicator.qml</file>
         <file>icons/busy.png</file>
+        <file>icons/arrowup.png</file>
+        <file>icons/arrowdown.png</file>
+        <file>icons/arrowright@2x.png</file>
+        <file>icons/arrowleft@2x.png</file>
+        <file>icons/arrowup@2x.png</file>
+        <file>icons/arrowdown@2x.png</file>
     </qresource>
 </RCC>

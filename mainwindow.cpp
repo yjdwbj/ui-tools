@@ -124,6 +124,8 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     this->centralWidget()->update();
+    show();  // 这里不能少.
+
 
     // 如果可以自动打开上次的工程
     QVariant prjvar = globalSet->value(INI_PRJLAST);

@@ -9,8 +9,14 @@
 #include <QDrag>
 #include <QMimeData>
 #include <QDataStream>
+#include <QBitmap>
 
 const static char DnditemData[] = "application/x-dnditemdata";
+
+
+
+
+
 
 
 CustomListWidget::CustomListWidget(QWidget *parent)
@@ -157,8 +163,10 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QWidget *parent)
       sellist(new CustomListWidget()),
       flistview(new CustomListWidget()),
       treefile(new QTreeView()),
-      selstrList(old)
+      selstrList(old),
+      statusBar(new QLabel)
 {
+
 
      flistview->setProperty(DKEY_EXTMAP,extMap);
      /* 填弃上一次的数据 */
@@ -166,9 +174,10 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QWidget *parent)
     fileModel = new QFileSystemModel(this);
     this->setFixedSize(1000,600);
 
-    sellist->setSelectionMode(QAbstractItemView::MultiSelection);
+    sellist->setSelectionMode(QAbstractItemView::ExtendedSelection);
+    sellist->setAlternatingRowColors(true);
     flistview->setSelectionMode(QAbstractItemView::ExtendedSelection);
-
+    flistview->setAlternatingRowColors(true);
 
   //  flistview->setViewMode(QListWidget::IconMode);
   //  sellist->setViewMode(QListWidget::IconMode);
@@ -178,20 +187,47 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QWidget *parent)
     //  dirModel->setReadOnly(true);
     //  fileModel->setReadOnly(true);
 
+    QMap<QString,QString> navigator;
+    navigator[UP] = ":/icon/icons/arrowup@2x.png";
+    navigator[DOWN] = ":/icon/icons/arrowdown@2x.png";
+    navigator[LEFT] = ":/icon/icons/arrowleft@2x.png";
+    navigator[RIGHT] = ":/icon/icons/arrowright@2x.png";
+
+
+    QVBoxLayout *mainLayout = new QVBoxLayout();
 
     QHBoxLayout *mh = new QHBoxLayout();
-    this->setLayout(mh);
+    this->setLayout(mainLayout);
+    mainLayout->addLayout(mh);
     this->setWindowTitle(tr("图片编辑"));
-
-
-    add = new QPushButton(tr("<--"));
-    del =new QPushButton(tr("-->"));
+    QColor white(255,255,255);
     QVBoxLayout *v = new QVBoxLayout();
-    v->addWidget(add);
-    v->addWidget(del);
+    v->setSizeConstraint(QLayout::SetFixedSize);
 
-    connect(del,SIGNAL(clicked(bool)),SLOT(onDelSelectedItems()));
-    connect(add,SIGNAL(clicked(bool)),SLOT(onAddSelectedItems()));
+
+    QMapIterator<QString,QString> itmap(navigator);
+    while(itmap.hasNext())
+    {
+        itmap.next();
+        QPushButton *btn = new QPushButton();
+        btn->setIcon(QIcon(itmap.value()));
+        btn->setObjectName(itmap.key());
+        btn->setFixedSize(btn->iconSize());
+        v->addWidget(btn);
+        if(!LEFT.compare(itmap.key()))
+        {
+            connect(btn,SIGNAL(clicked(bool)),SLOT(onAddSelectedItems()));
+        }else if(!UP.compare(itmap.key()))
+        {
+            connect(btn,SIGNAL(clicked(bool)),SLOT(onUp()));
+        }else if(!DOWN.compare(itmap.key()))
+        {
+            connect(btn,SIGNAL(clicked(bool)),SLOT(onDown()));
+        }else if(!RIGHT.compare(itmap.key()))
+        {
+            connect(btn,SIGNAL(clicked(bool)),SLOT(onDelSelectedItems()));
+        }
+    }
 
 
     QString imgpath = QDir::currentPath() + "/config/images";
@@ -222,7 +258,9 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QWidget *parent)
 //    flistview->setRootIndex(fileModel->index(imgpath));
 
     connect(sellist,SIGNAL(doubleClicked(QModelIndex)),SLOT(onSelListViewDoubleClicked(QModelIndex)));
+    connect(sellist,SIGNAL(clicked(QModelIndex)),SLOT(onSelectCurrentItem(QModelIndex)));
     connect(flistview,SIGNAL(doubleClicked(QModelIndex)),SLOT(onListViewDoubleClicked(QModelIndex)));
+
     connect(treefile,SIGNAL(clicked(QModelIndex)),SLOT(onTreeViewClicked(QModelIndex)));
 
     /* 主布局是水平布局,左(QListWidget),中(垂直布局),右(文件系统) */
@@ -232,8 +270,31 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QWidget *parent)
     mh->addWidget(flistview);
     mh->addWidget(treefile);
 
+
+    QHBoxLayout *mlayout = new QHBoxLayout();
+    mlayout->setSizeConstraint(QLayout::SetMaximumSize);
+    QLabel *msg  = new QLabel("已经添加的图片数:");
+    //statusBar->setStyleSheet("background-color: #aa1100;");
+    statusBar->setText("0");
+    mlayout->addWidget(msg);
+    mlayout->addWidget(statusBar);
+    statusBar->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+
+    mainLayout->addLayout(mlayout);
+    setOldList();
     this->setModal(true);
    // exec();
+}
+
+void ImageFileDialog::setOldList()
+{
+    foreach (QVariant v, selstrList) {
+        QString str = v.toString();
+        QListWidgetItem *nitem = new QListWidgetItem(QPixmap(str.section(":",1,1)),
+                                                     str.section(":",0,0));
+
+        sellist->addItem(nitem);
+    }
 }
 
 
@@ -241,8 +302,9 @@ void ImageFileDialog::updateListImages(QString path)
 {
   //  imgMap.clear();
     flistview->clear();
-
+    extMap.clear();
     QDirIterator it(path,filters, QDir::Files /*,QDirIterator::Subdirectories*/);
+
     while (it.hasNext())
     {
         QString fpath = it.next();
@@ -251,9 +313,31 @@ void ImageFileDialog::updateListImages(QString path)
         //bakimageMap[fpath.mid(idx)] = QPixmap(fpath);
       //  imgMap[fpath.mid(idx)] = fpath;
         extMap[fpath.mid(idx)] = fpath;
-        flistview->addItem(new QListWidgetItem(QIcon(QPixmap(fpath)),fpath.mid(idx)));
+        bool isFind = false;
+        for(int i =0; i < sellist->count();i++)
+        {
+           QListWidgetItem *item =    sellist->item(i);
+           if(!item->text().compare(fpath.mid(idx)))
+           {
+               // 这里有相同文件名了,所以在待选列表不再添加它,这里没有处理不同目录下的同名文件.都视为同名.
+               isFind = true;
+               break;
+           }
+        }
+        if(isFind)
+            continue;
+
+        flistview->addItem(new QListWidgetItem(QPixmap(fpath),fpath.mid(idx)));
     }
   //  flistview->setProperty(DKEY_IMGMAP,imgMap);
+}
+
+void ImageFileDialog::onSelectCurrentItem(QModelIndex index)
+{
+
+  findChild<QPushButton*>(UP)->setEnabled(index.row() == 0 ? false : true);
+  findChild<QPushButton*>(DOWN)->setEnabled(index.row() == sellist->count() -1 ? false : true);
+
 }
 
 void ImageFileDialog::onListViewDoubleClicked(QModelIndex index)
@@ -261,13 +345,83 @@ void ImageFileDialog::onListViewDoubleClicked(QModelIndex index)
     /* 双击添加到右框*/
     appendSelectedItem(index);
 }
+void ImageFileDialog::updateListWidget()
+{
+//    QWidget *first;
+//    QWidget *last;
+    for(int i = 0; i < sellist->count();i++)
+    {
+        QListWidgetItem *item = sellist->item(i);
+         QWidget *w =  sellist->itemWidget(item);
+         w->setProperty(DKEY_ROW,i);
+         if(i == 0)
+         {
+           // first = w;
+            w->findChild<QPushButton*>("up")->setEnabled(false);
+         }else if(i == sellist->count() -1){
+             //last = w;
+             w->findChild<QPushButton*>("down")->setEnabled(false);
+         }else
+         {
+             w->findChild<QPushButton*>("up")->setEnabled(true);
+             w->findChild<QPushButton*>("down")->setEnabled(true);
+         }
+
+    }
+
+
+}
+
+
+QWidget* ImageFileDialog::createUpAndDownButton(int row)
+{
+    QPushButton *up =new  QPushButton();
+    up->setProperty(DKEY_ROW,row);
+    connect(up,SIGNAL(clicked(bool)),SLOT(onUp()));
+    up->setObjectName(tr("up"));
+    QPixmap uppix(":/icon/icons/arrowup.png");
+    // 隐除PNG图片中的白色像素.
+     QBitmap umask= uppix.createMaskFromColor(QColor(255,255,255),Qt::MaskInColor);
+    uppix.setMask(umask);
+    up->setIcon(uppix);
+
+
+    QPushButton *down =new QPushButton();
+    down->setProperty(DKEY_ROW,row);
+    connect(down,SIGNAL(clicked(bool)),SLOT(onDown()));
+    down->setObjectName(tr("down"));
+    QPixmap downpix(":/icon/icons/arrowdown.png");
+    QBitmap dmask= downpix.createMaskFromColor(QColor(255,255,255),Qt::MaskInColor);
+    downpix.setMask(dmask);
+    down->setIcon(downpix);
+
+    up->setFixedSize(up->iconSize());
+    down->setFixedSize(down->iconSize());
+
+
+    QHBoxLayout *hb = new QHBoxLayout();
+
+    QVBoxLayout *vb = new QVBoxLayout();
+    vb->setSizeConstraint(QLayout::SetFixedSize);
+    vb->setSpacing(1);
+    //vb->addStretch();
+
+    vb->addWidget(up);
+    vb->addWidget(down);
+    QWidget *w = new QWidget();
+    hb->setSpacing(1);
+    hb->addSpacerItem(new QSpacerItem(1,1,QSizePolicy::Expanding,QSizePolicy::Fixed));
+    hb->addLayout(vb);
+    //hb->addStretch();
+    w->setLayout(hb);
+    return w;
+}
 
 void ImageFileDialog::appendSelectedItem(QModelIndex index)
 {
     QString s = flistview->item(index.row())->text();
-
-    sellist->addItem(new QListWidgetItem(QPixmap(extMap[s].toString()),s));
-    //flistview->setRowHidden(index.row(),true);
+    QListWidgetItem *nitem = new QListWidgetItem(QPixmap(extMap[s].toString()),s);
+    sellist->addItem(nitem);
     QListWidgetItem *item = flistview->takeItem(index.row());
     delete item;
     hRows[s] = index;
@@ -275,15 +429,47 @@ void ImageFileDialog::appendSelectedItem(QModelIndex index)
     /* 这里不能使用MAP , QComobox 需要排序 */
    // selstrList.append(QString("%1:%2").arg(s,fileModel->fileInfo(index).absoluteFilePath()));
    // 这里的每一条数据必需是下面格式:　　文件名:文件名的绝对完全路径
-    selstrList.append(QString("%1:%1").arg(s,extMap[s].toString()));
+    selstrList.append(QString("%1:%2").arg(s,extMap[s].toString()));
+    statusBar->setText(QString::number(sellist->count()));
 }
 
+void ImageFileDialog::onUp()
+{
+    QPushButton *btn = (QPushButton*)(QObject::sender());
+//    int row = btn->property(DKEY_ROW).toInt();
+    int row = sellist->currentRow();
+//    if(row == 0)
+//    {
+//        btn->setEnabled(false);
+//        return;
+//    }
+     QListWidgetItem *item =  sellist->takeItem(row);
+     sellist->insertItem(row -1,item);
+     sellist->setCurrentItem(item);
+     btn->setEnabled(row -1 == 0 ? false : true);
+}
+
+void ImageFileDialog::onDown()
+{
+    QPushButton *btn = (QPushButton*)(QObject::sender());
+    int row = sellist->currentRow();
+//    if(row == sellist->count() -1)
+//    {
+//        btn->setEnabled(false);
+//        return;
+//    }
+     QListWidgetItem *item =  sellist->takeItem(row);
+     sellist->insertItem(row +1,item);
+     sellist->setCurrentItem(item);
+     btn->setEnabled(row + 1 == sellist->count() -1 ? false : true);
+}
 
 void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
 {
     /* 双击从右框删除 */
     // sellist->takeItem(index.row())->text();
     QString selstr = sellist->takeItem(index.row())->text();
+
   //  QModelIndex qmi = fileModel->index(selstr);
     QString fpath = fileModel->fileInfo(fileModel->index(selstr)).absoluteFilePath();
     qDebug() << " will show the " << fpath << " selected str: " << selstr;
@@ -298,6 +484,8 @@ void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
    int i = selstrList.indexOf( QString("%1:%2").arg(selstr,fpath));
    if( -1 != i )
        selstrList.removeAt(i);
+   statusBar->setText(QString::number(sellist->count()));
+//   statusBar->repaint();
 }
 
 void ImageFileDialog::onDelSelectedItems()
@@ -316,6 +504,7 @@ void ImageFileDialog::onDelSelectedItems()
         if( -1 != i )
             selstrList.removeAt(i);
     }
+   // updateListWidget();
     sellist->clearSelection();
 }
 
@@ -327,6 +516,7 @@ void ImageFileDialog::onAddSelectedItems()
     {
         appendSelectedItem(index);
     }
+    statusBar->setText(QString::number(sellist->count()));
     flistview->clearSelection();
 }
 
@@ -441,6 +631,7 @@ ImageListView::ImageListView(QString path, QWidget *parent)
      treefile(new QTreeView()),
      imglist(new QListWidget)
 {
+
     QHBoxLayout *mh = new QHBoxLayout();
     this->setLayout(mh);
     this->setWindowTitle(tr("图片编辑"));

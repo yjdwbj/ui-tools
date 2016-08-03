@@ -10,6 +10,8 @@ static QString LX = "x";
 static QString LY = "y";
 static QString LEFT ="left";
 static QString TOP = "top";
+static QString UP = "dup";
+static QString DOWN = "udown";
 static QString RIGHT = "right";
 static QString BOTTOM="bottom";
 static QString WIDTH = "width";
@@ -78,6 +80,7 @@ static const char DKEY_COLOR[] = "btncolor";
 static const char DKEY_BORDER_COLOR[] = "border_color";
 static const char DKEY_IMGMAP[] = "bkimage_map";
 static const char DKEY_EXTMAP[] = "extendMap";
+static const char DKEY_ROW[] = "rowProperty";
 
 /* Class Name */
 static const QString CN_NEWLAYOUT = "NewLayout";
@@ -85,8 +88,8 @@ static const QString CN_NEWFRAME = "NewFrame";
 static const QString CN_NEWLABEL = "NewLabel";
 static const QString CN_NEWLAYER = "NewLayer";
 static const QString CN_NEWLIST = "NewList";
-static const QString CN_LAYER = "Layer";
-static const QString CN_LAYOUT = "Layout";
+//static const QString CN_LAYER = "Layer";
+//static const QString CN_LAYOUT = "Layout";
 static const QString CN_SSNAME = "ScenesScreen";
 
 /*  ini format */

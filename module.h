@@ -39,7 +39,7 @@ public:
      QJsonValue changeJsonValue( const QJsonArray &json,QString key,
                                     const QVariant &val);
 
-     void updateRBJsonValue(const QJsonArray &json,QWidget *w); // 更新UID,RECT,BORDER三个属性
+     QJsonArray updateRBJsonValue(const QJsonArray &json,QWidget *w); // 更新UID,RECT,BORDER三个属性
 
     void updateJsonArray(QString key,const QJsonArray &arr);
     static QJsonObject getValueFromProperty(const QJsonArray &arr,const QString &key);

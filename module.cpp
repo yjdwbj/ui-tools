@@ -51,20 +51,26 @@ QJsonValue Compoent::changeJsonValue(const QJsonArray &arg,QString key,
             return parr;
             break;
         }
-        // 这里必需要有-name 这个属性名.
-        if(obj[NAME].toString().contains(key) )
+        // 这里必需要有-type 这个属性名.
+        if(obj[WTYPE].toString().contains(key) )
         {
-//           if(obj.contains(BORDER))
-//                    {
-//                        obj[BORDER] = QJsonValue::fromVariant(val);
-//                        parr[i] = obj;
-//                        break;
-//                    }
-            if(obj.contains(DEFAULT))
+            if(obj.contains(LIST) && obj.contains(DEFAULT))
+            {
+
+                QJsonValue v =  QJsonValue::fromVariant(val);
+                if(v.isArray())
+                {
+                    obj[LIST] = v;
+                }else
+                {
+                    obj[DEFAULT] = v;
+                }
+            }else if(obj.contains(DEFAULT))
             {
                 obj[DEFAULT] = QJsonValue::fromVariant(val);
+            }
 
-            }else if(obj.contains(UID))
+            else if(obj.contains(UID))
             {
                  obj[ENAME] =  QJsonValue::fromVariant(val);
             }
@@ -79,10 +85,7 @@ QJsonValue Compoent::changeJsonValue(const QJsonArray &arg,QString key,
 //                parr[i] = obj;
 //                break;
             }
-            else if(obj.contains(LIST))
-            {
-                obj[LIST] = QJsonValue::fromVariant(val);
-            }else if(obj.contains(GRAYCOLOR)){
+            else if(obj.contains(GRAYCOLOR)){
 
                 obj[GRAYCOLOR] = QJsonValue::fromVariant(val);
             }else if(obj.contains(COLOR))
@@ -119,16 +122,18 @@ void Compoent::changeJsonValue(QString key, QVariant val)
     dynValues[DKEY_DYN] = changeJsonValue(parr,key,val);
 }
 
-void Compoent::updateRBJsonValue(const QJsonArray &projson, QWidget *w)
+QJsonArray Compoent::updateRBJsonValue(const QJsonArray &arr, QWidget *w)
 {
+    QJsonArray projson = arr;
+
     int psize =projson.size();
-   // for(int i =0; i < psize;i++)
-    int i = 0;
-    foreach (QJsonValue item, projson)
+    for(int i =0; i < psize;i++)
     {
+        QJsonValue item = projson.at(i);
         if(item.isArray())
         {
-            updateRBJsonValue(item.toArray(),w);
+             projson.replace(i,updateRBJsonValue(item.toArray(),w));
+             return projson;
             continue;
         }
 
@@ -138,31 +143,26 @@ void Compoent::updateRBJsonValue(const QJsonArray &projson, QWidget *w)
         if(ov.contains(STRUCT))
         {
             QJsonArray array =  ov[STRUCT].toArray();
-            updateRBJsonValue( array,w);
-            ov[STRUCT] = array;
-          // projson[i] = ov;
+            ov[STRUCT] = updateRBJsonValue( array,w);
 
         }else if(ov.contains(KEY_RECT))
         {
-
             //ov = getRectJson(this);
             ov[KEY_RECT] = getRectJson(w)[KEY_RECT];
-          //  projson[i] = ov;
 
         }else if(ov.contains(UID))
         {
           //  ov[UID] = w->property(DKEY_UID).toString();
              ov[UID] = w->property(DKEY_UID).toInt();
-            //projson[i] = ov;
         }
         else if(ov.contains(BORDER))
         {
             ov[BORDER] = getBorderJson(w)[BORDER];
-           // projson[i] = ov;
         }
         projson[i] = ov;
-        i++;
+
     }
+     return projson;
 }
 
 QVariant Compoent::getJsonValue(const QJsonArray &parr,QString key)
@@ -182,7 +182,7 @@ QVariant Compoent::getJsonValue(const QJsonArray &parr,QString key)
         {
             return getJsonValue(obj[STRUCT].toArray(),key);
         }
-        if(obj[NAME].toString().contains(key))
+        if(obj[WTYPE].toString().contains(key))
         {
             if(obj.contains(DEFAULT))
             {
@@ -216,6 +216,8 @@ void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
 {
  //   qDebug() << " dyn size " << dynValues.size();
      // 通过关键字来设置控件的默认值.
+    if(!w)
+        return;
      QString n = w->metaObject()->className();
      QString uname = w->objectName();
      if(!n.compare("QLineEdit"))
@@ -226,37 +228,26 @@ void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
      }else if(!n.compare("QComboBox"))
      {
          QComboBox *cb = (QComboBox *)w;
-         QVariant nlv =  map.value(LIST);
+         QVariant nlv =  cb->property(DKEY_IMAGELST);
          if(nlv.isValid() )
          {
              // 处理图片列表与它的默认值.
              cb->clear();
              QVariantList nlist = nlv.toList();
+             QString defimg = cb->property(DKEY_IMGIDX).toString();
              for(QVariantList::const_iterator it = nlist.begin();
                      it != nlist.end();++it)
              {
                  // example for key  is  "config/images/string/alarm_pol.bmp"
                  QString key = (*it).toString();
-                 bool b = key.contains('/');
-                 int idx = key.lastIndexOf(b ? '/' : '\\')+1;
-                 cb->addItem(key.mid(idx));
+
+                 cb->addItem(QIcon(key.section(":",1,1)),key.section(":",0,0));
              }
-             changeJsonValue(LIST,nlv);
-
-             foreach (QJsonValue val, dynValues[DKEY_DYN].toArray()) {
-                 QJsonObject qobj = val.toObject();
-                 if(qobj.contains(IMAGE))
-                 {
-                     QString defval  =qobj.value(IMAGE).toString();
-                     bool b = defval.contains('/');
-                     int idx =   defval.lastIndexOf( b ? '/' : '\\')+1;
-
-                     cb->setCurrentText(defval.mid(idx));
-                     break;
-                 }
-             }
-
-           }else{
+             cb->setCurrentText(defimg);
+             cb->setProperty(DKEY_IMGIDX,defimg);
+           }
+            else
+         {
             cb->setCurrentText(getJsonValue(uname).toString());
          }
 
@@ -970,8 +961,8 @@ void BaseForm::onSelectMe()
   //  setStyleSheet("NewFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
   //  clearOtherObjectStyleSheet();
 
-    qDebug() << " our object name " << objectName()
-           << " clss name " << metaObject()->className();
+//    qDebug() << " our object name " << objectName()
+//           << " clss name " << metaObject()->className();
 
 
     mWindow->cManager->activeSS()->setSelectObject(this);
@@ -1048,17 +1039,19 @@ void BaseForm::onSelectedBackgroundImage(QListWidgetItem *item)
 
 void BaseForm::onListImageChanged(QString img)
 {
+   QString objname = QObject::sender()->objectName();
    QVariantList imglist = this->property(DKEY_IMAGELST).toList();
    foreach (QVariant v, imglist) {
        QString s = v.toString();
        QString k = s.section(":",0,0);
        if(!k.compare(img))
        {
-           QString fpath = s.section(":",1,1);
+         //  QString fpath = s.section(":",1,1);
          //  this->setPixmap(QPixmap(fpath));/* 更新图片 */
-           int idx = QDir::currentPath().length() + 1;
-           this->changeJsonValue(BAKIMAGE,fpath.mid(idx));
+        //   int idx = QDir::currentPath().length() + 1;
+           //this->changeJsonValue(BAKIMAGE,fpath.mid(idx));
           // selIndex = imglist.indexOf(s);
+           changeJsonValue(objname,s.section(":",1,1)); // 修改JSON里的值
            break;
        }
    }
@@ -1067,7 +1060,11 @@ void BaseForm::onListImageChanged(QString img)
 
 void BaseForm::onPictureDialog(bool )
 {
+    QWidget *sparent =((QWidget*)QObject::sender())->parentWidget();
+
     QString key = QObject::sender()->objectName();
+    QComboBox *cb = sparent->findChild<QComboBox*>(key);
+
     // QMessageBox::warning(this,"test","your clicked me: ");
     QVariantList imglist = this->property(DKEY_IMAGELST).toList();
     ImageFileDialog *ifd = new ImageFileDialog(imglist,this);
@@ -1079,19 +1076,33 @@ void BaseForm::onPictureDialog(bool )
 
   //  disDefaultList = imglist.size() ? true : false;
     ifd->deleteLater();
-    QJsonObject json;
+   // QJsonObject json;
     int rootlen  = QDir::currentPath().length()+1;
     QJsonArray qa;
-   // qDebug() << " current path " << QDir::currentPath() << " len " << rootlen;
+
+    cb->clear();
+    setProperty(DKEY_IMAGELST,imglist);
     foreach (QVariant v, imglist) {
         QString s = v.toString();
         // example for s   "alarm_du.bmp:/home/yjdwbj/build-ut-tools-Desktop_Qt_5_6_0_GCC_64bit-Debug/images/string/alarm_du.bmp
-        QString substr = s.section(':',1,1).mid(rootlen).replace("\\","/");
+        // example for s   ""m104.bmp:config/images/string/m104.bmp"
+        QString lastsection = s.section(':',1,1);
+         QString substr;
+        if(lastsection.indexOf('/') == 0)
+        {
+           substr = s.section(':',1,1).mid(rootlen).replace("\\","/");
+        }else
+        {
+            substr = s.section(':',1,1).replace("\\","/");
+        }
         qa.append(substr);
+        cb->addItem(QIcon(substr), s.section(':',0,0));
     }
-    json[LIST] = qa;
+    cb->setCurrentText(cb->property(DKEY_IMGIDX).toString());
+    changeJsonValue(key,qa);
+    //json[LIST] = qa;
     // 把新的列表更新的json中.
-   // onBindValue(mWindow->imgPropertyWidget->getPropertyObject(key),json.toVariantMap());
+
 }
 
 
@@ -1210,9 +1221,9 @@ void NewFrame::writeToJson(QJsonObject &json)
     QJsonArray projson;// 属性
 
     projson = dynValues[DKEY_DYN].toArray();
-    updateRBJsonValue(projson,this);
 
-    json[PROPERTY] = projson;
+
+    json[PROPERTY] = updateRBJsonValue(projson,this);
     dynValues[DKEY_DYN] = projson;
     json[NAME] = objectName();
     json[CLASS] = this->metaObject()->className();
@@ -1375,7 +1386,7 @@ void NewList::onAddOneLine()
     newlayout->parentList = this;
   //  nl->addMainWindow(mWindow);
     childlist.append(newlayout);
-    int n = mWindow->ComCtrl->ProMap.size();
+   // int n = mWindow->ComCtrl->ProMap.size();
     newlayout->copyProperty(mWindow->ComCtrl->Layout);
     newlayout->setProperty(DKEY_DYN,mWindow->ComCtrl->Layout);
     newlayout->initJsonValue();
@@ -1869,9 +1880,9 @@ void NewLayout::writeToJson(QJsonObject &json)
     json[CAPTION] = this->property(DKEY_TXT).toString();
 
     QJsonArray projson = dynValues[DKEY_DYN].toArray();
-    updateRBJsonValue(projson,this);
-    projson.append(Compoent::getRectJson(this));
-    json[PROPERTY] = projson;
+
+   // projson.append(Compoent::getRectJson(this));
+    json[PROPERTY] =  updateRBJsonValue(projson,this);
 }
 
 
@@ -1883,7 +1894,7 @@ void NewLayout::readFromJson(const QJsonObject &valobj)
     QString caption = valobj[CAPTION].toString();
     qDebug() << " read from json caption is " << caption;
     QVariant variant = valobj[PROPERTY].toVariant();
-    if(!clsName.compare(CN_NEWLAYOUT) || !clsName.compare(CN_LAYOUT))
+    if(!clsName.compare(CN_NEWLAYOUT)/* || !clsName.compare(CN_LAYOUT)*/)
     {
         NewLayout *newlayout = new NewLayout(caption,oldrect.size(),mWindow,m_frame);
         if(valobj.contains(PROPERTY))
@@ -2009,7 +2020,7 @@ void NewLayer::readFromJson(const QJsonObject &valobj)
    QString caption = valobj[CAPTION].toString();
    qDebug() << " read from json caption is " << caption;
    QVariant variant = valobj.value(PROPERTY).toVariant();
-   if(!clsName.compare(CN_NEWLAYOUT) || !clsName.compare(CN_LAYOUT))
+   if(!clsName.compare(CN_NEWLAYOUT) /*|| !clsName.compare(CN_LAYOUT)*/)
    {
        NewLayout *newlayout = new NewLayout(caption,oldrect.size(),mWindow,m_frame);
        if(valobj.contains(PROPERTY))
@@ -2080,9 +2091,9 @@ void NewLayer::writeToJson(QJsonObject &json)
     json[CLASS] = this->metaObject()->className();
     json[LAYOUT] = layoutarr;
     QJsonArray proterty = dynValues[DKEY_DYN].toArray();
-    updateRBJsonValue(proterty,this);
-    proterty.append(Compoent::getRectJson(this));
-    json[PROPERTY] = proterty;
+
+   // proterty.append(Compoent::getRectJson(this));
+    json[PROPERTY] = updateRBJsonValue(proterty,this);
 }
 
 

@@ -321,7 +321,7 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
         case QJsonValue::Object:
         {
            QJsonObject object = item.toObject();
-           QString uname = object[NAME].toString();
+           QString uname = object[WTYPE].toString();
            QString caption = object[CAPTION].toString();
         //   parseJsonToWidget(p,object,layout);
            if(object.contains(STRUCT)) // 处理struct 关键字,QJsonArray
@@ -355,13 +355,43 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                QString cbkey =QString("%1_%2").arg(uname,QString::number(widgetMap.size()));
                widgetMap[cbkey] = cb;
                wid = cb;
-//               QLabel * l = new QLabel(uname);
-//               mainLayout->addWidget(l);
                QPushButton *b = new QPushButton(tr("添加图片"));
-               b->setObjectName(cbkey);
+               b->setObjectName(uname);
                connect(b,SIGNAL(clicked(bool)),p,SLOT(onPictureDialog(bool)));
                mainLayout->addWidget(b);
                mainLayout->addWidget(cb);
+               QVariant nlv =  item.toObject().value(LIST);
+               QVariantList imglist ;
+               if(nlv.isValid() )
+               {
+                   // 处理图片列表与它的默认值
+                   QVariantList nlist = nlv.toList();
+                   QString defimg = item.toObject().value(DEFAULT).toString();
+                //   int rootlen  = QDir::currentPath().length()+1;
+
+                   defimg = defimg.replace("\\","/");
+                   int sep = defimg.lastIndexOf('/') + 1;
+                   defimg = defimg.mid(sep);
+
+                   for(QVariantList::const_iterator it = nlist.begin();
+                           it != nlist.end();++it)
+                   {
+                       // example for key  is  "config/images/string/alarm_pol.bmp"
+                       QString key = (*it).toString();
+                       bool b = key.contains('/');
+                       int idx = key.lastIndexOf(b ? '/' : '\\')+1;
+                     //  cb->addItem(QIcon(key),key.mid(idx));
+                       imglist << QString("%1:%2").arg(key.mid(idx),key);
+                   }
+
+                   cb->setProperty(DKEY_IMGIDX,defimg);
+                   p->setProperty(DKEY_IMAGELST,imglist);
+                   cb->setProperty(DKEY_IMAGELST,imglist);
+
+                  // changeJsonValue(LIST,nlv);
+               }
+
+
                // 绑定QComoBox的更改信号,更改它的值就要在相应的画版控件更新图片
                connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onListImageChanged(QString)));
 
@@ -684,7 +714,7 @@ void CompoentControls::onCreateCustomWidget()
         return;
     }
     QString clsname = wid->metaObject()->className();
-    if(!clsname.compare(CN_NEWLAYER))
+    if(!clsname.compare(CN_NEWLAYER) /*|| !clsname.compare(CN_LAYER)*/)
     {
         QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
         return;
@@ -766,8 +796,7 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
         QString objname = qjv.toObject()[NAME].toString();
 
         QString clsname = qjv.toObject()[CLASS].toString();
-        if(!CN_NEWLAYOUT.compare(clsname) ||
-                !CN_LAYOUT.compare(clsname))
+        if(!CN_NEWLAYOUT.compare(clsname) /*||!CN_LAYOUT.compare(clsname)*/)
         {
             Layout = qjv.toObject().value(PROPERTY).toVariant();
         }
@@ -782,14 +811,15 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
         if(qjm.contains(ICON))
             btnTest->setIcon(QIcon(qjv.toObject()[ICON].toString()));
 
-        QString wtype = qjv.toObject()[WTYPE].toString();
-        if(!wtype.compare(CN_NEWLAYER)  || !wtype.compare(CN_LAYER))
+        //QString wtype = qjv.toObject()[WTYPE].toString();
+        QString wtype = qjv.toObject()[CLASS].toString();
+        if(!wtype.compare(CN_NEWLAYER) /* || !wtype.compare(CN_LAYER)*/)
         {
             v->addWidget(btnTest);
             btnTest->setFixedHeight(50);
             connect(btnTest,SIGNAL(clicked(bool)),SLOT(onCreateNewLayer()));
         }
-        else if(!wtype.compare(CN_NEWLAYOUT) || !wtype.compare(CN_LAYOUT) )
+        else if(!wtype.compare(CN_NEWLAYOUT) /*|| !wtype.compare(CN_LAYOUT)*/ )
         {
             v->addWidget(btnTest);
             btnTest->setFixedHeight(50);
@@ -827,7 +857,7 @@ void CompoentControls::onCreateCompoentToCanvas()
     }
 
     QString clsname = wid->metaObject()->className();
-    if(!clsname.compare(CN_NEWLAYER))
+    if(!clsname.compare(CN_NEWLAYER) /*|| !clsname.compare(CN_LAYER)*/)
     {
         QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
         return;
@@ -872,13 +902,12 @@ void CompoentControls::onCreateNewLayout()
         oldrect.setHeight(200);
     }
 
-    if(!CN_LAYOUT.compare(clsname)
-            || !CN_NEWLAYOUT.compare(clsname))
+    if(/*!CN_LAYOUT.compare(clsname)|| */!CN_NEWLAYOUT.compare(clsname))
     {
         // 这里是在布局上面创建布局,嵌套.
         ((NewLayout*)w)->readFromJson(json);
     }
-    else if(!CN_NEWLAYER.compare(clsname) || !CN_LAYER.compare(clsname))
+    else if(!CN_NEWLAYER.compare(clsname)/* || !CN_LAYER.compare(clsname)*/)
     {
        ((NewLayer*)w)->readFromJson(json);
     }else if(!CN_NEWFRAME.compare(clsname) || !CN_NEWLIST.compare(clsname))

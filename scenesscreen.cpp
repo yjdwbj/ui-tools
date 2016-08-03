@@ -133,6 +133,7 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonObject &json)
     foreach (QJsonValue layout, json[LAYOUT].toArray()) {
         nlayer->readFromJson(layout.toObject());
     }
+    nlayer->show();
     return nlayer;
 
 }

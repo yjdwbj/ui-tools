@@ -11,6 +11,7 @@
 #include <QPushButton>
 #include <QDebug>
 #include <QStringListModel>
+#include <QLabel>
 
 class MainWindow;
 
@@ -30,6 +31,9 @@ protected:
     void mousePressEvent(QMouseEvent *event);
     void mouseMoveEvent(QMouseEvent *e);
 
+
+
+
 private:
     void checkMimeData(QDragMoveEvent *event);
     QPoint startPos;
@@ -45,6 +49,8 @@ public:
     //const selectedMap getSelectedMap() const { return selMap;}
     const QVariantList getSelectedList() const { return selstrList;}
     void updateListImages(QString path);
+
+    void setOldList();
    // void setSelectedList(QStringList b) const { selstrList = b;}
 
 private slots:
@@ -53,9 +59,15 @@ private slots:
     void onSelListViewDoubleClicked(QModelIndex index);
     void onDelSelectedItems();
     void onAddSelectedItems();
+    void onUp();
+    void onDown();
+    void onSelectCurrentItem(QModelIndex index);
+
 
 
 private:
+    QWidget *createUpAndDownButton(int row);
+    void updateListWidget();
     void appendSelectedItem(QModelIndex index);
 
     QFileSystemModel *dirModel;
@@ -66,7 +78,10 @@ private:
     CustomListWidget *sellist;
     QTreeView *treefile;
     QPushButton *add;
+    QPushButton *up;
+    QPushButton *down;
     QPushButton *del;
+    QLabel *statusBar;
 
     QStringList filters;
 
