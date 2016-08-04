@@ -1103,6 +1103,9 @@ void BaseForm::onPictureDialog(bool )
     //json[LIST] = qa;
     // 把新的列表更新的json中.
 
+    I18nLanguage test(QDir::currentPath()+"/行车记录仪.csv");
+
+
 }
 
 
@@ -1347,37 +1350,6 @@ void NewList::mousePressEvent(QMouseEvent *event)
 }
 
 
-//void NewList::onXYWHChangedValue(int v)
-//{
-//    /* 绑定坐标控件的更新 */
-//    QWidget *sender =(QWidget *)(QObject::sender());
-//    if(!sender->objectName().compare(X))
-//    {
-//        QPoint pos = this->pos();
-//        pos.setX(v);
-//        this->move(pos);
-//    }else if(!sender->objectName().compare(Y))
-//    {
-//        QPoint pos = this->pos();
-//        pos.setY(v);
-//        this->move(pos );
-//    }else if(!sender->objectName().compare(W))
-//    {
-//        if((this->pos().x() + v )> this->parentWidget()->size().width())
-//            return;
-//        QSize n(this->size());
-//        n.setWidth(v);
-//        this->resize(n);
-//    }else if(!sender->objectName().compare(H))
-//    {
-//        if((this->pos().y() + v )> this->parentWidget()->size().height())
-//            return;
-//        QSize n(this->size());
-//        n.setHeight(v);
-//        this->resize(n);
-//    }
-//    this->blockSignals(true);
-//}
 
 void NewList::onAddOneLine()
 {
@@ -1644,30 +1616,30 @@ void NewLayout::addChildrenToTree()
 
 
 
-void NewLayout::mousePressEvent(QMouseEvent *event)
-{
-  //  emit sizeChanged();
-   // setMaximumSize(this->parentWidget()->size());
+//void NewLayout::mousePressEvent(QMouseEvent *event)
+//{
+//  //  emit sizeChanged();
+//   // setMaximumSize(this->parentWidget()->size());
 
-    onSelectMe();
-    if (event->button() == Qt::LeftButton)
-    {
-        mOffset = event->pos();
+//    onSelectMe();
+//    if (event->button() == Qt::LeftButton)
+//    {
+//        mOffset = event->pos();
 
-    }else if(event->button() == Qt::RightButton)
-    {
-        QMenu *contextMenu = new QMenu(this);
-        QAction delme("删除当前布局",this);
-        connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
-        QAction saveTemp("保存成控件",this);
-        connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
+//    }else if(event->button() == Qt::RightButton)
+//    {
+//        QMenu *contextMenu = new QMenu(this);
+//        QAction delme("删除当前布局",this);
+//        connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
+//        QAction saveTemp("保存成控件",this);
+//        connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
 
-        contextMenu->addAction(&delme);
-        contextMenu->addAction(&saveTemp);
-        contextMenu->exec(mapToGlobal(event->pos()));
-    }
+//        contextMenu->addAction(&delme);
+//        contextMenu->addAction(&saveTemp);
+//        contextMenu->exec(mapToGlobal(event->pos()));
+//    }
 
-}
+//}
 void NewLayout::mouseMoveEvent(QMouseEvent *event)
 {
 

@@ -11,6 +11,7 @@
 #include <QRegion>
 #include <QMessageBox>
 #include <QStandardPaths>
+#include <QAxObject>
 
 
 void Backgroud::paintEvent(QPaintEvent *)
@@ -168,6 +169,14 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
 }
+
+void MainWindow::readExcelFile(QString xlsfile)
+{
+
+
+
+}
+
 
 void MainWindow::addWidgetToToolBar(QWidget *w)
 {

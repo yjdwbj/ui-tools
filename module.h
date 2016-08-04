@@ -269,7 +269,7 @@ public slots:
 protected:
 
     void mouseMoveEvent(QMouseEvent *event) override;
-    void mousePressEvent(QMouseEvent *event) override;
+    //void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
    // void updateBorderColor();
     //void paintEvent(QPaintEvent *ev);

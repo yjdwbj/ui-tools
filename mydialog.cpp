@@ -11,6 +11,8 @@
 #include <QDataStream>
 #include <QBitmap>
 
+#include <QAxObject>
+
 const static char DnditemData[] = "application/x-dnditemdata";
 
 
@@ -160,8 +162,10 @@ void CustomListWidget::mousePressEvent(QMouseEvent *event)
 
 ImageFileDialog::ImageFileDialog(QVariantList old, QWidget *parent)
     :QDialog(parent),
-      sellist(new CustomListWidget()),
-      flistview(new CustomListWidget()),
+//      sellist(new CustomListWidget()),
+//      flistview(new CustomListWidget()),
+      sellist(new QListWidget()),
+      flistview(new QListWidget()),
       treefile(new QTreeView()),
       selstrList(old),
       statusBar(new QLabel)
@@ -723,3 +727,43 @@ void ImageListView::onTreeViewClicked(QModelIndex index)
 }
 
 
+I18nLanguage::I18nLanguage(QString dbfile, QWidget *parent):
+    QDialog(parent)
+{
+
+    QFile csv(dbfile);
+    if(!csv.open(QIODevice::ReadOnly|QIODevice::Text))
+        return;
+
+    QVariantMap idCn;
+    QStringList langList;
+    QByteArray firstline=csv.readLine();
+    foreach (QByteArray v, firstline.split(';')) {
+       langList.append(QString::fromLocal8Bit(v.data()).trimmed());
+    }
+
+    langList.removeAt(0);
+    while(!csv.atEnd())
+    {
+        QByteArray ba =  csv.readLine();
+        QList<QByteArray> lba= ba.split(';');
+        QListIterator<QByteArray> it(ba.split(';'));
+        QString key = QString::fromLocal8Bit(it.next().data());
+        QString val = QString::fromLocal8Bit( it.next().data());
+        idCn[key] = val;
+    }
+
+    qDebug() << " langlist " << langList;
+//    QSqlDatabase db = QSqlDatabase::addDatabase("QODBC");
+//    db.setDatabaseName("DRIVER={Microsoft Excel Driver ('''.xls)};DBQ=" +dbfile);
+//    qDebug() << " read excel file " << dbfile;
+//    if(db.open())
+//    {
+//       QSqlQuery query("select ''' from [" + QString("Sheet1") + "$]");
+//       while(query.next())
+//       {
+//           QString col1 = query.value(0).toString();
+//           qDebug() << col1;
+//       }
+//    }
+}

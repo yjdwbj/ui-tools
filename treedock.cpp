@@ -168,10 +168,12 @@ void TreeDock::onCustomContextMenu(const QPoint &point)
     {
         qDebug() << " item is " << item->text(0) << " pos " << point;
        // contextMenu->exec(treeWidget->mapToGlobal(point));
-        // 这里只能隐
-        if(!item->parent()) // 顶级
-        {
-            QIcon icon = item->icon(0);
+
+//       if(!item->parent()) // 顶级
+       if(!item->text(1).compare(CN_NEWLAYOUT) ||
+               !item->text(1).compare(CN_NEWLAYER))
+       {
+
             QWidget *w = mWindow->ComCtrl->ProMap[item->text(0)];
             QMenu *menu = new QMenu(treeWidget);
             QAction hideit("隐藏",treeWidget);
@@ -191,7 +193,7 @@ void TreeDock::onCustomContextMenu(const QPoint &point)
             }
             menu->exec(treeWidget->viewport()->mapToGlobal(point));
             delete menu;
-        }
+       }
     }
 }
 
@@ -281,40 +283,18 @@ void TreeDock::addObjectToCurrentItem(QString root,QWidget *ww)
     {
 
         QString key = ww->property(DKEY_LOCALSEQ).toString();
-
+        QString clsname = ww->metaObject()->className();
         QTreeWidgetItem *nqwi =  new QTreeWidgetItem(qwilist.at(0),
-                                                     QStringList() << key << ww->metaObject()->className());
+                                                     QStringList() << key << clsname);
 
+        if(!CN_NEWLAYOUT.compare(clsname))
+        {
+            nqwi->setIcon(0,QIcon(SHOW_ICON));
+        }
         mWindow->ComCtrl->ProMap[key] = ww;
         treeWidget->setCurrentItem(nqwi);
 
     }
-
-   //     qDebug() << "Tree  row Size " << mWindow->tree->treeWidget->children().size();
-//        QTreeWidgetItem *qwi = treeWidget->currentItem();
-//        if(qwi)
-//        {
-//           QStringList tlist;
-//           QString key = ww->property(DKEY_LOCALSEQ).toString();
-//           QString clsname = ww->metaObject()->className();
-//           tlist << key <<  clsname;
-
-//            //qDebug() << " add child to " << qwi->text(0) << qwi->text(1);
-//          // 如果是NEWFRAME 或者NEWLIST 就选择它的父节点.
-
-
-//           if(!clsname.compare(CN_NEWLAYOUT))
-//           {
-
-//           }
-//           bool pbool = !qwi->text(1).compare(CN_NEWFRAME) || !qwi->text(1).compare(CN_NEWLIST);
-
-
-//           QTreeWidgetItem *nqwi =  new QTreeWidgetItem(pbool ? qwi->parent() : qwi, tlist);
-
-//           mWindow->ComCtrl->ProMap[key] = ww;
-//           treeWidget->setCurrentItem(nqwi);
-//        }
 }
 
 void TreeDock::deleteItem(QWidget *obj)

@@ -114,6 +114,7 @@ private:
     QString PrjJsonPath;
 
     void HandleFrameObject(QJsonObject qjo, QString ParentName);
+    void readExcelFile(QString xlsfile);
     QWidget *pWin;
 
 

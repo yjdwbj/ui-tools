@@ -72,10 +72,10 @@ private:
 
     QFileSystemModel *dirModel;
     QFileSystemModel *fileModel;
-//    QListWidget *flistview;
-//    QListWidget *sellist;
-    CustomListWidget *flistview;
-    CustomListWidget *sellist;
+    QListWidget *flistview;
+    QListWidget *sellist;
+//    CustomListWidget *flistview;
+//    CustomListWidget *sellist;
     QTreeView *treefile;
     QPushButton *add;
     QPushButton *up;
@@ -145,6 +145,17 @@ private:
 private slots:
     void onTreeViewClicked(QModelIndex );
 
+};
+
+class I18nLanguage: public QDialog
+{
+    Q_OBJECT
+public:
+    explicit I18nLanguage(QString dbfile,QWidget *parent=0);
+
+
+    QListWidget *languageSel;
+    QListWidget *menuSel;
 };
 
 
