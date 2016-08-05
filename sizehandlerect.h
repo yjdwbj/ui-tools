@@ -2,7 +2,7 @@
 #define SIZEHANDLERECT_H
 
 #include <QWidget>
-#include "config.h"
+#include "core_def.h"
 class SizeHandleRect : public QWidget
 {
     Q_OBJECT

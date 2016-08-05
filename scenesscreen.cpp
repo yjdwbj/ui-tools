@@ -114,6 +114,7 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonObject &json)
 
 
     NewLayer *nlayer = new NewLayer(json[CAPTION].toString(), oldrect.size() /* + MARGIN_SIZE*/,this);
+    nlayer->setProperty(DKEY_TYPE, json[WTYPE].toString());
     nlayer->setGeometry(oldrect);
     LayerList.append(nlayer);
     mActiveLaySeq = LayerList.size() - 1;

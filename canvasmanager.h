@@ -1,6 +1,6 @@
 #ifndef CANVASMANAGER_H
 #define CANVASMANAGER_H
-#include "config.h"
+#include "core_def.h"
 #include <QWidget>
 #include <QPushButton>
 

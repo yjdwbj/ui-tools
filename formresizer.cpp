@@ -9,7 +9,7 @@
 #include <QFrame>
 #include <QStyleOption>
 #include <QPainter>
-#include "config.h"
+#include "core_def.h"
 
 enum { debugFormResizer = 0 };
 

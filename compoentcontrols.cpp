@@ -1,6 +1,6 @@
 #include "compoentcontrols.h"
 //#include "handlejson.h"
-#include "config.h"
+#include "core_def.h"
 #include "scenesscreen.h"
 #include "canvasmanager.h"
 #include "module.h"
@@ -445,23 +445,60 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
               //下面是通JSON值类型来区分来创建不同类型的控件.
                if(object[DEFAULT].isString())
                {
-
-                   QLineEdit *txt = new QLineEdit(object[DEFAULT].toString());
-                   txt->setObjectName(uname);
-                   txt->setProperty(DKEY_VALTYPE,TEXT);
-
-                   if(object.contains(MAXLEN))
+                   if(!uname.compare(PIC_TEXT))
                    {
-                       txt->setMaxLength(object[MAXLEN].toDouble());
-                   }
+//                        QPushButton *imgbtn = new QPushButton(caption);
+//                        imgbtn->setObjectName(uname);
+//                        mainLayout->addWidget(imgbtn);
+//                        connect(imgbtn,SIGNAL(clicked(bool)),p,SLOT(onTextSelected()));
+//                        QString key = ((BaseForm*)p)->getJsonValue(PIC_TEXT).toString();
+//                        QString val =   ((BaseForm*)p)->mWindow->itemMap[key];
+//                        imgbtn->setText(val);
+//                        wid = imgbtn;
 
-                   wid = txt;
-                   // QLabel * l = new QLabel(uname);
-                   QLabel *title = new QLabel(caption);
-                   mainLayout->addWidget(title);
-                   mainLayout->addWidget(txt);
-                   txt->setFixedHeight(25);
-                   connect(txt,SIGNAL(textChanged(QString)),p,SLOT(onTextChanged(QString)));
+                       QLabel *title = new QLabel(caption);
+
+                       QComboBox *cb = new QComboBox();
+                       cb->setObjectName(uname);
+                     //  cb->setProperty(DKEY_CAPTION,caption);
+                     //  cb->setProperty(DKEY_VALTYPE,ENUM);
+                      // QVariantList qvlist = object[ENUM].toArray().toVariantList();
+                       QString defstr = object[DEFAULT].toString().toLower();
+
+
+                       foreach (QString key, ((BaseForm*)p)->mWindow->orderlist) {
+                            cb->addItem( ((BaseForm*)p)->mWindow->itemMap[key] );
+                       }
+                       cb->setCurrentIndex(((BaseForm*)p)->mWindow->orderlist.indexOf(defstr));
+//                       for(QVariantList::const_iterator it = qvlist.begin();
+//                           it != qvlist.end();++it)
+//                       {
+//                           cb->addItem((*it).toMap().firstKey());
+//                       }
+
+                       mainLayout->addWidget(title);
+                       mainLayout->addWidget(cb);
+                       wid = cb;
+                       connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onEnumItemChanged(QString)));
+                   }else{
+
+                       QLineEdit *txt = new QLineEdit(object[DEFAULT].toString());
+                       txt->setObjectName(uname);
+                       txt->setProperty(DKEY_VALTYPE,TEXT);
+
+                       if(object.contains(MAXLEN))
+                       {
+                           txt->setMaxLength(object[MAXLEN].toDouble());
+                       }
+
+                       wid = txt;
+                       // QLabel * l = new QLabel(uname);
+                       QLabel *title = new QLabel(caption);
+                       mainLayout->addWidget(title);
+                       mainLayout->addWidget(txt);
+                       txt->setFixedHeight(25);
+                       connect(txt,SIGNAL(textChanged(QString)),p,SLOT(onTextChanged(QString)));
+                   }
 
 
                }else if(object[DEFAULT].isDouble())

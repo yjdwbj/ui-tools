@@ -23,8 +23,6 @@
 class MainWindow;
 class ScenesScreen;
 
-
-
 class Compoent
 {
 public:
@@ -86,6 +84,7 @@ public slots:
     void onSwapViewObject(bool b);
 
     void onTextChanged(QString str);
+    void onTextSelected();
     void onNumberChanged(int num);
     void onEnumItemChanged(QString txt);
     void onColorButtonClicked();

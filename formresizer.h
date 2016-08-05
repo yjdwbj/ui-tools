@@ -3,7 +3,7 @@
 #include <QWidget>
 #include <QVector>
 #include <QFrame>
-#include "config.h"
+#include "core_def.h"
 
 class SizeHandleRect;
 

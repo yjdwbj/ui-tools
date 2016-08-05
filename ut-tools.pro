@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui quick axcontainer
+QT       += core gui quick
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -25,22 +25,36 @@ SOURCES += main.cpp\
     formresizer.cpp \
     canvasmanager.cpp \
     pageview.cpp \
-    mydialog.cpp
+    mydialog.cpp \
+    xls.c \
+    ole.c \
+    getopt.c \
+    endian.c \
+    xlstool.c
 
 HEADERS  += mainwindow.h \
     module.h \
     compoentcontrols.h \
     treedock.h \
-    config.h \
     scenesscreen.h \
     sizehandlerect.h \
     formresizer.h \
     canvasmanager.h \
     pageview.h \
-    mydialog.h
+    mydialog.h \
+    core_def.h \
+    libxls/xlstypes.h \
+    libxls/xlstool.h \
+    libxls/xlsstruct.h \
+    libxls/xls.h \
+    libxls/ole.h \
+    libxls/endian.h \
+    libxls/brdb.h \
+    libxls/brdb.c.h
 
 FORMS    += mainwindow.ui \
-    dialog.ui
+    dialog.ui \
+    language.ui
 CONFIG += c++11
 
 

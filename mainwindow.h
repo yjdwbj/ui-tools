@@ -92,6 +92,9 @@ public:
     QString backImage;
     Backgroud *bk;
     QSettings *globalSet;
+    QStringList LanguageList;
+    QStringList orderlist;
+    QMap<QString,QString> itemMap;
 
 
 
@@ -115,6 +118,8 @@ private:
 
     void HandleFrameObject(QJsonObject qjo, QString ParentName);
     void readExcelFile(QString xlsfile);
+    void createCSVFile(QString xlsfile);
+    void readCSVFile(QString csvfile);
     QWidget *pWin;
 
 

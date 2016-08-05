@@ -58,6 +58,7 @@ static QString BAKIMAGE = "background-image";
 static QString BAKCOLOR = "background-color";
 static QString WTYPE = "-type";
 static QString PLUGIN = "plugin";
+static QString PIC_TEXT = "text-pic";
 
 
 static const char  DKEY_CAPTION[] = "caption";
@@ -81,6 +82,7 @@ static const char DKEY_BORDER_COLOR[] = "border_color";
 static const char DKEY_IMGMAP[] = "bkimage_map";
 static const char DKEY_EXTMAP[] = "extendMap";
 static const char DKEY_ROW[] = "rowProperty";
+static const char DKEY_TYPE[] = "DKtypeID";
 
 /* Class Name */
 static const QString CN_NEWLAYOUT = "NewLayout";

@@ -1,5 +1,6 @@
 #include "mydialog.h"
 #include "ui_dialog.h"
+#include "ui_language.h"
 #include <QMessageBox>
 #include "mainwindow.h"
 #include "canvasmanager.h"
@@ -10,8 +11,9 @@
 #include <QMimeData>
 #include <QDataStream>
 #include <QBitmap>
+#include <QRadioButton>
 
-#include <QAxObject>
+
 
 const static char DnditemData[] = "application/x-dnditemdata";
 
@@ -727,43 +729,178 @@ void ImageListView::onTreeViewClicked(QModelIndex index)
 }
 
 
-I18nLanguage::I18nLanguage(QString dbfile, QWidget *parent):
-    QDialog(parent)
+MenuItemDialog::MenuItemDialog( QString old, QWidget *parent)
+    :QDialog(parent),
+      listWidget(new QListWidget),
+      text(old)
+{
+    mWindow = (MainWindow*)(parent);
+    setWindowTitle("菜单条目列表");
+
+
+    foreach (QString key , mWindow->orderlist) {
+//        QListWidgetItem* item = new QListWidgetItem(QString("    %1").arg(key),listWidget);
+//        QRadioButton *rb = new QRadioButton(QString("            %1").arg(map[key]));
+        QListWidgetItem* item = new QListWidgetItem(listWidget);
+        QRadioButton *rb = new QRadioButton(mWindow->itemMap[key]);
+        connect(rb,&QRadioButton::toggled,[=](bool f){
+           if(f)
+               text = rb->text();
+        });
+
+        listWidget->setItemWidget(item,rb);
+        rb->setChecked(!key.trimmed().compare(old));
+    }
+
+//    foreach (QString s, map) {
+//        QListWidgetItem* item = new QListWidgetItem(listWidget);
+//        QRadioButton *rb = new QRadioButton(s);
+//        listWidget->setItemWidget(item,rb);
+//        rb->setChecked(!s.compare(old));
+//    }
+
+    connect(listWidget,&QListWidget::itemPressed,this,
+            [=](QListWidgetItem *item)
+            {
+             listWidget->clearSelection();
+             text = mWindow->orderlist[listWidget->row(item)]; });
+
+    QVBoxLayout *layout= new QVBoxLayout();
+    layout->addWidget(listWidget);
+    setLayout(layout);
+    setFixedSize(180,360);
+    setModal(true);
+}
+
+
+//QString MenuItemDialog::getSelectText()
+//{
+//    for(int i =0 ; i < listWidget->count();i++)
+//    {
+//        QListWidgetItem *item = listWidget->item(i);
+//        QRadioButton *rb = (QRadioButton *)(listWidget->itemWidget(item));
+//        if(rb->isChecked())
+//        {
+//           // return rb->text();
+//           return item->text().trimmed();
+//        }
+//    }
+//}
+
+I18nLanguage::I18nLanguage( QWidget *parent):
+    QDialog(parent),
+    ui(new Ui::I18nLanguage)
 {
 
-    QFile csv(dbfile);
-    if(!csv.open(QIODevice::ReadOnly|QIODevice::Text))
-        return;
+    ui->setupUi(this);
+    mWindow = (MainWindow*)(parent);
 
-    QVariantMap idCn;
-    QStringList langList;
-    QByteArray firstline=csv.readLine();
-    foreach (QByteArray v, firstline.split(';')) {
-       langList.append(QString::fromLocal8Bit(v.data()).trimmed());
+    ui->langWidget->setEditTriggers(QAbstractItemView::SelectedClicked | QAbstractItemView::DoubleClicked);
+    ui->itemWidget->setEditTriggers(QAbstractItemView::SelectedClicked | QAbstractItemView::DoubleClicked);
+    foreach (QString s, mWindow->LanguageList) {
+
+        QListWidgetItem* item = new QListWidgetItem(s, ui->langWidget);
+       // item->setFlags(item->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsEditable); // set checkable flag
+
+        item->setFlags(item->flags() | Qt::ItemIsUserCheckable |
+                       Qt::ItemIsEditable| Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+        item->setCheckState(Qt::Unchecked); // AND initialize check state
+
     }
+   // ui->langWidget->addItems(mWindow->LanguageList);
 
-    langList.removeAt(0);
-    while(!csv.atEnd())
+    QMapIterator<QString,QString> iter(mWindow->itemMap);
+    while(iter.hasNext())
     {
-        QByteArray ba =  csv.readLine();
-        QList<QByteArray> lba= ba.split(';');
-        QListIterator<QByteArray> it(ba.split(';'));
-        QString key = QString::fromLocal8Bit(it.next().data());
-        QString val = QString::fromLocal8Bit( it.next().data());
-        idCn[key] = val;
+        iter.next();
+        QListWidgetItem* item = new QListWidgetItem(ui->itemWidget);
+        ui->itemWidget->setItemWidget(item,new QRadioButton(iter.value()));
+       // item->setData(Qt::CheckStateRole,Qt::Unchecked);
+      //  item->setFlags(item->flags() | Qt::ItemIsUserCheckable); // set checkable flag
+     //   item->setCheckState(Qt::Unchecked); // AND initialize check state
     }
 
-    qDebug() << " langlist " << langList;
-//    QSqlDatabase db = QSqlDatabase::addDatabase("QODBC");
-//    db.setDatabaseName("DRIVER={Microsoft Excel Driver ('''.xls)};DBQ=" +dbfile);
-//    qDebug() << " read excel file " << dbfile;
-//    if(db.open())
-//    {
-//       QSqlQuery query("select ''' from [" + QString("Sheet1") + "$]");
-//       while(query.next())
-//       {
-//           QString col1 = query.value(0).toString();
-//           qDebug() << col1;
-//       }
-//    }
+    setModal(true);
+}
+
+QStringList I18nLanguage::getSelectedItems(bool isLang)
+{
+    QStringList lst;
+    if(isLang)
+    {
+        for(int i = 0;i < ui->langWidget->count();i++)
+        {
+            QListWidgetItem *item = ui->langWidget->item(i);
+            if(item->checkState() == Qt::Checked)
+            lst.append(item->text());
+        }
+    }else{
+        for(int i = 0;i < ui->itemWidget->count();i++)
+        {
+            QListWidgetItem *item = ui->itemWidget->item(i);
+            if(item->checkState() == Qt::Checked)
+            lst.append(item->text());
+        }
+    }
+    return lst;
+}
+
+void I18nLanguage::on_item_selectall_clicked()
+{
+ //   ui->itemWidget->selectAll();
+    for(int i = 0;i < ui->itemWidget->count();i++)
+    {
+        QListWidgetItem *item = ui->itemWidget->item(i);
+        item->setCheckState(Qt::Checked);
+    }
+}
+
+
+
+void I18nLanguage::on_item_dselectall_clicked()
+{
+    //ui->itemWidget->clearSelection();
+    for(int i = 0;i < ui->itemWidget->count();i++)
+    {
+        QListWidgetItem *item = ui->itemWidget->item(i);
+        item->setCheckState(Qt::Unchecked);
+    }
+}
+
+void I18nLanguage::on_item_re_clicked()
+{
+    for(int i = 0;i < ui->itemWidget->count();i++)
+    {
+        QListWidgetItem *item = ui->itemWidget->item(i);
+        item->setCheckState(item->checkState() == Qt::Checked ? Qt::Unchecked : Qt::Checked);
+       // item->setSelected(!item->isSelected());
+    }
+}
+
+void I18nLanguage::on_lang_selectall_clicked()
+{
+    for(int i = 0;i < ui->langWidget->count();i++)
+    {
+        QListWidgetItem *item = ui->langWidget->item(i);
+        item->setCheckState(Qt::Checked);
+    }
+}
+
+void I18nLanguage::on_lang_dselectall_clicked()
+{
+    for(int i = 0;i < ui->langWidget->count();i++)
+    {
+        QListWidgetItem *item = ui->langWidget->item(i);
+        item->setCheckState(Qt::Unchecked);
+    }
+}
+
+void I18nLanguage::on_lang_re_clicked()
+{
+    for(int i = 0;i < ui->langWidget->count();i++)
+    {
+        QListWidgetItem *item = ui->langWidget->item(i);
+        item->setCheckState(item->checkState() == Qt::Checked ? Qt::Unchecked : Qt::Checked);
+       // item->setSelected(!item->isSelected());
+    }
 }

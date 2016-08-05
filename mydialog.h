@@ -147,15 +147,53 @@ private slots:
 
 };
 
+namespace Ui {
+    class I18nLanguage;
+}
+
 class I18nLanguage: public QDialog
 {
     Q_OBJECT
 public:
-    explicit I18nLanguage(QString dbfile,QWidget *parent=0);
+    explicit I18nLanguage(QWidget *parent=0);
+
+    QStringList getSelectedItems(bool isLang=true);
 
 
     QListWidget *languageSel;
     QListWidget *menuSel;
+
+private slots:
+    void on_item_selectall_clicked();
+
+    void on_item_dselectall_clicked();
+
+    void on_item_re_clicked();
+
+    void on_lang_selectall_clicked();
+
+    void on_lang_dselectall_clicked();
+
+    void on_lang_re_clicked();
+
+private:
+    MainWindow *mWindow;
+    Ui::I18nLanguage *ui;
+};
+
+
+
+class MenuItemDialog: public QDialog
+{
+    Q_OBJECT
+public:
+    explicit MenuItemDialog(QString old,QWidget *parent=0);
+    QString text;
+private:
+    QListWidget *listWidget;
+    MainWindow *mWindow;
+
+
 };
 
 
