@@ -19,8 +19,15 @@
 #include <QSysInfo>
 
 #include <QProcess>
+#include <stdio.h>
+#include <unistd.h>
+
+
 
 using namespace xls;
+
+
+
 
 
 void Backgroud::paintEvent(QPaintEvent *)
@@ -137,19 +144,19 @@ MainWindow::MainWindow(QWidget *parent) :
     show();  // 这里不能少.
 
 
-    createCSVFile(QDir::currentPath()+"/行车记录仪.xls");
+   // createCSVFile(QDir::currentPath()+"/行车记录仪.xls");
+    QString path = QDir::currentPath()+"/行车记录仪.xls";
+    QString csv = QDir::currentPath()+"/行车记录仪.csv";
+
+   // gmain(path.toLocal8Bit().data());
+     MreadExcelFile(path.toLocal8Bit().data());
+    // readCSVFile(csv);
+    // createCSVFile(path);
 //    I18nLanguage *pd = new I18nLanguage(this);
 //    pd->exec();
 //      MenuItemDialog *md = new MenuItemDialog("m1",this);
 //      md->exec();
 //      qDebug() << " select text is " << md->text;
-
-
-
-
-
-
-
 
     // 如果可以自动打开上次的工程
     QVariant prjvar = globalSet->value(INI_PRJLAST);
@@ -193,29 +200,229 @@ MainWindow::MainWindow(QWidget *parent) :
 
 }
 
+
+
+void MainWindow::MreadExcelFile(char *xlsfile)
+{
+
+   // static char  stringSeparator = 0;
+  //  static char *lineSeparator = "\n";
+    static char *fieldSeparator = ";";
+    static char *encoding = "UTF-8";
+
+    struct st_row_data* row;
+    WORD cellRow, cellCol;
+    xlsWorkBook* pWB;
+    xlsWorkSheet* pWS;
+    unsigned int i;
+ //   int justList = 0;
+    char *sheetName = "";
+    int isFirstLine =0;
+
+    // open workbook, choose standard conversion
+    pWB = xls_open(xlsfile, encoding);
+    if (!pWB) {
+
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("XLS文件找不到");
+        msgBox.setText("XLS文件找不到.");
+        // msgBox.setInformativeText("Do you want to save your changes?");
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+        msgBox.setButtonText(QMessageBox::Yes,"确定");
+        return ;
+    }
+
+    QFile cvsfile("qtread.csv");
+    cvsfile.open(QIODevice::WriteOnly|QIODevice::Text);
+
+    // check if the requested sheet (if any) exists
+    if (sheetName[0]) {
+        for (i = 0; i < pWB->sheets.count; i++) {
+            if (strcmp(sheetName, (char *)pWB->sheets.sheet[i].name) == 0) {
+                break;
+            }
+        }
+
+        if (i == pWB->sheets.count) {
+
+            QMessageBox msgBox;
+            msgBox.setWindowTitle("XLS文件工作薄找不到");
+            msgBox.setText("XLS文件工作薄找不到,正常的语言表列只在第一个工作薄.");
+            // msgBox.setInformativeText("Do you want to save your changes?");
+            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+            msgBox.setButtonText(QMessageBox::Yes,"确定");
+            return ;
+        }
+    }
+
+    // open and parse the sheet
+    pWS = xls_getWorkSheet(pWB, 0);
+    xls_parseWorkSheet(pWS);
+
+    // process all rows of the sheet
+    for (cellRow = 0; cellRow <= pWS->rows.lastrow; cellRow++) {
+        int isFirstCol = 1;
+        row = (struct st_row_data*)(xls_row(pWS, cellRow));
+        // process cells
+
+//        if (!isFirstLine) {
+//            cvsfile.write("\n");
+//        } else {
+//            isFirstLine = 0;
+//        }
+
+        QStringList collist;
+        for (cellCol = 0; cellCol <= pWS->rows.lastcol; cellCol++) {
+            //printf("Processing row=%d col=%d\n", cellRow+1, cellCol+1);
+            QString cellstr ;
+
+            xlsCell *cell = xls_cell(pWS, cellRow, cellCol);
+
+            if ((!cell) || (cell->isHidden)) {
+                continue;
+            }
+
+            if (!isFirstCol) {
+                printf("%s", fieldSeparator);
+                cvsfile.write(";");
+            } else {
+                isFirstCol = 0;
+            }
+
+            // display the colspan as only one cell, but reject rowspans (they can't be converted to CSV)
+            if (cell->rowspan > 1) {
+
+                QMessageBox msgBox;
+                msgBox.setWindowTitle("XLS文件内容不正确");
+                msgBox.setText("XLS文件内容不正确,不能有单元合并的单元,请选择一个正解的文件.");
+                // msgBox.setInformativeText("Do you want to save your changes?");
+                msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+                msgBox.setButtonText(QMessageBox::Yes,"确定");
+
+                //  fprintf(stderr, "Warning: %d rows spanned at col=%d row=%d: output will not match the Excel file.\n", cell->rowspan, cellCol+1, cellRow+1);
+            }
+
+            // display the value of the cell (either numeric or string)
+            if (cell->id == 0x27e || cell->id == 0x0BD || cell->id == 0x203) {
+                // OutputNumber(cell->d);
+                cellstr = QString::number(cell->d).toUtf8().data();
+
+            } else if (cell->id == 0x06) {
+                // formula
+                if (cell->l == 0) // its a number
+                {
+
+                    //OutputNumber(cell->d);
+                    cellstr = QString::number(cell->d).toUtf8().data();
+
+                } else {
+                    if (!strcmp((char *)cell->str, "bool")) // its boolean, and test cell->d
+                    {
+                        // OutputString((int) cell->d ? "true" : "false");
+
+                        cellstr =(int) cell->d ? "true" : "false";
+                    } else if (!strcmp((char *)cell->str, "error")) // formula is in error
+                    {
+                        cellstr = "*error*";
+                    } else // ... cell->str is valid as the result of a string formula.
+                    {
+                        cellstr = tr((char *)(cell->str));
+                    }
+                }
+            } else if (cell->str != NULL) {
+                cellstr = tr((char *)(cell->str));
+            } else {
+                //  OutputString("");
+                // cvsfile.write("");
+            }
+            QString s = tr((char *)(cell->str));
+            for(int i=0;i<s.size();i++)
+            {
+                if(s.at(i) < 32)
+                {
+                    s = s.mid(0,i);
+                    break;
+                }
+            }
+            collist <<  s;
+            if(!cellRow)
+            {
+                foreach (QString v , collist) {
+                    LanguageList << v;
+                }
+                LanguageList.removeFirst();
+
+            }
+            cvsfile.write(s.toUtf8().data());
+        }
+        if(collist.size())
+        {
+            itemMap[collist.first()] = collist.at(1);
+            orderlist << collist.first();
+        }
+         cvsfile.write("\n");
+
+    }
+    orderlist.removeFirst();
+    xls_close_WS(pWS);
+
+    xls_close(pWB);
+
+    cvsfile.close();
+
+}
+
+
+
+
+
 void MainWindow::readCSVFile(QString csvfile)
 {
 
     QFile csv(csvfile);
     if(!csv.open(QIODevice::ReadOnly|QIODevice::Text))
+    {
+        QMessageBox::warning(this,"open xls file error","xls 打不开");
         return;
-
-    QVariantMap idCn;
-    QStringList langList;
-    QByteArray firstline=csv.readLine();
-    foreach (QByteArray v, firstline.split(';')) {
-       langList.append(QString::fromLocal8Bit(v.data()).trimmed());
     }
 
-    langList.removeAt(0);
+
+
+    QStringList langList;
+    QByteArray firstline=csv.readLine();
+    QByteArrayList balist ;
+    char comma = ',';
+    char celcomma = ';';
+
+    if(firstline.count(comma) > 20)
+    {
+        balist = firstline.split(comma);
+    }else
+    {
+        balist = firstline.split(celcomma);
+    }
+    foreach (QByteArray v, balist) {
+       LanguageList.append(QString::fromUtf8(v.data()).trimmed());
+    }
+
+    if(LanguageList.size())
+        LanguageList.removeFirst();
     while(!csv.atEnd())
     {
         QByteArray ba =  csv.readLine();
-        QList<QByteArray> lba= ba.split(';');
-        QListIterator<QByteArray> it(ba.split(';'));
-        QString key = QString::fromLocal8Bit(it.next().data());
-        QString val = QString::fromLocal8Bit( it.next().data());
-        idCn[key] = val;
+        QList<QByteArray> lba;
+        if(firstline.count(comma) > 20)
+        {
+            lba = ba.split(comma);
+        }else
+        {
+            lba = ba.split(celcomma);
+        }
+        QListIterator<QByteArray> it(lba);
+        QString key = QString::fromUtf8(it.next().data());
+        QString val = QString::fromUtf8( it.next().data());
+        itemMap[key] = val;
+        orderlist << key;
     }
 
 }
@@ -241,14 +448,22 @@ void MainWindow::createCSVFile(QString xlsfile)
         /* 先用xls2csv.exe */
         QProcess xlsprocess;
         xlsprocess.start(cmd,QStringList() << xlsfile);
-
+        xlsprocess.waitForFinished();
         QTextStream rsyncStdoutStream(xlsprocess.readAllStandardOutput());
         bool once = true;
-        while(!xlsprocess.waitForFinished())
+
+        QFile csvfile("debug.csv");
+        csvfile.open(QIODevice::WriteOnly);
+        QTextStream out(&csvfile);
+        while(1)
         {
            QString line =  rsyncStdoutStream.readLine();
            if(line.isNull())
-               break;
+           {
+               out << "empty line";
+                  break;
+           }
+            out << line;
 
            if(once)
            {
@@ -263,9 +478,12 @@ void MainWindow::createCSVFile(QString xlsfile)
                QString key = tmp[0].toLower().trimmed();
                itemMap[key]=tmp[1].trimmed() ;
                orderlist << key;
+
            }
           // qDebug() << line;
         }
+
+        csvfile.close();
         qApp->processEvents();
 
 

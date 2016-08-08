@@ -123,6 +123,8 @@ static const DWORD colors[] =
 
 #include <stdarg.h>
 
+
+
 #ifdef MSDN
 static int asprintf(char **ret, const char *format, ...)
 {
@@ -176,7 +178,10 @@ static int asprintf(char **ret, const char *format, ...)
 	va_start(ap, format); 
 
 	i = vsnprintf(NULL, 0, format, ap) + 1;
+
+    //va_end(ap);
 	str = (char *)malloc(i);
+   // va_start(ap,format);
 	i = vsnprintf(str, i, format, ap);
 
 	va_end(ap);
@@ -634,8 +639,13 @@ BYTE *xls_getfcell(xlsWorkBook* pWB,struct st_cell_data* cell,WORD *label)
     switch (cell->id)
     {
     case 0x00FD:		//LABELSST
-		//printf("WORD: %u short: %u str: %s\n", *label, xlsShortVal(*label), pWB->sst.string[xlsShortVal(*label)].str );
-        asprintf(&ret,"%s",pWB->sst.string[xlsShortVal(*label)].str);
+//    {
+//         unsigned short us = xlsShortVal(*label);
+//          printf("WORD: %u short: %u str: %s\n", *label,us, pWB->sst.string[us].str );
+//          fflush(stdout);
+//          asprintf(&ret,"%s",pWB->sst.string[us].str);
+//     }
+         asprintf(&ret,"%s",pWB->sst.string[xlsShortVal(*label)].str);
         break;
     case 0x0201:		//BLANK
     case 0x00BE:		//MULBLANK

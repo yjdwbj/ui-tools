@@ -14,6 +14,7 @@ TEMPLATE = app
 
 
 QMAKE_LIBS_OPENGL -= -lGL
+QMAKE_CFLAGS += -std=c99
 
 SOURCES += main.cpp\
         mainwindow.cpp \
