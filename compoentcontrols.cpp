@@ -323,6 +323,10 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
            QJsonObject object = item.toObject();
            QString uname = object[WTYPE].toString();
            QString caption = object[CAPTION].toString();
+           if(object.contains(ISTRUE))
+           {
+               continue;
+           }
         //   parseJsonToWidget(p,object,layout);
            if(object.contains(STRUCT)) // 处理struct 关键字,QJsonArray
            {
@@ -466,10 +470,10 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                        QString defstr = object[DEFAULT].toString().toLower();
 
 
-                       foreach (QString key, ((BaseForm*)p)->mWindow->orderlist) {
-                            cb->addItem( ((BaseForm*)p)->mWindow->itemMap[key] );
+                       foreach (QString key, ((BaseForm*)p)->mWindow->mOrderlist) {
+                            cb->addItem( ((BaseForm*)p)->mWindow->mItemMap[key] );
                        }
-                       cb->setCurrentIndex(((BaseForm*)p)->mWindow->orderlist.indexOf(defstr));
+                       cb->setCurrentIndex(((BaseForm*)p)->mWindow->mOrderlist.indexOf(defstr));
 //                       for(QVariantList::const_iterator it = qvlist.begin();
 //                           it != qvlist.end();++it)
 //                       {

@@ -93,10 +93,13 @@ public:
     CompoentControls *ComCtrl;
     QString backImage;
     Backgroud *bk;
-    QSettings *globalSet;
-    QStringList LanguageList;
-    QStringList orderlist;
-    QMap<QString,QString> itemMap;
+    QSettings *mGlobalSet;
+
+    QString mJsonfile; // 控件模版文件.
+    QString mLangfile; // 多国语言文件.
+    QStringList mLanguageList;
+    QStringList mOrderlist;
+    QMap<QString,QString> mItemMap;
 
 
 

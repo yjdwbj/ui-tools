@@ -113,7 +113,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QLineEdit" name="lineEdit">
+     <widget class="QLineEdit" name="prjname">
       <property name="text">
        <string>test</string>
       </property>

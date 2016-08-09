@@ -60,6 +60,7 @@ static QString WTYPE = "-type";
 static QString PLUGIN = "plugin";
 static QString PIC_TEXT = "text-pic";
 static QString MLANG = "language";
+static QString ISTRUE = "disable";
 
 
 static const char  DKEY_CAPTION[] = "caption";
@@ -100,7 +101,10 @@ static const QString INI_PRJSIZE = "Project/Size";
 static const QString INI_PRJBAKIMG = "Project/Background";
 static const QString INI_PRJLAST = "Project/LastOpen";
 static const QString INI_PRJDIR = "Project/Dir";
-static const QString INI_MULLANG = "Project/LangugeFile";
+static const QString INI_PRJMLANG = "Project/LangugeFile";
+static const QString INI_PRJSTYLE = "Project/Style";
+static const QString INI_PRJJSON = "Project/TemplateJson";
+
 
 
 static const char HIDE_ICON[] = ":/icon/icons/hide-30x30.png";

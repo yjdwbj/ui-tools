@@ -7,6 +7,8 @@
 #include "module.h"
 #include <QStackedLayout>
 #include <QString>
+#include <QStyleFactory>
+#include <QComboBox>
 
 
 //static int Width  = 480;
@@ -31,12 +33,31 @@ CanvasManager::CanvasManager(MainWindow *w):
     savePrj->setEnabled(false);
     confPrj->setEnabled(false);
 
+    QComboBox *cb = new QComboBox();
+    cb->addItems(QStyleFactory::keys());
+//    QVariant vstyle =mWindow->mGlobalSet->value(INI_PRJSTYLE);
+//    if(vstyle.isValid())
+//    {
+//         cb->setCurrentText(vstyle.toString());
+//    }
+
+
+//    connect(cb,&QComboBox::currentTextChanged,[=](QString text)
+//    {
+//        QApplication::setStyle(QStyleFactory::create(text));
+//        qApp->desktop()->update();
+//        mWindow->mGlobalSet->setValue(INI_PRJSTYLE,text);
+//    });
+
     mWindow->addWidgetToToolBar(newPrj);
     mWindow->addWidgetToToolBar(newPage);
     mWindow->addWidgetToToolBar(delPage);
     mWindow->addWidgetToToolBar(savePrj);
 
+
     mWindow->addWidgetToToolBar(confPrj);
+    mWindow->addWidgetToToolBar(Q_NULLPTR);
+  //  mWindow->addWidgetToToolBar(cb);
     mWindow->centralWidget()->setLayout(stack);
     // 按屏幕的大小比例调整.
   //  stackRect = QRect( QPoint(mWindow->width() * 0.12,mWindow->height()* 0.3),mPageSize);
@@ -215,6 +236,7 @@ void CanvasManager::onCreateNewProject()
     pd->deleteLater();
     if(pd->result())
     {
+        ProjectName = pd->getProjectName();
         onCreateNewScenesScreen();
     }
 
@@ -252,7 +274,7 @@ void CanvasManager::onConfProject()
 void CanvasManager::onSaveProject()
 {
 
-    QVariant prjvar = mWindow->globalSet->value(INI_PRJLAST);
+    QVariant prjvar = mWindow->mGlobalSet->value(INI_PRJLAST);
     QFile saveFile;
     if(prjvar.isValid())
     {
@@ -263,7 +285,7 @@ void CanvasManager::onSaveProject()
     {
         saveFile.setFileName("save.json");
     }
-    mWindow->globalSet->setValue(INI_PRJLAST,saveFile.fileName());
+    mWindow->mGlobalSet->setValue(INI_PRJLAST,saveFile.fileName());
 //    QFile saveFile(QStringLiteral("save.json"));
 
 
@@ -278,15 +300,17 @@ void CanvasManager::onSaveProject()
     foreach (QWidget *w, mCanvasList) {
         QJsonObject CanvasObj;
        CanvasObj[NAME] = w->metaObject()->className();
+       CanvasObj[WTYPE] = "page";
        ((ScenesScreen*)w)->writeToJson(CanvasObj);
        CanvasArray.append(CanvasObj);
       // qDebug() << "CanvasObj json  " << CanvasObj;
 
     }
     QJsonObject obj;
-    obj[NAME] = mWindow->windowTitle();
+    obj[NAME] = ProjectName;
     obj[ACTPAGE] = stack->currentIndex();
     obj[PAGES] = CanvasArray;
+    obj[WTYPE] = "project";
     QJsonArray lang;
     foreach (QString v ,PrjSelectlang) {
         QJsonValue val = v;

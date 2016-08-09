@@ -956,7 +956,7 @@ void BaseForm::onEnumItemChanged(QString txt)
  //  dynValues[cb->objectName()] = txt;
    if(!cb->objectName().compare(PIC_TEXT))
    {
-       changeJsonValue(cb->objectName(),mWindow->orderlist[cb->currentIndex()]);
+       changeJsonValue(cb->objectName(),mWindow->mOrderlist[cb->currentIndex()]);
    }else
        changeJsonValue(cb->objectName(),txt);
 

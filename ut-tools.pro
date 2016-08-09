@@ -8,7 +8,7 @@ QT       += core gui quick
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = ut-tools
+TARGET = ui-tools
 TEMPLATE = app
 
 
@@ -61,7 +61,8 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui \
     dialog.ui \
     language.ui \
-    confproject.ui
+    confproject.ui \
+    globalset.ui
 CONFIG += c++11
 
 

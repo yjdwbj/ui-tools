@@ -17,28 +17,6 @@ class MainWindow;
 
 //typedef QMap<QString,QVariant> selectedMap;
 
-class CustomListWidget : public QListWidget
-{
-public:
-    CustomListWidget(QWidget *parent=0);
-    void performDrag();
-
-protected:
-    void dropEvent(QDropEvent *event);
-    void dragMoveEvent(QDragMoveEvent *e);
-    void dragEnterEvent(QDragEnterEvent *event);
-    void dragLeaveEvent(QDragLeaveEvent *e);
-    void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *e);
-
-
-
-
-private:
-    void checkMimeData(QDragMoveEvent *event);
-    QPoint startPos;
-};
-
 class ImageFileDialog: public QDialog
 {
     Q_OBJECT
@@ -111,6 +89,7 @@ public:
     ~ProjectDialog();
 
     QSize pageSize;
+    QString getProjectName();
 public slots:
     void onAccepted();
     void onRejected();
@@ -238,6 +217,25 @@ private:
     Ui::ConfigProject *ui;
     QString defaultXLS;
 };
+
+namespace Ui {
+    class GlobalSettings;
+}
+
+class GlobalSettings: public QDialog
+{
+    Q_OBJECT
+public:
+    explicit GlobalSettings(QWidget *parent=0);
+
+public slots:
+    void onAccepted();
+private:
+    MainWindow *mWindow;
+    Ui::GlobalSettings *ui;
+
+};
+
 
 
 

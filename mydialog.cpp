@@ -2,6 +2,7 @@
 #include "ui_dialog.h"
 #include "ui_language.h"
 #include "ui_confproject.h"
+#include "ui_globalset.h"
 #include <QMessageBox>
 #include "mainwindow.h"
 #include "canvasmanager.h"
@@ -14,154 +15,12 @@
 #include <QBitmap>
 #include <QRadioButton>
 #include <QFileDialog>
+#include <QStyleFactory>
 
 
 
 const static char DnditemData[] = "application/x-dnditemdata";
 
-
-
-
-
-
-
-CustomListWidget::CustomListWidget(QWidget *parent)
-    :QListWidget(parent)
-{
-    setAcceptDrops(true);
-}
-
-void CustomListWidget::dragLeaveEvent(QDragLeaveEvent *e)
-{
-
-}
-void CustomListWidget::dropEvent(QDropEvent *event)
-{
-
-    CustomListWidget *source =(CustomListWidget *)(event->source());
-      if (source && source != this) {
-          addItem(event->mimeData()->text());
-          event->setDropAction(Qt::MoveAction);
-          event->accept();
-      }
-}
-
-void CustomListWidget::checkMimeData(QDragMoveEvent *event)
-{
-
-    CustomListWidget *source =(CustomListWidget *)(event->source());
-       if (source && source != this) {
-           event->setDropAction(Qt::MoveAction);
-           event->accept();
-       }
-
-    qDebug() << " event source   " << event->source()
-             << " event " << event;
-//    if(event->mimeData()->hasFormat(DnditemData))
-//    {
-//        if(event->source() == this)
-//        {
-//            event->setDropAction(Qt::MoveAction);
-//            event->accept();
-//        }else {
-//            event->acceptProposedAction();
-//        }
-//    }else{
-//        event->ignore();
-//    }
-}
-
-void CustomListWidget::dragMoveEvent(QDragMoveEvent *event)
-{
-    checkMimeData(event);
-//    if(event->mimeData()->hasFormat(DnditemData))
-//    {
-//        if(event->source() == this)
-//        {
-//            event->setDropAction(Qt::MoveAction);
-//            event->accept();
-//        }else {
-//            event->acceptProposedAction();
-//        }
-//    }else{
-//        event->ignore();
-//    }
-}
-
-void CustomListWidget::dragEnterEvent(QDragEnterEvent *event)
-{
-//    if(event->mimeData()->hasFormat(DnditemData))
-//    {
-//        if(event->source() == this)
-//        {
-//            event->setDropAction(Qt::MoveAction);
-//            event->accept();
-//        }else{
-//            event->acceptProposedAction();
-//        }
-//    }else{
-//        event->ignore();
-//    }
-    checkMimeData(event);
-
-}
-
-void CustomListWidget::mouseMoveEvent(QMouseEvent *event)
-{
-    if (event->buttons() & Qt::LeftButton) {
-        int distance = (event->pos() - startPos).manhattanLength();
-        if (distance >= QApplication::startDragDistance())
-            performDrag();
-    }
-    QListWidget::mouseMoveEvent(event);
-}
-
-void CustomListWidget::performDrag()
-{
-    QListWidgetItem *item = currentItem();
-    if (item) {
-        QMimeData *mimeData = new QMimeData;
-        QString fname = item->text();
-        mimeData->setText(fname);
-
-        QDrag *drag = new QDrag(this);
-        drag->setMimeData(mimeData);
-        QVariantMap extMap = property(DKEY_EXTMAP).toMap();
-        drag->setPixmap(QPixmap(extMap[fname].toString()));
-        if (drag->exec(Qt::MoveAction) == Qt::MoveAction)
-            delete item;
-    }
-}
-
-void CustomListWidget::mousePressEvent(QMouseEvent *event)
-{
-
-    if (event->button() == Qt::LeftButton)
-           startPos = event->pos();
-
-     QListWidget::mousePressEvent(event);
-//    QListWidgetItem *item  = this->itemAt(event->pos());
-//    if(!item)
-//        return;
-
-
-//    QByteArray itemData;
-//    QDataStream dataStream(&itemData,QIODevice::WriteOnly);
-
-//    QString fname = item->text();
-//    dataStream << fname << event->pos() ;
-
-//    QMimeData *mimeData = new QMimeData;
-
-//    mimeData->setData(DnditemData,itemData);
-
-//    QDrag *drag = new QDrag(this);
-//    drag->setMimeData(mimeData);
-//    drag->setPixmap(QPixmap(fname));
-//    drag->setHotSpot(event->pos());
-
-
-}
 
 
 ImageFileDialog::ImageFileDialog(QVariantList old, QWidget *parent)
@@ -553,9 +412,10 @@ ProjectDialog::ProjectDialog(QWidget *parent):QDialog(parent),
     ui(new Ui::ProjectDialog),
     defaultXLS(QDir::currentPath() + QDir::separator() + "/行车记录仪.xls")
 {
-
-
     ui->setupUi(this);
+
+    setObjectName(this->metaObject()->className());
+    setStyleSheet( QString("ProjectDialog#%1 {background-color: #FFFFBF;}").arg(metaObject()->className()));
     setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     mWindow = (MainWindow*)(parent);
     setWindowTitle("新建工程");
@@ -563,7 +423,7 @@ ProjectDialog::ProjectDialog(QWidget *parent):QDialog(parent),
     connect(this,SIGNAL(accepted()),SLOT(onAccepted()));
     connect(this,SIGNAL(rejected()),SLOT(onRejected()));
     connect(this,SIGNAL(finished(int)),SLOT(onFinished(int)));
-    QVariant langfile = mWindow->globalSet->value(INI_MULLANG);
+    QVariant langfile = mWindow->mGlobalSet->value(INI_PRJMLANG);
     if(langfile.isValid())
     {
         defaultXLS = langfile.toString();
@@ -572,7 +432,7 @@ ProjectDialog::ProjectDialog(QWidget *parent):QDialog(parent),
     ui->view_lang->setText(defaultXLS);
     CheckLangFile(defaultXLS);
 
-    QVariant sizeVar =  mWindow->globalSet->value(INI_PRJSIZE);
+    QVariant sizeVar =  mWindow->mGlobalSet->value(INI_PRJSIZE);
      int w,h;
     if(sizeVar.isValid())
     {
@@ -598,6 +458,12 @@ ProjectDialog::ProjectDialog(QWidget *parent):QDialog(parent),
     ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("取消");
 
     //setLayout();
+}
+
+
+QString ProjectDialog::getProjectName()
+{
+   return  ui->prjname->text();
 }
 
 
@@ -632,7 +498,7 @@ void ProjectDialog::on_pushButton_clicked()
 //                                                  );
    if(!xlsfile.isEmpty() || CheckLangFile(xlsfile))
    {
-      mWindow->globalSet->setValue(INI_MULLANG, xlsfile );
+      mWindow->mGlobalSet->setValue(INI_PRJMLANG, xlsfile );
       ui->view_lang->setText(xlsfile);
 
    }
@@ -666,12 +532,12 @@ void ProjectDialog::onAccepted()
 
 
        mWindow->cManager->setDefaultPageSize(QSize(ui->spinBox->value(),ui->spinBox_2->value()));
-       mWindow->globalSet->setValue(INI_PRJSIZE,
+       mWindow->mGlobalSet->setValue(INI_PRJSIZE,
                                    QString("%1*%2").arg(QString::number(ui->spinBox->value()),
                                                        QString::number(ui->spinBox_2->value())));
 
 
-       mWindow->setWindowTitle(VERSION + ui->lineEdit->text());
+       mWindow->setWindowTitle(VERSION + ui->prjname->text());
 }
 
 void ProjectDialog::onRejected()
@@ -798,11 +664,11 @@ MenuItemDialog::MenuItemDialog( QString old, QWidget *parent)
     setWindowTitle("菜单条目列表");
 
 
-    foreach (QString key , mWindow->orderlist) {
+    foreach (QString key , mWindow->mOrderlist) {
 //        QListWidgetItem* item = new QListWidgetItem(QString("    %1").arg(key),listWidget);
 //        QRadioButton *rb = new QRadioButton(QString("            %1").arg(map[key]));
         QListWidgetItem* item = new QListWidgetItem(listWidget);
-        QRadioButton *rb = new QRadioButton(mWindow->itemMap[key]);
+        QRadioButton *rb = new QRadioButton(mWindow->mItemMap[key]);
         connect(rb,&QRadioButton::toggled,[=](bool f){
            if(f)
                text = rb->text();
@@ -823,7 +689,7 @@ MenuItemDialog::MenuItemDialog( QString old, QWidget *parent)
             [=](QListWidgetItem *item)
             {
              listWidget->clearSelection();
-             text = mWindow->orderlist[listWidget->row(item)]; });
+             text = mWindow->mOrderlist[listWidget->row(item)]; });
 
     QVBoxLayout *layout= new QVBoxLayout();
     layout->addWidget(listWidget);
@@ -857,7 +723,7 @@ I18nLanguage::I18nLanguage( QWidget *parent):
 
     ui->langWidget->setEditTriggers(QAbstractItemView::SelectedClicked | QAbstractItemView::DoubleClicked);
     ui->itemWidget->setEditTriggers(QAbstractItemView::SelectedClicked | QAbstractItemView::DoubleClicked);
-    foreach (QString s, mWindow->LanguageList) {
+    foreach (QString s, mWindow->mLanguageList) {
 
         QListWidgetItem* item = new QListWidgetItem(s, ui->langWidget);
        // item->setFlags(item->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsEditable); // set checkable flag
@@ -869,7 +735,7 @@ I18nLanguage::I18nLanguage( QWidget *parent):
     }
    // ui->langWidget->addItems(mWindow->LanguageList);
 
-    QMapIterator<QString,QString> iter(mWindow->itemMap);
+    QMapIterator<QString,QString> iter(mWindow->mItemMap);
     while(iter.hasNext())
     {
         iter.next();
@@ -986,7 +852,7 @@ ConfigProject::ConfigProject(QWidget *parent):
      ui->view_lang->setText(defaultXLS);
 
 
-    QVariant qv = mWindow->globalSet->value(INI_MULLANG);
+    QVariant qv = mWindow->mGlobalSet->value(INI_PRJMLANG);
     if(qv.isValid())
     {
 
@@ -1018,7 +884,7 @@ void ConfigProject::updateListWidget()
     }
     ui->langWidget->clear();
     QStringList tlist = mWindow->cManager->PrjSelectlang;
-    foreach (QString v, mWindow->LanguageList) {
+    foreach (QString v, mWindow->mLanguageList) {
         QListWidgetItem* item = new QListWidgetItem(v,ui->langWidget);
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable |
                        Qt::ItemIsEditable| Qt::ItemIsEnabled | Qt::ItemIsSelectable);
@@ -1072,7 +938,7 @@ void ConfigProject::on_openfile_clicked()
     if(!xlsfile.isEmpty() || CheckLangFile(xlsfile))
     {
 
-           mWindow->globalSet->setValue(INI_MULLANG,xlsfile);
+           mWindow->mGlobalSet->setValue(INI_PRJMLANG,xlsfile);
            ui->view_lang->setText(xlsfile);
            mWindow->readMultiLanguage(xlsfile);
            updateListWidget();
@@ -1118,3 +984,82 @@ QStringList ConfigProject::getSelectLang()
     }
     return lst;
 }
+
+
+GlobalSettings::GlobalSettings(QWidget *parent):
+    QDialog(parent),
+    ui(new Ui::GlobalSettings)
+{
+    ui->setupUi(this);
+    mWindow = (MainWindow*)parent;
+
+
+    QVariant sizeVar =  mWindow->mGlobalSet->value(INI_PRJSIZE);
+     int w,h;
+    if(sizeVar.isValid())
+    {
+        QString prjsize = sizeVar.toString();
+        w = prjsize.section("*",0,0).toInt();
+        h = prjsize.section("*",1,1).toInt();
+
+    }else{
+        w = 128;
+        h = 128;
+    }
+
+    ui->prj_width->setValue(w);ui->prj_height->setValue(h);
+
+    ui->gstyle->addItems(QStyleFactory::keys());
+    QVariant vstyle = mWindow->mGlobalSet->value(INI_PRJSTYLE);
+    if(vstyle.isValid())
+    {
+        ui->gstyle->setCurrentText(vstyle.toString());
+    }
+
+
+    QVariant mlang = mWindow->mGlobalSet->value(INI_PRJMLANG);
+    if(mlang.isValid())
+        ui->prjmlang_view->setText(mlang.toString());
+
+    QVariant json = mWindow->mGlobalSet->value(INI_PRJJSON);
+    if(json.isValid())
+        ui->prjjson_view->setText(json.toString());
+
+
+
+
+    connect(this,SIGNAL(accepted()),SLOT(onAccepted()));
+    setModal(true);
+}
+
+
+void GlobalSettings::onAccepted()
+{
+//    mWindow->cManager->ProjectSize = QSize(ui->prj_width->text().toInt(),
+//                                           ui->prj_height->text().toInt());
+
+    int w,h;
+    w = ui->prj_width->value();
+    h = ui->prj_height->value();
+
+    if(w == 0 ||  h == 0)
+    {
+        QMessageBox::warning(this,"提示","宽高不能设置为零.");
+    }
+
+
+    mWindow->cManager->setDefaultPageSize(QSize(w,h));
+    mWindow->mGlobalSet->setValue(INI_PRJSIZE,
+                                QString("%1*%2").arg(QString::number(w),
+                                                    QString::number(h)));
+
+    QApplication::setStyle(QStyleFactory::create(ui->gstyle->currentText()));
+    qApp->desktop()->update();
+    mWindow->mGlobalSet->setValue(INI_PRJSTYLE,ui->gstyle->currentText());
+
+    mWindow->mGlobalSet->setValue( INI_PRJDIR,ui->prjdir_view->text());
+
+    mWindow->mGlobalSet->setValue(INI_PRJJSON,ui->prjmlang_view->text());
+    mWindow->mGlobalSet->setValue(INI_PRJMLANG,ui->prjmlang_view->text());
+}
+

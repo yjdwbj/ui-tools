@@ -47,11 +47,22 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->mainToolBar->setAllowedAreas(Qt::TopToolBarArea);
 
     QString iniFile  =  QStandardPaths::displayName(QStandardPaths::DataLocation) + "/ui-config";
-    globalSet= new QSettings(iniFile,QSettings::IniFormat);
+    mGlobalSet= new QSettings(iniFile,QSettings::IniFormat);
+
+//    QVariant vstyle = mGlobalSet->value(INI_PRJSTYLE);
+//    if(vstyle.isValid())
+//    {
+//       QApplication::setStyle(QStyleFactory::create(vstyle.toString()));
+//    }
+
+    QApplication::setStyle(QStyleFactory::create("Fusion"));
+
     bk = new Backgroud();
     QString stylestr = "QPushButton::hover{"\
                         "background: #F48024}";
                        //"background: #5EBA7D}";
+
+
 
 
     setStyleSheet(stylestr);
@@ -130,7 +141,7 @@ MainWindow::MainWindow(QWidget *parent) :
         bakimageMap[fpath.mid(idx)] = QPixmap(fpath);
         bimgPath[fpath.mid(idx)] = fpath;
     }
-    QVariant bkvar = globalSet->value(INI_PRJBAKIMG);
+    QVariant bkvar = mGlobalSet->value(INI_PRJBAKIMG);
     if(bkvar.isValid())
     {
         bk->backImage = bakimageMap[bkvar.toString()];
@@ -148,7 +159,7 @@ MainWindow::MainWindow(QWidget *parent) :
    // createCSVFile(QDir::currentPath()+"/行车记录仪.xls");
    // QString path = QDir::currentPath()+"/行车记录仪.xls";
    // QString csv = QDir::currentPath()+"/行车记录仪.csv";
-    QVariant langfile = globalSet->value(INI_MULLANG);
+    QVariant langfile = mGlobalSet->value(INI_PRJMLANG);
     if(langfile.isValid())
     {
         readMultiLanguage(langfile.toString());
@@ -165,7 +176,7 @@ MainWindow::MainWindow(QWidget *parent) :
 //      qDebug() << " select text is " << md->text;
 
     // 如果可以自动打开上次的工程
-    QVariant prjvar = globalSet->value(INI_PRJLAST);
+    QVariant prjvar = mGlobalSet->value(INI_PRJLAST);
     QFile PrjFile;
     if(prjvar.isValid())
     {
@@ -192,7 +203,8 @@ MainWindow::MainWindow(QWidget *parent) :
             if(qd.isObject())
             {
                 QJsonObject  qdobj = qd.object();
-                setWindowTitle(qdobj[NAME].toString());
+                cManager->ProjectName = qdobj[NAME].toString();
+                setWindowTitle( VERSION + cManager->ProjectName);
 
                 foreach (QJsonValue val,qdobj[MLANG].toArray() ) {
                     cManager->PrjSelectlang.append(val.toString());
@@ -282,7 +294,7 @@ void MainWindow::readExcelFile(char *xlsfile)
     // open and parse the sheet
     pWS = xls_getWorkSheet(pWB, 0);
     xls_parseWorkSheet(pWS);
-    orderlist.clear();
+    mOrderlist.clear();
 
     // process all rows of the sheet
     for (cellRow = 0; cellRow <= pWS->rows.lastrow; cellRow++) {
@@ -376,22 +388,22 @@ void MainWindow::readExcelFile(char *xlsfile)
         if(!cellRow)
         {
 
-            LanguageList.clear();
+            mLanguageList.clear();
             foreach (QString v , collist) {
-                LanguageList << v;
+                mLanguageList << v;
             }
-            LanguageList.removeFirst();
+            mLanguageList.removeFirst();
 
         }
         if(collist.size())
         {
-            itemMap[collist.first()] = collist.at(1);
-            orderlist << collist.first();
+            mItemMap[collist.first()] = collist.at(1);
+            mOrderlist << collist.first();
         }
          cvsfile.write("\n");
 
     }
-    orderlist.removeFirst();
+    mOrderlist.removeFirst();
     xls_close_WS(pWS);
 
     xls_close(pWB);
@@ -429,14 +441,14 @@ void MainWindow::readCSVFile(QString csvfile)
     {
         balist = firstline.split(celcomma);
     }
-    LanguageList.clear();
+    mLanguageList.clear();
     foreach (QByteArray v, balist) {
-       LanguageList.append(QString::fromUtf8(v.data()).trimmed());
+       mLanguageList.append(QString::fromUtf8(v.data()).trimmed());
     }
 
-    if(LanguageList.size())
-        LanguageList.removeFirst();
-    orderlist.clear();
+    if(mLanguageList.size())
+        mLanguageList.removeFirst();
+    mOrderlist.clear();
     while(!csv.atEnd())
     {
         QByteArray ba =  csv.readLine();
@@ -451,8 +463,8 @@ void MainWindow::readCSVFile(QString csvfile)
         QListIterator<QByteArray> it(lba);
         QString key = QString::fromUtf8(it.next().data());
         QString val = QString::fromUtf8( it.next().data());
-        itemMap[key] = val;
-        orderlist << key;
+        mItemMap[key] = val;
+        mOrderlist << key;
     }
 
 }
@@ -498,16 +510,16 @@ void MainWindow::createCSVFile(QString xlsfile)
            if(once)
            {
 
-               LanguageList =   line.split(';');
-               if(LanguageList.size())
-                   LanguageList.removeAt(0);
+               mLanguageList =   line.split(';');
+               if(mLanguageList.size())
+                   mLanguageList.removeAt(0);
                once = false;
            }else
            {
                QStringList tmp = line.split(';');
                QString key = tmp[0].toLower().trimmed();
-               itemMap[key]=tmp[1].trimmed() ;
-               orderlist << key;
+               mItemMap[key]=tmp[1].trimmed() ;
+               mOrderlist << key;
 
            }
           // qDebug() << line;
@@ -542,16 +554,16 @@ void MainWindow::createCSVFile(QString xlsfile)
 
            if(once)
            {
-               LanguageList =   line.split(';');
-               if(LanguageList.size())
-                   LanguageList.removeAt(0);
+               mLanguageList =   line.split(';');
+               if(mLanguageList.size())
+                   mLanguageList.removeAt(0);
                once = false;
            }else
            {
                QStringList tmp = line.split(';');
                QString key = tmp[0].toLower().trimmed();
-               itemMap[key]=tmp[1].trimmed() ;
-               orderlist << key;
+               mItemMap[key]=tmp[1].trimmed() ;
+               mOrderlist << key;
 
            }
           // qDebug() << line;
@@ -564,6 +576,10 @@ void MainWindow::createCSVFile(QString xlsfile)
 
 void MainWindow::addWidgetToToolBar(QWidget *w)
 {
+    if(!w)
+    {
+        ui->mainToolBar->addSeparator();
+    }else
     ui->mainToolBar->addWidget(w);
 }
 
@@ -618,7 +634,7 @@ void MainWindow::onChangeBackgroud()
 void MainWindow::onDobuleClickedImage(QListWidgetItem *item)
 {
     bk->backImage = bakimageMap[item->text()];
-    globalSet->setValue(INI_PRJBAKIMG,item->text());
+    mGlobalSet->setValue(INI_PRJBAKIMG,item->text());
     this->centralWidget()->update();
     //update();
 }

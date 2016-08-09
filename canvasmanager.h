@@ -38,6 +38,8 @@ public:
     bool PrjIsChanged;
 
     QStringList PrjSelectlang;
+    QString ProjectName;
+    QSize ProjectSize;
 
 
 private slots:
