@@ -29,6 +29,7 @@ CanvasManager::CanvasManager(MainWindow *w):
     newPage->setEnabled(false);
     delPage->setEnabled(false);
     savePrj->setEnabled(false);
+    confPrj->setEnabled(false);
 
     mWindow->addWidgetToToolBar(newPrj);
     mWindow->addWidgetToToolBar(newPage);
@@ -340,4 +341,5 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
     newPage->setEnabled(readflag);
     savePrj->setEnabled(readflag);
     delPage->setEnabled(readflag);
+    confPrj->setEnabled(readflag);
 }
