@@ -10,5 +10,11 @@
         <file>icons/arrowleft@2x.png</file>
         <file>icons/arrowup@2x.png</file>
         <file>icons/arrowdown@2x.png</file>
+        <file>icons/fileopen.png</file>
+        <file>icons/progressindicator_big@2x.png</file>
+        <file>icons/QtBareMetal.png</file>
+        <file>icons/qt_logo.png</file>
+        <file>icons/xfail.png</file>
+        <file>icons/xpass.png</file>
     </qresource>
 </RCC>

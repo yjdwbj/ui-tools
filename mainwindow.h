@@ -73,6 +73,8 @@ public:
   //  bool eventFilter(QObject *obj, QEvent *event);
     void addWidgetToToolBar(QWidget *);
 
+    void readMultiLanguage(QString file);
+
     //QGroupBox *propertyWidget;
     QMap<QString,QPixmap> bakimageMap; // 背景图片
     QMap<QString,QString> bimgPath; // 背景图片的全路径
@@ -118,7 +120,7 @@ private:
 
     void HandleFrameObject(QJsonObject qjo, QString ParentName);
    // void readExcelFile(QString xlsfile);
-    void MreadExcelFile(char *xlsfile);
+    void readExcelFile(char *xlsfile);
     void createCSVFile(QString xlsfile);
     void readCSVFile(QString csvfile);
     QWidget *pWin;

@@ -62,7 +62,8 @@ MainWindow::MainWindow(QWidget *parent) :
     propertyWidget = new ComProperty("控件属性",this) ;
     //imgPropertyWidget = new ComProperty("图片属性",this);
 
-    setWindowTitle(WIN_TITLE);
+
+    setWindowTitle(VERSION);
 
     // 左边属性框
     lDock = new QDockWidget();
@@ -145,11 +146,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
    // createCSVFile(QDir::currentPath()+"/行车记录仪.xls");
-    QString path = QDir::currentPath()+"/行车记录仪.xls";
-    QString csv = QDir::currentPath()+"/行车记录仪.csv";
+   // QString path = QDir::currentPath()+"/行车记录仪.xls";
+   // QString csv = QDir::currentPath()+"/行车记录仪.csv";
+    QVariant langfile = globalSet->value(INI_MULLANG);
+    if(langfile.isValid())
+    {
+        readMultiLanguage(langfile.toString());
+    }
 
-   // gmain(path.toLocal8Bit().data());
-     MreadExcelFile(path.toLocal8Bit().data());
+
+
     // readCSVFile(csv);
     // createCSVFile(path);
 //    I18nLanguage *pd = new I18nLanguage(this);
@@ -188,6 +194,10 @@ MainWindow::MainWindow(QWidget *parent) :
                 QJsonObject  qdobj = qd.object();
                 setWindowTitle(qdobj[NAME].toString());
 
+                foreach (QJsonValue val,qdobj[MLANG].toArray() ) {
+                    cManager->PrjSelectlang.append(val.toString());
+                }
+
                 cManager->readProjectJson(qdobj[PAGES].toArray());
                 cManager->setActiveSS(qdobj[ACTPAGE].toInt());
 
@@ -200,9 +210,23 @@ MainWindow::MainWindow(QWidget *parent) :
 
 }
 
+void MainWindow::readMultiLanguage(QString file)
+{
+    QFileInfo finfo(file);
+    if(finfo.exists())
+    {
+       QString ext = finfo.completeSuffix();
+       if(!ext.compare("xls"))
+       {
+           readExcelFile(file.toLocal8Bit().data());
+       }else if(!ext.compare("csv"))
+       {
+           readCSVFile(file);
+       }
+    }
+}
 
-
-void MainWindow::MreadExcelFile(char *xlsfile)
+void MainWindow::readExcelFile(char *xlsfile)
 {
 
    // static char  stringSeparator = 0;
@@ -258,6 +282,7 @@ void MainWindow::MreadExcelFile(char *xlsfile)
     // open and parse the sheet
     pWS = xls_getWorkSheet(pWB, 0);
     xls_parseWorkSheet(pWS);
+    orderlist.clear();
 
     // process all rows of the sheet
     for (cellRow = 0; cellRow <= pWS->rows.lastrow; cellRow++) {
@@ -345,15 +370,18 @@ void MainWindow::MreadExcelFile(char *xlsfile)
                 }
             }
             collist <<  s;
-            if(!cellRow)
-            {
-                foreach (QString v , collist) {
-                    LanguageList << v;
-                }
-                LanguageList.removeFirst();
 
-            }
             cvsfile.write(s.toUtf8().data());
+        }
+        if(!cellRow)
+        {
+
+            LanguageList.clear();
+            foreach (QString v , collist) {
+                LanguageList << v;
+            }
+            LanguageList.removeFirst();
+
         }
         if(collist.size())
         {
@@ -401,12 +429,14 @@ void MainWindow::readCSVFile(QString csvfile)
     {
         balist = firstline.split(celcomma);
     }
+    LanguageList.clear();
     foreach (QByteArray v, balist) {
        LanguageList.append(QString::fromUtf8(v.data()).trimmed());
     }
 
     if(LanguageList.size())
         LanguageList.removeFirst();
+    orderlist.clear();
     while(!csv.atEnd())
     {
         QByteArray ba =  csv.readLine();

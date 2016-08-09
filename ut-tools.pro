@@ -16,6 +16,10 @@ TEMPLATE = app
 QMAKE_LIBS_OPENGL -= -lGL
 QMAKE_CFLAGS += -std=c99
 
+REVISION = $$system(git rev-parse HEAD)
+DEFINES += APP_REVISION=\\\"$$REVISION\\\"
+
+
 SOURCES += main.cpp\
         mainwindow.cpp \
     module.cpp \
@@ -51,11 +55,13 @@ HEADERS  += mainwindow.h \
     libxls/ole.h \
     libxls/endian.h \
     libxls/brdb.h \
-    libxls/brdb.c.h
+    libxls/brdb.c.h \
+    config.h
 
 FORMS    += mainwindow.ui \
     dialog.ui \
-    language.ui
+    language.ui \
+    confproject.ui
 CONFIG += c++11
 
 

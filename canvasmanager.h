@@ -37,12 +37,15 @@ public:
     MainWindow *mWindow;
     bool PrjIsChanged;
 
+    QStringList PrjSelectlang;
+
 
 private slots:
     void onCreateNewProject();
     void onCreateNewScenesScreen();
     void onDelCurrentScenesScreen();
     void onSaveProject();
+    void onConfProject();
 
 
 
@@ -54,7 +57,7 @@ private:
     QRect stackRect;
     QSize mPageSize;
 
-    QPushButton *newPrj,*newPage,*delPage,*savePrj;
+    QPushButton *newPrj,*newPage,*delPage,*savePrj,*confPrj;
     QString PrjJsonPath;
 
 };

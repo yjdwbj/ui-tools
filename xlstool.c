@@ -179,9 +179,9 @@ static int asprintf(char **ret, const char *format, ...)
 
 	i = vsnprintf(NULL, 0, format, ap) + 1;
 
-    //va_end(ap);
+    va_end(ap);
 	str = (char *)malloc(i);
-   // va_start(ap,format);
+    va_start(ap,format);
 	i = vsnprintf(str, i, format, ap);
 
 	va_end(ap);

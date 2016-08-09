@@ -727,22 +727,25 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
         QMenu *contextMenu = new QMenu(this);
         QAction delme(QString("删除当前-%1").arg(this->property(DKEY_TXT).toString()),this);
         connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
-
-
-
-        QAction hideobj("隐藏",this);
-
-        connect(&hideobj,SIGNAL(triggered(bool)),SLOT(onSwapViewObject(bool)));
-
         contextMenu->addAction(&delme);
+         QAction saveTemp("保存成控件",this);
         if(!CN_NEWLAYOUT.compare(metaObject()->className()))
         {
-            QAction saveTemp("保存成控件",this);
+
             contextMenu->addAction(&saveTemp);
             connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
         }
+        QAction hideobj("隐藏",this);
+        if(!CN_NEWFRAME.compare(metaObject()->className()))
+        {
 
-        contextMenu->addAction(&hideobj);
+        }else
+        {
+
+            connect(&hideobj,SIGNAL(triggered(bool)),SLOT(onSwapViewObject(bool)));
+            contextMenu->addAction(&hideobj);
+        }
+
         contextMenu->exec(mapToGlobal(event->pos()));
     }
 
@@ -1032,13 +1035,14 @@ void BaseForm::DeleteMe()
     {
        // deleteObject(nf.next());
         QWidget *w = item.next();
-        if(!CN_NEWLABEL.compare(w->metaObject()->className()))
-        {
-            childlist.removeOne(w);
-            w->deleteLater();
-        }else{
-           ((BaseForm*)w)->DeleteMe();
-        }
+        ((BaseForm*)w)->DeleteMe();
+//        if(!CN_NEWLABEL.compare(w->metaObject()->className()))
+//        {
+//            childlist.removeOne(w);
+//            w->deleteLater();
+//        }else{
+//           ((BaseForm*)w)->DeleteMe();
+//        }
 
     }
 
@@ -1285,13 +1289,13 @@ void NewFrame::writeToJson(QJsonObject &json)
 }
 
 
-void NewFrame::mousePressEvent(QMouseEvent *ev)
-{
-    onSelectMe();
-    mOffset = ev->pos();
-    setCursor(Qt::ClosedHandCursor);
-    this->blockSignals(true);
-}
+//void NewFrame::mousePressEvent(QMouseEvent *ev)
+//{
+//    onSelectMe();
+//    mOffset = ev->pos();
+//    setCursor(Qt::ClosedHandCursor);
+//    this->blockSignals(true);
+//}
 
 
 

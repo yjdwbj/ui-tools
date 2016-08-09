@@ -183,7 +183,7 @@ public slots:
 
 protected:
     void clearOtherObjectStyleSheet();
-    void mousePressEvent(QMouseEvent *ev);
+   // void mousePressEvent(QMouseEvent *ev);
     void mouseMoveEvent(QMouseEvent *event);
   //  void updateBorderColor();
    // void paintEvent(QPaintEvent *event);

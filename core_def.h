@@ -59,6 +59,7 @@ static QString BAKCOLOR = "background-color";
 static QString WTYPE = "-type";
 static QString PLUGIN = "plugin";
 static QString PIC_TEXT = "text-pic";
+static QString MLANG = "language";
 
 
 static const char  DKEY_CAPTION[] = "caption";
@@ -99,10 +100,13 @@ static const QString INI_PRJSIZE = "Project/Size";
 static const QString INI_PRJBAKIMG = "Project/Background";
 static const QString INI_PRJLAST = "Project/LastOpen";
 static const QString INI_PRJDIR = "Project/Dir";
+static const QString INI_MULLANG = "Project/LangugeFile";
 
 
 static const char HIDE_ICON[] = ":/icon/icons/hide-30x30.png";
 static const char SHOW_ICON[] = ":/icon/icons/visibility-30x30.png";
+
+
 
 
 const QMargins propertyMarg = QMargins(2,12,2,50);
@@ -117,7 +121,8 @@ static QSize MARGIN_SIZE = QSize(SELECTION_MARGIN * 2, SELECTION_MARGIN *2);
 
 
 
-static const QString WIN_TITLE = "图片编辑工具";
+static const QString WIN_TITLE = "图片编辑工具  ";
 
+static QString VERSION = QString("%1 Ver 1.0 r%2 ").arg(WIN_TITLE,QString(APP_REVISION).mid(0,6));
 
 #endif // CONFIG_H

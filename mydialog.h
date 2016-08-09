@@ -119,12 +119,18 @@ public slots:
 
     void onSpinBoxVChanged(int);
 private:
+
+    bool CheckLangFile(QString path);
+
     Ui::ProjectDialog  *ui;
     MainWindow *mWindow;
+    QString defaultXLS;
 
 protected:
     void closeEvent(QCloseEvent *);
 
+private slots:
+    void on_pushButton_clicked();
 };
 
 class ImageListView : public QDialog
@@ -177,6 +183,8 @@ private slots:
     void on_lang_re_clicked();
 
 private:
+    bool CheckLangFile(QString path);
+
     MainWindow *mWindow;
     Ui::I18nLanguage *ui;
 };
@@ -195,6 +203,43 @@ private:
 
 
 };
+
+namespace Ui {
+    class ConfigProject;
+}
+
+
+class ConfigProject: public QDialog
+{
+    Q_OBJECT
+public:
+    explicit ConfigProject(QWidget *parent = 0);
+
+    QStringList getSelectLang();
+
+private slots:
+    void on_openfile_clicked();
+
+    void on_lang_selectall_clicked();
+
+    void on_lang_dselectall_clicked();
+
+    void on_lang_re_clicked();
+
+
+
+private:
+
+    void updateListWidget();
+     bool CheckLangFile(QString path);
+
+
+    MainWindow *mWindow;
+    Ui::ConfigProject *ui;
+    QString defaultXLS;
+};
+
+
 
 
 #endif // IMAGEFILEDIALOG_H

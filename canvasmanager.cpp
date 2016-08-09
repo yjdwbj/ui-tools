@@ -20,6 +20,8 @@ CanvasManager::CanvasManager(MainWindow *w):
     newPage(new QPushButton(tr("新建页面"))),
     delPage(new QPushButton(tr("删除当前页"))),
     savePrj(new QPushButton(tr("保存工程"))),
+    confPrj(new QPushButton(tr("工程设置"))),
+
     PrjIsChanged(false)
 
 {
@@ -32,6 +34,8 @@ CanvasManager::CanvasManager(MainWindow *w):
     mWindow->addWidgetToToolBar(newPage);
     mWindow->addWidgetToToolBar(delPage);
     mWindow->addWidgetToToolBar(savePrj);
+
+    mWindow->addWidgetToToolBar(confPrj);
     mWindow->centralWidget()->setLayout(stack);
     // 按屏幕的大小比例调整.
   //  stackRect = QRect( QPoint(mWindow->width() * 0.12,mWindow->height()* 0.3),mPageSize);
@@ -41,6 +45,7 @@ CanvasManager::CanvasManager(MainWindow *w):
     connect(newPage,SIGNAL(clicked(bool)),SLOT(onCreateNewScenesScreen()));
     connect(delPage,SIGNAL(clicked(bool)),SLOT(onDelCurrentScenesScreen()));
     connect(savePrj,SIGNAL(clicked(bool)),SLOT(onSaveProject()));
+    connect(confPrj,SIGNAL(clicked(bool)),SLOT(onConfProject()));
 //    qDebug() << "centralWidget pos" << mWindow->centralWidget()->geometry()
 //             << " stack pos " << stackRect;
     //stack->setGeometry(stackRect);
@@ -205,6 +210,7 @@ void CanvasManager::onCreateNewProject()
     // qDebug() << " ProjectDialog result " << pd->result();
     newPage->setEnabled(pd->result());
     savePrj->setEnabled(pd->result());
+    confPrj->setEnabled(pd->result());
     pd->deleteLater();
     if(pd->result())
     {
@@ -229,6 +235,18 @@ void CanvasManager::onCreateNewScenesScreen()
    // mWindow->imgPropertyWidget->delPropertyBox();
     mWindow->posWidget->resetValues();
 }
+
+
+void CanvasManager::onConfProject()
+{
+  ConfigProject cp(mWindow);
+  cp.exec();
+ // int n = cp.result();
+  if(cp.result())  // accpet 就保存语言.
+     PrjSelectlang = cp.getSelectLang();
+
+}
+
 
 void CanvasManager::onSaveProject()
 {
@@ -268,6 +286,12 @@ void CanvasManager::onSaveProject()
     obj[NAME] = mWindow->windowTitle();
     obj[ACTPAGE] = stack->currentIndex();
     obj[PAGES] = CanvasArray;
+    QJsonArray lang;
+    foreach (QString v ,PrjSelectlang) {
+        QJsonValue val = v;
+        lang.append(val);
+    }
+    obj[MLANG] = lang;
     QJsonDocument jsonDoc(obj);
     saveFile.write(jsonDoc.toJson());
 }
@@ -287,6 +311,8 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
 
                 int w,h;
                 QJsonObject valobj = val.toObject();
+
+
                 foreach (QJsonValue pval, valobj[PROPERTY].toArray()) {
                     QJsonObject pobj = pval.toObject();
                     if(pobj.contains(KEY_RECT))

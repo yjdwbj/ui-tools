@@ -1,6 +1,7 @@
 #include "mydialog.h"
 #include "ui_dialog.h"
 #include "ui_language.h"
+#include "ui_confproject.h"
 #include <QMessageBox>
 #include "mainwindow.h"
 #include "canvasmanager.h"
@@ -12,6 +13,7 @@
 #include <QDataStream>
 #include <QBitmap>
 #include <QRadioButton>
+#include <QFileDialog>
 
 
 
@@ -547,15 +549,29 @@ void ImageFileDialog::onTreeViewClicked(QModelIndex index)
 
 
 
-ProjectDialog::ProjectDialog(QWidget *parent):QDialog(parent),ui(new Ui::ProjectDialog)
+ProjectDialog::ProjectDialog(QWidget *parent):QDialog(parent),
+    ui(new Ui::ProjectDialog),
+    defaultXLS(QDir::currentPath() + QDir::separator() + "/行车记录仪.xls")
 {
+
+
     ui->setupUi(this);
+    setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     mWindow = (MainWindow*)(parent);
     setWindowTitle("新建工程");
     setModal(true);
     connect(this,SIGNAL(accepted()),SLOT(onAccepted()));
     connect(this,SIGNAL(rejected()),SLOT(onRejected()));
     connect(this,SIGNAL(finished(int)),SLOT(onFinished(int)));
+    QVariant langfile = mWindow->globalSet->value(INI_MULLANG);
+    if(langfile.isValid())
+    {
+        defaultXLS = langfile.toString();
+    }
+
+    ui->view_lang->setText(defaultXLS);
+    CheckLangFile(defaultXLS);
+
     QVariant sizeVar =  mWindow->globalSet->value(INI_PRJSIZE);
      int w,h;
     if(sizeVar.isValid())
@@ -576,11 +592,53 @@ ProjectDialog::ProjectDialog(QWidget *parent):QDialog(parent),ui(new Ui::Project
     ui->spinBox_2->setMaximum(parent->height()*0.8);
     ui->spinBox->setValue(w);
     ui->spinBox_2->setValue(h);
+
+
     ui->buttonBox->button(QDialogButtonBox::Ok)->setText("创建");
     ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("取消");
 
     //setLayout();
 }
+
+
+bool ProjectDialog::CheckLangFile(QString path)
+{
+    bool ret  = QFileInfo::exists(path);
+    if(ret)
+    {
+        ui->filestatus->setPixmap(QPixmap(":/icon/icons/xfail.png"));
+    }else
+    {
+
+        ui->filestatus->setPixmap(QPixmap(":/icon/icons/xpass.png"));
+        ui->filestatus->setText("多国语言文件不存在");
+    }
+
+    return ret;
+}
+
+void ProjectDialog::on_pushButton_clicked()
+{
+
+
+   QFileInfo definfo(defaultXLS);
+   QString xlsfile = QFileDialog::getOpenFileName(Q_NULLPTR,
+                                                  tr("打开多国语言文件"),
+                                                  definfo.absolutePath(),
+                                                  //tr("xls files (*.xls);;CSV UTF-8 (*.csv)"));
+                                                   tr("xls files , CSV UTF-8 file (*.xls *.csv )"));
+//                                                  Q_NULLPTR,
+//                                                  QFileDialog::ExistingFile
+//                                                  );
+   if(!xlsfile.isEmpty() || CheckLangFile(xlsfile))
+   {
+      mWindow->globalSet->setValue(INI_MULLANG, xlsfile );
+      ui->view_lang->setText(xlsfile);
+
+   }
+
+}
+
 ProjectDialog::~ProjectDialog()
 {
     delete ui;
@@ -611,7 +669,9 @@ void ProjectDialog::onAccepted()
        mWindow->globalSet->setValue(INI_PRJSIZE,
                                    QString("%1*%2").arg(QString::number(ui->spinBox->value()),
                                                        QString::number(ui->spinBox_2->value())));
-       mWindow->setWindowTitle(ui->lineEdit->text());
+
+
+       mWindow->setWindowTitle(VERSION + ui->lineEdit->text());
 }
 
 void ProjectDialog::onRejected()
@@ -903,4 +963,158 @@ void I18nLanguage::on_lang_re_clicked()
         item->setCheckState(item->checkState() == Qt::Checked ? Qt::Unchecked : Qt::Checked);
        // item->setSelected(!item->isSelected());
     }
+}
+
+
+ConfigProject::ConfigProject(QWidget *parent):
+    QDialog(parent),
+    ui(new Ui::ConfigProject),
+    defaultXLS(QDir::currentPath() + QDir::separator() + "/行车记录仪.xls")
+
+{
+    ui->setupUi(this);
+    setWindowFlags(Qt::FramelessWindowHint| Qt::Dialog);
+    mWindow = (MainWindow*)(parent);
+//    connect(ui->buttonBox,SIGNAL(accepted()),SLOT(accept()));
+//    connect(ui->buttonBox,SIGNAL(rejected()),SLOT(reject()));
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setText("确定");
+    ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("取消");
+
+
+    CheckLangFile(defaultXLS);
+
+     ui->view_lang->setText(defaultXLS);
+
+
+    QVariant qv = mWindow->globalSet->value(INI_MULLANG);
+    if(qv.isValid())
+    {
+
+        QString oldfile = qv.toString();
+         defaultXLS = oldfile;
+         if(CheckLangFile(oldfile))
+         {
+             ui->view_lang->setText(oldfile);
+         }
+    }
+
+
+    ui->langWidget->setEditTriggers(QAbstractItemView::SelectedClicked | QAbstractItemView::DoubleClicked);
+
+    updateListWidget();
+    setModal(true);
+
+}
+
+
+void ConfigProject::updateListWidget()
+{
+
+    int count =  ui->langWidget->count();
+//    ui->langWidget->selectAll();
+//    qDeleteAll(ui->langWidget->selectedItems());
+    for (int i =0 ; i < count;i++ ) {
+       delete ui->langWidget->takeItem(i);
+    }
+    ui->langWidget->clear();
+    QStringList tlist = mWindow->cManager->PrjSelectlang;
+    foreach (QString v, mWindow->LanguageList) {
+        QListWidgetItem* item = new QListWidgetItem(v,ui->langWidget);
+        item->setFlags(item->flags() | Qt::ItemIsUserCheckable |
+                       Qt::ItemIsEditable| Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+      //  item->setCheckState(Qt::Unchecked); // AND initialize check state
+        bool b = false;
+        foreach (QString o,tlist ) {
+            if(!v.compare(o))
+            {
+               // item->setCheckState(Qt::Checked);
+                b = true;
+                tlist.removeOne(o);
+                break;
+            }
+        }
+        item->setCheckState(b ? Qt::Checked : Qt::Unchecked);
+    }
+    count =  ui->langWidget->count();
+    ui->lang_dselectall->setEnabled(count);
+    ui->lang_re->setEnabled(count);
+    ui->lang_selectall->setEnabled(count);
+}
+
+bool ConfigProject::CheckLangFile(QString path)
+{
+    bool ret  = QFileInfo::exists(path);
+    if(ret)
+    {
+        ui->filestatus->setPixmap(QPixmap(":/icon/icons/xfail.png"));
+    }else
+    {
+
+        ui->filestatus->setPixmap(QPixmap(":/icon/icons/xpass.png"));
+        ui->filestatus->setText("多国语言文件不存在");
+    }
+
+    return ret;
+}
+
+
+
+void ConfigProject::on_openfile_clicked()
+{
+    QFileInfo definfo(defaultXLS);
+    QString xlsfile = QFileDialog::getOpenFileName(Q_NULLPTR,
+                                                   tr("打开多国语言文件"),
+                                                   definfo.absolutePath(),
+                                                   tr("xls files , CSV UTF-8 file (*.xls *.csv )"));
+ //                                                  Q_NULLPTR,
+ //                                                  QFileDialog::ExistingFile
+ //                                                  );
+    if(!xlsfile.isEmpty() || CheckLangFile(xlsfile))
+    {
+
+           mWindow->globalSet->setValue(INI_MULLANG,xlsfile);
+           ui->view_lang->setText(xlsfile);
+           mWindow->readMultiLanguage(xlsfile);
+           updateListWidget();
+    }
+}
+
+void ConfigProject::on_lang_selectall_clicked()
+{
+    for(int i = 0;i < ui->langWidget->count();i++)
+    {
+        QListWidgetItem *item = ui->langWidget->item(i);
+        item->setCheckState(Qt::Checked);
+    }
+}
+
+void ConfigProject::on_lang_dselectall_clicked()
+{
+    for(int i = 0;i < ui->langWidget->count();i++)
+    {
+        QListWidgetItem *item = ui->langWidget->item(i);
+        item->setCheckState(Qt::Unchecked);
+    }
+}
+
+void ConfigProject::on_lang_re_clicked()
+{
+    for(int i = 0;i < ui->langWidget->count();i++)
+    {
+        QListWidgetItem *item = ui->langWidget->item(i);
+        item->setCheckState(item->checkState() == Qt::Checked ? Qt::Unchecked : Qt::Checked);
+       // item->setSelected(!item->isSelected());
+    }
+}
+
+QStringList ConfigProject::getSelectLang()
+{
+    QStringList lst;
+    for(int i = 0;i < ui->langWidget->count();i++)
+    {
+        QListWidgetItem *item = ui->langWidget->item(i);
+        if(item->checkState() == Qt::Checked)
+            lst.append(item->text());
+    }
+    return lst;
 }
