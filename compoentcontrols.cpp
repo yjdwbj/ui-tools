@@ -435,6 +435,7 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                QPushButton *bkimage = new QPushButton(caption);
                bkimage->setObjectName(uname);
                mainLayout->addWidget(bkimage);
+                p->setProperty(DKEY_CURVAL,BAKIMAGE);
                connect(bkimage,SIGNAL(clicked(bool)),p,SLOT(onBackgroundImageDialog()));
            }
            else if(object.contains(BAKCOLOR))
@@ -442,6 +443,7 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                QPushButton *bkcolor = new QPushButton(caption);
                bkcolor->setObjectName(uname);
                mainLayout->addWidget(bkcolor);
+               p->setProperty(DKEY_CURVAL,BAKCOLOR);
 
                connect(bkcolor,SIGNAL(clicked(bool)),p,SLOT(onColorButtonClicked()));
                wid = bkcolor;
@@ -594,9 +596,8 @@ CompoentControls::CompoentControls(MainWindow *mw, QWidget *parent)
 {
 
     setTitle(tr("控件列表"));
-    setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}"\
-                  "QPushButton::hover{"\
-                  "background: #F48024;}");
+    setStyleSheet("QGroupBox,QLabel{background-color: #C0DCC0;}");\
+
     //this->setLayout(mainLayout);
     mainLayout->setSpacing(2);
     mainLayout->setContentsMargins(2,2,2,2);
@@ -736,6 +737,11 @@ QWidget* CompoentControls::createCustomObject(const QJsonArray &comJsonArr)
             col = 0;
             row++;
         }
+
+        // 这样能把tooltip显示成一张图片.
+        btnTest->setToolTip( QString("<img src='%1'>").arg(qjv.toObject()[ICON].toString()));
+//        btnTest->setStyleSheet("QPushButton::hover{"\
+//        "background: #F48024;}");
         comLayout->addWidget(btnTest,row,col++);
         // 这里要创建单独处理自定义控件的函数.
         connect(btnTest,SIGNAL(clicked(bool)),this,SLOT(onCreateCustomWidget()));
@@ -766,13 +772,13 @@ void CompoentControls::onCreateCustomWidget()
    // QString clsname = wid->metaObject()->className();
     if(!clsname.compare(CN_NEWLAYOUT))
     {
-       ((NewLayout*)wid)->readFromJson(value.toObject());
+       ((NewLayout*)wid)->readFromJson(value);
        // ((NewLayout*)wid)->readFromJson(value.toArray());
     }
     else if(!clsname.compare(CN_NEWFRAME))
     {
         // 选择它的父控件.
-       ((NewLayout*)wid->parentWidget())->readFromJson(value.toObject());
+       ((NewLayout*)wid->parentWidget())->readFromJson(value);
     }
     else
     {
@@ -909,11 +915,11 @@ void CompoentControls::onCreateCompoentToCanvas()
    // QString clsname = wid->metaObject()->className();
     if(!clsname.compare(CN_NEWFRAME) || !clsname.compare(CN_NEWLIST))
     {
-        ((NewLayout*)wid->parentWidget()->parentWidget())->readFromJson(val.toObject());
+        ((NewLayout*)wid->parentWidget()->parentWidget())->readFromJson(val);
     }
     else {
     //    ((NewLayout*)wid)->createNewFrameObject(val.toObject());
-        ((NewLayout*)wid)->readFromJson(val.toObject());
+        ((NewLayout*)wid)->readFromJson(val);
     }
 
 }
@@ -935,8 +941,8 @@ void CompoentControls::onCreateNewLayout()
     QPushButton *btn = (QPushButton*)(QObject::sender());
     QVariant variant = btn->property(DKEY_JSONSTR);
 
-    QJsonObject json = QJsonValue::fromVariant(variant).toObject();
-    QRect oldrect = Compoent::getRectFromStruct(json[PROPERTY].toArray(),KEY_RECT);
+    QJsonValue value = QJsonValue::fromVariant(variant);
+    QRect oldrect = Compoent::getRectFromStruct(value.toObject()[PROPERTY].toArray(),KEY_RECT);
     if(oldrect.isEmpty())
     {
         oldrect.setWidth(200);
@@ -946,14 +952,14 @@ void CompoentControls::onCreateNewLayout()
     if(/*!CN_LAYOUT.compare(clsname)|| */!CN_NEWLAYOUT.compare(clsname))
     {
         // 这里是在布局上面创建布局,嵌套.
-        ((NewLayout*)w)->readFromJson(json);
+        ((NewLayout*)w)->readFromJson(value);
     }
     else if(!CN_NEWLAYER.compare(clsname)/* || !CN_LAYER.compare(clsname)*/)
     {
-       ((NewLayer*)w)->readFromJson(json);
+       ((NewLayer*)w)->readFromJson(value);
     }else if(!CN_NEWFRAME.compare(clsname) || !CN_NEWLIST.compare(clsname))
     {
-        ((NewLayout*)w->parentWidget()->parentWidget())->readFromJson(json);
+        ((NewLayout*)w->parentWidget()->parentWidget())->readFromJson(value);
     }
 
 }

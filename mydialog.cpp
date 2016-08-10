@@ -22,6 +22,22 @@
 const static char DnditemData[] = "application/x-dnditemdata";
 
 
+BaseDialog::BaseDialog(QWidget *parent):
+    QDialog(parent)
+{
+    setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+    setModal(true);
+   // setStyleSheet( QString("BaseDialog#%1 {background-color: #FFFFBF;}").arg(objectName()));
+    qDebug() << " basedialog stylesheet " << styleSheet()
+             << " meta class name " << metaObject()->className();
+}
+
+
+void BaseDialog::UpdateStyle()
+{
+    setStyleSheet( QString("BaseDialog#%1 {background-color: #FFFFBF;}").arg(objectName()));
+    qDebug() << " basedialog stylesheet " << styleSheet();
+}
 
 ImageFileDialog::ImageFileDialog(QVariantList old, QWidget *parent)
     :QDialog(parent),
@@ -408,15 +424,18 @@ void ImageFileDialog::onTreeViewClicked(QModelIndex index)
 
 
 
-ProjectDialog::ProjectDialog(QWidget *parent):QDialog(parent),
+ProjectDialog::ProjectDialog(QWidget *parent)
+    :BaseDialog(parent),
+    //:QDialog(parent),
     ui(new Ui::ProjectDialog),
     defaultXLS(QDir::currentPath() + QDir::separator() + "/行车记录仪.xls")
 {
     ui->setupUi(this);
 
     setObjectName(this->metaObject()->className());
-    setStyleSheet( QString("ProjectDialog#%1 {background-color: #FFFFBF;}").arg(metaObject()->className()));
-    setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+    this->UpdateStyle();
+    //setStyleSheet( QString("ProjectDialog#%1 {background-color: #FFFFBF;}").arg(metaObject()->className()));
+
     mWindow = (MainWindow*)(parent);
     setWindowTitle("新建工程");
     setModal(true);
@@ -459,13 +478,6 @@ ProjectDialog::ProjectDialog(QWidget *parent):QDialog(parent),
 
     //setLayout();
 }
-
-
-QString ProjectDialog::getProjectName()
-{
-   return  ui->prjname->text();
-}
-
 
 bool ProjectDialog::CheckLangFile(QString path)
 {
@@ -527,7 +539,7 @@ void ProjectDialog::onAccepted()
        if(ui->spinBox->value() == 0 ||
                ui->spinBox_2->value() == 0)
        {
-           QMessageBox::warning(this,"提示","宽高没能设置为零.");
+           QMessageBox::warning(this,"提示","宽高不能设置为零.");
        }
 
 
@@ -538,6 +550,7 @@ void ProjectDialog::onAccepted()
 
 
        mWindow->setWindowTitle(VERSION + ui->prjname->text());
+       mWindow->cManager->mProjectName = ui->prjname->text();
 }
 
 void ProjectDialog::onRejected()
@@ -568,8 +581,6 @@ ImageListView::ImageListView(QString path, QWidget *parent)
     this->setLayout(mh);
     this->setWindowTitle(tr("图片编辑"));
     filters << "*.bmp" << "*.png" << "*.jpg";
-
-
     treeModel->setRootPath(path);
     treeModel->removeColumn(3);
     treeModel->removeColumn(2);
@@ -586,11 +597,7 @@ ImageListView::ImageListView(QString path, QWidget *parent)
     treefile->hideColumn(2);
     treefile->hideColumn(1);
 
-
-
     fileModel->setRootPath(path);
-
-
     fileModel->setNameFilters(filters);
     fileModel->setFilter(QDir::Files);
 //    imglist->setModel(fileModel);
@@ -619,15 +626,6 @@ void ImageListView::updateListImages(QString path)
     imglist->clear();
 
     QDirIterator it(path,filters, QDir::Files, QDirIterator::Subdirectories);
-
-//    QQuickView qview;
-
-//    qview.setResizeMode(QQuickView::SizeRootObjectToView);
-//    qview.setSource(QUrl("qrc:/icon/busyindicator.qml"));
-//    qview.show();
-
-
-
 
     while (it.hasNext())
     {
@@ -883,7 +881,7 @@ void ConfigProject::updateListWidget()
        delete ui->langWidget->takeItem(i);
     }
     ui->langWidget->clear();
-    QStringList tlist = mWindow->cManager->PrjSelectlang;
+    QStringList tlist = mWindow->cManager->mPrjSelectlang;
     foreach (QString v, mWindow->mLanguageList) {
         QListWidgetItem* item = new QListWidgetItem(v,ui->langWidget);
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable |
@@ -987,11 +985,30 @@ QStringList ConfigProject::getSelectLang()
 
 
 GlobalSettings::GlobalSettings(QWidget *parent):
-    QDialog(parent),
+    BaseDialog(parent),
     ui(new Ui::GlobalSettings)
 {
+
+
+
     ui->setupUi(this);
+    setObjectName(this->metaObject()->className());
+    this->UpdateStyle();
     mWindow = (MainWindow*)parent;
+
+    QList<QTreeWidgetItem*> qwilist =
+            ui->treeWidget->findItems("多国语言文件:",Qt::MatchFixedString |
+                                  Qt::MatchRecursive);
+    if(qwilist.size())
+    {
+        QSpinBox *a = new QSpinBox();
+        ui->treeWidget->setItemWidget(qwilist.first(),1,a);
+    }
+    foreach(QTreeWidgetItem *item,ui->treeWidget->findItems("*",Qt::MatchRegExp|Qt::MatchRecursive))
+    {
+        qDebug() << item->text(0);
+    }
+
 
 
     QVariant sizeVar =  mWindow->mGlobalSet->value(INI_PRJSIZE);
@@ -1009,12 +1026,12 @@ GlobalSettings::GlobalSettings(QWidget *parent):
 
     ui->prj_width->setValue(w);ui->prj_height->setValue(h);
 
-    ui->gstyle->addItems(QStyleFactory::keys());
-    QVariant vstyle = mWindow->mGlobalSet->value(INI_PRJSTYLE);
-    if(vstyle.isValid())
-    {
-        ui->gstyle->setCurrentText(vstyle.toString());
-    }
+//    ui->gstyle->addItems(QStyleFactory::keys());
+//    QVariant vstyle = mWindow->mGlobalSet->value(INI_PRJSTYLE);
+//    if(vstyle.isValid())
+//    {
+//        ui->gstyle->setCurrentText(vstyle.toString());
+//    }
 
 
     QVariant mlang = mWindow->mGlobalSet->value(INI_PRJMLANG);
@@ -1022,9 +1039,19 @@ GlobalSettings::GlobalSettings(QWidget *parent):
         ui->prjmlang_view->setText(mlang.toString());
 
     QVariant json = mWindow->mGlobalSet->value(INI_PRJJSON);
+    ui->prjjson_view->setText(QDir::currentPath()+ QDir::separator()+"control.json");
     if(json.isValid())
         ui->prjjson_view->setText(json.toString());
 
+    ui->prjdir_view->setText(QDir::currentPath());
+    QVariant prjdir = mWindow->mGlobalSet->value(INI_PRJDIR);
+    if(prjdir.isValid())
+        ui->prjdir_view->setText(prjdir.toString());
+
+    ui->prjimg_view->setText(QDir::currentPath() + QDir::separator() + "images");
+    QVariant imgdir = mWindow->mGlobalSet->value(INI_PRJIMAGEDIR);
+    if(imgdir.isValid())
+        ui->prjimg_view->setText(imgdir.toString());
 
 
 
@@ -1053,13 +1080,13 @@ void GlobalSettings::onAccepted()
                                 QString("%1*%2").arg(QString::number(w),
                                                     QString::number(h)));
 
-    QApplication::setStyle(QStyleFactory::create(ui->gstyle->currentText()));
-    qApp->desktop()->update();
-    mWindow->mGlobalSet->setValue(INI_PRJSTYLE,ui->gstyle->currentText());
-
+//    QApplication::setStyle(QStyleFactory::create(ui->gstyle->currentText()));
+//    qApp->desktop()->update();
+    //mWindow->mGlobalSet->setValue(INI_PRJSTYLE,ui->gstyle->currentText());
     mWindow->mGlobalSet->setValue( INI_PRJDIR,ui->prjdir_view->text());
-
     mWindow->mGlobalSet->setValue(INI_PRJJSON,ui->prjmlang_view->text());
     mWindow->mGlobalSet->setValue(INI_PRJMLANG,ui->prjmlang_view->text());
+    mWindow->mGlobalSet->setValue(INI_PRJCUSTOM,ui->open_custom_com->text());
+    mWindow->mGlobalSet->setValue(INI_PRJIMAGEDIR,ui->open_image_dir->text());
 }
 

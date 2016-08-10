@@ -37,9 +37,12 @@ public:
     MainWindow *mWindow;
     bool PrjIsChanged;
 
-    QStringList PrjSelectlang;
-    QString ProjectName;
-    QSize ProjectSize;
+    QStringList mPrjSelectlang; // 工程选择的多国语言
+    QString mProjectName;  // 工程名
+    QSize mProjectSize; // 工程默认大小
+    QString mProjectWidgetDir; // 自定义控件目录.
+    QString mProjectImageDir; // 工程图片资源目录.
+
 
 
 private slots:
@@ -53,6 +56,8 @@ private slots:
 
 private:
     void screenshot();
+
+    void saveProject(QString fname);
     ScenesScreen *currentSS;
     QWidgetList mCanvasList; // 画布列表
 

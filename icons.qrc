@@ -16,5 +16,8 @@
         <file>icons/qt_logo.png</file>
         <file>icons/xfail.png</file>
         <file>icons/xpass.png</file>
+        <file>icons/build.png</file>
+        <file>icons/removesubmitfield.png</file>
+        <file>icons/document-open.png</file>
     </qresource>
 </RCC>

@@ -77,6 +77,9 @@ public:
     void removeChild(QWidget *w);
     void initJsonValue();
 
+    void moveNewPos(QPoint pos);
+    void moveNewPos(int x,int y);
+
 
 
 public slots:
@@ -92,7 +95,7 @@ public slots:
     void onBackgroundImageDialog();
     void onSelectedBackgroundImage(QListWidgetItem *item);
 
-    void onDeleteMe();
+    virtual void onDeleteMe() =0;
     void onPictureDialog(bool );
     void onListImageChanged(QString);
 
@@ -171,9 +174,9 @@ public:
 
     void addMainWindow(QObject *mw);
   //  void onSelectMe();
-    void delMySelf();
-    void writeToJson(QJsonObject &json);
-    void readFromJson(const QJsonObject &json);
+  //  void DeleteMe();
+    QJsonObject  writeToJson();
+    void readFromJson(const QJsonValue &json);
 
 
 
@@ -197,7 +200,7 @@ class NewList :public BaseForm
 public:
     NewList(QString caption,const QSize size,QWidget *parent=0);
     //void onSelectMe();
-    void writeToJson(QJsonObject &json);
+    QJsonObject writeToJson();
     void readFromJson(const QJsonObject &valobj);
     void addChildrenToTree();
 
@@ -243,14 +246,15 @@ public:
 
     void deleteObject(int index);
     void deleteObject(QWidget *w);
-    void delMySelf();
+    //void delMySelf();
 
     void writeToJson(QJsonObject &json);
-    void readFromJson(const QJsonObject &array);
+    QJsonObject writeToJson();
+    void readFromJson(const QJsonValue &qv);
     void addChildrenToTree();
 
     void createNewFrameObject(const QJsonObject &json);
-    QWidget* createObjectFromJson(const QJsonObject &json);
+    QWidget* createObjectFromJson(const QJsonValue &qv);
 
     QWidget *parentList; // 特意用来存放的
     QString StyleStr;
@@ -282,9 +286,9 @@ class NewLayer : public BaseForm
     Q_OBJECT
 public:
     explicit NewLayer(QString caption, QSize nsize, QWidget *parent=0);
-    void readFromJson(const QJsonObject &json);
+    void readFromJson(const QJsonValue &qv);
 
-    void writeToJson(QJsonObject &json);
+    QJsonObject  writeToJson() ;
    // const QWidgetList &getChidren() const { return LayoutList;}
     void addChildrenToTree();
    // void updateBorderColor();

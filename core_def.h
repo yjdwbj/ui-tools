@@ -85,6 +85,7 @@ static const char DKEY_IMGMAP[] = "bkimage_map";
 static const char DKEY_EXTMAP[] = "extendMap";
 static const char DKEY_ROW[] = "rowProperty";
 static const char DKEY_TYPE[] = "DKtypeID";
+static const char DKEY_CURVAL[] = "CurrentProperty";
 
 /* Class Name */
 static const QString CN_NEWLAYOUT = "NewLayout";
@@ -104,6 +105,8 @@ static const QString INI_PRJDIR = "Project/Dir";
 static const QString INI_PRJMLANG = "Project/LangugeFile";
 static const QString INI_PRJSTYLE = "Project/Style";
 static const QString INI_PRJJSON = "Project/TemplateJson";
+static const QString INI_PRJCUSTOM = "Project/CustomTemplateDir";
+static const QString INI_PRJIMAGEDIR = "Project/ImageDir";
 
 
 
@@ -127,6 +130,7 @@ static QSize MARGIN_SIZE = QSize(SELECTION_MARGIN * 2, SELECTION_MARGIN *2);
 
 static const QString WIN_TITLE = "图片编辑工具  ";
 
-static QString VERSION = QString("%1 Ver 1.0 r%2 ").arg(WIN_TITLE,QString(APP_REVISION).mid(0,6));
+static QString VERSION = QString("%1 Ver:1.0-r%2 build time:<%3>  ").arg(WIN_TITLE,
+                                QString(APP_REVISION).mid(0,6),__DATE__);
 
 #endif // CONFIG_H

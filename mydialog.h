@@ -17,6 +17,17 @@ class MainWindow;
 
 //typedef QMap<QString,QVariant> selectedMap;
 
+
+class BaseDialog : public QDialog
+{
+    Q_OBJECT
+public:
+    BaseDialog(QWidget *parent = 0);
+    void UpdateStyle();
+
+};
+
+//class ImageFileDialog: public QDialog
 class ImageFileDialog: public QDialog
 {
     Q_OBJECT
@@ -81,7 +92,7 @@ namespace Ui {
     class ProjectDialog;
 }
 
-class ProjectDialog : public QDialog
+class ProjectDialog : public BaseDialog
 {
     Q_OBJECT
 public:
@@ -89,7 +100,7 @@ public:
     ~ProjectDialog();
 
     QSize pageSize;
-    QString getProjectName();
+
 public slots:
     void onAccepted();
     void onRejected();
@@ -222,7 +233,7 @@ namespace Ui {
     class GlobalSettings;
 }
 
-class GlobalSettings: public QDialog
+class GlobalSettings: public BaseDialog
 {
     Q_OBJECT
 public:

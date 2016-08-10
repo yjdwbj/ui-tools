@@ -9,6 +9,7 @@
 #include <QString>
 #include <QStyleFactory>
 #include <QComboBox>
+#include <QTimer>
 
 
 //static int Width  = 480;
@@ -23,6 +24,7 @@ CanvasManager::CanvasManager(MainWindow *w):
     delPage(new QPushButton(tr("删除当前页"))),
     savePrj(new QPushButton(tr("保存工程"))),
     confPrj(new QPushButton(tr("工程设置"))),
+    mProjectWidgetDir(QDir::currentPath() + QDir::separator() + "widgets"),
 
     PrjIsChanged(false)
 
@@ -32,6 +34,8 @@ CanvasManager::CanvasManager(MainWindow *w):
     delPage->setEnabled(false);
     savePrj->setEnabled(false);
     confPrj->setEnabled(false);
+
+
 
     QComboBox *cb = new QComboBox();
     cb->addItems(QStyleFactory::keys());
@@ -68,10 +72,30 @@ CanvasManager::CanvasManager(MainWindow *w):
     connect(delPage,SIGNAL(clicked(bool)),SLOT(onDelCurrentScenesScreen()));
     connect(savePrj,SIGNAL(clicked(bool)),SLOT(onSaveProject()));
     connect(confPrj,SIGNAL(clicked(bool)),SLOT(onConfProject()));
+
+//    QPushButton *globalbtn = new QPushButton("全局设置");
+//    connect(globalbtn,&QPushButton::clicked,[=](){
+//       GlobalSettings gs(mWindow);
+//       gs.exec();
+//    });
+
+  //  mWindow->addWidgetToToolBar(globalbtn);
 //    qDebug() << "centralWidget pos" << mWindow->centralWidget()->geometry()
 //             << " stack pos " << stackRect;
     //stack->setGeometry(stackRect);
    // stack->update();
+
+    QTimer *autoSaveTimer = new QTimer(this);
+
+    //将定时器超时信号与槽(功能函数)联系起来
+
+    connect( autoSaveTimer,&QTimer::timeout,[=](){
+            saveProject("autosave.json");
+    } );
+
+    //开始运行定时器，定时时间间隔为6000ms
+
+    autoSaveTimer->start(6000);
 }
 
 
@@ -181,6 +205,8 @@ void CanvasManager::deleteCurrentPage()
         ss->delAllObjects();
         delPage->setEnabled(stack->count() == 0 ? false : true);
         mWindow->lDock->setEnabled(stack->count() == 0 ? false : true);
+
+        setActiveSS(stack->currentIndex());
     }
 }
 
@@ -236,7 +262,7 @@ void CanvasManager::onCreateNewProject()
     pd->deleteLater();
     if(pd->result())
     {
-        ProjectName = pd->getProjectName();
+
         onCreateNewScenesScreen();
     }
 
@@ -266,59 +292,58 @@ void CanvasManager::onConfProject()
   cp.exec();
  // int n = cp.result();
   if(cp.result())  // accpet 就保存语言.
-     PrjSelectlang = cp.getSelectLang();
+     mPrjSelectlang = cp.getSelectLang();
 
 }
 
+
+void CanvasManager::saveProject(QString fname)
+{
+    QFile saveFile(fname);
+   if (!saveFile.open(QIODevice::WriteOnly)) {
+       qWarning("Couldn't open save file.");
+
+   }
+
+   QJsonArray CanvasArray;
+  // QJsonObject root;
+   foreach (QWidget *w, mCanvasList) {
+      CanvasArray.append(((ScenesScreen*)w)->writeToJson());
+   }
+   QJsonObject obj ;
+   obj[NAME] = mProjectName;
+   obj[ACTPAGE] = stack->currentIndex();
+   obj[PAGES] = CanvasArray;
+   obj[WTYPE] = "project";
+   QJsonArray lang;
+   foreach (QString v ,mPrjSelectlang) {
+       QJsonValue val = v;
+       lang.append(val);
+   }
+   obj[MLANG] = lang;
+   QJsonDocument jsonDoc(obj);
+   saveFile.write(jsonDoc.toJson());
+}
 
 void CanvasManager::onSaveProject()
 {
 
     QVariant prjvar = mWindow->mGlobalSet->value(INI_PRJLAST);
-    QFile saveFile;
+
+    QString fname;
     if(prjvar.isValid())
     {
 
-        saveFile.setFileName(prjvar.toString());
+        fname = prjvar.toString();
     }
     else
     {
-        saveFile.setFileName("save.json");
+        fname = "save.json" ;
     }
-    mWindow->mGlobalSet->setValue(INI_PRJLAST,saveFile.fileName());
+    mWindow->mGlobalSet->setValue(INI_PRJLAST,fname);
 //    QFile saveFile(QStringLiteral("save.json"));
 
-
-    if (!saveFile.open(QIODevice::WriteOnly)) {
-        qWarning("Couldn't open save file.");
-
-    }
-
-
-    QJsonArray CanvasArray;
-   // QJsonObject root;
-    foreach (QWidget *w, mCanvasList) {
-        QJsonObject CanvasObj;
-       CanvasObj[NAME] = w->metaObject()->className();
-       CanvasObj[WTYPE] = "page";
-       ((ScenesScreen*)w)->writeToJson(CanvasObj);
-       CanvasArray.append(CanvasObj);
-      // qDebug() << "CanvasObj json  " << CanvasObj;
-
-    }
-    QJsonObject obj;
-    obj[NAME] = ProjectName;
-    obj[ACTPAGE] = stack->currentIndex();
-    obj[PAGES] = CanvasArray;
-    obj[WTYPE] = "project";
-    QJsonArray lang;
-    foreach (QString v ,PrjSelectlang) {
-        QJsonValue val = v;
-        lang.append(val);
-    }
-    obj[MLANG] = lang;
-    QJsonDocument jsonDoc(obj);
-    saveFile.write(jsonDoc.toJson());
+    saveProject(fname);
 }
 
 

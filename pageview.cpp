@@ -77,7 +77,7 @@ void PageView::onClickedItem(QListWidgetItem *item)
    // mImgList->setCurrentItem(item);
     mImgList->setCurrentItem(item,QItemSelectionModel::ClearAndSelect);
     mImgList->setItemSelected(item,true);
-    this->signalsBlocked();
+
 }
 
 

@@ -219,13 +219,19 @@ void TreeDock::onSwapShowHideObject(bool)
 
 void TreeDock::setMyParentNode()
 {
-    QTreeWidgetItem *item= treeWidget->currentItem()->parent();
-    if(item)
-    {
-        QWidget *w = mWindow->ComCtrl->ProMap[item->text(0)];
-        mWindow->cManager->activeSS()->setSelectObject((FormResizer*)w);
+    QTreeWidgetItem *citem = treeWidget->currentItem();
 
+    if(citem)
+    {
+        QTreeWidgetItem *item= citem->parent();
+        if(item)
+        {
+            QWidget *w = mWindow->ComCtrl->ProMap[item->text(0)];
+            mWindow->cManager->activeSS()->setSelectObject((FormResizer*)w);
+
+        }
     }
+
 }
 
 void TreeDock::onItemPressed(QTreeWidgetItem *item,int col)

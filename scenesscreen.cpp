@@ -27,7 +27,9 @@ void ScenesScreen::mousePressEvent(QMouseEvent *event)
         {
             QMenu *contextMenu = new QMenu(this);
             QAction delme("删除当前页面",this);
-            connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMySelf()));
+            connect(&delme,&QAction::triggered,[=](){
+                mWindow->cManager->onDelCurrentScenesScreen();
+            });
             contextMenu->addAction(&delme);
             QAction chgcolor("修改背景色",this);
             contextMenu->addAction(&chgcolor);
@@ -40,10 +42,7 @@ void ScenesScreen::mousePressEvent(QMouseEvent *event)
         }
 }
 
-void ScenesScreen::onDeleteMySelf()
-{
-    mWindow->cManager->onDelCurrentScenesScreen();
-}
+
 
 ScenesScreen::~ScenesScreen()
 {
@@ -132,7 +131,8 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonObject &json)
     nlayer->updateStyleSheets();
     mWindow->tree->addItemToRoot(nlayer);
     foreach (QJsonValue layout, json[LAYOUT].toArray()) {
-        nlayer->readFromJson(layout.toObject());
+        //nlayer->readFromJson(layout.toObject());
+        nlayer->readFromJson(layout);
     }
     nlayer->show();
     return nlayer;
@@ -185,9 +185,9 @@ void ScenesScreen::delAllObjects()
         {
             ((NewLayout*)w)->DeleteMe();
         }
-        else if(!CN_NEWFRAME.compare(cname))
+        else /*if(!CN_NEWFRAME.compare(cname))*/
         {
-             ((NewFrame*)w)->delMySelf();
+             ((BaseForm*)w)->DeleteMe();
         }
     }
     this->deleteLater();
@@ -197,31 +197,51 @@ void ScenesScreen::delAllObjects()
 void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
 {
 
-    switch (s->key()) {
-    case Qt::Key_Delete:
-        if(activeObj)
-        {
-          //  qDebug() << " you pressed Delete " << "active object " << activeObj->objectName();
-          //  delSelectedLayout();
-        }
+    // 处理一些鼠标事件.
+    if(activeObj)
+    {
+        BaseForm *bf = (BaseForm*)activeObj;
+        QPoint mpos = bf->pos();
+        switch (s->key()) {
+        case Qt::Key_Delete:
 
-        break;
-    default:
-        break;
+            bf->onDeleteMe();
+            //bf->DeleteMe();
+            break;
+        case Qt::Key_Up:
+            bf->move(mpos.x(),mpos.y()-1);
+            bf->moveNewPos(bf->pos());
+            break;
+        case Qt::Key_Down:
+            bf->move(mpos.x(),mpos.y()+1);
+            bf->moveNewPos(bf->pos());
+            break;
+        case Qt::Key_Left:
+            bf->move(mpos.x()-1,mpos.y());
+            bf->moveNewPos(bf->pos());
+            break;
+        case Qt::Key_Right:
+            bf->move(mpos.x()+1,mpos.y());
+            bf->moveNewPos(bf->pos());
+            break;
+        default:
+            break;
+        }
     }
+
 }
 
-void ScenesScreen::writeToJson(QJsonObject &json)
+QJsonObject  ScenesScreen::writeToJson()
 {
     QJsonArray layoutarr;
     foreach (QWidget *w, LayerList) {
-        QJsonObject layoutObj;
-       // qDebug() << "ScenesScreen  sub object " << &layoutObj;
-        layoutObj[NAME] = w->objectName();
-        ((NewLayer*)w)->writeToJson(layoutObj);
-       // qDebug() << " LayoutObj " << layoutObj;
-        layoutarr.append(layoutObj);
+        layoutarr.append(((NewLayer*)w)->writeToJson());
     }
+
+
+    QJsonObject json;
+   json[NAME] = metaObject()->className();
+   json[WTYPE] = "page";
 
     QJsonArray projson;
     projson.append(Compoent::getRectJson(this));
@@ -229,6 +249,7 @@ void ScenesScreen::writeToJson(QJsonObject &json)
     json[CAPTION] = this->property(DKEY_TXT).toString();
     json[CLASS] = this->metaObject()->className();
     json[LAYER] = layoutarr;
+    return json;
     //qDebug() << "ScenesScreen array " << layoutarr;
 }
 

@@ -43,7 +43,7 @@ public:
     void readLayer(const QJsonArray &array);
 
 
-    void writeToJson(QJsonObject &json);
+    QJsonObject writeToJson();
 
     void delAllObjects();
 
@@ -55,7 +55,6 @@ public:
 signals:
 
 public slots:
-    void onDeleteMySelf();
     void onChangedBackgroundColor();
     void onChangedBackgroundImage();
     void onDobuleClickedImage(QListWidgetItem*);

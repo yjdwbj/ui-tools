@@ -203,11 +203,11 @@ MainWindow::MainWindow(QWidget *parent) :
             if(qd.isObject())
             {
                 QJsonObject  qdobj = qd.object();
-                cManager->ProjectName = qdobj[NAME].toString();
-                setWindowTitle( VERSION + cManager->ProjectName);
+                cManager->mProjectName = qdobj[NAME].toString();
+                setWindowTitle( VERSION + cManager->mProjectName);
 
                 foreach (QJsonValue val,qdobj[MLANG].toArray() ) {
-                    cManager->PrjSelectlang.append(val.toString());
+                    cManager->mPrjSelectlang.append(val.toString());
                 }
 
                 cManager->readProjectJson(qdobj[PAGES].toArray());
