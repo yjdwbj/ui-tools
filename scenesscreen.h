@@ -34,7 +34,7 @@ public:
     }
 
 
-    NewLayer *createNewLayer(const QJsonObject &json);
+    NewLayer *createNewLayer(const QJsonValue &json);
     void addMainWindow(MainWindow* m) { mWindow = m;}
    // void setActiveIdx(int index) { mActiveIdx = index;}
     void setSelectObject(FormResizer *obj);

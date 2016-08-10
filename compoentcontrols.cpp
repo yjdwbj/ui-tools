@@ -971,8 +971,8 @@ void CompoentControls::onCreateNewLayer()
     {
         QPushButton *btn = (QPushButton*)(QObject::sender());
         QVariant variant = btn->property(DKEY_JSONSTR);
-        QJsonObject json = QJsonValue::fromVariant(variant).toObject();
-        NewLayer *nlayer  = ss->createNewLayer(json);       
+
+        NewLayer *nlayer  = ss->createNewLayer( QJsonValue::fromVariant(variant));
        // mWindow->tree->addItemToRoot(nlayer);
     }
 }

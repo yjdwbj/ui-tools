@@ -206,7 +206,7 @@ void CanvasManager::deleteCurrentPage()
         delPage->setEnabled(stack->count() == 0 ? false : true);
         mWindow->lDock->setEnabled(stack->count() == 0 ? false : true);
 
-        setActiveSS(stack->currentIndex());
+       // setActiveSS(stack->currentIndex());
     }
 }
 

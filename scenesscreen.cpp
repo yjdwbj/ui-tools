@@ -102,8 +102,9 @@ void ScenesScreen::onChangedBackgroundColor()
     delete color;
 }
 
-NewLayer* ScenesScreen::createNewLayer(const QJsonObject &json)
+NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv)
 {
+    QJsonObject json = qv.toObject();
     QRect oldrect = Compoent::getRectFromStruct(json[PROPERTY].toArray(),KEY_RECT);
     if(oldrect.isEmpty())
     {
@@ -113,6 +114,7 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonObject &json)
 
 
     NewLayer *nlayer = new NewLayer(json[CAPTION].toString(), oldrect.size() /* + MARGIN_SIZE*/,this);
+    nlayer->setProperty(DKEY_JSONSTR,qv);
     nlayer->setProperty(DKEY_TYPE, json[WTYPE].toString());
     nlayer->setGeometry(oldrect);
     LayerList.append(nlayer);
@@ -145,8 +147,7 @@ void ScenesScreen::readLayer(const QJsonArray &array)
         switch (val.type()) {
         case QJsonValue::Object:
         {
-            QJsonObject valobj = val.toObject();
-             NewLayer *nlayer = createNewLayer(valobj);
+             NewLayer *nlayer = createNewLayer(val);
         }
 
             break;
