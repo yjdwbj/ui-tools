@@ -373,19 +373,19 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                    QString defimg = item.toObject().value(DEFAULT).toString();
                 //   int rootlen  = QDir::currentPath().length()+1;
 
-                   defimg = defimg.replace("\\","/");
-                   int sep = defimg.lastIndexOf('/') + 1;
+                   defimg = defimg.replace("\\",QDir::separator());
+                   int sep = defimg.lastIndexOf(QDir::separator()) + 1;
                    defimg = defimg.mid(sep);
 
                    for(QVariantList::const_iterator it = nlist.begin();
                            it != nlist.end();++it)
                    {
                        // example for key  is  "config/images/string/alarm_pol.bmp"
-                       QString key = (*it).toString();
-                       bool b = key.contains('/');
-                       int idx = key.lastIndexOf(b ? '/' : '\\')+1;
+                       QString key = (*it).toString().replace('\\',QDir::separator());
+                       bool b = key.contains(QDir::separator());
+                       int idx = key.lastIndexOf(b ? QDir::separator() : '\\')+1;
                      //  cb->addItem(QIcon(key),key.mid(idx));
-                       imglist << QString("%1:%2").arg(key.mid(idx),key);
+                       imglist << QString("%1|%2").arg(key.mid(idx),key);
                    }
 
                    cb->setProperty(DKEY_IMGIDX,defimg);
@@ -559,7 +559,7 @@ void ComProperty::updateImageComboBox(QString key,int index , const QStringList 
    cb->clear();
  //  cb->addItems(list);
    foreach (QString s, list) {
-      cb->addItem(s.section(":",0,0));
+      cb->addItem(s.section(SECTION_CHAR,0,0));
    }
    cb->setCurrentIndex(index);
 }

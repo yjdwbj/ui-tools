@@ -73,13 +73,12 @@ CanvasManager::CanvasManager(MainWindow *w):
     connect(savePrj,SIGNAL(clicked(bool)),SLOT(onSaveProject()));
     connect(confPrj,SIGNAL(clicked(bool)),SLOT(onConfProject()));
 
-//    QPushButton *globalbtn = new QPushButton("全局设置");
-//    connect(globalbtn,&QPushButton::clicked,[=](){
-//       GlobalSettings gs(mWindow);
-//       gs.exec();
-//    });
-
-  //  mWindow->addWidgetToToolBar(globalbtn);
+    QPushButton *globalbtn = new QPushButton("全局设置");
+    connect(globalbtn,&QPushButton::clicked,[=](){
+       GlobalSettings gs(mWindow);
+       gs.exec();
+    });
+    mWindow->addWidgetToToolBar(globalbtn);
 //    qDebug() << "centralWidget pos" << mWindow->centralWidget()->geometry()
 //             << " stack pos " << stackRect;
     //stack->setGeometry(stackRect);
@@ -170,6 +169,7 @@ void CanvasManager::setActiveSS(int index)
 
 //    qDebug() << "centralWidget pos" << mWindow->centralWidget()->geometry()
 //             << " this pos " << stack->geometry();
+    if(index == -1) return;
     if(index < mCanvasList.size())
     {
       //  qDebug() << " show previous object" << index;
@@ -206,7 +206,10 @@ void CanvasManager::deleteCurrentPage()
         delPage->setEnabled(stack->count() == 0 ? false : true);
         mWindow->lDock->setEnabled(stack->count() == 0 ? false : true);
 
-       // setActiveSS(stack->currentIndex());
+        qDebug() << " stack count " << stack->count()
+                 << " stack current index " << stack->currentIndex();
+
+        setActiveSS(stack->currentIndex());
     }
 }
 

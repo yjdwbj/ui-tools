@@ -61,6 +61,7 @@ static QString PLUGIN = "plugin";
 static QString PIC_TEXT = "text-pic";
 static QString MLANG = "language";
 static QString ISTRUE = "disable";
+static const char SECTION_CHAR = '|';
 
 
 static const char  DKEY_CAPTION[] = "caption";

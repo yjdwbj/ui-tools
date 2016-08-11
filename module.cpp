@@ -275,9 +275,9 @@ void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
                      it != nlist.end();++it)
              {
                  // example for key  is  "config/images/string/alarm_pol.bmp"
-                 QString key = (*it).toString();
+                 QString key = (*it).toString().replace('\\',QDir::separator());
 
-                 cb->addItem(QIcon(key.section(":",1,1)),key.section(":",0,0));
+                 cb->addItem(QIcon(key.section(SECTION_CHAR,1,1)),key.section(SECTION_CHAR,0,0));
              }
              cb->setCurrentText(defimg);
              cb->setProperty(DKEY_IMGIDX,defimg);
@@ -653,51 +653,7 @@ void Compoent::copyProperty(const QVariant &va)
 //    this->setPixmap(QPixmap(imgpath));
 //}
 
-////void NewLabel::onPictureDialog(bool )
-////{
-////    QString key = QObject::sender()->objectName();
-////    // QMessageBox::warning(this,"test","your clicked me: ");
-////    ImageFileDialog *ifd = new ImageFileDialog(myImageList,this);
 
-////    ifd->exec();
-////    qDebug() << " ImageFileDialog ";
-////    //selectedMap sMap  = ifd->getSelectedMap();
-////    myImageList = ifd->getSelectedList();
-
-////    disDefaultList = myImageList.size() ? true : false;
-////    ifd->deleteLater();
-////    QJsonObject json;
-////    int rootlen  = QDir::currentPath().length()+1;
-////    QJsonArray qa;
-////   // qDebug() << " current path " << QDir::currentPath() << " len " << rootlen;
-////    foreach (QString s, myImageList) {
-////        // example for s   "alarm_du.bmp:/home/yjdwbj/build-ut-tools-Desktop_Qt_5_6_0_GCC_64bit-Debug/images/string/alarm_du.bmp
-////        QString substr = s.section(':',1,1).mid(rootlen).replace("\\","/");
-////        qa.append(substr);
-////    }
-////    json[LIST] = qa;
-////    // 把新的列表更新的json中.
-////    onBindValue(mWindow->imgPropertyWidget->getPropertyObject(key),json.toVariantMap());
-////    this->blockSignals(true);
-
-////}
-
-//void NewLabel::updateComboItems(QComboBox *cb)
-//{
-//    foreach (QString s, myImageList) {
-//       cb->addItem(s.section(":",0,0));
-//    }
-//    cb->setCurrentIndex(this->property(DKEY_IMGIDX).toInt());
-//}
-
-//void NewLabel::writeToJson(QJsonObject &json)
-//{
-//    QJsonArray projson;// 属性
-//    projson = dynValues[DKEY_DYN].toArray(); //复制出模版的属性来保存.
-//    json[NAME] = objectName();
-//    json[CLASS] = this->metaObject()->className();
-//    json[PROPERTY] = projson;
-//}
 
 
 BaseForm::BaseForm(QWidget *parent)
@@ -1146,7 +1102,7 @@ void BaseForm::onListImageChanged(QString img)
    QVariantList imglist = this->property(DKEY_IMAGELST).toList();
    foreach (QVariant v, imglist) {
        QString s = v.toString();
-       QString k = s.section(":",0,0);
+       QString k = s.section(SECTION_CHAR,0,0);
        if(!k.compare(img))
        {
          //  QString fpath = s.section(":",1,1);
@@ -1154,7 +1110,7 @@ void BaseForm::onListImageChanged(QString img)
         //   int idx = QDir::currentPath().length() + 1;
            //this->changeJsonValue(BAKIMAGE,fpath.mid(idx));
           // selIndex = imglist.indexOf(s);
-           changeJsonValue(objname,s.section(":",1,1)); // 修改JSON里的值
+           changeJsonValue(objname,s.section(SECTION_CHAR,1,1)); // 修改JSON里的值
            break;
        }
    }
@@ -1191,17 +1147,17 @@ void BaseForm::onPictureDialog(bool )
         QString s = v.toString();
         // example for s   "alarm_du.bmp:/home/yjdwbj/build-ut-tools-Desktop_Qt_5_6_0_GCC_64bit-Debug/images/string/alarm_du.bmp
         // example for s   ""m104.bmp:config/images/string/m104.bmp"
-        QString lastsection = s.section(':',1,1);
+        QString lastsection = s.section(SECTION_CHAR,1,1);
          QString substr;
-        if(lastsection.indexOf('/') == 0)
+        if(lastsection.indexOf(QDir::separator()) == 0)
         {
-           substr = s.section(':',1,1).mid(rootlen).replace("\\","/");
+           substr = s.section(SECTION_CHAR,1,1).mid(rootlen).replace("\\",QDir::separator());
         }else
         {
-            substr = s.section(':',1,1).replace("\\","/");
+            substr = s.section(SECTION_CHAR,1,1).replace("\\",QDir::separator());
         }
         qa.append(substr);
-        cb->addItem(QIcon(substr), s.section(':',0,0));
+        cb->addItem(QIcon(substr), s.section(SECTION_CHAR,0,0));
     }
     cb->setCurrentText(cb->property(DKEY_IMGIDX).toString());
     changeJsonValue(key,qa);

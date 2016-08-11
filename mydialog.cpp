@@ -16,6 +16,10 @@
 #include <QRadioButton>
 #include <QFileDialog>
 #include <QStyleFactory>
+#include <qttreepropertybrowser.h>
+#include <qteditorfactory.h>
+
+
 
 
 
@@ -165,6 +169,10 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QWidget *parent)
 
     mainLayout->addLayout(mlayout);
     setOldList();
+    updateListImages(imgpath);
+
+
+
     this->setModal(true);
    // exec();
 }
@@ -173,8 +181,8 @@ void ImageFileDialog::setOldList()
 {
     foreach (QVariant v, selstrList) {
         QString str = v.toString();
-        QListWidgetItem *nitem = new QListWidgetItem(QPixmap(str.section(":",1,1)),
-                                                     str.section(":",0,0));
+        QListWidgetItem *nitem = new QListWidgetItem(QPixmap(str.section(SECTION_CHAR,1,1)),
+                                                     str.section(SECTION_CHAR,0,0));
 
         sellist->addItem(nitem);
     }
@@ -195,12 +203,13 @@ void ImageFileDialog::updateListImages(QString path)
         int idx = fpath.lastIndexOf(b ? '/' : '\\')+1;
         //bakimageMap[fpath.mid(idx)] = QPixmap(fpath);
       //  imgMap[fpath.mid(idx)] = fpath;
-        extMap[fpath.mid(idx)] = fpath;
+        QString basename = fpath.mid(idx);
+        extMap[basename] = fpath;
         bool isFind = false;
         for(int i =0; i < sellist->count();i++)
         {
            QListWidgetItem *item =    sellist->item(i);
-           if(!item->text().compare(fpath.mid(idx)))
+           if(!item->text().compare(basename))
            {
                // 这里有相同文件名了,所以在待选列表不再添加它,这里没有处理不同目录下的同名文件.都视为同名.
                isFind = true;
@@ -312,7 +321,7 @@ void ImageFileDialog::appendSelectedItem(QModelIndex index)
     /* 这里不能使用MAP , QComobox 需要排序 */
    // selstrList.append(QString("%1:%2").arg(s,fileModel->fileInfo(index).absoluteFilePath()));
    // 这里的每一条数据必需是下面格式:　　文件名:文件名的绝对完全路径
-    selstrList.append(QString("%1:%2").arg(s,extMap[s].toString()));
+    selstrList.append(QString("%1|%2").arg(s,extMap[s].toString()));
     statusBar->setText(QString::number(sellist->count()));
 }
 
@@ -362,11 +371,30 @@ void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
 
     flistview->setRowHidden(hRows[selstr].row(),false);
    // selMap.remove(selstr);
+    qDebug() << " filemodel rootpath" << fileModel->rootPath()
+             << " str to index " << fileModel->index(selstr);
 
     /* 从列表删除 */
-   int i = selstrList.indexOf( QString("%1:%2").arg(selstr,fpath));
-   if( -1 != i )
-       selstrList.removeAt(i);
+    foreach (QVariant str , selstrList) {
+        if(str.toString().startsWith(selstr))
+        {
+            QString tstr = str.toString();
+            selstrList.removeOne(tstr);
+            fpath = extMap[selstr].toString();
+            //example tstr-->   digital-7.png:config/images/digital-7.png
+            // exmaple fpath--> /home/user/build-ut-tools-qt5_3_2-Debug/config/images/digital-7.png
+            if(fpath.contains(tstr.section(SECTION_CHAR,1,1)))
+            {
+
+                flistview->addItem(new QListWidgetItem(QPixmap(fpath),selstr));
+            }
+
+            break;
+        }
+    }
+//   int i = selstrList.indexOf( QString("%1:%2").arg(selstr,fpath));
+//   if( -1 != i )
+//       selstrList.removeAt(i);
    statusBar->setText(QString::number(sellist->count()));
 //   statusBar->repaint();
 }
@@ -383,7 +411,7 @@ void ImageFileDialog::onDelSelectedItems()
         delete sellist->takeItem(sellist->row(item));
        // selMap.remove(item->text());
         QString fpath = fileModel->fileInfo(hRows[selstr]).absoluteFilePath();
-        int i = selstrList.indexOf( QString("%1:%2").arg(selstr,fpath));
+        int i = selstrList.indexOf( QString("%1|%2").arg(selstr,fpath));
         if( -1 != i )
             selstrList.removeAt(i);
     }
@@ -988,70 +1016,167 @@ GlobalSettings::GlobalSettings(QWidget *parent):
     BaseDialog(parent),
     ui(new Ui::GlobalSettings)
 {
-
-
-
     ui->setupUi(this);
     setObjectName(this->metaObject()->className());
     this->UpdateStyle();
     mWindow = (MainWindow*)parent;
 
-    QList<QTreeWidgetItem*> qwilist =
-            ui->treeWidget->findItems("多国语言文件:",Qt::MatchFixedString |
-                                  Qt::MatchRecursive);
-    if(qwilist.size())
-    {
-        QSpinBox *a = new QSpinBox();
-        ui->treeWidget->setItemWidget(qwilist.first(),1,a);
-    }
-    foreach(QTreeWidgetItem *item,ui->treeWidget->findItems("*",Qt::MatchRegExp|Qt::MatchRecursive))
-    {
-        qDebug() << item->text(0);
-    }
+//    QtIntPropertyManager *intManager = new QtIntPropertyManager;
+//    QtProperty *pw = intManager->addProperty("宽");
+//    pw->setToolTip("test sss");
+//    intManager->setRange(pw,1,5);
+//    intManager->setValue(pw,3);
+
+//    QtProperty *ph = intManager->addProperty("高");
+//    ph->setToolTip("test sss");
+//    intManager->setRange(ph,1,5);
+//    intManager->setValue(ph,3);
+
+
+//    QtGroupPropertyManager *groupManager = new QtGroupPropertyManager;
+
+//     QtProperty *sizegroup = groupManager->addProperty("界面尺寸");
+//     sizegroup->addSubProperty(pw);
+//     sizegroup->addSubProperty(ph);
+
+
+//    QtSpinBoxFactory *spinboxFactory = new QtSpinBoxFactory;
+//    QtTreePropertyBrowser *browser = new QtTreePropertyBrowser(this);
+//    browser->setFactoryForManager(intManager,spinboxFactory);
+//    browser->addProperty(sizegroup);
+
+//    browser->show();
+//    ui->property_layout->addWidget(browser);
+
+
+     FileEdit *mlangfile= new FileEdit();
+    setMap["多国语言文件:"]  = mlangfile;
+    mlangfile->setToolTip("工程控件要用的语言文,可选office2003版本的xls文件,或者utf8格式,分号(;)间隔的csv文件.");
+    mlangfile->setFilter(tr("xls 文件 , CSV UTF-8 文件 (*.xls *.csv )"));
+    mlangfile->setFileOrDir(false);
+    IniMap[INI_PRJMLANG] = mlangfile;
+
+
+    FileEdit *comfile = new FileEdit();
+    setMap["控件文件:"] = comfile;
+    comfile->setToolTip("原始的模版控件文件,json格式.");
+    comfile->setFilter(tr("json 文件 (*.json)"));
+    comfile->setFileOrDir(false);
+    IniMap[INI_PRJJSON] = comfile;
+
+    FileEdit *imagedir = new FileEdit();
+    setMap["图片资源目录:"] = imagedir;
+     imagedir->setToolTip("工程中要用到的图片资源目录,默认是 images");
+    // projectdir->setFilter("");
+     imagedir->setFileOrDir(true);
+     IniMap[INI_PRJIMAGEDIR] = imagedir;
+
+    FileEdit *projectdir = new FileEdit();
+     setMap["工程目录:"] = projectdir;
+     projectdir->setToolTip("工程保存的目录,默认是程序运行目录.");
+     projectdir->setFileOrDir(true);
+     IniMap[INI_PRJDIR] = projectdir;
+
+
+     FileEdit *comdir = new FileEdit();
+     setMap["自定义控件目录:"] = comdir;
+      projectdir->setToolTip("自定义的模版控件目录,默认是widgets目录.");
+    //  projectdir->setFilter("");
+      projectdir->setFileOrDir(true);
+      IniMap[INI_PRJCUSTOM] = comdir;
 
 
 
-    QVariant sizeVar =  mWindow->mGlobalSet->value(INI_PRJSIZE);
-     int w,h;
-    if(sizeVar.isValid())
-    {
-        QString prjsize = sizeVar.toString();
-        w = prjsize.section("*",0,0).toInt();
-        h = prjsize.section("*",1,1).toInt();
+      QSpinBox *width = new QSpinBox();
+      width->setFixedWidth(60);
+      width->setMaximum(1000);
+      setMap[W]  = width;
 
-    }else{
-        w = 128;
-        h = 128;
-    }
+      QSpinBox *height = new QSpinBox();
+      height->setFixedWidth(60);
+      height->setMaximum(1000);
+      setMap[H] = height;
 
-    ui->prj_width->setValue(w);ui->prj_height->setValue(h);
+      QMapIterator<QString,QWidget*> iter(setMap);
+      ui->treeWidget->setColumnCount(2);
+      QTreeWidgetItem *headeritem = new QTreeWidgetItem();
+      headeritem->setText(0,"全局配置项");
+      headeritem->setText(1,"内容");
+      ui->treeWidget->setHeaderItem(headeritem);
+      QTreeWidgetItem *vsize =  new QTreeWidgetItem(QStringList() << "界面尺寸");
+      ui->treeWidget->addTopLevelItem(vsize);
 
-//    ui->gstyle->addItems(QStyleFactory::keys());
-//    QVariant vstyle = mWindow->mGlobalSet->value(INI_PRJSTYLE);
-//    if(vstyle.isValid())
-//    {
-//        ui->gstyle->setCurrentText(vstyle.toString());
-//    }
+      QVariant sizeVar =  mWindow->mGlobalSet->value(INI_PRJSIZE);
+       int w,h;
+      if(sizeVar.isValid())
+      {
+          QString prjsize = sizeVar.toString();
+          w = prjsize.section("*",0,0).toInt();
+          h = prjsize.section("*",1,1).toInt();
+
+      }else{
+          w = 128;
+          h = 128;
+      }
+
+      while(iter.hasNext())
+      {
+          iter.next();
+          QTreeWidgetItem *t;
+          if(!H.compare(iter.key()))
+          {
+              //ui->treeWidget_2->setItemWidget(t,1,iter.value());
+              t = new QTreeWidgetItem(QStringList() << H);
+              vsize->addChild(t);
+
+          }else if(!W.compare(iter.key()))
+          {
+              t = new QTreeWidgetItem(QStringList() << W);
+              vsize->addChild(t);
+          }else{
+              t = new QTreeWidgetItem(ui->treeWidget,QStringList() <<iter.key());
+              t->setToolTip(0,iter.key());
+              t->setToolTip(1,((FileEdit*)iter.value())->filePath());
+          }
+          ui->treeWidget->setItemWidget(t,1,iter.value());
+      }
+
+     QMapIterator<QString,QWidget*> it(IniMap);
+     while(it.hasNext())
+     {
+         // 更新来自INI文件的值.
+         it.next();
+         QVariant va= mWindow->mGlobalSet->value(it.key());
+         if(va.isValid())
+         ((FileEdit*)it.value())->setFilePath(va.toString());
+     }
 
 
-    QVariant mlang = mWindow->mGlobalSet->value(INI_PRJMLANG);
-    if(mlang.isValid())
-        ui->prjmlang_view->setText(mlang.toString());
 
-    QVariant json = mWindow->mGlobalSet->value(INI_PRJJSON);
-    ui->prjjson_view->setText(QDir::currentPath()+ QDir::separator()+"control.json");
-    if(json.isValid())
-        ui->prjjson_view->setText(json.toString());
 
-    ui->prjdir_view->setText(QDir::currentPath());
-    QVariant prjdir = mWindow->mGlobalSet->value(INI_PRJDIR);
-    if(prjdir.isValid())
-        ui->prjdir_view->setText(prjdir.toString());
 
-    ui->prjimg_view->setText(QDir::currentPath() + QDir::separator() + "images");
-    QVariant imgdir = mWindow->mGlobalSet->value(INI_PRJIMAGEDIR);
-    if(imgdir.isValid())
-        ui->prjimg_view->setText(imgdir.toString());
+
+//    ui->prj_width->setValue(w);ui->prj_height->setValue(h);
+
+
+//    QVariant mlang = mWindow->mGlobalSet->value(INI_PRJMLANG);
+//    if(mlang.isValid())
+//        ui->prjmlang_view->setText(mlang.toString());
+
+//    QVariant json = mWindow->mGlobalSet->value(INI_PRJJSON);
+//    ui->prjjson_view->setText(QDir::currentPath()+ QDir::separator()+"control.json");
+//    if(json.isValid())
+//        ui->prjjson_view->setText(json.toString());
+
+//    ui->prjdir_view->setText(QDir::currentPath());
+//    QVariant prjdir = mWindow->mGlobalSet->value(INI_PRJDIR);
+//    if(prjdir.isValid())
+//        ui->prjdir_view->setText(prjdir.toString());
+
+//    ui->prjimg_view->setText(QDir::currentPath() + QDir::separator() + "images");
+//    QVariant imgdir = mWindow->mGlobalSet->value(INI_PRJIMAGEDIR);
+//    if(imgdir.isValid())
+//        ui->prjimg_view->setText(imgdir.toString());
 
 
 
@@ -1060,18 +1185,36 @@ GlobalSettings::GlobalSettings(QWidget *parent):
 }
 
 
+QTreeWidgetItem* GlobalSettings::getItemByString(QString name)
+{
+
+    QList<QTreeWidgetItem*> qwilist =
+            ui->treeWidget->findItems(name,Qt::MatchFixedString |
+                                  Qt::MatchRecursive);
+    QTreeWidgetItem *item = 0;
+    if(qwilist.size())
+    {
+        return qwilist.first();
+    }
+    return item;
+}
+
 void GlobalSettings::onAccepted()
 {
 //    mWindow->cManager->ProjectSize = QSize(ui->prj_width->text().toInt(),
 //                                           ui->prj_height->text().toInt());
 
     int w,h;
-    w = ui->prj_width->value();
-    h = ui->prj_height->value();
+//    w = ui->prj_width->value();
+//    h = ui->prj_height->value();
 
+    h = getItemByString(H)->text(1).toInt();
+    w = getItemByString(W)->text(1).toInt();
     if(w == 0 ||  h == 0)
     {
         QMessageBox::warning(this,"提示","宽高不能设置为零.");
+        h = 64;
+        w = 64;
     }
 
 
@@ -1080,13 +1223,67 @@ void GlobalSettings::onAccepted()
                                 QString("%1*%2").arg(QString::number(w),
                                                     QString::number(h)));
 
+
+    QMapIterator<QString,QWidget*> it(IniMap);
+    while(it.hasNext())
+    {
+        // 更新来自INI文件的值.
+        it.next();
+        mWindow->mGlobalSet->setValue(it.key(),((FileEdit*)it.value())->filePath());
+    }
+
 //    QApplication::setStyle(QStyleFactory::create(ui->gstyle->currentText()));
 //    qApp->desktop()->update();
     //mWindow->mGlobalSet->setValue(INI_PRJSTYLE,ui->gstyle->currentText());
-    mWindow->mGlobalSet->setValue( INI_PRJDIR,ui->prjdir_view->text());
-    mWindow->mGlobalSet->setValue(INI_PRJJSON,ui->prjmlang_view->text());
-    mWindow->mGlobalSet->setValue(INI_PRJMLANG,ui->prjmlang_view->text());
-    mWindow->mGlobalSet->setValue(INI_PRJCUSTOM,ui->open_custom_com->text());
-    mWindow->mGlobalSet->setValue(INI_PRJIMAGEDIR,ui->open_image_dir->text());
+//    mWindow->mGlobalSet->setValue( INI_PRJDIR,ui->prjdir_view->text());
+//    mWindow->mGlobalSet->setValue(INI_PRJJSON,ui->prjmlang_view->text());
+//    mWindow->mGlobalSet->setValue(INI_PRJMLANG,ui->prjmlang_view->text());
+//    mWindow->mGlobalSet->setValue(INI_PRJCUSTOM,ui->open_custom_com->text());
+//    mWindow->mGlobalSet->setValue(INI_PRJIMAGEDIR,ui->open_image_dir->text());
 }
+
+FileEdit::FileEdit(QWidget *parent)
+    : QWidget(parent)
+{
+    QHBoxLayout *layout = new QHBoxLayout(this);
+    layout->setMargin(0);
+    layout->setSpacing(0);
+    theLineEdit = new QLabel(this);
+   // theLineEdit->setEnabled(false);
+   // theLineEdit->setStyleSheet("background-color: red;");
+    theLineEdit->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred));
+    QToolButton *button = new QToolButton(this);
+    button->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred));
+    button->setText(QLatin1String("..."));
+    layout->addWidget(theLineEdit);
+    layout->addWidget(button);
+    setFocusProxy(theLineEdit);
+    setFocusPolicy(Qt::StrongFocus);
+    setAttribute(Qt::WA_InputMethodEnabled);
+//    connect(theLineEdit, SIGNAL(textEdited(const QString &)),
+//                this, SIGNAL(filePathChanged(const QString &)));
+    connect(button, SIGNAL(clicked()),
+                this, SLOT(buttonClicked()));
+}
+
+void FileEdit::buttonClicked()
+{
+    QString filePath;
+    if(isDir)
+    {
+        filePath = QFileDialog::getExistingDirectory(this,tr("选择目录"),
+                                                     QDir::currentPath());
+
+    }else{
+        filePath = QFileDialog::getOpenFileName(this, tr("选择文件"),
+                                                theLineEdit->text(), theFilter);
+    }
+    if(filePath.isNull())
+        return ;
+    theLineEdit->setText(filePath);
+    emit filePathChanged(filePath);
+}
+
+
+
 

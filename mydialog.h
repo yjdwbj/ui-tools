@@ -12,6 +12,10 @@
 #include <QDebug>
 #include <QStringListModel>
 #include <QLabel>
+#include <QLineEdit>
+#include <QToolButton>
+#include <QTreeWidgetItem>
+
 
 class MainWindow;
 
@@ -229,6 +233,32 @@ private:
     QString defaultXLS;
 };
 
+
+class FileEdit : public QWidget
+{
+    Q_OBJECT
+public:
+    FileEdit(QWidget *parent = 0);
+    void setFilePath(const QString &filePath) { if (theLineEdit->text() != filePath)
+                                                theLineEdit->setText(filePath); }
+    QString filePath() const { return theLineEdit->text(); }
+    void setFilter(const QString &filter) { theFilter = filter; }
+    QString filter() const { return theFilter; }
+    void setFileOrDir(bool f) { isDir = f;}
+signals:
+    void filePathChanged(const QString &filePath);
+
+private slots:
+    void buttonClicked();
+private:
+    QLabel *theLineEdit;
+    QString theFilter;
+    bool isDir;
+};
+
+
+
+
 namespace Ui {
     class GlobalSettings;
 }
@@ -242,8 +272,13 @@ public:
 public slots:
     void onAccepted();
 private:
+
+    QTreeWidgetItem *getItemByString(QString name);
+
     MainWindow *mWindow;
     Ui::GlobalSettings *ui;
+    QMap<QString,QWidget*> setMap;
+    QMap<QString,QWidget*> IniMap;
 
 };
 

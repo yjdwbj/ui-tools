@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>847</width>
-    <height>510</height>
+    <width>637</width>
+    <height>460</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,382 +19,49 @@
   <property name="modal">
    <bool>false</bool>
   </property>
-  <widget class="QDialogButtonBox" name="buttonBox">
-   <property name="geometry">
-    <rect>
-     <x>420</x>
-     <y>460</y>
-     <width>176</width>
-     <height>27</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-   </property>
-  </widget>
-  <widget class="QWidget" name="layoutWidget">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>23</y>
-     <width>215</width>
-     <height>422</height>
-    </rect>
-   </property>
-   <layout class="QVBoxLayout" name="verticalLayout_4">
-    <item>
-     <widget class="QLabel" name="label_4">
-      <property name="font">
-       <font>
-        <pointsize>12</pointsize>
-        <weight>75</weight>
-        <bold>true</bold>
-       </font>
-      </property>
-      <property name="autoFillBackground">
-       <bool>false</bool>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">background-color: rgb(223, 28, 28);</string>
-      </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="label_4">
+     <property name="font">
+      <font>
+       <pointsize>12</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="autoFillBackground">
+      <bool>false</bool>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">background-color: rgb(223, 28, 28);</string>
+     </property>
+     <property name="text">
+      <string>更新设置要重启软件才能生效.</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QTreeWidget" name="treeWidget">
+     <column>
       <property name="text">
-       <string>更新设置要重启软件才能生效.</string>
+       <string notr="true">1</string>
       </property>
-     </widget>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
-      <item>
-       <widget class="QLabel" name="label_3">
-        <property name="text">
-         <string>工程界面默认大小</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_3">
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <widget class="QLabel" name="label">
-            <property name="text">
-             <string>宽度:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="prj_width"/>
-          </item>
-         </layout>
-        </item>
-        <item>
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <widget class="QLabel" name="label_2">
-            <property name="text">
-             <string>高度:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="prj_height"/>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
-        </item>
-       </layout>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout">
-      <item>
-       <widget class="QPushButton" name="open_mlang">
-        <property name="maximumSize">
-         <size>
-          <width>140</width>
-          <height>27</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;选择一个正确的多国语言文件,可以是office 2003的xls格式文,也可以选择自已导出的UTF8编码的 CSV 文本文件,分号(;)间隔.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-        <property name="text">
-         <string>选择多国语言文件</string>
-        </property>
-        <property name="icon">
-         <iconset resource="icons.qrc">
-          <normaloff>:/icon/icons/document-open.png</normaloff>:/icon/icons/document-open.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="prjmlang_view">
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="filestatus">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout_2">
-      <item>
-       <widget class="QPushButton" name="open_prjjson">
-        <property name="maximumSize">
-         <size>
-          <width>120</width>
-          <height>27</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>选择一个正确控件模版文件</string>
-        </property>
-        <property name="text">
-         <string>选择控件文件</string>
-        </property>
-        <property name="icon">
-         <iconset resource="icons.qrc">
-          <normaloff>:/icon/icons/document-open.png</normaloff>:/icon/icons/document-open.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="prjjson_view">
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="filestatus_2">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout_5">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetFixedSize</enum>
-      </property>
-      <item>
-       <widget class="QPushButton" name="open_prjdir">
-        <property name="maximumSize">
-         <size>
-          <width>122</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>设置默认的工程保存的目录</string>
-        </property>
-        <property name="text">
-         <string>设置工程目录</string>
-        </property>
-        <property name="icon">
-         <iconset resource="icons.qrc">
-          <normaloff>:/icon/icons/fileopen.png</normaloff>:/icon/icons/fileopen.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="prjdir_view">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout_6">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetFixedSize</enum>
-      </property>
-      <item>
-       <widget class="QPushButton" name="open_custom_com">
-        <property name="maximumSize">
-         <size>
-          <width>122</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>设置自定义控件目录</string>
-        </property>
-        <property name="text">
-         <string>自定义控件目录</string>
-        </property>
-        <property name="icon">
-         <iconset resource="icons.qrc">
-          <normaloff>:/icon/icons/fileopen.png</normaloff>:/icon/icons/fileopen.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="prj_com_view">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QVBoxLayout" name="verticalLayout_7">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetFixedSize</enum>
-      </property>
-      <item>
-       <widget class="QPushButton" name="open_image_dir">
-        <property name="maximumSize">
-         <size>
-          <width>122</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="toolTip">
-         <string>设置工程图片资源位置</string>
-        </property>
-        <property name="text">
-         <string>图片资源目录</string>
-        </property>
-        <property name="icon">
-         <iconset resource="icons.qrc">
-          <normaloff>:/icon/icons/fileopen.png</normaloff>:/icon/icons/fileopen.png</iconset>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="prjimg_view">
-        <property name="text">
-         <string/>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-   </layout>
-  </widget>
-  <widget class="QTreeWidget" name="treeWidget">
-   <property name="geometry">
-    <rect>
-     <x>280</x>
-     <y>20</y>
-     <width>521</width>
-     <height>421</height>
-    </rect>
-   </property>
-   <property name="alternatingRowColors">
-    <bool>true</bool>
-   </property>
-   <attribute name="headerStretchLastSection">
-    <bool>false</bool>
-   </attribute>
-   <column>
-    <property name="text">
-     <string>配置项</string>
-    </property>
-   </column>
-   <column>
-    <property name="text">
-     <string>内容</string>
-    </property>
-   </column>
+     </column>
+    </widget>
+   </item>
    <item>
-    <property name="text">
-     <string>界面尺寸</string>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="toolTip">
-     <string extracomment="新建界面的大小"/>
-    </property>
-    <item>
-     <property name="text">
-      <string>宽:</string>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
      </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>高:</string>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
-    </item>
+    </widget>
    </item>
-   <item>
-    <property name="text">
-     <string>多国语言文件:</string>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="toolTip">
-     <string extracomment="多国语言文件,office2003版本的xls,或者是UTF8格式,间隔为分号(;)的CSV文本文件."/>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>控件文件:</string>
-    </property>
-    <property name="toolTip">
-     <string extracomment="原始的模版控件文件,json格式."/>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>工程目录:</string>
-    </property>
-    <property name="toolTip">
-     <string extracomment="工程保存的目录,默认是程序运行目录."/>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>自定义控件目录:</string>
-    </property>
-    <property name="toolTip">
-     <string extracomment="自定义的模版控件目录,默认是widgets目录."/>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>图片资源目录:</string>
-    </property>
-    <property name="toolTip">
-     <string extracomment="工程中要用到的图片资源目录,默认是 images"/>
-    </property>
-   </item>
-  </widget>
+  </layout>
  </widget>
- <resources>
-  <include location="icons.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>buttonBox</sender>
