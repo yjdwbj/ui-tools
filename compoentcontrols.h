@@ -108,7 +108,7 @@ public:
 
      int mCWidgetCount; // 自定义控件的个数.
      QMap<QString,QWidget*> ProMap; // 新生成的控件.
-     QVariant Layout;
+     QVariant mVariantLayout;
 
 private:
      MainWindow *mWindow;

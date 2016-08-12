@@ -22,6 +22,7 @@
 
 class MainWindow;
 class ScenesScreen;
+class NewLayout;
 
 class Compoent
 {
@@ -164,6 +165,12 @@ protected:
 
 
 
+class NewTable: public BaseForm
+{
+
+};
+
+
 //class NewFrame :public FormResizer,public Compoent
 class NewFrame :public BaseForm
 {
@@ -186,11 +193,7 @@ public slots:
 
 protected:
     void clearOtherObjectStyleSheet();
-   // void mousePressEvent(QMouseEvent *ev);
     void mouseMoveEvent(QMouseEvent *event);
-  //  void updateBorderColor();
-   // void paintEvent(QPaintEvent *event);
-
 };
 
 //class NewList :public FormResizer,public Compoent
@@ -198,23 +201,31 @@ class NewList :public BaseForm
 {
     Q_OBJECT
 public:
-    NewList(QString caption,const QSize size,QWidget *parent=0);
+    NewList(QJsonValue json,const QSize size,QWidget *parent=0);
     //void onSelectMe();
     QJsonObject writeToJson();
     void readFromJson(const QJsonObject &valobj);
     void addChildrenToTree();
-
-    // MainWindow *mWindow;
      QScrollArea *mainScroll;
-    // QWidgetList listwidget;
+     QWidget *mainWidget;
+     QBoxLayout *listLayout;
+     Qt::Orientation  listOrient;
+
+
+     QAction *menuAddLine;
+     QAction *menuSetHeight;
+     QAction *menuSetSpace;
 
 private:
-     // QPoint mOffset;
-      QWidget *mainWidget;
-      QVBoxLayout *listLayout;
+      int tinySpinBoxDialog(QString str, int val, int min, int max);
+      NewLayout *onAddOneLine();
+      void updateAllItemsSize();
+      int itemHeight; // 垂直是宽随父控件,水平是高随父控件.
 
 public slots:
-      void onAddOneLine();
+
+      void onAddManyLine();
+      void onSetFixedHeight();
       void onDeleteMe();
 
      // void onXYWHChangedValue(int v);
@@ -222,13 +233,12 @@ public slots:
 
 protected:
     void mouseMoveEvent(QMouseEvent *event);
-    void mousePressEvent(QMouseEvent *event);
+   // void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
+    void wheelEvent(QWheelEvent *);
    // void updateBorderColor();
 };
 
-//class NewLayout :public QFrame
-//class NewLayout :public FormResizer , public Compoent
 class NewLayout :public BaseForm
 {
     friend class ScenesScreen;

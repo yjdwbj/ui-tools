@@ -61,6 +61,15 @@ static QString PLUGIN = "plugin";
 static QString PIC_TEXT = "text-pic";
 static QString MLANG = "language";
 static QString ISTRUE = "disable";
+
+static QString  QRIENTATION= "orientation";
+static QString  HORIZONTAL = "Horizontal";
+static QString  VERTICAL = "Vertical";
+static QString  ITEMSPACE = "space";
+static QString  ITEMSIZE = "sizehw";
+
+
+
 static const char SECTION_CHAR = '|';
 
 
@@ -94,6 +103,7 @@ static const QString CN_NEWFRAME = "NewFrame";
 static const QString CN_NEWLABEL = "NewLabel";
 static const QString CN_NEWLAYER = "NewLayer";
 static const QString CN_NEWLIST = "NewList";
+static const QString CN_NEWTABLE = "NewTable";
 //static const QString CN_LAYER = "Layer";
 //static const QString CN_LAYOUT = "Layout";
 static const QString CN_SSNAME = "ScenesScreen";

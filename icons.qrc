@@ -19,5 +19,9 @@
         <file>icons/build.png</file>
         <file>icons/removesubmitfield.png</file>
         <file>icons/document-open.png</file>
+        <file>icons/plus.png</file>
+        <file>icons/document-save-as.png</file>
+        <file>icons/fileoverlay_ui@2x.png</file>
+        <file>icons/horizontal-scale-icon.png</file>
     </qresource>
 </RCC>

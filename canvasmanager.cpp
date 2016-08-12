@@ -94,7 +94,7 @@ CanvasManager::CanvasManager(MainWindow *w):
 
     //开始运行定时器，定时时间间隔为6000ms
 
-    autoSaveTimer->start(6000);
+    autoSaveTimer->start(60000);
 }
 
 

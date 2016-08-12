@@ -686,27 +686,41 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
 
     }else if(event->button() == Qt::RightButton)
     {
+        QString clsname = metaObject()->className();
         QMenu *contextMenu = new QMenu(this);
         QAction delme(QIcon(":/icon/icons/removesubmitfield.png")  ,
                       QString("删除当前-%1").arg(this->property(DKEY_TXT).toString()),this);
         connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
         contextMenu->addAction(&delme);
          QAction saveTemp(QIcon(":/icon/icons/build.png"),"保存成控件",this);
-        if(!CN_NEWLAYOUT.compare(metaObject()->className()))
+        if(!CN_NEWLAYOUT.compare(clsname))
         {
-
             contextMenu->addAction(&saveTemp);
             connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
         }
         QAction hideobj(QIcon(":/icon/icons/hide-30x30.png"),"隐藏",this);
-        if(!CN_NEWFRAME.compare(metaObject()->className()))
+        if(!CN_NEWFRAME.compare(clsname))
         {
 
         }else
         {
-
             connect(&hideobj,SIGNAL(triggered(bool)),SLOT(onSwapViewObject(bool)));
             contextMenu->addAction(&hideobj);
+        }
+
+        QWidget *parentWidget = this->parentWidget();
+        QString pobjname = parentWidget->objectName();
+
+        if(!pobjname.compare(LISTWIDGET) || !clsname.compare(CN_NEWLIST) )
+        {
+            NewList *nl;
+            if(!clsname.compare(CN_NEWLIST))
+                nl = (NewList*)this;
+            else
+                nl =(NewList*)(((NewLayout*)this)->parentList);
+            contextMenu->addAction(nl->menuAddLine);
+            contextMenu->addAction(nl->menuSetHeight);
+            contextMenu->addAction(nl->menuSetSpace);
         }
 
         contextMenu->exec(mapToGlobal(event->pos()));
@@ -1277,38 +1291,65 @@ void NewFrame::mouseMoveEvent(QMouseEvent *event)
 
 }
 
-
-
-NewList::NewList(QString caption, const QSize size, QWidget *parent):
+NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
     //FormResizer(parent)
-    BaseForm(parent)
+    BaseForm(parent),listOrient(Qt::Vertical)
 {
   //  setMinimumSize(nsize ); // 最小尺寸
    // setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
 
+    QJsonObject obj = json.toObject();
+    QString caption = obj[CAPTION].toString();
+
+    QString Orientation = obj[QRIENTATION].toString();
+   // itemHeight = this->height() * 0.3;
     mWindow = ((NewLayout*)parent->parentWidget())->mWindow;
     setFocusPolicy(Qt::ClickFocus);
     mainScroll =  new QScrollArea(m_frame);
 
-    mainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    mainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    mainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    mainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainScroll->setAlignment(Qt::AlignCenter);
    // mainScroll->setWidgetResizable(true);
 
     mainWidget = new QWidget();
-    mainWidget->setObjectName(LISTWIDGET);
+    mainWidget->setObjectName(LISTWIDGET);  // 用来识别布局是否在列表控件下面.
     mainScroll->setWidget(mainWidget);
 
+    menuSetSpace = new QAction(QIcon(":/icon/icons/horizontal-scale-icon.png"),"设置间隔",this);
+    if(!Orientation.compare(HORIZONTAL,Qt::CaseInsensitive))
+    {
+        listOrient = Qt::Horizontal;
+        listLayout = new QHBoxLayout(mainWidget);
+        menuSetHeight =  new QAction(QIcon(":/icon/icons/fileoverlay_ui@2x.png"),"设置列宽",this);
+        menuAddLine = new QAction(QIcon(":/icon/icons/plus.png"),"添加列",this);
+        mainScroll->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+    }else
+    {
+        menuAddLine = new QAction(QIcon(":/icon/icons/plus.png"),"添加行",this);
+        menuSetHeight =  new QAction(QIcon(":/icon/icons/fileoverlay_ui@2x.png"),"设置行高",this);
+        listLayout = new QVBoxLayout(mainWidget);
+        mainScroll->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding);
+        listOrient = Qt::Vertical;
+    }
 
+    listLayout->setSpacing(obj[ITEMSPACE].toInt());
+    itemHeight = obj[ITEMSIZE].toInt();
 
-    listLayout = new QVBoxLayout(mainWidget);
+    connect(menuAddLine,SIGNAL(triggered(bool)),SLOT(onAddManyLine()));
+    connect(menuSetHeight,SIGNAL(triggered(bool)),SLOT(onSetFixedHeight()));
+    connect(menuSetSpace,&QAction::triggered,[=]{
+        listLayout->setSpacing( tinySpinBoxDialog(menuSetSpace->text(),listLayout->spacing(),0,99));
+        listLayout->update();
+    });
 
     listLayout->setMargin(0);
-    listLayout->setSpacing(0);
+
     listLayout->setContentsMargins(0,0,0,0);
     listLayout->setSizeConstraint(QLayout::SetFixedSize);
-    mainWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
+   // mainWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
   //  m_frame->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
+
 
     //m_frame->setStyleSheet("background-color: #79AEC8;");
     int n = mWindow->ComCtrl->ProMap.size();
@@ -1332,68 +1373,111 @@ NewList::NewList(QString caption, const QSize size, QWidget *parent):
 
 }
 
-void NewList::mousePressEvent(QMouseEvent *event)
+void NewList::updateAllItemsSize()
 {
-    onSelectMe();
-    if (event->button() == Qt::LeftButton)
-    {
-        mOffset = event->pos();
+    foreach (QWidget *w, childlist) {
 
-    }else if(event->button() == Qt::RightButton)
-    {
-        QMenu *contextMenu = new QMenu(this);
-        QAction delme("删除当前控件",this);
-        connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
-     //   QAction saveTemp("保存成控件",this);
-     //   connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
-        contextMenu->addAction(&delme);
-     //   contextMenu->addAction(&saveTemp);
-        QAction addline("添加一行",this);
-        contextMenu->addAction(&addline);
-        connect(&addline,SIGNAL(triggered(bool)),SLOT(onAddOneLine()));
+        ((NewLayout*)w)->setMaximumSize(this->size());
+         ((NewLayout*)w)->setFixedSize(this->size());
+        if(listOrient == Qt::Horizontal)
+            ((NewLayout*)w)->setFixedWidth(itemHeight);
+        else
+            ((NewLayout*)w)->setFixedHeight(itemHeight);
+    }
+}
 
-        contextMenu->exec(mapToGlobal(event->pos()));
+void NewList::onSetFixedHeight()
+{
+    QString txt =((QAction*)(QObject::sender()))->text();
+    int num = tinySpinBoxDialog(/*"设置每行的高度:"*/txt,itemHeight,2,999);
+    if(num)
+    {
+        itemHeight = num;
+        updateAllItemsSize();
     }
 
 }
 
 
+int  NewList::tinySpinBoxDialog(QString  str,int val ,int min ,int max)
+{
+    int num = 0;
 
-void NewList::onAddOneLine()
+    BaseDialog *nWindow = new BaseDialog(this);
+    nWindow->setObjectName(metaObject()->className());
+    nWindow->UpdateStyle();
+    QVBoxLayout *vb = new QVBoxLayout();
+
+    QHBoxLayout *hb = new QHBoxLayout();
+
+    QLabel *title = new QLabel(str);
+    QSpinBox *spinbox = new QSpinBox();
+    spinbox->setToolTip(QString("请输入%1~%2的整数").arg(QString::number(min),QString::number(max)));
+    spinbox->setValue(val);
+
+    hb->addWidget(title);
+    hb->addWidget(spinbox);
+    vb->addLayout(hb);
+    QDialogButtonBox *dbb = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel,
+                                                 Qt::Horizontal,
+                                                 nWindow);
+    dbb->button(QDialogButtonBox::Ok)->setText("确定");
+   dbb->button(QDialogButtonBox::Cancel)->setText("取消");
+   connect(dbb,SIGNAL(accepted()),nWindow,SLOT(accept()));
+   connect(dbb,SIGNAL(rejected()),nWindow,SLOT(reject()));
+   vb->addWidget(dbb);
+    nWindow->setLayout(vb);
+    nWindow->exec();
+
+    int ret = nWindow->result();
+    if(ret)
+         num = spinbox->value();
+
+    nWindow->deleteLater();
+
+    return num;
+
+}
+
+void NewList::onAddManyLine()
+{
+         QString txt =((QAction*)(QObject::sender()))->text();
+         int num = tinySpinBoxDialog(txt,1,1,99);
+        QString one = "#CCFFCC";
+        QString two = "#99FFCC";
+        for(int i = 0; i < num;i++)
+        {
+            NewLayout *n =   onAddOneLine();
+            n->mbkColor = i % 2 ? one : two;
+            n->updateStyleSheets();
+        }
+        if(num) updateAllItemsSize();
+}
+
+NewLayout * NewList::onAddOneLine()
 {
     onSelectMe();
-    NewLayout *newlayout = new NewLayout("布局",m_frame->size()-QSize(15,15),mWindow,mainWidget);
+    QJsonObject obj = QJsonValue::fromVariant(mWindow->ComCtrl->mVariantLayout).toObject();
+    NewLayout *newlayout = new NewLayout(obj[CAPTION].toString(),m_frame->size()-QSize(15,15),mWindow,mainWidget);
 
     newlayout->parentList = this;
+
   //  nl->addMainWindow(mWindow);
     childlist.append(newlayout);
    // int n = mWindow->ComCtrl->ProMap.size();
-    newlayout->copyProperty(mWindow->ComCtrl->Layout);
-    newlayout->setProperty(DKEY_DYN,mWindow->ComCtrl->Layout);
+    newlayout->copyProperty(mWindow->ComCtrl->mVariantLayout);
+    newlayout->setProperty(DKEY_DYN,mWindow->ComCtrl->mVariantLayout);
     newlayout->initJsonValue();
 
     newlayout->setProperty(DKEY_INTOLIST,true);
     mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),newlayout);
-
-
-
     newlayout->onSelectMe();
     newlayout->updateStyleSheets();
     newlayout->show();;
     listLayout->addWidget(newlayout);
+  //  updateAllItemsSize();
 
-  //  m_frame->adjustSize();
-    int max = 0;
-    foreach (QWidget *w, childlist) {
-      //  ((NewLayout*)w)->resize(this->size());
-        ((NewLayout*)w)->setMaximumSize(this->size());
-        ((NewLayout*)w)->setFixedSize(this->size());
-        max += w->height();
-    }
-   // mainScroll->verticalScrollBar()->setSliderDown(true);
-
-   mainScroll->verticalScrollBar()->setRange(0,max);
-   mainScroll->verticalScrollBar()->setValue(max);
+   return newlayout;
 }
 
 void NewList::onDeleteMe()
@@ -1450,10 +1534,7 @@ void NewList::mouseReleaseEvent(QMouseEvent *event)
         pos.setY(0 );
         this->move(pos);
     }
-
     QSize ms = p->size();
-
-
     //左出界检查
     if((this->x()  + this->size().width()) > ms.width())
     {
@@ -1472,12 +1553,25 @@ void NewList::mouseReleaseEvent(QMouseEvent *event)
 
     // 把　QScrollArea　的大小调成与父控件一样大.
     mainScroll->resize(this->size());
-    foreach (QWidget *w, childlist) {
-        ((NewLayout*)w)->setMaximumSize(this->size());
-         ((NewLayout*)w)->setFixedWidth(this->size().width());
-      //  mWindow->posWidget->updateMaxSize(this->size());
-    }
+    updateAllItemsSize();
 
+}
+
+
+void NewList::wheelEvent(QWheelEvent *event)
+{
+
+    QString lname =  listLayout->metaObject()->className() ;
+    if(listOrient == Qt::Horizontal)
+    {
+        if(event->orientation() != Qt::Horizontal)
+        {
+            QWheelEvent  evt(event->pos(),event->delta(),event->buttons(),event->modifiers(),Qt::Horizontal);
+           // wheelEvent(&evt);
+            QApplication::sendEvent(mainScroll->horizontalScrollBar(),&evt);
+        }
+    }
+   // event->accept();;
 }
 
 QJsonObject NewList::writeToJson()
@@ -1503,6 +1597,8 @@ QJsonObject NewList::writeToJson()
     }
     // 这一句必需要在这个偱环后面.
     json[LISTWIDGET] = layoutarr;
+    json[ITEMSPACE] = listLayout->spacing();
+    json[ITEMSIZE] = itemHeight;
    // json[CLASS] = this->metaObject()->className();
    // json[CAPTION] = this->property(DKEY_LOCALSEQ).toString();
     //json[CAPTION] = this->property(DKEY_TXT).toString();
@@ -1510,6 +1606,7 @@ QJsonObject NewList::writeToJson()
     updateRBJsonValue(projson,this);
     projson.append(Compoent::getRectJson(this));
     json[PROPERTY] = projson;
+    return json;
 
 }
 
@@ -1929,7 +2026,8 @@ void NewLayout::readFromJson(const QJsonValue &qv)
         }
     }else if(!clsName.compare(CN_NEWLIST))
     {
-      NewList *nlist = new NewList(caption,oldrect.size(),m_frame);
+      NewList *nlist = new NewList(qv,oldrect.size(),m_frame);
+      nlist->setProperty(DKEY_JSONSTR,qv );
      // nlist->setProperty(DKEY_TXT,caption);
    //   nlist->setProperty(DKEY_LOCALSEQ,caption);
       if(valobj.contains(PROPERTY))

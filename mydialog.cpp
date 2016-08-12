@@ -19,10 +19,6 @@
 #include <qttreepropertybrowser.h>
 #include <qteditorfactory.h>
 
-
-
-
-
 const static char DnditemData[] = "application/x-dnditemdata";
 
 
@@ -1103,6 +1099,7 @@ GlobalSettings::GlobalSettings(QWidget *parent):
       headeritem->setText(0,"全局配置项");
       headeritem->setText(1,"内容");
       ui->treeWidget->setHeaderItem(headeritem);
+      ui->treeWidget->setAlternatingRowColors(true);
       QTreeWidgetItem *vsize =  new QTreeWidgetItem(QStringList() << "界面尺寸");
       ui->treeWidget->addTopLevelItem(vsize);
 
@@ -1152,7 +1149,8 @@ GlobalSettings::GlobalSettings(QWidget *parent):
      }
 
 
-
+//     ui->buttonBox->button(QDialogButtonBox::Yes)->setText("确定");
+//     ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("取消");
 
 
 

@@ -845,7 +845,7 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
         QString clsname = qjv.toObject()[CLASS].toString();
         if(!CN_NEWLAYOUT.compare(clsname) /*||!CN_LAYOUT.compare(clsname)*/)
         {
-            Layout = qjv.toObject().value(PROPERTY).toVariant();
+            mVariantLayout = qjv.toObject().value(PROPERTY).toVariant();
         }
         //  qDebug() << " json key is " << uname;
         comMap[caption] = qjm;
