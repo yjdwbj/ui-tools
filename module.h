@@ -167,6 +167,14 @@ protected:
 
 class NewTable: public BaseForm
 {
+    Q_OBJECT
+public:
+    NewTable(QJsonValue qv,QWidget *parent=0);
+private:
+    int rows,cols;
+    int rowH,rowW;
+    int colH,colW;
+
 
 };
 
@@ -180,17 +188,11 @@ public:
     NewFrame(QString caption,QWidget *parent=0);
 
     void addMainWindow(QObject *mw);
-  //  void onSelectMe();
-  //  void DeleteMe();
     QJsonObject  writeToJson();
     void readFromJson(const QJsonValue &json);
 
-
-
 public slots:
     void onDeleteMe();
-
-
 protected:
     void clearOtherObjectStyleSheet();
     void mouseMoveEvent(QMouseEvent *event);
@@ -202,7 +204,6 @@ class NewList :public BaseForm
     Q_OBJECT
 public:
     NewList(QJsonValue json,const QSize size,QWidget *parent=0);
-    //void onSelectMe();
     QJsonObject writeToJson();
     void readFromJson(const QJsonObject &valobj);
     void addChildrenToTree();
@@ -227,12 +228,10 @@ public slots:
       void onAddManyLine();
       void onSetFixedHeight();
       void onDeleteMe();
-
-     // void onXYWHChangedValue(int v);
       void onTextChanged(QString str);
 
 protected:
-    void mouseMoveEvent(QMouseEvent *event);
+    //void mouseMoveEvent(QMouseEvent *event);
    // void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent *);
@@ -268,8 +267,6 @@ public:
 
     QWidget *parentList; // 特意用来存放的
     QString StyleStr;
-
-
 private:
     void clearOtherObjectStyleSheet();
 
@@ -278,15 +275,9 @@ public slots:
     void onDeleteMe();
     void onBeComeTemplateWidget();
 
-
 protected:
-
     void mouseMoveEvent(QMouseEvent *event) override;
-    //void mousePressEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
-   // void updateBorderColor();
-    //void paintEvent(QPaintEvent *ev);
-
 };
 
 
@@ -297,26 +288,14 @@ class NewLayer : public BaseForm
 public:
     explicit NewLayer(QString caption, QSize nsize, QWidget *parent=0);
     void readFromJson(const QJsonValue &qv);
-
     QJsonObject  writeToJson() ;
-   // const QWidgetList &getChidren() const { return LayoutList;}
     void addChildrenToTree();
-   // void updateBorderColor();
 
 public slots:
     void onDeleteMe();
 
 private:
     void clearOtherObjectStyleSheet();
-
-//protected:
-//    void resizeEvent(QResizeEvent *event);
-  //  void paintEvent(QPaintEvent *);
-
-//protected:
-//    void mouseMoveEvent(QMouseEvent *event);
-//    void mousePressEvent(QMouseEvent *event);
-//    void mouseReleaseEvent(QMouseEvent *event);
 };
 
 #endif // MODULE_H

@@ -1145,13 +1145,9 @@ void BaseForm::onPictureDialog(bool )
     ImageFileDialog *ifd = new ImageFileDialog(imglist,this);
 
     ifd->exec();
-    //qDebug() << " ImageFileDialog ";
-    //selectedMap sMap  = ifd->getSelectedMap();
-    imglist = ifd->getSelectedList();
-
-  //  disDefaultList = imglist.size() ? true : false;
+     imglist = ifd->getSelectedList();
     ifd->deleteLater();
-   // QJsonObject json;
+
     int rootlen  = QDir::currentPath().length()+1;
     QJsonArray qa;
 
@@ -1180,6 +1176,12 @@ void BaseForm::onPictureDialog(bool )
 
 }
 
+
+NewTable::NewTable(QJsonValue qv, QWidget *parent)
+    :BaseForm(parent)
+{
+
+}
 
 NewFrame::NewFrame(QString caption, QWidget *parent)
   //  :FormResizer(parent),Compoent()
@@ -1412,6 +1414,7 @@ int  NewList::tinySpinBoxDialog(QString  str,int val ,int min ,int max)
 
     QLabel *title = new QLabel(str);
     QSpinBox *spinbox = new QSpinBox();
+    spinbox->setMaximum(max);
     spinbox->setToolTip(QString("请输入%1~%2的整数").arg(QString::number(min),QString::number(max)));
     spinbox->setValue(val);
 
@@ -1465,8 +1468,9 @@ NewLayout * NewList::onAddOneLine()
   //  nl->addMainWindow(mWindow);
     childlist.append(newlayout);
    // int n = mWindow->ComCtrl->ProMap.size();
-    newlayout->copyProperty(mWindow->ComCtrl->mVariantLayout);
-    newlayout->setProperty(DKEY_DYN,mWindow->ComCtrl->mVariantLayout);
+    QVariant variant = obj[PROPERTY].toVariant();
+    newlayout->copyProperty(variant);
+    newlayout->setProperty(DKEY_DYN,variant);
     newlayout->initJsonValue();
 
     newlayout->setProperty(DKEY_INTOLIST,true);
@@ -1506,16 +1510,16 @@ void NewList::onDeleteMe()
     }
 }
 
-void NewList::mouseMoveEvent(QMouseEvent *event)
-{
-    if (event->buttons() & Qt::LeftButton)
-    {
-        move(this->pos() + (event->pos() - mOffset));
-        /* 把新的位置更新到右边属性框 */
-        mWindow->posWidget->updatePosition(this->pos());
-        this->blockSignals(true);
-    }
-}
+//void NewList::mouseMoveEvent(QMouseEvent *event)
+//{
+//    if (event->buttons() & Qt::LeftButton)
+//    {
+//        move(this->pos() + (event->pos() - mOffset));
+//        /* 把新的位置更新到右边属性框 */
+//        mWindow->posWidget->updatePosition(this->pos());
+//        this->blockSignals(true);
+//    }
+//}
 
 void NewList::mouseReleaseEvent(QMouseEvent *event)
 {

@@ -720,21 +720,6 @@ MenuItemDialog::MenuItemDialog( QString old, QWidget *parent)
     setModal(true);
 }
 
-
-//QString MenuItemDialog::getSelectText()
-//{
-//    for(int i =0 ; i < listWidget->count();i++)
-//    {
-//        QListWidgetItem *item = listWidget->item(i);
-//        QRadioButton *rb = (QRadioButton *)(listWidget->itemWidget(item));
-//        if(rb->isChecked())
-//        {
-//           // return rb->text();
-//           return item->text().trimmed();
-//        }
-//    }
-//}
-
 I18nLanguage::I18nLanguage( QWidget *parent):
     QDialog(parent),
     ui(new Ui::I18nLanguage)
@@ -1017,34 +1002,6 @@ GlobalSettings::GlobalSettings(QWidget *parent):
     this->UpdateStyle();
     mWindow = (MainWindow*)parent;
 
-//    QtIntPropertyManager *intManager = new QtIntPropertyManager;
-//    QtProperty *pw = intManager->addProperty("宽");
-//    pw->setToolTip("test sss");
-//    intManager->setRange(pw,1,5);
-//    intManager->setValue(pw,3);
-
-//    QtProperty *ph = intManager->addProperty("高");
-//    ph->setToolTip("test sss");
-//    intManager->setRange(ph,1,5);
-//    intManager->setValue(ph,3);
-
-
-//    QtGroupPropertyManager *groupManager = new QtGroupPropertyManager;
-
-//     QtProperty *sizegroup = groupManager->addProperty("界面尺寸");
-//     sizegroup->addSubProperty(pw);
-//     sizegroup->addSubProperty(ph);
-
-
-//    QtSpinBoxFactory *spinboxFactory = new QtSpinBoxFactory;
-//    QtTreePropertyBrowser *browser = new QtTreePropertyBrowser(this);
-//    browser->setFactoryForManager(intManager,spinboxFactory);
-//    browser->addProperty(sizegroup);
-
-//    browser->show();
-//    ui->property_layout->addWidget(browser);
-
-
      FileEdit *mlangfile= new FileEdit();
     setMap["多国语言文件:"]  = mlangfile;
     mlangfile->setToolTip("工程控件要用的语言文,可选office2003版本的xls文件,或者utf8格式,分号(;)间隔的csv文件.");
@@ -1115,6 +1072,7 @@ GlobalSettings::GlobalSettings(QWidget *parent):
           w = 128;
           h = 128;
       }
+      width->setValue(w); height->setValue(h);
 
       while(iter.hasNext())
       {
@@ -1149,34 +1107,8 @@ GlobalSettings::GlobalSettings(QWidget *parent):
      }
 
 
-//     ui->buttonBox->button(QDialogButtonBox::Yes)->setText("确定");
-//     ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("取消");
-
-
-
-//    ui->prj_width->setValue(w);ui->prj_height->setValue(h);
-
-
-//    QVariant mlang = mWindow->mGlobalSet->value(INI_PRJMLANG);
-//    if(mlang.isValid())
-//        ui->prjmlang_view->setText(mlang.toString());
-
-//    QVariant json = mWindow->mGlobalSet->value(INI_PRJJSON);
-//    ui->prjjson_view->setText(QDir::currentPath()+ QDir::separator()+"control.json");
-//    if(json.isValid())
-//        ui->prjjson_view->setText(json.toString());
-
-//    ui->prjdir_view->setText(QDir::currentPath());
-//    QVariant prjdir = mWindow->mGlobalSet->value(INI_PRJDIR);
-//    if(prjdir.isValid())
-//        ui->prjdir_view->setText(prjdir.toString());
-
-//    ui->prjimg_view->setText(QDir::currentPath() + QDir::separator() + "images");
-//    QVariant imgdir = mWindow->mGlobalSet->value(INI_PRJIMAGEDIR);
-//    if(imgdir.isValid())
-//        ui->prjimg_view->setText(imgdir.toString());
-
-
+     ui->buttonBox->button(QDialogButtonBox::Ok)->setText("确定");
+     ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("取消");
 
     connect(this,SIGNAL(accepted()),SLOT(onAccepted()));
     setModal(true);
@@ -1206,8 +1138,10 @@ void GlobalSettings::onAccepted()
 //    w = ui->prj_width->value();
 //    h = ui->prj_height->value();
 
-    h = getItemByString(H)->text(1).toInt();
-    w = getItemByString(W)->text(1).toInt();
+     QWidget *hwidget = ui->treeWidget->itemWidget(getItemByString(H),1);
+     QWidget *wwidget =  ui->treeWidget->itemWidget(getItemByString(W),1);
+     h = ((QSpinBox*)hwidget)->value();
+     w = ((QSpinBox*)wwidget)->value();
     if(w == 0 ||  h == 0)
     {
         QMessageBox::warning(this,"提示","宽高不能设置为零.");
@@ -1215,13 +1149,10 @@ void GlobalSettings::onAccepted()
         w = 64;
     }
 
-
     mWindow->cManager->setDefaultPageSize(QSize(w,h));
     mWindow->mGlobalSet->setValue(INI_PRJSIZE,
                                 QString("%1*%2").arg(QString::number(w),
                                                     QString::number(h)));
-
-
     QMapIterator<QString,QWidget*> it(IniMap);
     while(it.hasNext())
     {
@@ -1229,15 +1160,6 @@ void GlobalSettings::onAccepted()
         it.next();
         mWindow->mGlobalSet->setValue(it.key(),((FileEdit*)it.value())->filePath());
     }
-
-//    QApplication::setStyle(QStyleFactory::create(ui->gstyle->currentText()));
-//    qApp->desktop()->update();
-    //mWindow->mGlobalSet->setValue(INI_PRJSTYLE,ui->gstyle->currentText());
-//    mWindow->mGlobalSet->setValue( INI_PRJDIR,ui->prjdir_view->text());
-//    mWindow->mGlobalSet->setValue(INI_PRJJSON,ui->prjmlang_view->text());
-//    mWindow->mGlobalSet->setValue(INI_PRJMLANG,ui->prjmlang_view->text());
-//    mWindow->mGlobalSet->setValue(INI_PRJCUSTOM,ui->open_custom_com->text());
-//    mWindow->mGlobalSet->setValue(INI_PRJIMAGEDIR,ui->open_image_dir->text());
 }
 
 FileEdit::FileEdit(QWidget *parent)
