@@ -25,11 +25,6 @@
 
 
 using namespace xls;
-
-
-
-
-
 void Backgroud::paintEvent(QPaintEvent *)
 {
       // 这里必需要得新定义一个类,重写它的paintEvent才能画出它的背景.
@@ -86,6 +81,7 @@ MainWindow::MainWindow(QWidget *parent) :
     lDock->setObjectName("LeftDock");
 
 
+
     //　qDockWidget 下面必需要发放一个QWidget ,　才能显示控件.
     QWidget *lDockWidget = new QWidget(lDock);
 
@@ -102,8 +98,11 @@ MainWindow::MainWindow(QWidget *parent) :
    // leftLayout->setSizeConstraint(QLayout::SetFixedSize);
     lDockWidget->setLayout(leftLayout);
 
+
+
     ComCtrl = new  CompoentControls(this,lDock);
     leftLayout->addWidget(ComCtrl);
+
     leftLayout->addWidget(posWidget);
 
 
@@ -154,6 +153,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     this->centralWidget()->update();
     show();  // 这里不能少.
+
 
 
    // createCSVFile(QDir::currentPath()+"/行车记录仪.xls");

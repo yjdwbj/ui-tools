@@ -23,6 +23,7 @@ static QString IMGGRPLYT = "ImgGpBLyt";
 static QString DEFAULT = "default";
 static QString LIST = "list";
 static QString LISTWIDGET = "listwidget";
+static QString GRIDWIDGET = "GridWidget";
 static QString GEOMETRY ="geometry";
 static QString ENUM = "enum";
 static QString IMAGE = "image";
@@ -103,7 +104,7 @@ static const QString CN_NEWFRAME = "NewFrame";
 static const QString CN_NEWLABEL = "NewLabel";
 static const QString CN_NEWLAYER = "NewLayer";
 static const QString CN_NEWLIST = "NewList";
-static const QString CN_NEWTABLE = "NewTable";
+static const QString CN_NEWGRID = "NewGrid";
 //static const QString CN_LAYER = "Layer";
 //static const QString CN_LAYOUT = "Layout";
 static const QString CN_SSNAME = "ScenesScreen";
@@ -142,6 +143,8 @@ static QSize MARGIN_SIZE = QSize(SELECTION_MARGIN * 2, SELECTION_MARGIN *2);
 static const QString WIN_TITLE = "图片编辑工具  ";
 
 static QString VERSION = QString("%1 Ver:1.0-r%2 build time:<%3,%4>  ").arg(WIN_TITLE,
-                                QString(APP_REVISION).mid(0,6),__DATE__,__TIME__);
+                                QString(APP_REVISION).mid(0,6),
+                                QDate::currentDate().toString("yyyy-MM-dd"),
+                                __TIME__);
 
 #endif // CONFIG_H

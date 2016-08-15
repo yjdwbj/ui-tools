@@ -102,10 +102,6 @@ class CompoentControls : public QGroupBox
     Q_OBJECT
 public:
     explicit CompoentControls(MainWindow *mw,QWidget *parent = 0);
-  //  QObject* CreateObjectFromJson(QVariantMap qvm, QObject *pobj);
-
-   // QWidget *CcWidgetList,ProWidgetList,ImgWidgetList;
-
      int mCWidgetCount; // 自定义控件的个数.
      QMap<QString,QWidget*> ProMap; // 新生成的控件.
      QVariant mVariantLayout;
@@ -118,25 +114,19 @@ private:
      QWidget *mainWidget;
      QString mJsonFile;
      QWidgetList comList;
-     //QJsonArray comJsonArr;
-     QMap<QString,QVariantMap> comMap;
 
-     //QSizePolicy mSizePolicy;
 
      void CreateButtonList(const QJsonArray &comJsonArr);
      QWidget *createCustomObject(const QJsonArray &comJsonArr);
-    // QWidget *createLayoutFromJson(const QJsonObject &json,QWidget *parent);
-    // QWidget *createCustomWidget(const QJsonValue &json, QWidget *parent);
 
      QWidget *getQWidgetByName(QString name) const;
      QJsonArray ReadTemplateWidgetFile(QString file) const;
-    // void ReadCustomWidgetFiles(QString file);
+
 
 signals:
 
 public slots:
      void onCreateCompoentToCanvas();
-   //  void onCreateListWidget();
      void onCreateCustomWidget();
      void onCreateNewLayout();
      void onCreateNewLayer();

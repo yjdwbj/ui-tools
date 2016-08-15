@@ -4,12 +4,6 @@
 
 #include <QVBoxLayout>
 #include <QDebug>
-
-#include <QGraphicsGridLayout>
-#include <QGraphicsLayoutItem>
-
-
-
 PageView::PageView(MainWindow *mw)
     :mWindow(mw),mImgList(new QListWidget)
 {

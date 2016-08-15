@@ -23,5 +23,7 @@
         <file>icons/document-save-as.png</file>
         <file>icons/fileoverlay_ui@2x.png</file>
         <file>icons/horizontal-scale-icon.png</file>
+        <file>icons/same-width.png</file>
+        <file>icons/same-height.png</file>
     </qresource>
 </RCC>

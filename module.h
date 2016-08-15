@@ -81,6 +81,8 @@ public:
     void moveNewPos(QPoint pos);
     void moveNewPos(int x,int y);
 
+    int tinySpinBoxDialog(QString  str,int val ,int min ,int max);
+
 
 
 public slots:
@@ -165,18 +167,7 @@ protected:
 
 
 
-class NewTable: public BaseForm
-{
-    Q_OBJECT
-public:
-    NewTable(QJsonValue qv,QWidget *parent=0);
-private:
-    int rows,cols;
-    int rowH,rowW;
-    int colH,colW;
 
-
-};
 
 
 //class NewFrame :public FormResizer,public Compoent
@@ -198,6 +189,49 @@ protected:
     void mouseMoveEvent(QMouseEvent *event);
 };
 
+
+class NewGrid: public BaseForm
+{
+    Q_OBJECT
+public:
+    NewGrid(const QJsonValue &qv, const QSize size,  const QList<int> *arglist, QWidget *parent=0);
+    bool rowcoldialog();
+    void initRowsCols(int row, int col);
+
+    void addRowsCols();
+
+    void addOneCol();
+    void updateAllItemsSize();
+
+    QAction *menuAddRow;
+    QAction *menuAddCol;
+    QAction *menuSpace;
+    QAction *menuHT;
+    QAction *menuWD;
+
+
+public slots:
+    void onDeleteMe();
+    void onAddOneRow();
+
+
+private:
+
+
+    int rows,cols;  //行列数
+    int rowH,rowW;  //行高行宽
+    int colH,colW;  //列高列宽
+
+    QGridLayout *gridLayout;
+    QScrollArea *mainScroll;
+    QWidget *mainWidget;
+    Qt::Orientation sliderOrientation;
+    QSize itemSize;
+
+protected:
+    void mouseReleaseEvent(QMouseEvent *event);
+};
+
 //class NewList :public FormResizer,public Compoent
 class NewList :public BaseForm
 {
@@ -207,12 +241,13 @@ public:
     QJsonObject writeToJson();
     void readFromJson(const QJsonObject &valobj);
     void addChildrenToTree();
-     QScrollArea *mainScroll;
-     QWidget *mainWidget;
+    QScrollArea *mainScroll;
+    QWidget *mainWidget;
      QBoxLayout *listLayout;
      Qt::Orientation  listOrient;
 
 
+     // 菜单项.
      QAction *menuAddLine;
      QAction *menuSetHeight;
      QAction *menuSetSpace;
@@ -248,7 +283,7 @@ public:
 //    NewLayout (const QJsonObject &json,QWidget *parent=0);
     NewLayout (int width,int height,QWidget *parent=0);
 
-    void onSelectMe();
+   // void onSelectMe();
     void DeleteMe();
     void addMainWindow(MainWindow *m) { mWindow = m;}
     void clearOtherSelectHandler();
@@ -265,10 +300,11 @@ public:
     void createNewFrameObject(const QJsonObject &json);
     QWidget* createObjectFromJson(const QJsonValue &qv);
 
-    QWidget *parentList; // 特意用来存放的
+    QWidget *container; // 特意用来存放的
     QString StyleStr;
 private:
     void clearOtherObjectStyleSheet();
+    QList<int> rowcoldialog();
 
 public slots:
    // void onXYWHChangedValue(int v);

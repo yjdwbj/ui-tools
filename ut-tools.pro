@@ -65,7 +65,8 @@ FORMS    += mainwindow.ui \
     dialog.ui \
     language.ui \
     confproject.ui \
-    globalset.ui
+    globalset.ui \
+    griddialog.ui
 CONFIG += c++11
 
 

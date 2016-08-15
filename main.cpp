@@ -5,9 +5,6 @@
 #include <QGraphicsWidget>
 #include <QPushButton>
 
-#include <QGraphicsView>
-#include <QGraphicsGridLayout>
-#include <QGraphicsItem>
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);

@@ -692,6 +692,7 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
                       QString("删除当前-%1").arg(this->property(DKEY_TXT).toString()),this);
         connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
         contextMenu->addAction(&delme);
+        contextMenu->addSeparator();
          QAction saveTemp(QIcon(":/icon/icons/build.png"),"保存成控件",this);
         if(!CN_NEWLAYOUT.compare(clsname))
         {
@@ -717,12 +718,26 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
             if(!clsname.compare(CN_NEWLIST))
                 nl = (NewList*)this;
             else
-                nl =(NewList*)(((NewLayout*)this)->parentList);
+                nl =(NewList*)(((NewLayout*)this)->container);
             contextMenu->addAction(nl->menuAddLine);
             contextMenu->addAction(nl->menuSetHeight);
             contextMenu->addAction(nl->menuSetSpace);
-        }
+        }else if(!pobjname.compare(LISTWIDGET) ||!clsname.compare(CN_NEWGRID))
+        {
 
+            NewGrid *ng ;
+            if(!clsname.compare(CN_NEWGRID))
+            {
+                ng = (NewGrid*)this;
+            }else
+            {
+                ng = (NewGrid*)(((NewLayout*)this)->container);
+            }
+            contextMenu->addAction(ng->menuAddRow);
+            contextMenu->addAction(ng->menuSpace);
+            contextMenu->addAction(ng->menuWD);
+            contextMenu->addAction(ng->menuHT);
+        }
         contextMenu->exec(mapToGlobal(event->pos()));
     }
 
@@ -1177,11 +1192,48 @@ void BaseForm::onPictureDialog(bool )
 }
 
 
-NewTable::NewTable(QJsonValue qv, QWidget *parent)
-    :BaseForm(parent)
+int  BaseForm::tinySpinBoxDialog(QString  str,int val ,int min ,int max)
 {
+    int num = 0;
+
+    BaseDialog *nWindow = new BaseDialog(this);
+    nWindow->setObjectName(metaObject()->className());
+    nWindow->UpdateStyle();
+    QVBoxLayout *vb = new QVBoxLayout();
+
+    QHBoxLayout *hb = new QHBoxLayout();
+
+    QLabel *title = new QLabel(str);
+    QSpinBox *spinbox = new QSpinBox();
+    spinbox->setMaximum(max);
+    spinbox->setToolTip(QString("请输入%1~%2的整数").arg(QString::number(min),QString::number(max)));
+    spinbox->setValue(val);
+
+    hb->addWidget(title);
+    hb->addWidget(spinbox);
+    vb->addLayout(hb);
+    QDialogButtonBox *dbb = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel,
+                                                 Qt::Horizontal,
+                                                 nWindow);
+    dbb->button(QDialogButtonBox::Ok)->setText("确定");
+   dbb->button(QDialogButtonBox::Cancel)->setText("取消");
+   connect(dbb,SIGNAL(accepted()),nWindow,SLOT(accept()));
+   connect(dbb,SIGNAL(rejected()),nWindow,SLOT(reject()));
+   vb->addWidget(dbb);
+    nWindow->setLayout(vb);
+    nWindow->exec();
+
+    int ret = nWindow->result();
+    if(ret)
+         num = spinbox->value();
+
+    nWindow->deleteLater();
+
+    return num;
 
 }
+
+
 
 NewFrame::NewFrame(QString caption, QWidget *parent)
   //  :FormResizer(parent),Compoent()
@@ -1293,9 +1345,171 @@ void NewFrame::mouseMoveEvent(QMouseEvent *event)
 
 }
 
+
+
+NewGrid::NewGrid(const QJsonValue &qv, const QSize size,
+                  const QList<int> *arglist, QWidget *parent)
+    :BaseForm(parent),
+     mainWidget(new QWidget()),
+     sliderOrientation(Qt::Vertical),
+     rows(arglist->at(0)),
+     cols(arglist->at(1)),itemSize(arglist->at(2),arglist->at(3))
+{
+
+    mWindow = ((NewLayout*)parent->parentWidget())->mWindow;
+    QJsonObject obj = qv.toObject();
+    QString caption = obj[CAPTION].toString();
+    setFocusPolicy(Qt::ClickFocus);
+    mainScroll =  new QScrollArea(m_frame);
+    mainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    mainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    mainScroll->setAlignment(Qt::AlignCenter);
+
+    mainWidget->setObjectName(GRIDWIDGET);  // 用来识别布局是否在列表控件下面.
+    mainScroll->setWidget(mainWidget);
+    gridLayout = new QGridLayout(mainWidget);
+    gridLayout->setSpacing(0);
+    gridLayout->setContentsMargins(0,0,0,0);
+    gridLayout->setSizeConstraint(QLayout::SetFixedSize);
+    //mainWidget->setLayout(gridLayout);
+
+    int n = mWindow->ComCtrl->ProMap.size();
+    QString str = QString("%1_%2").arg(caption,QString::number(n));
+    setProperty(DKEY_LOCALSEQ,str);
+    setProperty(DKEY_TXT,caption);
+    setObjectName(str);
+    mainWidget->setMaximumSize(999,999);
+
+    setToolTip(str);
+
+    show();
+
+    resize(size);
+    repaint();
+
+    mbkColor = "#FFE4C4";
+    updateStyleSheets();
+
+    setProperty(DKEY_JSONSTR,qv );
+    if(qv.toObject().contains(PROPERTY))
+    {
+        QVariant variant = qv.toObject()[PROPERTY].toVariant();
+        this->copyProperty(variant);
+        this->setProperty(DKEY_DYN,variant);
+        this->initJsonValue();
+    }
+
+
+
+    menuAddRow =  new QAction(QIcon(":/icon/icons/plus.png"),"添加行",this);
+    connect(menuAddRow,SIGNAL(triggered(bool)),SLOT(onAddOneRow()));
+
+    menuSpace = new QAction(QIcon(":/icon/icons/same-width.png"),"列间距",this);
+
+    connect(menuSpace,&QAction::triggered,[=](){
+        gridLayout->setSpacing(tinySpinBoxDialog(menuSpace->text(),0,1,99));
+    });
+  //  menuRowSpace = new QAction(QIcon(":/icon/icons/same-height.png"),"行间距",this);
+
+
+
+    menuHT = new QAction(QIcon(":/icon/icons/horizontal-scale-icon.png"),"单元高度",this);
+    connect(menuHT,&QAction::triggered,[=](){
+        itemSize.setHeight(tinySpinBoxDialog(menuHT->text(),MARGIN_SIZE.height(),1,99));
+    });
+
+     menuWD =  new QAction(QIcon(":/icon/icons/fileoverlay_ui@2x.png"),"单元宽度",this);
+     connect(menuWD,&QAction::triggered,[=](){
+         itemSize.setWidth(tinySpinBoxDialog(menuHT->text(),MARGIN_SIZE.height(),1,99));
+     });
+}
+
+
+void NewGrid::addRowsCols()
+{
+
+    for(int x = 0 ; x < rows ;x++)
+        for(int y = 0;y  < cols ; y++)
+            initRowsCols(x,y);
+
+    updateAllItemsSize();
+}
+
+void NewGrid::initRowsCols(int row,int col)
+{
+
+
+    QString odd = "#CDC0B0";
+    QString nodd = "#EED5B7";
+    QString nnn = "#98F5FF";
+    QString tt = "#FF7F50";
+    onSelectMe();
+    QJsonObject obj = QJsonValue::fromVariant(mWindow->ComCtrl->mVariantLayout).toObject();
+    NewLayout *newlayout = new NewLayout(obj[CAPTION].toString(),m_frame->size(),mWindow,mainWidget);
+
+    newlayout->container = this;
+    childlist.append(newlayout);
+
+    QVariant variant = obj[PROPERTY].toVariant();
+    newlayout->copyProperty(variant);
+    newlayout->setProperty(DKEY_DYN,variant);
+    newlayout->initJsonValue();
+
+    newlayout->setProperty(DKEY_INTOLIST,true);
+    mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),newlayout);
+    newlayout->onSelectMe();
+
+    if(col % 2)
+    {
+        if(row % 2)
+        newlayout->mbkColor = tt;
+        else
+            newlayout->mbkColor = odd;
+    }
+    else{
+        if(row % 2)
+        newlayout->mbkColor = nnn;
+        else
+            newlayout->mbkColor = nodd;
+    }
+    newlayout->updateStyleSheets();
+    newlayout->show();
+    gridLayout->addWidget(newlayout,row,col);
+}
+
+void NewGrid::onAddOneRow()
+{
+    for(int i =0;i<cols ;i++)
+    {
+        initRowsCols(rows,i);
+    }
+    updateAllItemsSize();
+    rows++;
+}
+
+void NewGrid::updateAllItemsSize()
+{
+    foreach (QWidget *w, childlist) {
+        ((NewLayout*)w)->setMaximumSize(this->size());
+        ((NewLayout*)w)->setFixedSize(itemSize);
+    }
+}
+
+void NewGrid::onDeleteMe()
+{
+
+}
+
+void NewGrid::mouseReleaseEvent(QMouseEvent *event)
+{
+     mainScroll->resize(this->size());
+}
+
 NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
     //FormResizer(parent)
-    BaseForm(parent),listOrient(Qt::Vertical)
+    BaseForm(parent),
+    listOrient(Qt::Vertical),
+    mainWidget(new QWidget())
 {
   //  setMinimumSize(nsize ); // 最小尺寸
    // setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
@@ -1314,7 +1528,7 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
     mainScroll->setAlignment(Qt::AlignCenter);
    // mainScroll->setWidgetResizable(true);
 
-    mainWidget = new QWidget();
+
     mainWidget->setObjectName(LISTWIDGET);  // 用来识别布局是否在列表控件下面.
     mainScroll->setWidget(mainWidget);
 
@@ -1349,11 +1563,7 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
 
     listLayout->setContentsMargins(0,0,0,0);
     listLayout->setSizeConstraint(QLayout::SetFixedSize);
-   // mainWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
-  //  m_frame->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
 
-
-    //m_frame->setStyleSheet("background-color: #79AEC8;");
     int n = mWindow->ComCtrl->ProMap.size();
     QString str = QString("%1_%2").arg(caption,QString::number(n));
     setProperty(DKEY_LOCALSEQ,str);
@@ -1463,7 +1673,7 @@ NewLayout * NewList::onAddOneLine()
     QJsonObject obj = QJsonValue::fromVariant(mWindow->ComCtrl->mVariantLayout).toObject();
     NewLayout *newlayout = new NewLayout(obj[CAPTION].toString(),m_frame->size()-QSize(15,15),mWindow,mainWidget);
 
-    newlayout->parentList = this;
+    newlayout->container = this;
 
   //  nl->addMainWindow(mWindow);
     childlist.append(newlayout);
@@ -1603,9 +1813,6 @@ QJsonObject NewList::writeToJson()
     json[LISTWIDGET] = layoutarr;
     json[ITEMSPACE] = listLayout->spacing();
     json[ITEMSIZE] = itemHeight;
-   // json[CLASS] = this->metaObject()->className();
-   // json[CAPTION] = this->property(DKEY_LOCALSEQ).toString();
-    //json[CAPTION] = this->property(DKEY_TXT).toString();
     QJsonArray projson = dynValues[DKEY_DYN].toArray();
     updateRBJsonValue(projson,this);
     projson.append(Compoent::getRectJson(this));
@@ -1678,23 +1885,23 @@ NewLayout::NewLayout(QString caption, QSize nsize, MainWindow *w, QWidget *paren
     setToolTip(uname);
 }
 
-void NewLayout::onSelectMe()
-{
+//void NewLayout::onSelectMe()
+//{
 
-    if(!parentWidget()->objectName().compare(LISTWIDGET))
-    {
-        // 滑动到适当的位置.
-        int n = 0;
-        foreach(NewLayout *w,parentWidget()->findChildren<NewLayout*>())
-        {
-            if(this == w) break;
-            n+= w->height();
-        }
-      ((NewList*)parentList)->mainScroll->verticalScrollBar()->setValue(n);
-    }
+//    if(!parentWidget()->objectName().compare(LISTWIDGET))
+//    {
+//        // 滑动到适当的位置.
+//        int n = 0;
+//        foreach(NewLayout *w,parentWidget()->findChildren<NewLayout*>())
+//        {
+//            if(this == w) break;
+//            n+= w->height();
+//        }
+//      ((NewList*)container)->mainScroll->verticalScrollBar()->setValue(n);
+//    }
 
-    this->BaseForm::onSelectMe();
-}
+//    this->BaseForm::onSelectMe();
+//}
 
 void NewLayout::DeleteMe()
 {
@@ -1702,7 +1909,7 @@ void NewLayout::DeleteMe()
     // 它是否是列表控件的一员.
     if(!parentWidget()->objectName().compare(LISTWIDGET))
     {
-        ((NewList*)parentList)->childlist.removeOne(this);
+        ((NewList*)container)->childlist.removeOne(this);
     }
     this->BaseForm::DeleteMe();
 
@@ -2032,8 +2239,6 @@ void NewLayout::readFromJson(const QJsonValue &qv)
     {
       NewList *nlist = new NewList(qv,oldrect.size(),m_frame);
       nlist->setProperty(DKEY_JSONSTR,qv );
-     // nlist->setProperty(DKEY_TXT,caption);
-   //   nlist->setProperty(DKEY_LOCALSEQ,caption);
       if(valobj.contains(PROPERTY))
       {
           nlist->copyProperty(variant);
@@ -2044,10 +2249,25 @@ void NewLayout::readFromJson(const QJsonValue &qv)
       mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),nlist);
       childlist.append(nlist);
       nlist->onSelectMe();
-      nlist->show();
+
       foreach (QJsonValue item, valobj[LISTWIDGET].toArray()) {
           nlist->readFromJson(item.toObject());
       }
+    }else if(!clsName.compare(CN_NEWGRID))
+    {
+         QList<int> arglist =   rowcoldialog();
+
+         NewGrid *ngrid = new NewGrid(qv,oldrect.size(),
+                                   &arglist,
+                                   m_frame);
+         ngrid->setGeometry(oldrect);
+         mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),ngrid);
+
+         childlist.append(ngrid);
+         ngrid->onSelectMe();
+         ngrid->addRowsCols();
+
+
     }
     else if(!clsName.compare(CN_NEWFRAME)
              || !clsName.compare(QFRAME))
@@ -2060,6 +2280,93 @@ void NewLayout::readFromJson(const QJsonValue &qv)
 
 }
 
+
+QList<int> NewLayout::rowcoldialog()
+{
+    QList<int> arglist;
+    int r,c,w,h = 0;
+    while(1)
+    {
+
+        BaseDialog *nWindow = new BaseDialog();
+        nWindow->setObjectName(metaObject()->className());
+        nWindow->UpdateStyle();
+        QVBoxLayout *vb = new QVBoxLayout();
+
+        QHBoxLayout *rowlayout = new QHBoxLayout();
+
+        QLabel *rowtitle = new QLabel("行:");
+        QSpinBox *rowbox = new QSpinBox();
+        //rowbox->setMaximum(max);
+        QString tooltip = "请输入行列整数,必需满足 (行*列>0)";
+        rowbox->setToolTip(tooltip);
+        rowbox->setValue(2);
+
+        rowlayout->addWidget(rowtitle);
+        rowlayout->addWidget(rowbox);
+
+        QLabel *coltitle = new QLabel("列:");
+        QSpinBox *colbox = new QSpinBox();
+        colbox->setToolTip(tooltip);
+        colbox->setValue(2);
+
+        QHBoxLayout *collayout = new QHBoxLayout();
+        collayout->addWidget(coltitle);
+        collayout->addWidget(colbox);
+
+        vb->addLayout(rowlayout);
+        vb->addLayout(collayout);
+
+
+        QLabel *itemwd = new QLabel("单元宽度:");
+        QLabel *itemht = new QLabel("单元高度:");
+        QString whstr = "每个单元的大小";
+        QSpinBox *itemwBox = new QSpinBox();
+        itemwBox->setValue(15);
+        QSpinBox *itemhBox = new QSpinBox();
+        itemhBox->setValue(15);
+        itemwBox->setToolTip(whstr);
+        itemhBox->setToolTip(whstr);
+        QHBoxLayout *wdlayout = new QHBoxLayout();
+        wdlayout->addWidget(itemwd);
+        wdlayout->addWidget(itemwBox);
+
+        QHBoxLayout *htlayout = new QHBoxLayout();
+        htlayout->addWidget(itemht);
+        htlayout->addWidget(itemhBox);
+
+        vb->addLayout(wdlayout);
+        vb->addLayout(htlayout);
+
+        QDialogButtonBox *dbb = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel,
+                                                     Qt::Horizontal,
+                                                     nWindow);
+        dbb->button(QDialogButtonBox::Ok)->setText("确定");
+        dbb->button(QDialogButtonBox::Cancel)->setText("取消");
+        connect(dbb,SIGNAL(accepted()),nWindow,SLOT(accept()));
+        connect(dbb,SIGNAL(rejected()),nWindow,SLOT(reject()));
+        vb->addWidget(dbb);
+        nWindow->setLayout(vb);
+        nWindow->exec();
+
+        int ret = nWindow->result();
+        if(ret)
+        {
+            r = rowbox->value();
+            c = colbox->value();
+            w = itemwBox->value();
+            h = itemhBox->value();
+            nWindow->deleteLater();
+            if(!r || !c || !w || !h )
+            {
+                continue;
+            }
+            arglist << r << c << w <<h;
+            break;
+        }
+    }
+   return arglist;
+}
 
 QWidget* NewLayout::createObjectFromJson(const QJsonValue &qv)
 {

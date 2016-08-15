@@ -627,7 +627,6 @@ CompoentControls::CompoentControls(MainWindow *mw, QWidget *parent)
     scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     // 读取控件目录下的所有控件文件.
-
    // mJsonFile =  QDir::currentPath() + "/menu_strip.json";
     QString file = QDir::currentPath() + "/control.json";
     qDebug() << " json file name " << file;
@@ -640,6 +639,7 @@ CompoentControls::CompoentControls(MainWindow *mw, QWidget *parent)
 
     CreateButtonList(ReadTemplateWidgetFile(file));
  //   QString customdir = QDir::currentPath() + "/widgets";
+
 
     // 读取一些自定义的控件.
     QDirIterator it(QDir::currentPath() + "/widgets", QStringList() << "*.json", QDir::Files, QDirIterator::Subdirectories);
@@ -717,20 +717,21 @@ QWidget* CompoentControls::createCustomObject(const QJsonArray &comJsonArr)
     foreach (QJsonValue qjv, comJsonArr)
     {
         QVariantMap  qjm = qjv.toObject().toVariantMap();
-        QString caption = qjv.toObject()[CAPTION].toString();
-        QString objname = qjv.toObject()[NAME].toString();
+        QJsonObject jobj = qjv.toObject();
+        QString caption = jobj[CAPTION].toString();
+        QString objname = jobj[NAME].toString();
         //  qDebug() << " json key is " << uname;
-        comMap[caption] = qjm;
+      //  comMap[caption] = jobj;
         QPushButton *btnTest = new QPushButton(caption);
         btnTest->setProperty(DKEY_CATEGORY,objname);
         btnTest->setProperty(DKEY_JSONSTR,qjv.toVariant()); // 这个按钮绑定这一个JSON控件.
 
         // btnTest->setSizePolicy(mSizePolicy);
 
-        if(qjm.contains(ICON))
-            btnTest->setIcon(QIcon(qjv.toObject()[ICON].toString()));
+        if(jobj.contains(ICON))
+            btnTest->setIcon(QIcon(jobj[ICON].toString()));
 
-        QString wtype = qjv.toObject()[WTYPE].toString();
+      //  QString wtype = jobj[WTYPE].toString();
         btnTest->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
         if(col == 2)
         {
@@ -835,31 +836,36 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
     comLayout->setHorizontalSpacing(1);
     comLayout->setMargin(1);
     comLayout->setContentsMargins(1,1,1,1);
+#if 0
+    QFile fdebug("debug.json");
+    fdebug.open(QIODevice::WriteOnly);
+    fdebug.write(QJsonDocument(comJsonArr).toJson());
+    fdebug.close();
+#endif
+
 
     foreach (QJsonValue qjv, comJsonArr)
     {
-        QVariantMap  qjm = qjv.toObject().toVariantMap();
-        QString caption = qjv.toObject()[CAPTION].toString();
-        QString objname = qjv.toObject()[NAME].toString();
+        QJsonObject jobj = qjv.toObject();
+        QString caption = jobj[CAPTION].toString();
+        QString objname = jobj[NAME].toString();
 
-        QString clsname = qjv.toObject()[CLASS].toString();
+        QString clsname = jobj[CLASS].toString();
         if(!CN_NEWLAYOUT.compare(clsname) /*||!CN_LAYOUT.compare(clsname)*/)
         {
             mVariantLayout = qjv.toVariant();
         }
         //  qDebug() << " json key is " << uname;
-        comMap[caption] = qjm;
+
         QPushButton *btnTest = new QPushButton(caption);
         btnTest->setProperty(DKEY_CATEGORY,objname);
         btnTest->setProperty(DKEY_JSONSTR,qjv.toVariant()); // 这个按钮绑定这一个JSON控件.
 
-       // btnTest->setSizePolicy(mSizePolicy);
-
-        if(qjm.contains(ICON))
-            btnTest->setIcon(QIcon(qjv.toObject()[ICON].toString()));
+        if(jobj.contains(ICON))
+            btnTest->setIcon(QIcon(jobj[ICON].toString()));
 
         //QString wtype = qjv.toObject()[WTYPE].toString();
-        QString wtype = qjv.toObject()[CLASS].toString();
+        QString wtype = jobj[CLASS].toString();
         if(!wtype.compare(CN_NEWLAYER) /* || !wtype.compare(CN_LAYER)*/)
         {
             v->addWidget(btnTest);
@@ -873,6 +879,7 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
             connect(btnTest,SIGNAL(clicked(bool)),SLOT(onCreateNewLayout()));
         }
         else{
+
              btnTest->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
             if(col == 2)
             {
@@ -880,9 +887,10 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
                 row++;
             }
             comLayout->addWidget(btnTest,row,col++);
-            connect(btnTest,SIGNAL(clicked(bool)),this,SLOT(onCreateCompoentToCanvas()));
+            connect(btnTest,SIGNAL(clicked(bool)),SLOT(onCreateCompoentToCanvas()));
         }
     }
+
 
 }
 
@@ -894,9 +902,6 @@ void CompoentControls::onCreateCompoentToCanvas()
     //这里要区分一下控件的类型,在没有图层的情况下,要先建图层,再在图层下面新建布局.
    // NewLayout *activeLayout = mWindow->cManager->activeSS()->activeLayout();
     QWidget *wid = mWindow->cManager->activeSS()->activeObject();
-
-//    if(!wid || clsname.compare(CN_NEWLAYOUT))
-    //QString clsname;
     if(!wid)
     {
         QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
