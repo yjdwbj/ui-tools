@@ -722,7 +722,7 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
             contextMenu->addAction(nl->menuAddLine);
             contextMenu->addAction(nl->menuSetHeight);
             contextMenu->addAction(nl->menuSetSpace);
-        }else if(!pobjname.compare(LISTWIDGET) ||!clsname.compare(CN_NEWGRID))
+        }else if(!pobjname.compare(GRIDWIDGET) ||!clsname.compare(CN_NEWGRID))
         {
 
             NewGrid *ng ;
@@ -734,9 +734,12 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
                 ng = (NewGrid*)(((NewLayout*)this)->container);
             }
             contextMenu->addAction(ng->menuAddRow);
+            contextMenu->addAction(ng->menuAddCol);
             contextMenu->addAction(ng->menuSpace);
-            contextMenu->addAction(ng->menuWD);
-            contextMenu->addAction(ng->menuHT);
+            contextMenu->addAction(ng->menuSize);
+            contextMenu->addAction(ng->menuV);
+            contextMenu->addAction(ng->menuH);
+
         }
         contextMenu->exec(mapToGlobal(event->pos()));
     }
@@ -1078,6 +1081,7 @@ void BaseForm::DeleteMe()
     mWindow->tree->setMyParentNode();  //选中它的父控件.
     mWindow->tree->deleteItem(this);
     mWindow->posWidget->resetValues();
+    mWindow->cManager->activeSS()->removeActiveObj();
     mWindow->ComCtrl->ProMap.remove(property(DKEY_LOCALSEQ).toString());
     mWindow->propertyWidget->delPropertyBox();
   //  mWindow->imgPropertyWidget->delPropertyBox();
@@ -1233,7 +1237,68 @@ int  BaseForm::tinySpinBoxDialog(QString  str,int val ,int min ,int max)
 
 }
 
+QSize  BaseForm::ChangeSizeDialog(QSize size)
+{
+    int w,h = 0;
+    while(1)
+    {
 
+        BaseDialog *nWindow = new BaseDialog(this);
+        nWindow->setObjectName(metaObject()->className());
+        nWindow->UpdateStyle();
+        QGridLayout *glayout = new QGridLayout();
+
+        QLabel *wt = new QLabel("宽:");
+        QLabel *ht= new QLabel("高:");
+
+        QString tooltip = "请输入 1000 < 0 内的整数";
+        QSpinBox *wbox = new QSpinBox();
+        QSpinBox *hbox = new QSpinBox();
+        wbox->setMaximum(999);
+        wbox->setToolTip(tooltip);
+        wbox->setValue(size.width());
+
+        hbox->setMaximum(999);
+        hbox->setToolTip(tooltip);
+        hbox->setValue(size.height());
+
+        glayout->addWidget(wt,0,0);
+        glayout->addWidget(wbox,0,1);
+        glayout->addWidget(ht,1,0);
+        glayout->addWidget(hbox,1,1);
+        QDialogButtonBox *dbb = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel,
+                                                     Qt::Horizontal,
+                                                     nWindow);
+        dbb->button(QDialogButtonBox::Ok)->setText("确定");
+        dbb->button(QDialogButtonBox::Cancel)->setText("取消");
+        connect(dbb,SIGNAL(accepted()),nWindow,SLOT(accept()));
+        connect(dbb,SIGNAL(rejected()),nWindow,SLOT(reject()));
+        glayout->addWidget(dbb,2,0,1,0);
+        nWindow->setLayout(glayout);
+        nWindow->exec();
+
+
+        int ret = nWindow->result();
+        w = wbox->value();
+        h = hbox->value();
+        nWindow->deleteLater();
+        if(ret)
+        {
+            if(!w || !h)
+            {
+                continue;
+            }
+            break;
+        }
+    }
+
+    return QSize(w,h);
+}
+
+void BaseForm::wheelEvent(QWheelEvent *event)
+{
+   event->ignore();
+}
 
 NewFrame::NewFrame(QString caption, QWidget *parent)
   //  :FormResizer(parent),Compoent()
@@ -1345,7 +1410,36 @@ void NewFrame::mouseMoveEvent(QMouseEvent *event)
 
 }
 
+ContainerScroll::ContainerScroll(QWidget *parent)
+    :QScrollArea(parent),
+      container(parent->parentWidget())
+{
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setAlignment(Qt::AlignCenter);
+}
 
+bool ContainerScroll::eventFilter(QObject *obj, QEvent *event)
+{
+    if(!CN_NEWLAYOUT.compare(obj->metaObject()->className()) &&
+            event->type() == QEvent::Wheel)
+    {
+
+
+        QWheelEvent  evt(QCursor::pos(),0,
+                         Qt::NoButton,
+                         Qt::NoModifier,Qt::Vertical);
+        QApplication::sendEvent(verticalScrollBar(),&evt);
+        return true;
+    }
+
+    return QScrollArea::eventFilter(obj,event);
+}
+
+void ContainerScroll::wheelEvent(QWheelEvent *event)
+{
+
+}
 
 NewGrid::NewGrid(const QJsonValue &qv, const QSize size,
                   const QList<int> *arglist, QWidget *parent)
@@ -1361,8 +1455,8 @@ NewGrid::NewGrid(const QJsonValue &qv, const QSize size,
     QString caption = obj[CAPTION].toString();
     setFocusPolicy(Qt::ClickFocus);
     mainScroll =  new QScrollArea(m_frame);
-    mainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
-    mainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
+    mainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    mainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainScroll->setAlignment(Qt::AlignCenter);
 
     mainWidget->setObjectName(GRIDWIDGET);  // 用来识别布局是否在列表控件下面.
@@ -1401,10 +1495,13 @@ NewGrid::NewGrid(const QJsonValue &qv, const QSize size,
 
 
 
-    menuAddRow =  new QAction(QIcon(":/icon/icons/plus.png"),"添加行",this);
+    menuAddRow =  new QAction(QIcon(":/icon/icons/addtab.png"),"添加行",this);
     connect(menuAddRow,SIGNAL(triggered(bool)),SLOT(onAddOneRow()));
 
-    menuSpace = new QAction(QIcon(":/icon/icons/same-width.png"),"列间距",this);
+    menuAddCol =  new QAction(QIcon(":/icon/icons/addtab.png"),"添加列",this);
+    connect(menuAddCol,SIGNAL(triggered(bool)),SLOT(onAddOneCol()));
+
+    menuSpace = new QAction(QIcon(":/icon/icons/same-width.png"),"单元间距",this);
 
     connect(menuSpace,&QAction::triggered,[=](){
         gridLayout->setSpacing(tinySpinBoxDialog(menuSpace->text(),0,1,99));
@@ -1413,15 +1510,33 @@ NewGrid::NewGrid(const QJsonValue &qv, const QSize size,
 
 
 
-    menuHT = new QAction(QIcon(":/icon/icons/horizontal-scale-icon.png"),"单元高度",this);
-    connect(menuHT,&QAction::triggered,[=](){
-        itemSize.setHeight(tinySpinBoxDialog(menuHT->text(),MARGIN_SIZE.height(),1,99));
+    menuSize = new QAction(QIcon(":/icon/icons/scale-icon.png"),"单元尺寸",this);
+    connect(menuSize,&QAction::triggered,[=](){
+        itemSize.scale(ChangeSizeDialog(itemSize),Qt::IgnoreAspectRatio);
+        updateAllItemsSize();
     });
 
-     menuWD =  new QAction(QIcon(":/icon/icons/fileoverlay_ui@2x.png"),"单元宽度",this);
-     connect(menuWD,&QAction::triggered,[=](){
-         itemSize.setWidth(tinySpinBoxDialog(menuHT->text(),MARGIN_SIZE.height(),1,99));
-     });
+
+    menuOrientation = new QActionGroup(this);
+    menuV = new QAction(/*QIcon(":/icon/icons/same-height.png"),*/"垂直滚动",this);
+    menuH = new QAction(/*QIcon(":/icon/icons/same-width.png"),*/"水平滚动",this);
+    menuOrientation->addAction(menuV);
+    menuOrientation->addAction(menuH);
+    menuV->setCheckable(true);
+    menuH->setCheckable(true);
+    menuV->setChecked(true);
+
+    connect(menuOrientation,&QActionGroup::triggered,[=](QAction *a)
+    {
+        sliderOrientation = a == menuV ? Qt::Vertical : Qt::Horizontal;
+    });
+
+
+
+
+     QMouseEvent event(QMouseEvent::MouseButtonRelease,QCursor::pos(),
+                       Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
+     QApplication::sendEvent(this,&event);
 }
 
 
@@ -1446,7 +1561,7 @@ void NewGrid::initRowsCols(int row,int col)
     onSelectMe();
     QJsonObject obj = QJsonValue::fromVariant(mWindow->ComCtrl->mVariantLayout).toObject();
     NewLayout *newlayout = new NewLayout(obj[CAPTION].toString(),m_frame->size(),mWindow,mainWidget);
-
+    newlayout->installEventFilter(this);
     newlayout->container = this;
     childlist.append(newlayout);
 
@@ -1487,6 +1602,16 @@ void NewGrid::onAddOneRow()
     rows++;
 }
 
+void NewGrid::onAddOneCol()
+{
+    for(int i =0;i<rows ;i++)
+    {
+        initRowsCols(i,cols);
+    }
+    updateAllItemsSize();
+    cols++;
+}
+
 void NewGrid::updateAllItemsSize()
 {
     foreach (QWidget *w, childlist) {
@@ -1502,14 +1627,45 @@ void NewGrid::onDeleteMe()
 
 void NewGrid::mouseReleaseEvent(QMouseEvent *event)
 {
+    qDebug() << "QMouseEvent " << event;
      mainScroll->resize(this->size());
+}
+
+void NewGrid::wheelEvent(QWheelEvent *event)
+{
+
+    if(sliderOrientation == Qt::Horizontal)
+    {
+        if(event->orientation() != Qt::Horizontal)
+        {
+            QWheelEvent  evt(event->pos(),event->delta(),event->buttons(),event->modifiers(),Qt::Horizontal);
+           // wheelEvent(&evt);
+            QApplication::sendEvent(mainScroll->horizontalScrollBar(),&evt);
+        }
+
+    }
+    event->accept();;
+}
+
+
+bool NewGrid::eventFilter(QObject *obj, QEvent *event)
+{
+    if(!CN_NEWLAYOUT.compare(obj->metaObject()->className()) &&
+            event->type() == QEvent::Wheel)
+    {
+        this->wheelEvent((QWheelEvent*)event);
+        return true;
+    }
+    return BaseForm::eventFilter(obj,event);
 }
 
 NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
     //FormResizer(parent)
     BaseForm(parent),
-    listOrient(Qt::Vertical),
+    sliderOrientation(Qt::Vertical),
+    mainScroll(new ContainerScroll(m_frame)),
     mainWidget(new QWidget())
+
 {
   //  setMinimumSize(nsize ); // 最小尺寸
    // setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
@@ -1521,12 +1677,11 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
    // itemHeight = this->height() * 0.3;
     mWindow = ((NewLayout*)parent->parentWidget())->mWindow;
     setFocusPolicy(Qt::ClickFocus);
-    mainScroll =  new QScrollArea(m_frame);
+//    mainScroll =  new QScrollArea(m_frame);
+//    mainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+//    mainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+//    mainScroll->setAlignment(Qt::AlignCenter);
 
-    mainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    mainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    mainScroll->setAlignment(Qt::AlignCenter);
-   // mainScroll->setWidgetResizable(true);
 
 
     mainWidget->setObjectName(LISTWIDGET);  // 用来识别布局是否在列表控件下面.
@@ -1535,7 +1690,7 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
     menuSetSpace = new QAction(QIcon(":/icon/icons/horizontal-scale-icon.png"),"设置间隔",this);
     if(!Orientation.compare(HORIZONTAL,Qt::CaseInsensitive))
     {
-        listOrient = Qt::Horizontal;
+        sliderOrientation = Qt::Horizontal;
         listLayout = new QHBoxLayout(mainWidget);
         menuSetHeight =  new QAction(QIcon(":/icon/icons/fileoverlay_ui@2x.png"),"设置列宽",this);
         menuAddLine = new QAction(QIcon(":/icon/icons/plus.png"),"添加列",this);
@@ -1546,7 +1701,7 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
         menuSetHeight =  new QAction(QIcon(":/icon/icons/fileoverlay_ui@2x.png"),"设置行高",this);
         listLayout = new QVBoxLayout(mainWidget);
         mainScroll->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding);
-        listOrient = Qt::Vertical;
+        sliderOrientation = Qt::Vertical;
     }
 
     listLayout->setSpacing(obj[ITEMSPACE].toInt());
@@ -1575,14 +1730,15 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
 
     show();
 
+
     resize(size);
     repaint();
     mbkColor = "#00BCD4";
     updateStyleSheets();
-   // mainScroll->resize(this->size());
-   // mainWidget->resize(this->size());
 
-
+    QMouseEvent event(QMouseEvent::MouseButtonRelease,QCursor::pos(),
+                      Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
+    QApplication::sendEvent(this,&event);
 }
 
 void NewList::updateAllItemsSize()
@@ -1591,7 +1747,7 @@ void NewList::updateAllItemsSize()
 
         ((NewLayout*)w)->setMaximumSize(this->size());
          ((NewLayout*)w)->setFixedSize(this->size());
-        if(listOrient == Qt::Horizontal)
+        if(sliderOrientation == Qt::Horizontal)
             ((NewLayout*)w)->setFixedWidth(itemHeight);
         else
             ((NewLayout*)w)->setFixedHeight(itemHeight);
@@ -1672,7 +1828,8 @@ NewLayout * NewList::onAddOneLine()
     onSelectMe();
     QJsonObject obj = QJsonValue::fromVariant(mWindow->ComCtrl->mVariantLayout).toObject();
     NewLayout *newlayout = new NewLayout(obj[CAPTION].toString(),m_frame->size()-QSize(15,15),mWindow,mainWidget);
-
+    //newlayout->installEventFilter(this);
+    newlayout->installEventFilter(mainScroll);
     newlayout->container = this;
 
   //  nl->addMainWindow(mWindow);
@@ -1693,6 +1850,9 @@ NewLayout * NewList::onAddOneLine()
 
    return newlayout;
 }
+
+
+
 
 void NewList::onDeleteMe()
 {
@@ -1720,16 +1880,6 @@ void NewList::onDeleteMe()
     }
 }
 
-//void NewList::mouseMoveEvent(QMouseEvent *event)
-//{
-//    if (event->buttons() & Qt::LeftButton)
-//    {
-//        move(this->pos() + (event->pos() - mOffset));
-//        /* 把新的位置更新到右边属性框 */
-//        mWindow->posWidget->updatePosition(this->pos());
-//        this->blockSignals(true);
-//    }
-//}
 
 void NewList::mouseReleaseEvent(QMouseEvent *event)
 {
@@ -1775,17 +1925,39 @@ void NewList::mouseReleaseEvent(QMouseEvent *event)
 void NewList::wheelEvent(QWheelEvent *event)
 {
 
-    QString lname =  listLayout->metaObject()->className() ;
-    if(listOrient == Qt::Horizontal)
+
+
+    event->accept();;
+}
+
+
+bool NewList::eventFilter(QObject *obj, QEvent *event)
+{
+    if(!CN_NEWLAYOUT.compare(obj->metaObject()->className()) &&
+            event->type() == QEvent::Wheel)
     {
-        if(event->orientation() != Qt::Horizontal)
+
+       // wheelEvent(&evt);
+        qDebug() << "send event " ;
+        if(sliderOrientation == Qt::Horizontal)
         {
-            QWheelEvent  evt(event->pos(),event->delta(),event->buttons(),event->modifiers(),Qt::Horizontal);
-           // wheelEvent(&evt);
+            QWheelEvent  evt(QCursor::pos(),0,
+                             Qt::NoButton,
+                             Qt::NoModifier,Qt::Horizontal);
+
             QApplication::sendEvent(mainScroll->horizontalScrollBar(),&evt);
+        }else
+        {
+            QWheelEvent  evt(QCursor::pos(),0,
+                             Qt::NoButton,
+                             Qt::NoModifier,Qt::Vertical);
+
+            QApplication::sendEvent(mainScroll->verticalScrollBar(),&evt);
         }
+
+        return true;
     }
-   // event->accept();;
+    return BaseForm::eventFilter(obj,event);
 }
 
 QJsonObject NewList::writeToJson()

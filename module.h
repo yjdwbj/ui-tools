@@ -82,6 +82,7 @@ public:
     void moveNewPos(int x,int y);
 
     int tinySpinBoxDialog(QString  str,int val ,int min ,int max);
+    QSize ChangeSizeDialog(QSize size);
 
 
 
@@ -109,6 +110,7 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event);
     void paintEvent(QPaintEvent *);
     void resizeEvent(QResizeEvent *event);
+    void wheelEvent(QWheelEvent *);
 
 };
 
@@ -167,7 +169,16 @@ protected:
 
 
 
-
+class ContainerScroll : public QScrollArea
+{
+    Q_OBJECT
+public:
+    ContainerScroll(QWidget *parent=0);
+protected:
+    bool eventFilter(QObject *obj, QEvent *event);
+    void  wheelEvent(QWheelEvent *);
+    QWidget *container;
+};
 
 
 //class NewFrame :public FormResizer,public Compoent
@@ -206,13 +217,16 @@ public:
     QAction *menuAddRow;
     QAction *menuAddCol;
     QAction *menuSpace;
-    QAction *menuHT;
-    QAction *menuWD;
+    QAction *menuSize;
+    QActionGroup *menuOrientation;
+    QAction *menuV,*menuH;
+
 
 
 public slots:
     void onDeleteMe();
     void onAddOneRow();
+    void onAddOneCol();
 
 
 private:
@@ -230,6 +244,8 @@ private:
 
 protected:
     void mouseReleaseEvent(QMouseEvent *event);
+    void wheelEvent(QWheelEvent *event);
+    bool eventFilter(QObject *obj, QEvent *event);
 };
 
 //class NewList :public FormResizer,public Compoent
@@ -241,10 +257,11 @@ public:
     QJsonObject writeToJson();
     void readFromJson(const QJsonObject &valobj);
     void addChildrenToTree();
-    QScrollArea *mainScroll;
+   // QScrollArea *mainScroll;
+    ContainerScroll *mainScroll;
     QWidget *mainWidget;
      QBoxLayout *listLayout;
-     Qt::Orientation  listOrient;
+     Qt::Orientation  sliderOrientation;
 
 
      // 菜单项.
@@ -270,6 +287,7 @@ protected:
    // void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent *);
+    bool eventFilter(QObject *obj, QEvent *event);
    // void updateBorderColor();
 };
 

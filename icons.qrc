@@ -25,5 +25,8 @@
         <file>icons/horizontal-scale-icon.png</file>
         <file>icons/same-width.png</file>
         <file>icons/same-height.png</file>
+        <file>icons/addtab.png</file>
+        <file>icons/scale-icon.png</file>
+        <file>icons/CheckBox.png</file>
     </qresource>
 </RCC>

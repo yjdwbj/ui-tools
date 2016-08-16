@@ -117,15 +117,6 @@ connect(treeWidget,SIGNAL(customContextMenuRequested(QPoint)),SLOT(onCustomConte
 
 }
 
-//void TreeDock::addCompoentControls(CompoentControls *cc)
-//{
-//    comC = cc;
-//}
-
-//void TreeDock::addPropBox(PropertyBox *p)
-//{
-//    pb = p;
-//}
 
 void TreeDock::setSelectTreeItem(QWidget *obj)
 {
@@ -220,6 +211,7 @@ void TreeDock::onSwapShowHideObject(bool)
 void TreeDock::setMyParentNode()
 {
     QTreeWidgetItem *citem = treeWidget->currentItem();
+  //  qDebug() << " current item text" << citem->text(0);
 
     if(citem)
     {
@@ -229,6 +221,17 @@ void TreeDock::setMyParentNode()
             QWidget *w = mWindow->ComCtrl->ProMap[item->text(0)];
             mWindow->cManager->activeSS()->setSelectObject((FormResizer*)w);
 
+        }
+        else if(!CN_NEWLAYER.compare(citem->text(1)))
+        {
+            QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(CN_NEWLAYER,
+                                                                    Qt::MatchFixedString | Qt::MatchRecursive,1);
+            qwilist.removeOne(citem);
+            if(qwilist.count())
+            {
+                QWidget *w = mWindow->ComCtrl->ProMap[qwilist.last()->text(0)];
+                mWindow->cManager->activeSS()->setSelectObject((FormResizer*)w);
+            }
         }
     }
 

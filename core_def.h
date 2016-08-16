@@ -97,6 +97,7 @@ static const char DKEY_EXTMAP[] = "extendMap";
 static const char DKEY_ROW[] = "rowProperty";
 static const char DKEY_TYPE[] = "DKtypeID";
 static const char DKEY_CURVAL[] = "CurrentProperty";
+static const char DKEY_EVT_TIME[] = "EventTimestamp";
 
 /* Class Name */
 static const QString CN_NEWLAYOUT = "NewLayout";

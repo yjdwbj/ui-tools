@@ -33,7 +33,7 @@ public:
         return activeObj;
     }
 
-
+    void removeActiveObj() { activeObj = 0;}
     NewLayer *createNewLayer(const QJsonValue &json);
     void addMainWindow(MainWindow* m) { mWindow = m;}
    // void setActiveIdx(int index) { mActiveIdx = index;}
