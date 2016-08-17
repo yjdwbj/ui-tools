@@ -293,7 +293,9 @@ void TreeDock::addObjectToCurrentItem(QString root,QWidget *ww)
 
         QString key = ww->property(DKEY_LOCALSEQ).toString();
         QString clsname = ww->metaObject()->className();
-        QTreeWidgetItem *nqwi =  new QTreeWidgetItem(qwilist.at(0),
+        QTreeWidgetItem *p = qwilist.first();
+        qDebug() << " parent text " << p->text(0) << p->text(1);
+        QTreeWidgetItem *nqwi =  new QTreeWidgetItem(qwilist.first(),
                                                      QStringList() << key << clsname);
 
         if(!CN_NEWLAYOUT.compare(clsname))

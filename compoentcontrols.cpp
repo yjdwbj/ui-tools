@@ -773,13 +773,13 @@ void CompoentControls::onCreateCustomWidget()
    // QString clsname = wid->metaObject()->className();
     if(!clsname.compare(CN_NEWLAYOUT))
     {
-       ((NewLayout*)wid)->readFromJson(value);
+       ((NewLayout*)wid)->readFromJson(value,true);
        // ((NewLayout*)wid)->readFromJson(value.toArray());
     }
     else if(!clsname.compare(CN_NEWFRAME))
     {
         // 选择它的父控件.
-       ((NewLayout*)wid->parentWidget())->readFromJson(value);
+       ((NewLayout*)wid->parentWidget())->readFromJson(value,true);
     }
     else
     {
@@ -920,11 +920,11 @@ void CompoentControls::onCreateCompoentToCanvas()
    // QString clsname = wid->metaObject()->className();
     if(!clsname.compare(CN_NEWFRAME) || !clsname.compare(CN_NEWLIST))
     {
-        ((NewLayout*)wid->parentWidget()->parentWidget())->readFromJson(val);
+        ((NewLayout*)wid->parentWidget()->parentWidget())->readFromJson(val,true);
     }
     else {
     //    ((NewLayout*)wid)->createNewFrameObject(val.toObject());
-        ((NewLayout*)wid)->readFromJson(val);
+        ((NewLayout*)wid)->readFromJson(val,true);
     }
 
 }
@@ -957,14 +957,15 @@ void CompoentControls::onCreateNewLayout()
     if(/*!CN_LAYOUT.compare(clsname)|| */!CN_NEWLAYOUT.compare(clsname))
     {
         // 这里是在布局上面创建布局,嵌套.
-        ((NewLayout*)w)->readFromJson(value);
+        ((NewLayout*)w)->readFromJson(value,true);
     }
     else if(!CN_NEWLAYER.compare(clsname)/* || !CN_LAYER.compare(clsname)*/)
     {
-       ((NewLayer*)w)->readFromJson(value);
+       ((NewLayer*)w)->readLayoutFromJson(value,true);
     }else if(!CN_NEWFRAME.compare(clsname) || !CN_NEWLIST.compare(clsname))
     {
-        ((NewLayout*)w->parentWidget()->parentWidget())->readFromJson(value);
+        //在当前控件的父控件上添加布局.
+        ((NewLayout*)w->parentWidget()->parentWidget())->readFromJson(value,true);
     }
 
 }
@@ -977,7 +978,7 @@ void CompoentControls::onCreateNewLayer()
         QPushButton *btn = (QPushButton*)(QObject::sender());
         QVariant variant = btn->property(DKEY_JSONSTR);
 
-        NewLayer *nlayer  = ss->createNewLayer( QJsonValue::fromVariant(variant));
+        NewLayer *nlayer  = ss->createNewLayer( QJsonValue::fromVariant(variant),true);
        // mWindow->tree->addItemToRoot(nlayer);
     }
 }

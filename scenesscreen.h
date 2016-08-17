@@ -21,20 +21,13 @@ public:
     explicit ScenesScreen(QSize size,QWidget *parent = 0);
     ~ScenesScreen();
 
-//    NewLayer *activeLayer() {
-//        if(LayerList.size())
-//        {
-//            return (NewLayer *)(LayerList.at(mActiveLaySeq));
-//        }
-//        else return 0;
-     //   return mActiveLaySeq == -1 ? 0 : (NewLayer*)(LayerList.at(mActiveLaySeq));
-//   }
+
     QWidget *activeObject() {
         return activeObj;
     }
 
     void removeActiveObj() { activeObj = 0;}
-    NewLayer *createNewLayer(const QJsonValue &json);
+    NewLayer *createNewLayer(const QJsonValue &json, bool createflag);
     void addMainWindow(MainWindow* m) { mWindow = m;}
    // void setActiveIdx(int index) { mActiveIdx = index;}
     void setSelectObject(FormResizer *obj);
@@ -62,7 +55,7 @@ public slots:
 private:
    void keyReleaseEvent(QKeyEvent *);
    int mActiveIdx; //  当前激活的布局.
-   int mActiveLaySeq;
+  // int mActiveLaySeq;
 
    QWidget *activeObj;
 protected:

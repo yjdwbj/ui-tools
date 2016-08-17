@@ -69,6 +69,13 @@ static QString  VERTICAL = "Vertical";
 static QString  ITEMSPACE = "space";
 static QString  ITEMSIZE = "sizehw";
 
+static QString GCOLS = "gcols";
+static QString GROWS = "grows";
+
+static QString JCOL = "col";
+static QString JROW = "row";
+
+
 
 
 static const char SECTION_CHAR = '|';
@@ -94,10 +101,13 @@ static const char DKEY_COLOR[] = "btncolor";
 static const char DKEY_BORDER_COLOR[] = "border_color";
 static const char DKEY_IMGMAP[] = "bkimage_map";
 static const char DKEY_EXTMAP[] = "extendMap";
-static const char DKEY_ROW[] = "rowProperty";
+//static const char DKEY_ROW[] = "rowProperty";
 static const char DKEY_TYPE[] = "DKtypeID";
 static const char DKEY_CURVAL[] = "CurrentProperty";
 static const char DKEY_EVT_TIME[] = "EventTimestamp";
+
+static const char DKEY_ROW[] = "gridrow";
+static const char DKEY_COL[] = "gridcol";
 
 /* Class Name */
 static const QString CN_NEWLAYOUT = "NewLayout";

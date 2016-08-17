@@ -23,6 +23,9 @@
 class MainWindow;
 class ScenesScreen;
 class NewLayout;
+class NewLayer;
+class NewGrid;
+class NewList;
 
 class Compoent
 {
@@ -68,6 +71,7 @@ public:
     QString mBorderColor;
     QString mbkColor;
     QString mbkImage;
+    bool mCreateFlag; // 区分这是从原始模版读取的,还是工程读取
 
 
     void onSelectMe();
@@ -83,6 +87,11 @@ public:
 
     int tinySpinBoxDialog(QString  str,int val ,int min ,int max);
     QSize ChangeSizeDialog(QSize size);
+
+    virtual QJsonObject writeToJson() = 0;
+
+    NewLayout *CreateNewLayout(const QJsonValue &qv,MainWindow *mw,
+                               QWidget *parent,bool isCreate);
 
 
 
@@ -167,20 +176,6 @@ protected:
 
 //};
 
-
-
-class ContainerScroll : public QScrollArea
-{
-    Q_OBJECT
-public:
-    ContainerScroll(QWidget *parent=0);
-protected:
-    bool eventFilter(QObject *obj, QEvent *event);
-    void  wheelEvent(QWheelEvent *);
-    QWidget *container;
-};
-
-
 //class NewFrame :public FormResizer,public Compoent
 class NewFrame :public BaseForm
 {
@@ -205,14 +200,20 @@ class NewGrid: public BaseForm
 {
     Q_OBJECT
 public:
-    NewGrid(const QJsonValue &qv, const QSize size,  const QList<int> *arglist, QWidget *parent=0);
+    NewGrid(const QJsonValue &qv,  const QList<int> *arglist, QWidget *parent=0);
+
     bool rowcoldialog();
-    void initRowsCols(int row, int col);
+    void initRowsCols(int row, int col, const QJsonValue &value);
 
     void addRowsCols();
 
     void addOneCol();
     void updateAllItemsSize();
+     QJsonObject writeToJson();
+     void readFromJson(const QJsonValue &value);
+
+
+
 
     QAction *menuAddRow;
     QAction *menuAddCol;
@@ -220,6 +221,8 @@ public:
     QAction *menuSize;
     QActionGroup *menuOrientation;
     QAction *menuV,*menuH;
+     int rows,cols;  //行列数
+      QSize itemSize;
 
 
 
@@ -232,7 +235,7 @@ public slots:
 private:
 
 
-    int rows,cols;  //行列数
+
     int rowH,rowW;  //行高行宽
     int colH,colW;  //列高列宽
 
@@ -240,7 +243,7 @@ private:
     QScrollArea *mainScroll;
     QWidget *mainWidget;
     Qt::Orientation sliderOrientation;
-    QSize itemSize;
+
 
 protected:
     void mouseReleaseEvent(QMouseEvent *event);
@@ -255,10 +258,10 @@ class NewList :public BaseForm
 public:
     NewList(QJsonValue json,const QSize size,QWidget *parent=0);
     QJsonObject writeToJson();
-    void readFromJson(const QJsonObject &valobj);
+    void readFromJson(const QJsonValue &valobj);
     void addChildrenToTree();
-   // QScrollArea *mainScroll;
-    ContainerScroll *mainScroll;
+    QScrollArea *mainScroll;
+   // ContainerScroll *mainScroll;
     QWidget *mainWidget;
      QBoxLayout *listLayout;
      Qt::Orientation  sliderOrientation;
@@ -270,8 +273,8 @@ public:
      QAction *menuSetSpace;
 
 private:
-      int tinySpinBoxDialog(QString str, int val, int min, int max);
-      NewLayout *onAddOneLine();
+      //int tinySpinBoxDialog(QString str, int val, int min, int max);
+      NewLayout *AddOneLine(QJsonValue value);
       void updateAllItemsSize();
       int itemHeight; // 垂直是宽随父控件,水平是高随父控件.
 
@@ -312,14 +315,14 @@ public:
 
     void writeToJson(QJsonObject &json);
     QJsonObject writeToJson();
-    void readFromJson(const QJsonValue &qv);
+    void readFromJson(const QJsonValue &qv, bool flag);
     void addChildrenToTree();
 
     void createNewFrameObject(const QJsonObject &json);
     QWidget* createObjectFromJson(const QJsonValue &qv);
 
     QWidget *container; // 特意用来存放的
-    QString StyleStr;
+  //  QString StyleStr;
 private:
     void clearOtherObjectStyleSheet();
     QList<int> rowcoldialog();
@@ -341,7 +344,8 @@ class NewLayer : public BaseForm
     Q_OBJECT
 public:
     explicit NewLayer(QString caption, QSize nsize, QWidget *parent=0);
-    void readFromJson(const QJsonValue &qv);
+    void readLayoutFromJson(const QJsonValue &qv, bool flag);
+
     QJsonObject  writeToJson() ;
     void addChildrenToTree();
 

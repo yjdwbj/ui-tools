@@ -9,8 +9,8 @@ ScenesScreen::ScenesScreen(QSize size, QWidget *parent)
     : QFrame(parent),
       mWindow((MainWindow*)parent),
    //   mActiveIdx(-1),
-      activeObj(0),
-      mActiveLaySeq(-1)
+      activeObj(0)
+      //mActiveLaySeq(-1)
 {
     setObjectName("PageScreen");
     setStyleSheet("QFrame#PageScreen{border: 1.5px solid gray;"\
@@ -102,7 +102,7 @@ void ScenesScreen::onChangedBackgroundColor()
     delete color;
 }
 
-NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv)
+NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv,bool createflag)
 {
     QJsonObject json = qv.toObject();
     QRect oldrect = Compoent::getRectFromStruct(json[PROPERTY].toArray(),KEY_RECT);
@@ -112,13 +112,13 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv)
         oldrect.setHeight(200);
     }
 
-
     NewLayer *nlayer = new NewLayer(json[CAPTION].toString(), oldrect.size() /* + MARGIN_SIZE*/,this);
+    nlayer->mCreateFlag = createflag;
     nlayer->setProperty(DKEY_JSONSTR,qv);
     nlayer->setProperty(DKEY_TYPE, json[WTYPE].toString());
     nlayer->setGeometry(oldrect);
     LayerList.append(nlayer);
-    mActiveLaySeq = LayerList.size() - 1;
+    //mActiveLaySeq = LayerList.size() - 1;
 
     if(json.contains(PROPERTY))
     {
@@ -132,10 +132,7 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv)
     nlayer->onSelectMe();
     nlayer->updateStyleSheets();
     mWindow->tree->addItemToRoot(nlayer);
-    foreach (QJsonValue layout, json[LAYOUT].toArray()) {
-        //nlayer->readFromJson(layout.toObject());
-        nlayer->readFromJson(layout);
-    }
+
     nlayer->show();
     return nlayer;
 
@@ -143,11 +140,18 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv)
 
 void ScenesScreen::readLayer(const QJsonArray &array)
 {
+    // 从工程里读取图层.
     foreach (QJsonValue val, array) {
         switch (val.type()) {
         case QJsonValue::Object:
         {
-             NewLayer *nlayer = createNewLayer(val);
+             NewLayer *nlayer = createNewLayer(val,false);
+
+             foreach (QJsonValue layout, val.toObject()[LAYOUT].toArray()) {
+                 //nlayer->readFromJson(layout.toObject());
+                 // 这里一定读取工程和读取自定义控件才会有的,给他一个
+                 nlayer->readLayoutFromJson(layout,nlayer->mCreateFlag);
+             }
         }
 
             break;
