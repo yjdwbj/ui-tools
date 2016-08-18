@@ -44,11 +44,6 @@ MainWindow::MainWindow(QWidget *parent) :
     QString iniFile  =  QStandardPaths::displayName(QStandardPaths::DataLocation) + "/ui-config";
     mGlobalSet= new QSettings(iniFile,QSettings::IniFormat);
 
-//    QVariant vstyle = mGlobalSet->value(INI_PRJSTYLE);
-//    if(vstyle.isValid())
-//    {
-//       QApplication::setStyle(QStyleFactory::create(vstyle.toString()));
-//    }
 
     QApplication::setStyle(QStyleFactory::create("Fusion"));
 
@@ -100,6 +95,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
 
+
     ComCtrl = new  CompoentControls(this,lDock);
     leftLayout->addWidget(ComCtrl);
 
@@ -128,6 +124,13 @@ MainWindow::MainWindow(QWidget *parent) :
     pageView->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
     addDockWidget(Qt::RightDockWidgetArea,pageView);
+    if(!QFileInfo(iniFile).exists())
+    {
+        GlobalSettings gs(this);
+        gs.exec();
+
+    }
+     ComCtrl->ReadJsonWidgets();
 
     // 缓存一些背景图片.
     QString dir = QDir::currentPath() + QDir::separator() +"backgrounds";
@@ -156,9 +159,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
 
-   // createCSVFile(QDir::currentPath()+"/行车记录仪.xls");
-   // QString path = QDir::currentPath()+"/行车记录仪.xls";
-   // QString csv = QDir::currentPath()+"/行车记录仪.csv";
+
     QVariant langfile = mGlobalSet->value(INI_PRJMLANG);
     if(langfile.isValid())
     {
@@ -167,15 +168,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
 
-    // readCSVFile(csv);
-    // createCSVFile(path);
-//    I18nLanguage *pd = new I18nLanguage(this);
-//    pd->exec();
-//      MenuItemDialog *md = new MenuItemDialog("m1",this);
-//      md->exec();
-//      qDebug() << " select text is " << md->text;
-
-    // 如果可以自动打开上次的工程
     QVariant prjvar = mGlobalSet->value(INI_PRJLAST);
     QFile PrjFile;
     if(prjvar.isValid())
@@ -185,7 +177,8 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     else
     {
-        PrjFile.setFileName("save.json");
+       // PrjFile.setFileName("save.json");
+        PrjFile.setFileName(mGlobalSet->value(INI_PRJDIR).toString());
     }
 
     if (PrjFile.open(QFile::ReadOnly|QIODevice::Text)) {

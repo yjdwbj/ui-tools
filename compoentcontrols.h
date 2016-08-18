@@ -34,7 +34,7 @@ public:
     //QGroupBox *CreateXYWHGBox(QWidget *p);
 
     void setConnectNewQWidget(QWidget *com);
-    void updatePosition(QPoint pos);
+    void updatePosition(QWidget *w);
     void updateSize(QSize size);
     void updateMaxSize(QSize size);
     void resetValues();
@@ -102,6 +102,7 @@ class CompoentControls : public QGroupBox
     Q_OBJECT
 public:
     explicit CompoentControls(MainWindow *mw,QWidget *parent = 0);
+    void ReadJsonWidgets();
      int mCWidgetCount; // 自定义控件的个数.
      QMap<QString,QWidget*> ProMap; // 新生成的控件.
      QVariant mVariantLayout;
@@ -114,6 +115,8 @@ private:
      QWidget *mainWidget;
      QString mJsonFile;
      QWidgetList comList;
+
+
 
 
      void CreateButtonList(const QJsonArray &comJsonArr);

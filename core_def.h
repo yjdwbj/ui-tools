@@ -105,6 +105,7 @@ static const char DKEY_EXTMAP[] = "extendMap";
 static const char DKEY_TYPE[] = "DKtypeID";
 static const char DKEY_CURVAL[] = "CurrentProperty";
 static const char DKEY_EVT_TIME[] = "EventTimestamp";
+//static const char DKEY_PARENTPOS[] = "ParentPos";
 
 static const char DKEY_ROW[] = "gridrow";
 static const char DKEY_COL[] = "gridcol";

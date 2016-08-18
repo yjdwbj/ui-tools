@@ -303,10 +303,9 @@ void TreeDock::addObjectToCurrentItem(QString root,QWidget *ww)
             nqwi->setIcon(0,QIcon(SHOW_ICON));
         }
         mWindow->ComCtrl->ProMap[key] = ww;
+        treeWidget->blockSignals(true);
         treeWidget->setCurrentItem(nqwi);
-        emit treeWidget->itemPressed(qwilist.first(),0);
-//        treeWidget->expandItem(qwilist.first());
-//        treeWidget->show();
+        treeWidget->blockSignals(false);
     }
 }
 

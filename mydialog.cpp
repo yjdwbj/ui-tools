@@ -39,7 +39,7 @@ void BaseDialog::UpdateStyle()
     qDebug() << " basedialog stylesheet " << styleSheet();
 }
 
-ImageFileDialog::ImageFileDialog(QVariantList old, QWidget *parent)
+ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath,QWidget *parent)
     :QDialog(parent),
 //      sellist(new CustomListWidget()),
 //      flistview(new CustomListWidget()),
@@ -71,10 +71,10 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QWidget *parent)
     //  fileModel->setReadOnly(true);
 
     QMap<QString,QString> navigator;
-    navigator[UP] = ":/icon/icons/arrowup@2x.png";
-    navigator[DOWN] = ":/icon/icons/arrowdown@2x.png";
-    navigator[LEFT] = ":/icon/icons/arrowleft@2x.png";
-    navigator[RIGHT] = ":/icon/icons/arrowright@2x.png";
+    navigator[UP] = ":/icon/icons/buildstepmoveup@2x.png";
+    navigator[DOWN] = ":/icon/icons/buildstepmovedown@2x.png";
+    navigator[LEFT] = ":/icon/icons/prev@2x.png";
+    navigator[RIGHT] = ":/icon/icons/next@2x.png";
 
 
     QVBoxLayout *mainLayout = new QVBoxLayout();
@@ -93,7 +93,13 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QWidget *parent)
     {
         itmap.next();
         QPushButton *btn = new QPushButton();
-        btn->setIcon(QIcon(itmap.value()));
+        QPixmap p(itmap.value());
+        btn->setIconSize(p.size());
+        p.setMask(p.createMaskFromColor(Qt::white));
+        btn->setIcon(QIcon(p));
+
+
+
         btn->setObjectName(itmap.key());
         btn->setFixedSize(btn->iconSize());
         v->addWidget(btn);
@@ -113,7 +119,8 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QWidget *parent)
     }
 
 
-    QString imgpath = QDir::currentPath() + "/config/images";
+  //  QString imgpath = QDir::currentPath() + "/config/images";
+
     QFileInfo qf(imgpath);
     qDebug() << " images path " << imgpath;
     dirModel->setRootPath(imgpath);
@@ -1002,7 +1009,8 @@ GlobalSettings::GlobalSettings(QWidget *parent):
     this->UpdateStyle();
     mWindow = (MainWindow*)parent;
 
-     FileEdit *mlangfile= new FileEdit();
+
+    FileEdit *mlangfile= new FileEdit("多国语言文件:");
     setMap["多国语言文件:"]  = mlangfile;
     mlangfile->setToolTip("工程控件要用的语言文,可选office2003版本的xls文件,或者utf8格式,分号(;)间隔的csv文件.");
     mlangfile->setFilter(tr("xls 文件 , CSV UTF-8 文件 (*.xls *.csv )"));
@@ -1010,28 +1018,28 @@ GlobalSettings::GlobalSettings(QWidget *parent):
     IniMap[INI_PRJMLANG] = mlangfile;
 
 
-    FileEdit *comfile = new FileEdit();
+    FileEdit *comfile = new FileEdit("控件文件:");
     setMap["控件文件:"] = comfile;
     comfile->setToolTip("原始的模版控件文件,json格式.");
     comfile->setFilter(tr("json 文件 (*.json)"));
     comfile->setFileOrDir(false);
     IniMap[INI_PRJJSON] = comfile;
 
-    FileEdit *imagedir = new FileEdit();
+    FileEdit *imagedir = new FileEdit("图片资源目录:");
     setMap["图片资源目录:"] = imagedir;
      imagedir->setToolTip("工程中要用到的图片资源目录,默认是 images");
     // projectdir->setFilter("");
      imagedir->setFileOrDir(true);
      IniMap[INI_PRJIMAGEDIR] = imagedir;
 
-    FileEdit *projectdir = new FileEdit();
+    FileEdit *projectdir = new FileEdit("工程目录:");
      setMap["工程目录:"] = projectdir;
      projectdir->setToolTip("工程保存的目录,默认是程序运行目录.");
      projectdir->setFileOrDir(true);
      IniMap[INI_PRJDIR] = projectdir;
 
 
-     FileEdit *comdir = new FileEdit();
+     FileEdit *comdir = new FileEdit("自定义控件目录:");
      setMap["自定义控件目录:"] = comdir;
       projectdir->setToolTip("自定义的模版控件目录,默认是widgets目录.");
     //  projectdir->setFilter("");
@@ -1162,7 +1170,7 @@ void GlobalSettings::onAccepted()
     }
 }
 
-FileEdit::FileEdit(QWidget *parent)
+FileEdit::FileEdit(QString txt, QWidget *parent)
     : QWidget(parent)
 {
     QHBoxLayout *layout = new QHBoxLayout(this);
@@ -1173,6 +1181,7 @@ FileEdit::FileEdit(QWidget *parent)
    // theLineEdit->setStyleSheet("background-color: red;");
     theLineEdit->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred));
     QToolButton *button = new QToolButton(this);
+    button->setObjectName(txt);
     button->setSizePolicy(QSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred));
     button->setText(QLatin1String("..."));
     layout->addWidget(theLineEdit);
@@ -1188,14 +1197,15 @@ FileEdit::FileEdit(QWidget *parent)
 
 void FileEdit::buttonClicked()
 {
+    QString txt = QObject::sender()->objectName();
     QString filePath;
     if(isDir)
     {
-        filePath = QFileDialog::getExistingDirectory(this,tr("选择目录"),
+        filePath = QFileDialog::getExistingDirectory(this,  QString("选择目录 -- %1").arg(txt),
                                                      QDir::currentPath());
 
     }else{
-        filePath = QFileDialog::getOpenFileName(this, tr("选择文件"),
+        filePath = QFileDialog::getOpenFileName(this, QString("选择文件 -- %1").arg(txt),
                                                 theLineEdit->text(), theFilter);
     }
     if(filePath.isNull())

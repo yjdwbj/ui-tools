@@ -180,7 +180,7 @@ void CanvasManager::setActiveSS(int index)
         ScenesScreen *Scenes = (ScenesScreen*)(stack->currentWidget());
         // 把当前页的布局重新添加到treeWidget上
         foreach (QWidget *w, Scenes->LayerList) {
-            QString key = w->property(DKEY_LOCALSEQ).toString();
+           // QString key = w->property(DKEY_LOCALSEQ).toString();
             mWindow->tree->addItemToRoot(w);
             ((BaseForm*)w)->addChildrenToTree();
         }
@@ -326,21 +326,20 @@ void CanvasManager::saveProject(QString fname)
 void CanvasManager::onSaveProject()
 {
 
-    QVariant prjvar = mWindow->mGlobalSet->value(INI_PRJLAST);
+    QVariant prjvar = mWindow->mGlobalSet->value(INI_PRJDIR);
 
     QString fname;
     if(prjvar.isValid())
     {
 
-        fname = prjvar.toString();
+        fname = prjvar.toString() +QDir::separator()+ mProjectName + ".json";
     }
     else
     {
         fname = "save.json" ;
     }
-    mWindow->mGlobalSet->setValue(INI_PRJLAST,fname);
-//    QFile saveFile(QStringLiteral("save.json"));
 
+    mWindow->mGlobalSet->setValue(INI_PRJLAST,fname);
     saveProject(fname);
 }
 

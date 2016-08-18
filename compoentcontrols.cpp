@@ -136,33 +136,41 @@ void Position::setConnectNewQWidget(QWidget *com)
     Hpos->disconnect();
 
 
-    QVariant variant = com->property(DKEY_INTOCONTAINER);
-    bool isLW = false;
-    if(variant.isValid())
-    {
-        isLW = variant.toBool();
-    }
+   // QVariant variant = com->property(DKEY_INTOCONTAINER);
+    bool isLW = com->property(DKEY_INTOCONTAINER).toBool();
+
     Xpos->setEnabled(!isLW);
     Ypos->setEnabled(!isLW);
     Hpos->setEnabled(!isLW);
     Wpos->setEnabled(!isLW);
 
-
   //  qDebug() << " net QWidget pos " << com->pos() << " size " << com->size();
 
-    QSize psize = com->parentWidget()->size();
-    Hpos->setMaximum(psize.height());
-    Wpos->setMaximum(psize.width());
+    QSize psize =   com->parentWidget()->size();
+
+
+    Hpos->setMaximum(  psize.height());
+    Wpos->setMaximum(  psize.width());
+
 //    qDebug() << " xpos max " << Xpos->maximum()
 //             << " set new xpos max " << psize.width() - com->width();
-    Xpos->setMaximum(psize.width()-com->width());
-    Ypos->setMaximum(psize.height()-com->height());
+    Xpos->setMaximum(isLW ? 999 :psize.width()-com->width());
+    Ypos->setMaximum(isLW ? 999 :psize.height()-com->height());
+    Ypos->setMinimum(isLW ? -999 : 0);
+    Xpos->setMinimum(isLW ? -999 : 0);
 
     // 一定要设置值再连接信号.
-    Xpos->setValue(isLW ? 0 : com->pos().x());
-    Ypos->setValue(isLW ? 0 : com->pos().y());
-    Hpos->setValue(isLW ? 0 : com->height());
-    Wpos->setValue(isLW ? 0 : com->width());
+    QPoint pos(0,0) ;
+    if(isLW)
+    {
+        // 转换容器里的控件坐标,在容器里的绝对坐标.
+       pos =   com->mapToParent(com->parentWidget()->pos());
+    }
+
+    Xpos->setValue( pos.x());
+    Ypos->setValue( pos.y());
+    Hpos->setValue( com->height());
+    Wpos->setValue( com->width());
     if(!isLW)
     {
         connections << QObject::connect(Xpos,SIGNAL(valueChanged(int)),com,SLOT(onXYWHChangedValue(int)));
@@ -179,8 +187,16 @@ void Position::setConnectNewQWidget(QWidget *com)
     old = com;
 }
 
-void Position::updatePosition(QPoint pos)
+void Position::updatePosition(QWidget *w)
 {
+
+    bool isLW = w->property(DKEY_INTOCONTAINER).toBool();
+    QPoint pos(0,0) ;
+    if(isLW)
+    {
+      pos =   w->mapToParent(w->parentWidget()->pos());
+    }
+
     Xpos->blockSignals(true);
     Ypos->blockSignals(true);
     Xpos->setValue(pos.x());
@@ -626,9 +642,16 @@ CompoentControls::CompoentControls(MainWindow *mw, QWidget *parent)
     mainWidget->setLayout(mainLayout);
     scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+}
+
+
+void CompoentControls::ReadJsonWidgets()
+{
     // 读取控件目录下的所有控件文件.
    // mJsonFile =  QDir::currentPath() + "/menu_strip.json";
-    QString file = QDir::currentPath() + "/control.json";
+   // QString file = QDir::currentPath() + "/control.json";
+    QString file = mWindow->mGlobalSet->value(INI_PRJJSON).toString();
     qDebug() << " json file name " << file;
     QFileInfo qfi(file);
     if(!qfi.exists())
@@ -655,6 +678,7 @@ CompoentControls::CompoentControls(MainWindow *mw, QWidget *parent)
     }
     mainLayout->addWidget(createCustomObject(array));
 }
+
 
 
 QWidget *CompoentControls::getQWidgetByName(QString name) const

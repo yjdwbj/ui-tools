@@ -36,7 +36,7 @@ class ImageFileDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit ImageFileDialog(QVariantList old,QWidget *parent = 0);
+    explicit ImageFileDialog(QVariantList old, QString imgpath, QWidget *parent = 0);
     ~ImageFileDialog();
 
     //const selectedMap getSelectedMap() const { return selMap;}
@@ -238,7 +238,7 @@ class FileEdit : public QWidget
 {
     Q_OBJECT
 public:
-    FileEdit(QWidget *parent = 0);
+    FileEdit(QString txt,QWidget *parent = 0);
     void setFilePath(const QString &filePath) { if (theLineEdit->text() != filePath)
                                                 theLineEdit->setText(filePath); }
     QString filePath() const { return theLineEdit->text(); }

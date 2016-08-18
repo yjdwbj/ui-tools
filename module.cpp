@@ -177,11 +177,16 @@ QJsonArray Compoent::updateRBJsonValue(const QJsonArray &arr, QWidget *w)
         {
             //ov = getRectJson(this);
             ov[KEY_RECT] = getRectJson(w)[KEY_RECT];
+            if(w->property(DKEY_INTOCONTAINER).toBool())
+            {
+
+            }
 
         }else if(ov.contains(UID))
         {
           //  ov[UID] = w->property(DKEY_UID).toString();
              ov[UID] = w->property(DKEY_UID).toInt();
+
         }
         else if(ov.contains(BORDER))
         {
@@ -335,8 +340,17 @@ QJsonObject Compoent::getRectJson(QWidget *w)
 {
     QJsonObject rect;
     QVariantMap vmap;
-    vmap[LX] = QString::number(w->x());
-    vmap[LY] = QString::number(w->y());
+    if(w->property(DKEY_INTOCONTAINER).toBool())
+    {
+        // 在容器控件里要把它的坐标,转换成相对于父控件的绝对坐标.
+        QPoint pos = w->mapToParent(w->parentWidget()->pos());
+        vmap[LX] = QString::number(pos.x());
+        vmap[LY] = QString::number(pos.y());
+    }else{
+        vmap[LX] = QString::number(w->x());
+        vmap[LY] = QString::number(w->y());
+    }
+
     vmap[WIDTH] = QString::number(w->width()/*-MARGIN_SIZE.width()*/);
     vmap[HEIGHT] = QString::number(w->height()/*-MARGIN_SIZE.height()*/);
     rect[KEY_RECT] = QJsonObject::fromVariantMap(vmap);
@@ -663,6 +677,7 @@ BaseForm::BaseForm(QWidget *parent)
 {
     setStyleSheet("");
     mbkImage = "";
+    setContentsMargins(0,0,0,0);
 
 }
 
@@ -673,7 +688,7 @@ void BaseForm::mouseMoveEvent(QMouseEvent *event)
     {
         move(this->pos() + (event->pos() - mOffset));
         /* 把新的位置更新到右边属性框 */
-        mWindow->posWidget->updatePosition(this->pos());
+        mWindow->posWidget->updatePosition(this);
         this->blockSignals(true);
     }
 }
@@ -710,30 +725,37 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
             contextMenu->addAction(&hideobj);
         }
 
-        QWidget *parentWidget = this->parentWidget();
-        QString pobjname = parentWidget->objectName();
+       // QWidget *parentWidget = this->parentWidget();
+       // QString pobjname = parentWidget->objectName();
+        bool inContainer = property(DKEY_INTOCONTAINER).toBool();
 
-        if(!pobjname.compare(LISTWIDGET) || !clsname.compare(CN_NEWLIST) )
+        if(inContainer)
         {
-            NewList *nl;
-            if(!clsname.compare(CN_NEWLIST))
-                nl = (NewList*)this;
-            else
-                nl =(NewList*)(((NewLayout*)this)->container);
-            contextMenu->addAction(nl->menuAddLine);
-            contextMenu->addAction(nl->menuSetHeight);
-            contextMenu->addAction(nl->menuSetSpace);
-        }else if(!pobjname.compare(GRIDWIDGET) ||!clsname.compare(CN_NEWGRID))
-        {
+            clsname = ((NewLayout*)this)->container->metaObject()->className();
+            if( !clsname.compare(CN_NEWLIST))
+            {
+                NewList*  nl =(NewList*)(((NewLayout*)this)->container);
+                contextMenu->addAction(nl->menuAddLine);
+                contextMenu->addAction(nl->menuSetHeight);
+                contextMenu->addAction(nl->menuSetSpace);
+            }else if(!clsname.compare(CN_NEWGRID))
+            {
+                NewGrid*   ng = (NewGrid*)(((NewLayout*)this)->container);
 
-            NewGrid *ng ;
-            if(!clsname.compare(CN_NEWGRID))
-            {
-                ng = (NewGrid*)this;
-            }else
-            {
-                ng = (NewGrid*)(((NewLayout*)this)->container);
+                contextMenu->addAction(ng->menuAddRow);
+                contextMenu->addAction(ng->menuAddCol);
+                contextMenu->addAction(ng->menuSpace);
+                contextMenu->addAction(ng->menuSize);
+                contextMenu->addAction(ng->menuV);
+                contextMenu->addAction(ng->menuH);
             }
+
+
+        }else if(!clsname.compare(CN_NEWGRID))
+        {
+
+            NewGrid *ng = (NewGrid*)this;
+
             contextMenu->addAction(ng->menuAddRow);
             contextMenu->addAction(ng->menuAddCol);
             contextMenu->addAction(ng->menuSpace);
@@ -741,8 +763,20 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
             contextMenu->addAction(ng->menuV);
             contextMenu->addAction(ng->menuH);
 
+        }else if(!clsname.compare(CN_NEWLIST))
+        {
+            NewList*  nl =(NewList*)this;
+            contextMenu->addAction(nl->menuAddLine);
+            contextMenu->addAction(nl->menuSetHeight);
+            contextMenu->addAction(nl->menuSetSpace);
         }
+
+
+
+
+
         contextMenu->exec(mapToGlobal(event->pos()));
+        contextMenu->deleteLater();
     }
 
 }
@@ -1054,44 +1088,25 @@ void BaseForm::removeChild(QWidget *w)
 
 void BaseForm::onSelectMe()
 {
-  //  setStyleSheet("NewFrame{border: 0.5px solid red;}"); // 把本图片的父控件设置的红框
-  //  clearOtherObjectStyleSheet();
-
-//    qDebug() << " our object name " << objectName()
-//           << " clss name " << metaObject()->className();
-
-
     mWindow->cManager->activeSS()->setSelectObject(this);
     mWindow->posWidget->setConnectNewQWidget(this);
     mWindow->propertyWidget->createPropertyBox(this);
-  //  mWindow->imgPropertyWidget->delPropertyBox();
-  //  this->blockSignals(true);
 }
 
 void BaseForm::DeleteMe()
 {
-   // QListIterator<QWidget*> nf(childlist);
-
     QListIterator<QWidget*> item(childlist);
     while(item.hasNext())
     {
-       // deleteObject(nf.next());
         QWidget *w = item.next();
         ((BaseForm*)w)->DeleteMe();
-//        if(!CN_NEWLABEL.compare(w->metaObject()->className()))
-//        {
-//            childlist.removeOne(w);
-//            w->deleteLater();
-//        }else{
-//           ((BaseForm*)w)->DeleteMe();
-//        }
-
     }
 
     mWindow->tree->setMyParentNode();  //选中它的父控件.
     mWindow->tree->deleteItem(this);
     mWindow->posWidget->resetValues();
-    mWindow->cManager->activeSS()->removeActiveObj();
+
+
     mWindow->ComCtrl->ProMap.remove(property(DKEY_LOCALSEQ).toString());
     mWindow->propertyWidget->delPropertyBox();
   //  mWindow->imgPropertyWidget->delPropertyBox();
@@ -1177,7 +1192,9 @@ void BaseForm::onPictureDialog(bool )
 
     // QMessageBox::warning(this,"test","your clicked me: ");
     QVariantList imglist = this->property(DKEY_IMAGELST).toList();
-    ImageFileDialog *ifd = new ImageFileDialog(imglist,this);
+    ImageFileDialog *ifd = new ImageFileDialog(imglist,
+                                               mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString(),
+                                               this);
 
     ifd->exec();
      imglist = ifd->getSelectedList();
@@ -1460,7 +1477,7 @@ void NewFrame::mouseMoveEvent(QMouseEvent *event)
 
        move( pos() + (event->pos() - mOffset));
         /* 把新的位置更新到右边属性框 */
-        mWindow->posWidget->updatePosition(pos());
+        mWindow->posWidget->updatePosition(this);
        this->blockSignals(true);
     }
 
@@ -1486,11 +1503,13 @@ NewGrid::NewGrid(const QJsonValue &qv,
     mainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainScroll->setAlignment(Qt::AlignCenter);
-  //  mainScroll->setWidgetResizable(true);
+   // mainScroll->setWidgetResizable(true);
 
 
   //  mainScroll->setStyleSheet("background-color: #A9A9A9;");
     mainScroll->setWidget(mainWidget);
+    mainScroll->setContentsMargins(0,0,0,0);
+
     gridLayout = new QGridLayout(mainWidget);
     gridLayout->setSpacing(obj[ITEMSPACE].toInt());
     gridLayout->setContentsMargins(0,0,0,0);
@@ -1504,6 +1523,8 @@ NewGrid::NewGrid(const QJsonValue &qv,
     mainScroll->setObjectName(str);
     mainWidget->setObjectName(str);  // 用来识别布局是否在列表控件下面.
     mainWidget->setMaximumSize(999,999);
+    mainWidget->setContentsMargins(0,0,0,0);
+   // mainWidget->setStyleSheet("background-color: #A9A9A9;");
 
     setToolTip(str);
     QRect oldrect = getRectFromStruct(obj[PROPERTY].toArray(),KEY_RECT);
@@ -1584,10 +1605,9 @@ void NewGrid::initRowsCols(int row,int col,const QJsonValue &value)
     QString tt = "#FF7F50";
     onSelectMe();
     NewLayout *nl = CreateNewLayout(value,mainWidget,mCreateFlag);
-    childlist.append(nl);
     nl->container = this;
     nl->setProperty(DKEY_INTOCONTAINER,true);
-
+    childlist.append(nl);
     // 自已的行列坐标.
     nl->setProperty(DKEY_ROW,row);
     nl->setProperty(DKEY_COL,col);
@@ -1609,9 +1629,8 @@ void NewGrid::initRowsCols(int row,int col,const QJsonValue &value)
         nl->changeJsonValue(BAKCOLOR,QColor(nl->mbkColor));
         nl->updateStyleSheets();
     }
-
-
     gridLayout->addWidget(nl,row,col);
+
 }
 
 void NewGrid::onAddOneRow()
@@ -1655,6 +1674,8 @@ void NewGrid::updateAllItemsSize()
         ((NewLayout*)w)->setMaximumSize(this->size());
         ((NewLayout*)w)->setFixedSize(itemSize);
     }
+    onSelectMe();
+
 }
 
 void NewGrid::onDeleteMe()
@@ -1795,9 +1816,11 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
     mainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainScroll->setAlignment(Qt::AlignCenter);
+    mainScroll->setContentsMargins(0,0,0,0);
 
 
     mainWidget->setObjectName(LISTWIDGET);  // 用来识别布局是否在列表控件下面.
+    mainWidget->setContentsMargins(0,0,0,0);
     mainScroll->setWidget(mainWidget);
 
     menuSetSpace = new QAction(QIcon(":/icon/icons/horizontal-scale-icon.png"),"设置间隔",this);
@@ -1869,6 +1892,7 @@ void NewList::updateAllItemsSize()
         else
             ((NewLayout*)w)->setFixedHeight(itemHeight);
     }
+    onSelectMe();
 }
 
 void NewList::onSetFixedHeight()
@@ -1905,6 +1929,8 @@ NewLayout * NewList::AddOneLine(QJsonValue value)
 {
     onSelectMe();
     NewLayout *newlayout = CreateNewLayout(value,mainWidget,mCreateFlag);
+    onSelectMe();
+    newlayout->onSelectMe();
     newlayout->setProperty(DKEY_INTOCONTAINER,true);
     childlist.append(newlayout);
     newlayout->container = this;
@@ -2132,9 +2158,15 @@ void NewLayout::DeleteMe()
 {
 
     // 它是否是列表控件的一员.
-    if(!parentWidget()->objectName().compare(LISTWIDGET))
+
+    if(property(DKEY_INTOCONTAINER).toBool())
     {
-        ((NewList*)container)->childlist.removeOne(this);
+
+        if(!CN_NEWLIST.compare(metaObject()->className()))
+            ((NewList*)container)->childlist.removeOne(this);
+        else{
+           ((NewGrid*)container)->childlist.removeOne(this);
+        }
     }
     this->BaseForm::DeleteMe();
 
@@ -2152,13 +2184,15 @@ void NewLayout::mouseMoveEvent(QMouseEvent *event)
     {
         move(this->pos() + (event->pos() - mOffset));
         /* 把新的位置更新到右边属性框 */
-        mWindow->posWidget->updatePosition(this->pos());
+        mWindow->posWidget->updatePosition(this);
         this->blockSignals(true);
     }
 }
 
 void NewLayout::mouseReleaseEvent(QMouseEvent *event)
 {
+
+
     /* 放开鼠标时检查它的是否出了边界要 */
     QWidget *p = this->parentWidget();
     QPoint pos = this->pos();
@@ -2190,7 +2224,7 @@ void NewLayout::mouseReleaseEvent(QMouseEvent *event)
     }
     // 这里只能在释放鼠标时改变左边的控件值
     mWindow->posWidget->updateSize(this->size());
-    mWindow->posWidget->updatePosition(this->pos());
+    mWindow->posWidget->updatePosition(this);
 }
 
 void NewLayout::onDeleteMe()
@@ -2526,9 +2560,9 @@ QList<int> NewLayout::rowcoldialog()
         QLabel *itemht = new QLabel("单元高度:");
         QString whstr = "每个单元的大小";
         QSpinBox *itemwBox = new QSpinBox();
-        itemwBox->setValue(15);
+        itemwBox->setValue(30);
         QSpinBox *itemhBox = new QSpinBox();
-        itemhBox->setValue(15);
+        itemhBox->setValue(30);
         itemwBox->setToolTip(whstr);
         itemhBox->setToolTip(whstr);
         QHBoxLayout *wdlayout = new QHBoxLayout();

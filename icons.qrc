@@ -28,5 +28,9 @@
         <file>icons/addtab.png</file>
         <file>icons/scale-icon.png</file>
         <file>icons/CheckBox.png</file>
+        <file>icons/buildstepmoveup@2x.png</file>
+        <file>icons/buildstepmovedown@2x.png</file>
+        <file>icons/next@2x.png</file>
+        <file>icons/prev@2x.png</file>
     </qresource>
 </RCC>

@@ -222,8 +222,8 @@ public:
     QAction *menuSize;
     QActionGroup *menuOrientation;
     QAction *menuV,*menuH;
-     int rows,cols;  //行列数
-      QSize itemSize;
+    int rows,cols;  //行列数
+    QSize itemSize;
 
 
 
@@ -241,8 +241,6 @@ private:
     int colH,colW;  //列高列宽
 
     QGridLayout *gridLayout;
-
-
     Qt::Orientation sliderOrientation;
 
 
