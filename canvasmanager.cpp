@@ -182,8 +182,7 @@ void CanvasManager::setActiveSS(int index)
         foreach (QWidget *w, Scenes->LayerList) {
             QString key = w->property(DKEY_LOCALSEQ).toString();
             mWindow->tree->addItemToRoot(w);
-
-            ((NewLayer*)w)->addChildrenToTree();
+            ((BaseForm*)w)->addChildrenToTree();
         }
       //  stack->setGeometry(stackRect);
     }
@@ -205,10 +204,6 @@ void CanvasManager::deleteCurrentPage()
         ss->delAllObjects();
         delPage->setEnabled(stack->count() == 0 ? false : true);
         mWindow->lDock->setEnabled(stack->count() == 0 ? false : true);
-
-        qDebug() << " stack count " << stack->count()
-                 << " stack current index " << stack->currentIndex();
-
         setActiveSS(stack->currentIndex());
     }
 }

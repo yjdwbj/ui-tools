@@ -90,8 +90,8 @@ public:
 
     virtual QJsonObject writeToJson() = 0;
 
-    NewLayout *CreateNewLayout(const QJsonValue &qv,MainWindow *mw,
-                               QWidget *parent,bool isCreate);
+    NewLayout *CreateNewLayout(const QJsonValue &qv,
+                               QWidget *parent, bool isCreate);
 
 
 
@@ -214,7 +214,8 @@ public:
 
 
 
-
+    QScrollArea *mainScroll;
+    QWidget *mainWidget;
     QAction *menuAddRow;
     QAction *menuAddCol;
     QAction *menuSpace;
@@ -240,8 +241,8 @@ private:
     int colH,colW;  //列高列宽
 
     QGridLayout *gridLayout;
-    QScrollArea *mainScroll;
-    QWidget *mainWidget;
+
+
     Qt::Orientation sliderOrientation;
 
 
@@ -259,7 +260,7 @@ public:
     NewList(QJsonValue json,const QSize size,QWidget *parent=0);
     QJsonObject writeToJson();
     void readFromJson(const QJsonValue &valobj);
-    void addChildrenToTree();
+   // void addChildrenToTree();
     QScrollArea *mainScroll;
    // ContainerScroll *mainScroll;
     QWidget *mainWidget;
@@ -316,7 +317,7 @@ public:
     void writeToJson(QJsonObject &json);
     QJsonObject writeToJson();
     void readFromJson(const QJsonValue &qv, bool flag);
-    void addChildrenToTree();
+    //void addChildrenToTree();
 
     void createNewFrameObject(const QJsonObject &json);
     QWidget* createObjectFromJson(const QJsonValue &qv);
@@ -347,7 +348,7 @@ public:
     void readLayoutFromJson(const QJsonValue &qv, bool flag);
 
     QJsonObject  writeToJson() ;
-    void addChildrenToTree();
+   // void addChildrenToTree();
 
 public slots:
     void onDeleteMe();

@@ -293,18 +293,20 @@ void TreeDock::addObjectToCurrentItem(QString root,QWidget *ww)
 
         QString key = ww->property(DKEY_LOCALSEQ).toString();
         QString clsname = ww->metaObject()->className();
-        QTreeWidgetItem *p = qwilist.first();
-        qDebug() << " parent text " << p->text(0) << p->text(1);
         QTreeWidgetItem *nqwi =  new QTreeWidgetItem(qwilist.first(),
                                                      QStringList() << key << clsname);
-
+//        qDebug() << " layout parent text " << root
+//                 << nqwi->text(0) << nqwi->parent()->indexOfChild(nqwi)
+//                 <<"currentitem " << treeWidget->currentItem();
         if(!CN_NEWLAYOUT.compare(clsname))
         {
             nqwi->setIcon(0,QIcon(SHOW_ICON));
         }
         mWindow->ComCtrl->ProMap[key] = ww;
         treeWidget->setCurrentItem(nqwi);
-
+        emit treeWidget->itemPressed(qwilist.first(),0);
+//        treeWidget->expandItem(qwilist.first());
+//        treeWidget->show();
     }
 }
 

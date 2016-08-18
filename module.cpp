@@ -896,16 +896,6 @@ void BaseForm::onTextSelected()
 }
 
 
-void BaseForm::addChildrenToTree()
-{
-
-}
-
-//void BaseForm::onDeleteMe()
-//{
-//    DeleteMe();
-//}
-
 void BaseForm::onBorderChangedValue(int v)
 {
     QString name = QObject::sender()->objectName();
@@ -956,7 +946,26 @@ void BaseForm::updateStyleSheets()
       str =  QString("background-image: url(%1); %2").arg(mbkImage,str);
    }
 
-   setStyleSheet(QString("BaseForm#%1 { %2 }").arg(this->objectName(),str)); 
+   QString clsname = metaObject()->className();
+
+   if(!clsname.compare(CN_NEWGRID))
+   {
+       ((NewGrid*)this)->mainScroll->setStyleSheet(QString("QScrollArea#%1 { %2 }").arg(
+                                                 this->objectName(),
+                                                 str));
+//       ((NewGrid*)this)->mainWidget->setStyleSheet(QString("QWidget#%1 { %2 }").arg(
+//                                                 this->objectName(),
+//                                                 str));
+   }
+   else if(!clsname.compare(CN_NEWLIST))
+   {
+       ((NewList*)this)->mainScroll->setStyleSheet(QString("%1#%2 { %3 }").arg(clsname,
+                                                 this->objectName(),
+                                                 str));
+   }else{
+       setStyleSheet(QString("BaseForm#%1 { %2 }").arg(this->objectName(),str));
+   }
+
    update();
    repaint();
 //   qDebug() << " object name " << objectName()
@@ -1307,7 +1316,7 @@ void BaseForm::wheelEvent(QWheelEvent *event)
    event->ignore();
 }
 
-NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,MainWindow *mw,
+NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,
                                      QWidget *parent,bool isCreate)
 {
 
@@ -1315,7 +1324,7 @@ NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,MainWindow *mw,
      QRect oldrect = Compoent::getRectFromStruct(valobj[PROPERTY].toArray(),KEY_RECT);
      QVariant variant = valobj.value(PROPERTY).toVariant();
      QString caption = valobj[CAPTION].toString();
-    NewLayout *newlayout = new NewLayout(caption,oldrect.size(),mw,parent);
+    NewLayout *newlayout = new NewLayout(caption,oldrect.size(),mWindow,parent);
     newlayout->mCreateFlag = isCreate;
     newlayout->setProperty(DKEY_TYPE, valobj[WTYPE].toString());
     newlayout->setProperty(DKEY_JSONSTR,qv);
@@ -1328,13 +1337,23 @@ NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,MainWindow *mw,
 
     newlayout->setGeometry(oldrect);
     newlayout->resize(oldrect.size());
-   // qDebug() << " layout size  ccc " << newlayout->size();
+
     mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),newlayout);
 
     newlayout->onSelectMe();
     newlayout->updateStyleSheets();
     newlayout->show();
     return newlayout;
+}
+
+
+
+void BaseForm::addChildrenToTree()
+{
+    foreach (QWidget *w, childlist) {
+        mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),w);
+        ((BaseForm*)w)->addChildrenToTree();
+    }
 }
 
 NewFrame::NewFrame(QString caption, QWidget *parent)
@@ -1463,31 +1482,30 @@ NewGrid::NewGrid(const QJsonValue &qv,
     QJsonObject obj = qv.toObject();
     QString caption = obj[CAPTION].toString();
     setFocusPolicy(Qt::ClickFocus);
-   // mainScroll =  new QScrollArea(m_frame);
+
     mainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainScroll->setAlignment(Qt::AlignCenter);
-    mainScroll->setWidgetResizable(true);
+  //  mainScroll->setWidgetResizable(true);
 
-    mainWidget->setObjectName(GRIDWIDGET);  // 用来识别布局是否在列表控件下面.
+
+  //  mainScroll->setStyleSheet("background-color: #A9A9A9;");
     mainScroll->setWidget(mainWidget);
     gridLayout = new QGridLayout(mainWidget);
-    gridLayout->setSpacing(0);
+    gridLayout->setSpacing(obj[ITEMSPACE].toInt());
     gridLayout->setContentsMargins(0,0,0,0);
     gridLayout->setSizeConstraint(QLayout::SetFixedSize);
-    //mainWidget->setLayout(gridLayout);
-
 
     int n = mWindow->ComCtrl->ProMap.size();
     QString str = QString("%1_%2").arg(caption,QString::number(n));
     setProperty(DKEY_LOCALSEQ,str);
     setProperty(DKEY_TXT,caption);
     setObjectName(str);
+    mainScroll->setObjectName(str);
+    mainWidget->setObjectName(str);  // 用来识别布局是否在列表控件下面.
     mainWidget->setMaximumSize(999,999);
 
     setToolTip(str);
-
-
     QRect oldrect = getRectFromStruct(obj[PROPERTY].toArray(),KEY_RECT);
     gridLayout->setGeometry(oldrect);
     setGeometry(oldrect);
@@ -1517,7 +1535,7 @@ NewGrid::NewGrid(const QJsonValue &qv,
     menuSpace = new QAction(QIcon(":/icon/icons/same-width.png"),"单元间距",this);
 
     connect(menuSpace,&QAction::triggered,[=](){
-        gridLayout->setSpacing(tinySpinBoxDialog(menuSpace->text(),0,1,99));
+        gridLayout->setSpacing(tinySpinBoxDialog(menuSpace->text(),gridLayout->spacing(),1,99));
     });
 
     menuSize = new QAction(QIcon(":/icon/icons/scale-icon.png"),"单元尺寸",this);
@@ -1552,7 +1570,8 @@ void NewGrid::addRowsCols()
 
     for(int x = 0 ; x < rows ;x++)
         for(int y = 0;y  < cols ; y++)
-            initRowsCols(x,y,QJsonValue::fromVariant(mWindow->ComCtrl->mVariantLayout));
+            initRowsCols(x,y,
+                         QJsonValue::fromVariant(mWindow->ComCtrl->mVariantLayout));
 
     updateAllItemsSize();
 }
@@ -1564,9 +1583,10 @@ void NewGrid::initRowsCols(int row,int col,const QJsonValue &value)
     QString nnn = "#98F5FF";
     QString tt = "#FF7F50";
     onSelectMe();
-    NewLayout *nl = CreateNewLayout(value,mWindow,mainWidget,mCreateFlag);
+    NewLayout *nl = CreateNewLayout(value,mainWidget,mCreateFlag);
     childlist.append(nl);
     nl->container = this;
+    nl->setProperty(DKEY_INTOCONTAINER,true);
 
     // 自已的行列坐标.
     nl->setProperty(DKEY_ROW,row);
@@ -1586,7 +1606,7 @@ void NewGrid::initRowsCols(int row,int col,const QJsonValue &value)
             else
                 nl->mbkColor = nodd;
         }
-        changeJsonValue(BAKCOLOR,QColor(nl->mbkColor));
+        nl->changeJsonValue(BAKCOLOR,QColor(nl->mbkColor));
         nl->updateStyleSheets();
     }
 
@@ -1596,6 +1616,7 @@ void NewGrid::initRowsCols(int row,int col,const QJsonValue &value)
 
 void NewGrid::onAddOneRow()
 {
+    mCreateFlag = true;
     QAction *a = (QAction*)(QObject::sender());
     int num = tinySpinBoxDialog(a->text(),1,0,99);
     for(int x = 0 ; x < num ;
@@ -1613,6 +1634,7 @@ void NewGrid::onAddOneRow()
 
 void NewGrid::onAddOneCol()
 {
+    mCreateFlag = true;
     QAction *a = (QAction*)(QObject::sender());
     int num = tinySpinBoxDialog(a->text(),1,0,99);
     for(int x = 0 ; x < num;
@@ -1668,9 +1690,7 @@ void NewGrid::mouseReleaseEvent(QMouseEvent *event)
 
      mainScroll->resize(this->size());
      mainWidget->resize(this->size());
-     qDebug() << "QMouseEvent " << event
-              << " main scroll size" << mainScroll->size()
-              << " mainwidget size " << mainWidget->size();
+
 }
 
 void NewGrid::wheelEvent(QWheelEvent *event)
@@ -1716,6 +1736,7 @@ void NewGrid::readFromJson(const QJsonValue &value)
     initRowsCols(row,col,value);
     NewLayout *nl = (NewLayout*)(childlist.last());
 
+
     // 这里一定是Layout 嵌套了.
     foreach (QJsonValue item, obj[LAYOUT].toArray()) {
         nl->readFromJson(item,mCreateFlag);
@@ -1743,6 +1764,9 @@ QJsonObject NewGrid::writeToJson()
     json[ITEMSPACE] = gridLayout->spacing();
     json[GCOLS] = cols;
     json[GROWS] = rows;
+    json[WIDTH] = itemSize.width();
+    json[HEIGHT] = itemSize.height();
+
 
     QJsonArray projson = dynValues[DKEY_DYN].toArray();
     json[PROPERTY] = updateRBJsonValue(projson,this);;
@@ -1753,6 +1777,7 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
     //FormResizer(parent)
     BaseForm(parent),
     sliderOrientation(Qt::Vertical),
+    mainScroll(new QScrollArea(m_frame)),
  //   mainScroll(new ContainerScroll(m_frame)),
     mainWidget(new QWidget())
 
@@ -1765,7 +1790,7 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
    // itemHeight = this->height() * 0.3;
     mWindow = ((NewLayout*)parent->parentWidget())->mWindow;
     //setFocusPolicy(Qt::ClickFocus);
-    mainScroll =  new QScrollArea(m_frame);
+
     mainScroll->setFocusPolicy(Qt::WheelFocus);
     mainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -1781,7 +1806,7 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
         sliderOrientation = Qt::Horizontal;
         listLayout = new QHBoxLayout(mainWidget);
         menuSetHeight =  new QAction(QIcon(":/icon/icons/fileoverlay_ui@2x.png"),"设置列宽",this);
-        menuAddLine = new QAction(QIcon(":/icon/icons/plus.png"),"添加列",this);
+        menuAddLine = new QAction(QIcon(":/icon/icons/addtab.png"),"添加列",this);
         mainScroll->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
     }else
     {
@@ -1812,6 +1837,7 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
     setProperty(DKEY_LOCALSEQ,str);
     setProperty(DKEY_TXT,caption);
     setObjectName(str);
+    mainScroll->setObjectName(str);
     mainWidget->setMaximumSize(999,999);
     setToolTip(str);
 
@@ -1878,7 +1904,8 @@ void NewList::onAddManyLine()
 NewLayout * NewList::AddOneLine(QJsonValue value)
 {
     onSelectMe();
-    NewLayout *newlayout = CreateNewLayout(value,mWindow,mainWidget,true);
+    NewLayout *newlayout = CreateNewLayout(value,mainWidget,mCreateFlag);
+    newlayout->setProperty(DKEY_INTOCONTAINER,true);
     childlist.append(newlayout);
     newlayout->container = this;
     listLayout->addWidget(newlayout);
@@ -2052,6 +2079,7 @@ void NewList::readFromJson(const QJsonValue &qv)
     {
 
         NewLayout *nl = AddOneLine(valobj);
+
        // nl->setGeometry(oldrect);
         // 这里一定是Layout 嵌套了.
         foreach (QJsonValue item, valobj[LAYOUT].toArray()) {
@@ -2071,13 +2099,6 @@ void NewList::onTextChanged(QString str)
 }
 
 
-void NewList::addChildrenToTree()
-{
-    foreach (QWidget *w, childlist) {
-        mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),w);
-        ((NewLayout*)w)->addChildrenToTree();
-    }
-}
 
 NewLayout::NewLayout(QString caption, QSize nsize,
                      MainWindow *w, QWidget *parent):
@@ -2086,13 +2107,13 @@ NewLayout::NewLayout(QString caption, QSize nsize,
     this->mWindow = w;
 
     resize(nsize);
-    qDebug() << "this layout size " << size()
-             <<" parent size " << parent->size();
+//    qDebug() << "this layout size " << size()
+//             <<" parent size " << parent->size();
     if(parent)
         setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
 
     setFocusPolicy(Qt::ClickFocus);
-    setProperty(DKEY_INTOLIST,false);
+    setProperty(DKEY_INTOCONTAINER,false);
     show();
     update();
 
@@ -2117,20 +2138,6 @@ void NewLayout::DeleteMe()
     }
     this->BaseForm::DeleteMe();
 
-}
-
-void NewLayout::addChildrenToTree()
-{
-    foreach (QWidget *w, childlist) {
-        QString clsname = w->metaObject()->className();
-        mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),w);
-        if(!clsname.compare(CN_NEWLIST)) {
-            ((NewList*)w)->addChildrenToTree();
-        }else if(!clsname.compare(CN_NEWLAYOUT))
-        {
-            ((NewLayout*)w)->addChildrenToTree();
-        }
-    }
 }
 
 
@@ -2406,7 +2413,7 @@ void NewLayout::readFromJson(const QJsonValue &qv,bool flag)
     if(!clsName.compare(CN_NEWLAYOUT)/* || !clsName.compare(CN_LAYOUT)*/)
     {
 
-        NewLayout *newlayout = CreateNewLayout(qv,mWindow,m_frame,flag);
+        NewLayout *newlayout = CreateNewLayout(qv,m_frame,flag);
         childlist.append(newlayout);
 
         // 这里一定是Layout 嵌套了.
@@ -2448,14 +2455,14 @@ void NewLayout::readFromJson(const QJsonValue &qv,bool flag)
             int rows = valobj[GROWS].toInt();
             ngrid->rows = rows;
             ngrid->cols = cols;
+            ngrid->itemSize.scale(QSize(valobj[WIDTH].toInt(),valobj[HEIGHT].toInt()),
+                                  Qt::IgnoreAspectRatio);
 
          }
          ngrid->mCreateFlag = flag;
          mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),ngrid);
+
          childlist.append(ngrid);
-
-        // ngrid->onSelectMe();
-
 
          if(flag)
             ngrid->addRowsCols();
@@ -2463,7 +2470,6 @@ void NewLayout::readFromJson(const QJsonValue &qv,bool flag)
              foreach (QJsonValue item, valobj[LISTWIDGET].toArray()) {
                  ngrid->readFromJson(item);
              }
-           //  ngrid->itemSize.scale(QSize(50,50),Qt::IgnoreAspectRatio);
              ngrid->updateAllItemsSize();
          }
     }
@@ -2648,7 +2654,7 @@ void NewLayer::readLayoutFromJson(const QJsonValue &qv,bool flag)
    if(!clsName.compare(CN_NEWLAYOUT) /*|| !clsName.compare(CN_LAYOUT)*/)
    {
 
-        NewLayout *newlayout = CreateNewLayout(qv,mWindow,m_frame,flag);
+        NewLayout *newlayout = CreateNewLayout(qv,m_frame,flag);
        // 这里一定是Layout 嵌套了.
         childlist.append(newlayout);
        foreach (QJsonValue item, valobj[LAYOUT].toArray()) {
@@ -2680,14 +2686,6 @@ void NewLayer::onDeleteMe()
     }
 }
 
-
-void NewLayer::addChildrenToTree()
-{
-    foreach (QWidget *w, childlist) {
-        mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),w);
-        ((NewLayout*)w)->addChildrenToTree();
-    }
-}
 
 QJsonObject  NewLayer::writeToJson()
 {

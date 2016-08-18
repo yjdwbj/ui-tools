@@ -134,9 +134,9 @@ void Position::setConnectNewQWidget(QWidget *com)
     Ypos->disconnect();
     Wpos->disconnect();
     Hpos->disconnect();
-    QString clsname = com->parentWidget()->metaObject()->className();
 
-    QVariant variant = com->property(DKEY_INTOLIST);
+
+    QVariant variant = com->property(DKEY_INTOCONTAINER);
     bool isLW = false;
     if(variant.isValid())
     {
@@ -144,6 +144,8 @@ void Position::setConnectNewQWidget(QWidget *com)
     }
     Xpos->setEnabled(!isLW);
     Ypos->setEnabled(!isLW);
+    Hpos->setEnabled(!isLW);
+    Wpos->setEnabled(!isLW);
 
 
   //  qDebug() << " net QWidget pos " << com->pos() << " size " << com->size();
@@ -159,22 +161,20 @@ void Position::setConnectNewQWidget(QWidget *com)
     // 一定要设置值再连接信号.
     Xpos->setValue(isLW ? 0 : com->pos().x());
     Ypos->setValue(isLW ? 0 : com->pos().y());
+    Hpos->setValue(isLW ? 0 : com->height());
+    Wpos->setValue(isLW ? 0 : com->width());
     if(!isLW)
     {
         connections << QObject::connect(Xpos,SIGNAL(valueChanged(int)),com,SLOT(onXYWHChangedValue(int)));
         connections << QObject::connect(Ypos,SIGNAL(valueChanged(int)),com,SLOT(onXYWHChangedValue(int)));
+//        Wpos->setValue(com->geometry().width());
+//        Hpos->setValue(com->geometry().height());
+
+        connections << QObject::connect(Wpos,SIGNAL(valueChanged(int)),com,SLOT(onXYWHChangedValue(int)));
+        connections << QObject::connect(Hpos,SIGNAL(valueChanged(int)),com,SLOT(onXYWHChangedValue(int)));
     }
 
-    Wpos->setValue(com->geometry().width());
-    Hpos->setValue(com->geometry().height());
 
-    // 非NewLayout控件大小不能调整
-//    bool isLayout = !CN_NEWLAYOUT.compare(com->metaObject()->className());
-//    Wpos->setEnabled(isLayout);
-//    Hpos->setEnabled(isLayout);
-
-    connections << QObject::connect(Wpos,SIGNAL(valueChanged(int)),com,SLOT(onXYWHChangedValue(int)));
-    connections << QObject::connect(Hpos,SIGNAL(valueChanged(int)),com,SLOT(onXYWHChangedValue(int)));
 
     old = com;
 }
@@ -900,7 +900,6 @@ void CompoentControls::onCreateCompoentToCanvas()
     // QObject *sender = QObject::sender(); /* 确定的那一个按钮被点击了 */
 
     //这里要区分一下控件的类型,在没有图层的情况下,要先建图层,再在图层下面新建布局.
-   // NewLayout *activeLayout = mWindow->cManager->activeSS()->activeLayout();
     QWidget *wid = mWindow->cManager->activeSS()->activeObject();
     if(!wid)
     {
@@ -918,7 +917,9 @@ void CompoentControls::onCreateCompoentToCanvas()
     QPushButton *btn = (QPushButton*)(QObject::sender());
     QJsonValue val =QJsonValue::fromVariant(btn->property(DKEY_JSONSTR));
    // QString clsname = wid->metaObject()->className();
-    if(!clsname.compare(CN_NEWFRAME) || !clsname.compare(CN_NEWLIST))
+    if(!clsname.compare(CN_NEWFRAME)
+            || !clsname.compare(CN_NEWLIST)
+            || !clsname.compare(CN_NEWGRID))
     {
         ((NewLayout*)wid->parentWidget()->parentWidget())->readFromJson(val,true);
     }
@@ -954,7 +955,7 @@ void CompoentControls::onCreateNewLayout()
         oldrect.setHeight(200);
     }
 
-    if(/*!CN_LAYOUT.compare(clsname)|| */!CN_NEWLAYOUT.compare(clsname))
+    if(!CN_NEWLAYOUT.compare(clsname))
     {
         // 这里是在布局上面创建布局,嵌套.
         ((NewLayout*)w)->readFromJson(value,true);

@@ -82,7 +82,7 @@ static const char SECTION_CHAR = '|';
 
 
 static const char  DKEY_CAPTION[] = "caption";
-static const char DKEY_INTOLIST[] = "intoList";
+static const char DKEY_INTOCONTAINER[] = "intoContainer";
 
 static const char DKEY_IMGIDX[] = "ImageIndex";
 static const char DKEY_IMAGELST[] = "ImageList";
