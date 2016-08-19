@@ -247,13 +247,27 @@ Position::~Position()
 
 }
 
+PropertyTab::PropertyTab(QWidget *parent)
+    :QTabWidget(parent)
+{
+
+    show();
+}
+
+void PropertyTab::setNewObject(QWidget *w)
+{
+
+
+}
+
+
 ComProperty::ComProperty(QString title,QWidget *parent):
-    QGroupBox(parent),
-    mainLayout(new QVBoxLayout()),
+    BaseProperty(parent),
+   // mainLayout(new QVBoxLayout()),
     oldobject(0)
 
 {
-    setTitle(title);
+    //setTitle(title);
     setStyleSheet("QGroupBox,QLabel,QScrollArea,QWidget{background-color: #C0DCC0;}");
     this->setFixedHeight((parent->height()-50) * 0.5);
     this->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
@@ -266,13 +280,14 @@ ComProperty::ComProperty(QString title,QWidget *parent):
     mainWidget = new QWidget();
 
     QScrollArea *scroll =  new QScrollArea();
+    scroll->setContentsMargins(0,0,0,0);
     scroll->setParent(this);
     hb->addWidget(scroll);
     scroll->setWidget(mainWidget);
     mainWidget->setLayout(mainLayout);
     scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-   // setTitle(tr("控件属性"));
+
 }
 
 
@@ -301,10 +316,6 @@ void ComProperty::createPropertyBox(QWidget *p)
         mainLayout = 0;
     }
 
-
-    // mainWidget->layout()->destroyed();
-
-    // QVBoxLayout * mainLayout = new QVBoxLayout();
     mainLayout = new QVBoxLayout(mainWidget);
    // mainLayout->setProperty(DKEY_UID,nkeyuid);
 
@@ -322,9 +333,31 @@ void ComProperty::createPropertyBox(QWidget *p)
     oldobject = p;
 }
 
-void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
+
+CssProperty::CssProperty(QWidget *parent)
+    :BaseProperty(parent)
+
 {
-    QString className = p->metaObject()->className();
+    setLayout(mainLayout);
+    mainLayout->setContentsMargins(0,0,0,0);
+    mainLayout->setSpacing(0);
+    mainLayout->setSizeConstraint(QLayout::SetFixedSize);
+    mainLayout->setMargin(0);
+
+
+    show();
+}
+
+BaseProperty::BaseProperty(QWidget *parent)
+    :QWidget(parent), mainLayout(new QVBoxLayout)
+{
+
+}
+
+
+void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
+{
+    //QString className = p->metaObject()->className();
     foreach (QJsonValue item, array) {
         QWidget *wid = 0;
         //qDebug() << " item type " << item;
@@ -346,7 +379,34 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
         //   parseJsonToWidget(p,object,layout);
            if(object.contains(STRUCT)) // 处理struct 关键字,QJsonArray
            {
-               parseJsonToWidget(p,object[STRUCT].toArray());
+              // parseJsonToWidget(p,object[STRUCT].toArray());
+               PropertyTab *csstab = new PropertyTab(this);
+               int num = 0;
+               bool manyCss = false;
+               foreach(QJsonValue varray ,object[STRUCT].toArray())
+               {
+
+                   if(varray.isArray())
+                   {
+                       CssProperty *cp = new CssProperty();
+                       cp->parseJsonToWidget(p,varray.toArray());
+                       csstab->addTab(cp,QString("CSS属性_%1").
+                                      arg(QString::number(num++)));
+                       cp->resize(80,80);
+                       //cp->show();
+                       manyCss = true;
+                   }
+               }
+
+               if(!manyCss)
+               {
+                   csstab->deleteLater();
+                   parseJsonToWidget(p,object[STRUCT].toArray());
+               }else{
+                   mainLayout->addWidget(csstab);
+               }
+
+
            }else if(object.contains(ENUM)){
                QLabel *title = new QLabel(caption);
 
@@ -372,8 +432,8 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                cb->setObjectName(uname);
                cb->setProperty(DKEY_VALTYPE,LIST);
                // 这里通过它的JSON组数的位置去找它.
-               QString cbkey =QString("%1_%2").arg(uname,QString::number(widgetMap.size()));
-               widgetMap[cbkey] = cb;
+//               QString cbkey =QString("%1_%2").arg(uname,QString::number(widgetMap.size()));
+//               widgetMap[cbkey] = cb;
                wid = cb;
                QPushButton *b = new QPushButton(tr("添加图片"));
                b->setObjectName(uname);
@@ -419,7 +479,7 @@ void ComProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
            {
            }else if(object.contains(BORDER))
            {
-              QJsonObject border = object[BORDER].toObject();
+              //QJsonObject border = object[BORDER].toObject();
               Border *b = new Border();
               b->setConnectNewQWidget(p);
               mainLayout->addWidget(b);

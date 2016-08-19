@@ -101,11 +101,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     leftLayout->addWidget(posWidget);
 
-
-//    leftLayout->addWidget(ComCtrl);
-
-//    // 控件属性框
-
     leftLayout->addWidget(propertyWidget);
     //leftLayout->addWidget(imgPropertyWidget);
 
@@ -295,12 +290,6 @@ void MainWindow::readExcelFile(char *xlsfile)
         row = (struct st_row_data*)(xls_row(pWS, cellRow));
         // process cells
 
-//        if (!isFirstLine) {
-//            cvsfile.write("\n");
-//        } else {
-//            isFirstLine = 0;
-//        }
-
         QStringList collist;
         for (cellCol = 0; cellCol <= pWS->rows.lastcol; cellCol++) {
             //printf("Processing row=%d col=%d\n", cellRow+1, cellCol+1);
@@ -313,7 +302,7 @@ void MainWindow::readExcelFile(char *xlsfile)
             }
 
             if (!isFirstCol) {
-                printf("%s", fieldSeparator);
+              //  printf("%s", fieldSeparator);
                 cvsfile.write(";");
             } else {
                 isFirstCol = 0;
@@ -580,9 +569,6 @@ void MainWindow::addWidgetToToolBar(QWidget *w)
 
 void MainWindow::mousePressEvent(QMouseEvent *ev)
 {
-//    ui->statusBar->showMessage(QString("mouse x:%1 , y:%2 ")
-//                               .arg(QString::number(ev->pos().rx()))
-//                               .arg(QString::number(ev->pos().ry()))  );
 
     if(ev->button() == Qt::RightButton)
     {

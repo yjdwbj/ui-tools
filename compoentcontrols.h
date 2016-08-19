@@ -24,6 +24,9 @@ class NewFrame;
 
 void removeWidFromLayout(QLayout *layout);
 
+
+
+
 //坐标类
 class Position: public QGroupBox
 {
@@ -63,7 +66,39 @@ private:
     QList<QMetaObject::Connection> connections;
 };
 
-class ComProperty: public QGroupBox
+
+
+
+class PropertyTab: public QTabWidget
+{
+    Q_OBJECT
+public:
+    explicit PropertyTab(QWidget *parent=0);
+
+    void setNewObject(QWidget *);
+    void addNewTab();
+    void deleteTab();
+};
+
+
+class BaseProperty: public QWidget
+{
+    Q_OBJECT
+public:
+    explicit BaseProperty(QWidget *parent=0);
+    void parseJsonToWidget(QWidget *p, const QJsonArray &array);
+    QVBoxLayout* mainLayout;
+};
+
+class CssProperty: public BaseProperty
+{
+    Q_OBJECT
+public:
+    explicit CssProperty(QWidget *parent=0);
+//    QVBoxLayout* mainLayout;
+};
+
+class ComProperty: public BaseProperty
 {
     Q_OBJECT
 public:
@@ -73,15 +108,17 @@ public:
     void createPropertyBox(QWidget *p);
    // void parseJsonToWidget(QWidget *p, const QVariantList &qvl, QLayout *layout);
 
-    void parseJsonToWidget(QWidget *p, const QJsonArray &array);
-    void parseJsonToWidget(QWidget *p, const QJsonObject &array, QLayout *layout);
+   // void parseJsonToWidget(QWidget *p, const QJsonArray &array);
+   // void parseJsonToWidget(QWidget *p, const QJsonObject &array, QLayout *layout);
     void delPropertyBox();
     void updateImageComboBox(QString key, int index, const QStringList &list);
     QWidget* getPropertyObject(QString key) const { return widgetMap.value(key);}
 
+
+
 private:
     // QGroupBox *CreateXYWHGBox(QWidget *p);
-     QVBoxLayout* mainLayout;
+    // QVBoxLayout* mainLayout;
      QWidget *mainWidget;
      QWidget *oldobject;
      QMap<QString,QWidget*> widgetMap;  // 预备着多个同类型的控件区分.

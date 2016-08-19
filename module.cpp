@@ -53,12 +53,7 @@ QJsonValue Compoent::changeJsonValue(const QJsonArray &arg,QString key,
            // changeJsonValue(arr,key,val);
             obj[STRUCT] = changeJsonValue(arr,key,val);
             parr[i] = obj;
-//            if(isChanged)
-//                return parr;
-//            else
-//                continue;
-            //return parr;
-            //break;
+
         } else
         // 这里必需要有-type 这个属性名.
         if(obj[WTYPE].toString().contains(key) )
@@ -424,252 +419,6 @@ void Compoent::copyProperty(const QVariant &va)
 }
 
 
-//void NewLabel::onEnumItemChanged(QString txt)
-//{
-//   QComboBox *cb =(QComboBox *)(QObject::sender());
-//   changeJsonValue(cb->objectName(),txt);
-//}
-
-//void NewLabel::onNumberChanged(int num)
-//{
-
-//    QSpinBox *sp = (QSpinBox *)(QObject::sender());
-//   // dynValues[sp->objectName()] = num;
-//    changeJsonValue(sp->objectName(),num);
-//}
-
-//void NewLabel::onTextChanged(QString str)
-//{
-//    QLineEdit *txt = (QLineEdit *)(QObject::sender());
-//  //  dynValues[txt->objectName()] = str;
-//    changeJsonValue(txt->objectName(),str);
-//}
-
-///*------------------------------------------------------------------------*/
-
-
-
-//NewLabel::NewLabel(QWidget *parent)
-//    :QLabel(parent),
-//     selIndex(0),disDefaultList(false)
-//{
-//    mWindow = ((NewFrame*)(parent->parentWidget()))->mWindow;
-//   // mWindow = ((NewFrame*)parent)->mWindow;
-//    this->setLineWidth(0);
-//    setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
-//}
-
-
-//void NewLabel::addPropertyBoxSignal(QSpinBox *b)
-//{
-//    connect(b,SIGNAL(valueChanged(int)),this,SLOT(onXYWHChangedValue(int)));
-//}
-
-//void NewLabel::onXYWHChangedValue(int v)
-//{
-//    /* 绑定坐标控件的更新 */
-//    QWidget *sender =(QWidget *)(QObject::sender());
-
-//    QWidget *p = this->parentWidget();
-
-//  //  p->move(p->parentWidget()->mapFromGlobal(QCursor::pos()-mOffset));
-//    if(!sender->objectName().compare(X))
-//    {
-//        //o.setX(v);
-//        QPoint pos = p->pos();
-//        pos.setX(v);
-//        p->move(pos);
-
-//    }else if(!sender->objectName().compare(Y))
-//    {
-//        QPoint pos = p->pos();
-//        pos.setY(v);
-//        p->move(pos );
-
-//    }
-//}
-
-
-//void NewLabel::removeWidFromLayout(QLayout* layout)
-//{
-
-//    if(!layout)
-//        return;
-//    QLayoutItem* child;
-//    while(layout->count()!=0)
-//    {
-//        child = layout->takeAt(0);
-//        if(child->layout() != 0)
-//        {
-//            removeWidFromLayout(child->layout());
-//        }
-//        else if(child->widget() != 0)
-//        {
-//            delete child->widget();
-//        }
-
-//        delete child;
-//    }
-//}
-
-
-//void NewLabel::clearOtherObjectStyleSheet()
-//{
-//    /* 清除控件的红线框 */
-//    QList<NewLabel*> nflist =  this->parentWidget()->findChildren<NewLabel*>();
-//    foreach(NewLabel *x,nflist)
-//    {
-//           x->setStyleSheet("");
-
-//    }
-//}
-
-
-//QWidget *NewLabel::getQWidgetByName(QString name) const
-//{
-//    QWidgetList tlist = qApp->topLevelWidgets();
-
-//    for(QWidgetList::iterator wit = tlist.begin();wit != tlist.end();++wit)
-//    {
-//       // qDebug() << "find object by name :" << (*wit)->objectName();
-//        if((*wit)->objectName() == name)
-//        {
-//            return *wit;
-//            break;
-//        }
-//    }
-//    return (QWidget*)0;
-//}
-
-//void NewLabel::mousePressEvent(QMouseEvent *ev)
-//{
-
-//    /* 单击选中它的父对像 */
-
-//    //NewFrame *p =(NewFrame*) (this->parentWidget());
-//    // 下面如果它的父控件是NewFrame->m_frame
-//    NewFrame *p =(NewFrame*) (this->parentWidget()->parentWidget());
-//    if(ev->button() == Qt::RightButton)
-//    {
-//        QMenu *contextMenu = new QMenu(this);
-//        QAction delme(QString("删除当前-%1").arg(p->property(DKEY_TXT).toString()),this);
-//        connect(&delme,SIGNAL(triggered(bool)),p,SLOT(onDeleteMe()));
-//        contextMenu->addAction(&delme);
-//        contextMenu->exec(mapToGlobal(ev->pos()));
-//    }else
-//    {
-//        // p->setState(SelectionHandleActive);
-//         mWindow->cManager->activeSS()->setSelectObject(p);
-
-//       //  p->setStyleSheet("NewFrame{border: 0.5px solid red;}");
-
-//         clearOtherObjectStyleSheet();
-//         mWindow->posWidget->setConnectNewQWidget(p);
-//         mWindow->propertyWidget->createPropertyBox(p);
-//      //   mWindow->imgPropertyWidget->delPropertyBox();
-//    }
-//    mOffset = ev->pos();
-//    setCursor(Qt::ClosedHandCursor);
-//}
-
-
-//void NewLabel::mouseReleaseEvent(QMouseEvent *ev)
-//{
-
-//    /* 放开鼠标时检查它的是否出了边界要 */
-//    NewFrame *p =(NewFrame*) (this->parentWidget()->parentWidget());
-//    //NewFrame *p =(NewFrame*) (this->parentWidget());
-//    QPoint pos = p->pos();
-//    if(p->x() < 0)
-//    {
-//        pos.setX(0);
-//        p->move(pos);
-
-//    }
-//    if(p->y() < 0 )
-//    {
-//        pos.setY(0);
-//        p->move(pos);
-
-//    }
-
-//    QSize ms = p->parentWidget()->parentWidget()->size();
-//    if((p->x() + p->size().width()) > ms.width())
-//    {
-//        pos.setX( ms.width() - p->size().width() /*- MARGIN_SIZE.width() /2*/ );
-//        p->move(pos);
-//        qDebug() << " move pos " << pos;
-//    }
-
-//    if((p->y() + p->size().height()) > ms.height())
-//    {
-//        pos.setY(ms.height() - p->size().height() /*- MARGIN_SIZE.height() /2*/);
-//        p->move(pos);
-//    }
-//}
-
-//void NewLabel::mouseMoveEvent(QMouseEvent *event)
-//{
-
-//    if (event->buttons() & Qt::LeftButton)
-//    {
-//        //NewFrame *p =(NewFrame*)(this->parentWidget());
-//        NewFrame *p =(NewFrame*) (this->parentWidget()->parentWidget());
-//        p->move( p->pos() + (event->pos() - mOffset));
-//        /* 把新的位置更新到右边属性框 */
-//        mWindow->posWidget->updatePosition(p->pos());
-//        p->blockSignals(true);
-//    }
-
-//}
-
-//void NewLabel::mouseDoubleClickEvent(QMouseEvent *event)
-//{
-
-//   // NewFrame *p = (NewFrame *)this->parentWidget();
-//    NewFrame *p = (NewFrame *)this->parentWidget()->parentWidget(); // 如果父控件是NewFrame->m_frame
-//    p->setState(SelectionHandleOff);
-
-
-//    clearOtherObjectStyleSheet();
-//   // p->setStyleSheet("");
-//    QList<NewLabel*> nlist =  p->findChildren<NewLabel*>();
-//    foreach (NewLabel *n, nlist) {
-//        if(n != this)
-//            n->setStyleSheet("");
-//    }
-
-//    setStyleSheet("QLabel{border: 1px solid red;border-style: outset;}");
-//    mWindow->propertyWidget->createPropertyBox(p);
-//   // mWindow->imgPropertyWidget->createPropertyBox(this);
-//}
-
-
-//void NewLabel::onListImageChanged(QString img)
-//{
-//   foreach (QString s, myImageList) {
-//       QString k = s.section(":",0,0);
-//       if(!k.compare(img))
-//       {
-//           QString fpath = s.section(":",1,1);
-//           this->setPixmap(QPixmap(fpath));/* 更新图片 */
-//           int idx = QDir::currentPath().length() + 1;
-//           this->changeJsonValue(IMAGE,fpath.mid(idx));
-//           selIndex = myImageList.indexOf(s);
-//           break;
-//       }
-//   }
-
-//}
-
-//void NewLabel::updatePixmap(QString imgpath)
-//{
-//    this->setPixmap(QPixmap(imgpath));
-//}
-
-
-
-
 BaseForm::BaseForm(QWidget *parent)
     :FormResizer(parent), mBorderColor("#FFFFFF"),
       mBorder(0,0,0,0),
@@ -771,10 +520,6 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
             contextMenu->addAction(nl->menuSetSpace);
         }
 
-
-
-
-
         contextMenu->exec(mapToGlobal(event->pos()));
         contextMenu->deleteLater();
     }
@@ -790,37 +535,9 @@ void BaseForm::mouseReleaseEvent(QMouseEvent *event)
 {
 
     /* 放开鼠标时检查它的是否出了边界要 */
-    QWidget *p = this->parentWidget();
+   // QWidget *p = this->parentWidget();
     QPoint pos = this->pos();
     moveNewPos(pos);
-//    if(this->x() < 0)
-//    {
-//        pos.setX(0 /*- MARGIN_SIZE.width() /2*/);
-//        this->move(pos);
-
-//    }
-//    if(this->y() < 0 )
-//    {
-//        pos.setY(0 /*-MARGIN_SIZE.width() /2*/);
-//        this->move(pos);
-//    }
-
-//    QSize ms = p->size();
-//    //左出界检查
-//    if((this->x()  + this->size().width()) > ms.width())
-//    {
-//        pos.setX( ms.width() - this->size().width() /*+ MARGIN_SIZE.width() /2*/ );
-//        this->move(pos);
-
-//    }
-
-//    //上出界检查
-//    if((this->y() + this->size().height()) > ms.height())
-//    {
-//        pos.setY(ms.height() - this->size().height() /*+ MARGIN_SIZE.height() /2*/);
-//        this->move(pos);
-//    }
-
     // 这里只能在释放鼠标时改变左边的控件值
     mWindow->posWidget->updateSize(this->size());
 }
@@ -897,7 +614,7 @@ void BaseForm::onXYWHChangedValue(int v)
         n.setHeight(v);
         this->resize(n);
     }
-    qDebug() << " postwidget has changed " << sender->objectName() << " value " << v;
+   // qDebug() << " postwidget has changed " << sender->objectName() << " value " << v;
 
 }
 
