@@ -135,14 +135,15 @@ QJsonValue Compoent::changeJsonValue(const QJsonArray &arg,QString key,
 
 void Compoent::changeJsonValue(QString key, QVariant val)
 {
-   QJsonArray parr = dynValues[DKEY_DYN].toArray();
+   QJsonArray parr =  mOwerJson[PROPERTY].toArray();
   // changeJsonValue(parr,key,val);
    // int asize = parr.size();
 
     // 这个QJsonObject 都是只读的,修改之后必需重新赋值.
    // dynValues[DKEY_DYN] = parr;
 
-    dynValues[DKEY_DYN] = changeJsonValue(parr,key,val);
+   // dynValues[DKEY_DYN] = changeJsonValue(parr,key,val);
+    mOwerJson[PROPERTY] = changeJsonValue(parr,key,val);
 }
 
 QJsonArray Compoent::updateRBJsonValue(const QJsonArray &arr, QWidget *w)
@@ -243,8 +244,10 @@ QVariant Compoent::getJsonValue(const QJsonArray &parr,QString key)
 
 QVariant Compoent::getJsonValue(QString key) const
 {
-    return getJsonValue(dynValues[DKEY_DYN].toArray(),key);
+//    return getJsonValue(dynValues[DKEY_DYN].toArray(),key);
+    return getJsonValue(mOwerJson[PROPERTY].toArray(),key);
 }
+
 
 
 void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
@@ -412,11 +415,12 @@ QJsonObject Compoent::getBorderJson(QWidget *w)
 }
 
 
-void Compoent::copyProperty(const QVariant &va)
-{
-    QJsonObject oo = QJsonValue::fromVariant(va).toObject();
-    dynValues[DKEY_DYN] = QJsonValue::fromVariant(va);
-}
+//void Compoent::copyProperty(const QVariant &va)
+//{
+//    QJsonObject oo = QJsonValue::fromVariant(va).toObject();
+////    dynValues[DKEY_DYN] = QJsonValue::fromVariant(va);
+//    mOwerJson = QJsonValue::fromVariant(va);
+//}
 
 
 BaseForm::BaseForm(QWidget *parent)
@@ -836,7 +840,8 @@ void BaseForm::initJsonValue()
 {
     mbkColor = Compoent::getJsonValue(BAKCOLOR).toString();
     mBorderColor = Compoent::getJsonValue(BORDER).toString();
-    mBorder = Compoent::getRectFromStruct(dynValues[DKEY_DYN].toArray(),BORDER);
+   // mBorder = Compoent::getRectFromStruct(dynValues[DKEY_DYN].toArray(),BORDER);
+     mBorder = Compoent::getRectFromStruct(mOwerJson[PROPERTY].toArray(),BORDER);
     if(this->mCreateFlag)
     {
         setProperty(DKEY_UID,mWindow->ComCtrl->ProMap.size());
@@ -1061,13 +1066,15 @@ NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,
     NewLayout *newlayout = new NewLayout(caption,oldrect.size(),mWindow,parent);
     newlayout->mCreateFlag = isCreate;
     newlayout->setProperty(DKEY_TYPE, valobj[WTYPE].toString());
-    newlayout->setProperty(DKEY_JSONSTR,qv);
-    if(valobj.contains(PROPERTY))
-    {
-        newlayout->copyProperty(variant);
-        newlayout->setProperty(DKEY_DYN,variant);
-        newlayout->initJsonValue();
-    }
+  //  newlayout->setProperty(DKEY_JSONSTR,qv);
+    newlayout->mOwerJson = qv.toObject();
+    newlayout->initJsonValue();
+//    if(valobj.contains(PROPERTY))
+//    {
+//        newlayout->copyProperty(variant);
+//        newlayout->setProperty(DKEY_DYN,variant);
+//        newlayout->initJsonValue();
+//    }
 
     newlayout->setGeometry(oldrect);
     newlayout->resize(oldrect.size());
@@ -1136,50 +1143,24 @@ void NewFrame::readFromJson(const QJsonValue &qv)
     QString caption = json[CAPTION].toString();
     qDebug() << " read from json caption is " << caption;
     QVariant variant = json[PROPERTY].toVariant();
-//    if(!clsName.compare(CN_NEWLABEL) || !clsName.compare(QLABEL))
-//    {
-//        NewLabel *newLabel = new NewLabel(m_frame);
-//        if(json.contains(PROPERTY))
-//        {
-//            newLabel->copyProperty(variant);
-//            newLabel->setProperty(DKEY_DYN,variant);
-//        }
-//        newLabel->setGeometry(oldrect);
-//        //    newLabel->addMainWindow(mWindow);
-//        childlist.append(newLabel);
 
-//        //   LayoutList.append(nl);
-//        // newLabel->onSelectMe();
-//        foreach (QJsonValue val, json.value(PROPERTY).toArray()) {
-//           QJsonObject obj = val.toObject();
-//           if(obj.contains(IMAGE))
-//           {
-//               QPixmap p;
-//               QString path = obj[IMAGE].toString();
-//               if(path.contains("\\"))
-//               {
-//                   path.replace("\\","/");
-//               }
-//               p.load(path);
-//               newLabel->setPixmap(p);
-//               break;
-//           }
-//        }
-//    }
 }
 
 
 QJsonObject NewFrame::writeToJson()
 {
 
-    QJsonObject json =  QJsonValue::fromVariant(property(DKEY_JSONSTR)).toObject();
-    QJsonArray projson;// 属性
+  //  QJsonObject json =  QJsonValue::fromVariant(property(DKEY_JSONSTR)).toObject();
+    QJsonObject json =  mOwerJson;
+   // QJsonArray projson;// 属性
 
-    projson = dynValues[DKEY_DYN].toArray();
+ //   projson = dynValues[DKEY_DYN].toArray();
+  //  projson = mOwerJson[PROPERTY].toArray();
 
     json[NAME] = objectName();
-    json[PROPERTY] = updateRBJsonValue(projson,(QWidget*)this);
-    dynValues[DKEY_DYN] = projson;
+    json[PROPERTY] = updateRBJsonValue(mOwerJson[PROPERTY].toArray(),(QWidget*)this);
+   // dynValues[DKEY_DYN] = projson;
+   // mOwerJson[PROPERTY] = projson;
     json[CAPTION] = this->property(DKEY_TXT).toString();
     return json;
 }
@@ -1255,14 +1236,18 @@ NewGrid::NewGrid(const QJsonValue &qv,
     mbkColor = "#FFE4C4";
     updateStyleSheets();
 
-    setProperty(DKEY_JSONSTR,qv );
-    if(qv.toObject().contains(PROPERTY))
-    {
-        QVariant variant = qv.toObject()[PROPERTY].toVariant();
-        this->copyProperty(variant);
-        this->setProperty(DKEY_DYN,variant);
-        this->initJsonValue();
-    }
+   //setProperty(DKEY_JSONSTR,qv );
+    mOwerJson = qv.toObject();
+    this->initJsonValue();
+
+//    if(qv.toObject().contains(PROPERTY))
+//    {
+//        QVariant variant = qv.toObject()[PROPERTY].toVariant();
+//        this->copyProperty(variant);
+//      //  this->setProperty(DKEY_DYN,variant);
+//        mPropertyJson = qv.toObject()[PROPERTY];
+//        this->initJsonValue();
+//    }
 
     menuAddRow =  new QAction(QIcon(":/icon/icons/addtab.png"),"添加行",this);
     connect(menuAddRow,SIGNAL(triggered(bool)),SLOT(onAddOneRow()));
@@ -1484,7 +1469,8 @@ void NewGrid::readFromJson(const QJsonValue &value)
 QJsonObject NewGrid::writeToJson()
 {
     QJsonArray layoutarr;
-    QJsonObject json = QJsonValue::fromVariant(property(DKEY_JSONSTR)).toObject();
+    //QJsonObject json = QJsonValue::fromVariant(property(DKEY_JSONSTR)).toObject();
+    QJsonObject json = mOwerJson;
 
     foreach (QWidget *w, childlist) {
         QJsonObject outjson =  QJsonValue::fromVariant(w->property(DKEY_JSONSTR)).toObject();
@@ -1506,8 +1492,9 @@ QJsonObject NewGrid::writeToJson()
     json[HEIGHT] = itemSize.height();
 
 
-    QJsonArray projson = dynValues[DKEY_DYN].toArray();
-    json[PROPERTY] = updateRBJsonValue(projson,this);;
+   // QJsonArray projson = dynValues[DKEY_DYN].toArray();
+
+    json[PROPERTY] = updateRBJsonValue(json[PROPERTY].toArray(),this);;
     return json;
 }
 
@@ -1784,7 +1771,8 @@ bool NewList::eventFilter(QObject *obj, QEvent *event)
 QJsonObject NewList::writeToJson()
 {
     QJsonArray layoutarr;
-    QJsonObject json = QJsonValue::fromVariant(property(DKEY_JSONSTR)).toObject();
+  //  QJsonObject json = QJsonValue::fromVariant(property(DKEY_JSONSTR)).toObject();
+    QJsonObject json = mOwerJson;
 
     foreach (QWidget *w, childlist) {
         QJsonObject outjson =  QJsonValue::fromVariant(w->property(DKEY_JSONSTR)).toObject();
@@ -1806,8 +1794,8 @@ QJsonObject NewList::writeToJson()
     json[LISTWIDGET] = layoutarr;
     json[ITEMSPACE] = listLayout->spacing();
     json[ITEMSIZE] = itemHeight;
-    QJsonArray projson = dynValues[DKEY_DYN].toArray();
-    json[PROPERTY] = updateRBJsonValue(projson,this);;
+  //  QJsonArray projson = dynValues[DKEY_DYN].toArray();
+    json[PROPERTY] = updateRBJsonValue(json[PROPERTY].toArray(),this);;
     return json;
 }
 
@@ -2134,7 +2122,8 @@ QJsonObject NewLayout::writeToJson()
 
     QJsonArray layoutarr;
     //  qDebug() << "NewLayout  parent object " << &json;
-    QJsonObject json = QJsonValue::fromVariant(property(DKEY_JSONSTR)).toObject();
+//    QJsonObject json = QJsonValue::fromVariant(property(DKEY_JSONSTR)).toObject();.
+    QJsonObject json = mOwerJson;
     foreach (QWidget *w, childlist) {
         QJsonObject outjson = QJsonValue::fromVariant( w->property(DKEY_JSONSTR)).toObject();
        // outjson[NAME] = w->objectName();
@@ -2148,8 +2137,8 @@ QJsonObject NewLayout::writeToJson()
     json[LAYOUT] = layoutarr;
     json[NAME] = objectName();
     json[CAPTION] = this->property(DKEY_TXT).toString();
-    QJsonArray projson = dynValues[DKEY_DYN].toArray();
-    json[PROPERTY] =  updateRBJsonValue(projson,this);
+    //QJsonArray projson = dynValues[DKEY_DYN].toArray();
+    json[PROPERTY] =  updateRBJsonValue(json[PROPERTY].toArray(),this);
     return json;
 }
 
@@ -2175,12 +2164,15 @@ void NewLayout::readFromJson(const QJsonValue &qv,bool flag)
     {
       NewList *nlist = new NewList(qv,oldrect.size(),m_frame);
       nlist->mCreateFlag = flag;
-      if(valobj.contains(PROPERTY))
-      {
-          nlist->copyProperty(variant);
-          nlist->setProperty(DKEY_DYN,variant);
-          nlist->initJsonValue();
-      }
+      nlist->mOwerJson = qv.toObject();
+      nlist->initJsonValue();
+//      if(valobj.contains(PROPERTY))
+//      {
+//          nlist->copyProperty(variant);
+//          mPropertyJson = valobj[PROPERTY];
+//       //   nlist->setProperty(DKEY_DYN,variant);
+//          nlist->initJsonValue();
+//      }
       nlist->setGeometry(oldrect);
       mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),nlist);
       childlist.append(nlist);
@@ -2328,17 +2320,17 @@ QWidget* NewLayout::createObjectFromJson(const QJsonValue &qv)
     QJsonObject json = qv.toObject();
     QString caption = json[CAPTION].toString();
     NewFrame *newFrame = new NewFrame(caption,m_frame);
-    newFrame->setProperty(DKEY_JSONSTR,qv);
-    QVariant variant = json.value(PROPERTY).toVariant();
+   // newFrame->setProperty(DKEY_JSONSTR,qv);
+    newFrame->mOwerJson = qv.toObject();
+    newFrame->initJsonValue();
+//    QVariant variant = json.value(PROPERTY).toVariant();
     newFrame->setProperty(DKEY_TYPE,json[WTYPE].toString());
-    if(json.contains(PROPERTY))
-    {
-        // QJsonObject vp =QJsonObject::fromVariantMap(qvm[PROPERTY]);
-
-        newFrame->copyProperty(variant);
-        newFrame->setProperty(DKEY_DYN,variant);
-        newFrame->initJsonValue();
-    }
+//    if(json.contains(PROPERTY))
+//    {
+//        newFrame->copyProperty(variant);
+//        newFrame->setProperty(DKEY_DYN,variant);
+//        newFrame->initJsonValue();
+//    }
     QRect rect = Compoent::getRectFromStruct(json[PROPERTY].toArray(),KEY_RECT);
 
  //   newlayout->setProperty(DKEY_LOCALSEQ,caption);
@@ -2441,7 +2433,8 @@ void NewLayer::onDeleteMe()
 QJsonObject  NewLayer::writeToJson()
 {
     QJsonArray layoutarr;
-    QJsonObject json =QJsonValue::fromVariant(this->property(DKEY_JSONSTR)).toObject();
+  //  QJsonObject json =QJsonValue::fromVariant(this->property(DKEY_JSONSTR)).toObject();
+    QJsonObject json = mOwerJson;
     foreach (QWidget *w, childlist) {
         layoutarr.append(((NewLayout*)w)->writeToJson());
     }
@@ -2449,8 +2442,8 @@ QJsonObject  NewLayer::writeToJson()
     //json[CAPTION] = this->property(DKEY_LOCALSEQ).toString();
     json[CAPTION] = this->property(DKEY_TXT).toString();
     json[LAYOUT] = layoutarr;
-    QJsonArray proterty = dynValues[DKEY_DYN].toArray();
-    json[PROPERTY] = updateRBJsonValue(proterty,this);
+    //QJsonArray proterty = dynValues[DKEY_DYN].toArray();
+    json[PROPERTY] = updateRBJsonValue(json[PROPERTY].toArray(),this);
     return json;
 }
 

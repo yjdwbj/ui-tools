@@ -53,12 +53,7 @@ class Border: public QGroupBox
     Q_OBJECT
 public:
     explicit Border(QWidget *parent=0);
-
-    //QGroupBox *CreateXYWHGBox(QWidget *p);
-
     void setConnectNewQWidget(QWidget *com);
-//    void updateBorder(QPoint pos);
-//    void updateSize(QSize size);
     void resetValues();
 private:
     QSpinBox *Left,*Top,*Right,*Bottom; // left,top ,right,bottom
@@ -78,6 +73,19 @@ public:
     void setNewObject(QWidget *);
     void addNewTab();
     void deleteTab();
+
+    QWidget *mOwerObj; // 拥有这个属性的对像.
+
+
+
+    enum TabHandle { Append, Insert,Delete };
+
+
+protected:
+    void mousePressEvent(QMouseEvent *event);
+
+private:
+    QJsonArray handleCSSProperty(TabHandle  handle);
 };
 
 
@@ -88,6 +96,7 @@ public:
     explicit BaseProperty(QWidget *parent=0);
     void parseJsonToWidget(QWidget *p, const QJsonArray &array);
     QVBoxLayout* mainLayout;
+
 };
 
 class CssProperty: public BaseProperty
@@ -96,6 +105,7 @@ class CssProperty: public BaseProperty
 public:
     explicit CssProperty(QWidget *parent=0);
 //    QVBoxLayout* mainLayout;
+
 };
 
 class ComProperty: public BaseProperty
@@ -106,13 +116,11 @@ public:
     ~ComProperty(){}
 
     void createPropertyBox(QWidget *p);
-   // void parseJsonToWidget(QWidget *p, const QVariantList &qvl, QLayout *layout);
-
-   // void parseJsonToWidget(QWidget *p, const QJsonArray &array);
-   // void parseJsonToWidget(QWidget *p, const QJsonObject &array, QLayout *layout);
     void delPropertyBox();
     void updateImageComboBox(QString key, int index, const QStringList &list);
     QWidget* getPropertyObject(QString key) const { return widgetMap.value(key);}
+
+    Position *posWidget;// 只有第一个可以与控件互动.
 
 
 
@@ -152,9 +160,6 @@ private:
      QWidget *mainWidget;
      QString mJsonFile;
      QWidgetList comList;
-
-
-
 
      void CreateButtonList(const QJsonArray &comJsonArr);
      QWidget *createCustomObject(const QJsonArray &comJsonArr);

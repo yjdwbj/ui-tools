@@ -62,6 +62,7 @@ static QString PLUGIN = "plugin";
 static QString PIC_TEXT = "text-pic";
 static QString MLANG = "language";
 static QString ISTRUE = "disable";
+static const QString  PROPERTYTAB = "PropertyTab";
 
 static QString  QRIENTATION= "orientation";
 static QString  HORIZONTAL = "Horizontal";

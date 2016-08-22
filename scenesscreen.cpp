@@ -119,15 +119,15 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv,bool createflag)
     nlayer->setGeometry(oldrect);
     LayerList.append(nlayer);
     //mActiveLaySeq = LayerList.size() - 1;
-
-    if(json.contains(PROPERTY))
-    {
-        QVariant variant = json.value(PROPERTY).toVariant();
-        nlayer->copyProperty(variant);
-        nlayer->setProperty(DKEY_DYN,variant);
-        nlayer->initJsonValue();
-
-    }
+    nlayer->mOwerJson = qv.toObject();
+    nlayer->initJsonValue();
+//    if(json.contains(PROPERTY))
+//    {
+//        QVariant variant = json.value(PROPERTY).toVariant();
+//        nlayer->copyProperty(variant);
+//        nlayer->setProperty(DKEY_DYN,variant);
+//        nlayer->initJsonValue();
+//    }
 
     nlayer->onSelectMe();
     nlayer->updateStyleSheets();

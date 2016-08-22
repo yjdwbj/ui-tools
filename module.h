@@ -51,7 +51,8 @@ public:
 
      QRect getRectFromJson(const QJsonObject &json) const;
 
-    QJsonObject dynValues;
+   // QJsonObject dynValues;
+     QJsonObject mOwerJson;
 };
 
 
@@ -92,6 +93,8 @@ public:
 
     NewLayout *CreateNewLayout(const QJsonValue &qv,
                                QWidget *parent, bool isCreate);
+
+    QJsonValue mPropertyJson;
 
 
 
