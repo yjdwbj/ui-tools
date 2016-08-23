@@ -37,15 +37,16 @@ public:
      void copyProperty(const QVariant &va);
      static QVariant getJsonValue(const QJsonArray &arr,QString key);
      QVariant getJsonValue(QString key) const;
-     void changeJsonValue(QString key, QVariant val);
+     void changeJsonValue(QString key, const QVariant &val);
      QJsonValue changeJsonValue( const QJsonArray &json,QString key,
                                     const QVariant &val);
+     void changeJsonValue(QWidget *w, QString key, const QVariant &val);
 
      QJsonArray updateRBJsonValue(const QJsonArray &json,QWidget *w); // 更新UID,RECT,BORDER三个属性
 
     void updateJsonArray(QString key,const QJsonArray &arr);
     static QJsonObject getValueFromProperty(const QJsonArray &arr,const QString &key);
-
+    static QVariant getJsonValue(const QJsonValue &val, QString key);
     static QRect getRectFromStruct(const QJsonArray &arr, QString key) ;
 
 
@@ -195,7 +196,7 @@ public slots:
     void onDeleteMe();
 protected:
     void clearOtherObjectStyleSheet();
-    void mouseMoveEvent(QMouseEvent *event);
+    //void mouseMoveEvent(QMouseEvent *event);
 };
 
 
@@ -285,7 +286,7 @@ public slots:
       void onAddManyLine();
       void onSetFixedHeight();
       void onDeleteMe();
-      void onTextChanged(QString str);
+     // void onTextChanged(QString str);
 
 protected:
     //void mouseMoveEvent(QMouseEvent *event);

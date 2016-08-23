@@ -132,6 +132,7 @@ class ImageListView : public QDialog
     Q_OBJECT
 public:
     explicit ImageListView(QString path = QDir::currentPath(),QWidget *parent = 0);
+     QListWidget *imglist;
 private:
 
     void updateListImages(QString path);
@@ -140,7 +141,7 @@ private:
 //    QMap<QString,QString> imgMap;
     QVariantMap imgMap;
     QTreeView *treefile;
-    QListWidget *imglist;
+
     QStringList filters;
 private slots:
     void onTreeViewClicked(QModelIndex );

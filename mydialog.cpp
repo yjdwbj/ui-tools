@@ -673,7 +673,7 @@ void ImageListView::updateListImages(QString path)
 void ImageListView::onTreeViewClicked(QModelIndex index)
 {
     QString mPath = treeModel->fileInfo(index).absoluteFilePath();
-    qDebug() << " DirModel AbsoluteFile Path " << mPath;
+  //  qDebug() << " DirModel AbsoluteFile Path " << mPath;
    // imglist->setRootIndex(fileModel->setRootPath(mPath));
     updateListImages(mPath);
 

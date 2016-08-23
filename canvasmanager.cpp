@@ -280,7 +280,7 @@ void CanvasManager::onCreateNewScenesScreen()
     delPage->setEnabled(true);
     mWindow->propertyWidget->delPropertyBox();
    // mWindow->imgPropertyWidget->delPropertyBox();
-    mWindow->posWidget->resetValues();
+    //mWindow->posWidget->resetValues();
 }
 
 

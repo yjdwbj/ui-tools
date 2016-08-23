@@ -59,7 +59,8 @@ MainWindow::MainWindow(QWidget *parent) :
     setCentralWidget(bk);
    // lDock = ui->dockWidget;
     cManager = new CanvasManager(this);
-     posWidget = new Position(this);
+    // posWidget = new Position(this);
+      posWidget = 0;
     propertyWidget = new ComProperty("控件属性",this) ;
     //imgPropertyWidget = new ComProperty("图片属性",this);
 
@@ -99,7 +100,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ComCtrl = new  CompoentControls(this,lDock);
     leftLayout->addWidget(ComCtrl);
 
-    leftLayout->addWidget(posWidget);
+   // leftLayout->addWidget(posWidget);
 
     leftLayout->addWidget(propertyWidget);
     //leftLayout->addWidget(imgPropertyWidget);

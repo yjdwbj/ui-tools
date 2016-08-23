@@ -102,10 +102,13 @@ static const char DKEY_COLOR[] = "btncolor";
 static const char DKEY_BORDER_COLOR[] = "border_color";
 static const char DKEY_IMGMAP[] = "bkimage_map";
 static const char DKEY_EXTMAP[] = "extendMap";
+static const char DKEY_ARRIDX[] = "arrayIndex";
+static const char DKEY_PARRIDX[] = "parentArrayIndex";
 //static const char DKEY_ROW[] = "rowProperty";
 static const char DKEY_TYPE[] = "DKtypeID";
 static const char DKEY_CURVAL[] = "CurrentProperty";
 static const char DKEY_EVT_TIME[] = "EventTimestamp";
+static const char DKEY_OWERJSON[] = "OwerJsonClassName";
 //static const char DKEY_PARENTPOS[] = "ParentPos";
 
 static const char DKEY_ROW[] = "gridrow";
