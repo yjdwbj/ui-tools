@@ -116,7 +116,7 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv,bool createflag)
     nlayer->mCreateFlag = createflag;
     nlayer->setProperty(DKEY_JSONSTR,qv);
     nlayer->setProperty(DKEY_TYPE, json[WTYPE].toString());
-    nlayer->setGeometry(oldrect);
+   // nlayer->setGeometry(oldrect);
     LayerList.append(nlayer);
     //mActiveLaySeq = LayerList.size() - 1;
     nlayer->mOwerJson = qv.toObject();

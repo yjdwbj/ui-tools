@@ -73,6 +73,7 @@ public:
     QString mBorderColor;
     QString mbkColor;
     QString mbkImage;
+    Position *posWidget;
     bool mCreateFlag; // 区分这是从原始模版读取的,还是工程读取
 
 
@@ -335,9 +336,9 @@ public slots:
     void onDeleteMe();
     void onBeComeTemplateWidget();
 
-protected:
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
+//protected:
+//    void mouseMoveEvent(QMouseEvent *event) override;
+//    void mouseReleaseEvent(QMouseEvent *event) override;
 };
 
 

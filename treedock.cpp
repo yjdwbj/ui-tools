@@ -3,6 +3,7 @@
 #include "mainwindow.h"
 #include <QMetaObject>
 #include <QMetaProperty>
+#include <QApplication>
 #include "formresizer.h"
 #include "scenesscreen.h"
 #include "canvasmanager.h"
@@ -131,7 +132,6 @@ void TreeDock::setSelectTreeItem(QWidget *obj)
            break;
        }
     }
-      //  treeWidget->setCurrentItem(it);
 }
 
 
@@ -215,12 +215,16 @@ void TreeDock::setMyParentNode()
 
     if(citem)
     {
+        QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonPress,QCursor::pos(),
+                          Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
         QTreeWidgetItem *item= citem->parent();
         if(item)
         {
             QWidget *w = mWindow->ComCtrl->ProMap[item->text(0)];
-            mWindow->cManager->activeSS()->setSelectObject((FormResizer*)w);
+            //mWindow->cManager->activeSS()->setSelectObject((FormResizer*)w);
+           // ((FormResizer*)w)->onSelectMe();
 
+            QApplication::postEvent(w,event);
         }
         else if(!CN_NEWLAYER.compare(citem->text(1)))
         {
@@ -230,7 +234,9 @@ void TreeDock::setMyParentNode()
             if(qwilist.count())
             {
                 QWidget *w = mWindow->ComCtrl->ProMap[qwilist.last()->text(0)];
-                mWindow->cManager->activeSS()->setSelectObject((FormResizer*)w);
+               // mWindow->cManager->activeSS()->setSelectObject((FormResizer*)w);
+               // ((FormResizer*)w)->onSelectMe();
+                QApplication::postEvent(w,event);
             }
         }
     }

@@ -646,8 +646,8 @@ ImageListView::ImageListView(QString path, QWidget *parent)
     updateListImages(path);
     treefile->setFixedWidth(160);
     connect(treefile,SIGNAL(clicked(QModelIndex)),SLOT(onTreeViewClicked(QModelIndex)));
-    connect(imglist,SIGNAL(itemDoubleClicked(QListWidgetItem*)),
-            parent,SLOT(onSelectedBackgroundImage(QListWidgetItem*)));
+//    connect(imglist,SIGNAL(itemDoubleClicked(QListWidgetItem*)),
+//            parent,SLOT(onSelectedBackgroundImage(QListWidgetItem*)));
 
 }
 

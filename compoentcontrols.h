@@ -38,7 +38,7 @@ public:
 
     void setConnectNewQWidget(QWidget *com);
     void updatePosition(QWidget *w);
-    void updateSize(QSize size);
+    void updateSize(QWidget *w);
     void updateMaxSize(QSize size);
     void resetValues();
 private:
@@ -120,7 +120,7 @@ public:
     void updateImageComboBox(QString key, int index, const QStringList &list);
     QWidget* getPropertyObject(QString key) const { return widgetMap.value(key);}
 
-    Position *posWidget;// 只有第一个可以与控件互动.
+    //Position *posWidget;// 只有第一个可以与控件互动.
 
 
 
