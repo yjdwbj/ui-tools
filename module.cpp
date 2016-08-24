@@ -1183,17 +1183,8 @@ NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,
     newlayout->setProperty(DKEY_TYPE, valobj[WTYPE].toString());
   //  newlayout->setProperty(DKEY_JSONSTR,qv);
     newlayout->mOwerJson = qv.toObject();
-    //newlayout->initJsonValue();
-//    if(valobj.contains(PROPERTY))
-//    {
-//        newlayout->copyProperty(variant);
-//        newlayout->setProperty(DKEY_DYN,variant);
-//        newlayout->initJsonValue();
-//    }
-
-    newlayout->setGeometry(oldrect);
-    newlayout->resize(oldrect.size());
-
+    //newlayout->setGeometry(oldrect);
+    //newlayout->resize(oldrect.size());
     mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),newlayout);
 
     newlayout->onSelectMe();
@@ -1258,44 +1249,18 @@ void NewFrame::readFromJson(const QJsonValue &qv)
     QString caption = json[CAPTION].toString();
     qDebug() << " read from json caption is " << caption;
     QVariant variant = json[PROPERTY].toVariant();
-
 }
 
 
 QJsonObject NewFrame::writeToJson()
 {
-
-  //  QJsonObject json =  QJsonValue::fromVariant(property(DKEY_JSONSTR)).toObject();
     QJsonObject json =  mOwerJson;
    // QJsonArray projson;// 属性
-
- //   projson = dynValues[DKEY_DYN].toArray();
-  //  projson = mOwerJson[PROPERTY].toArray();
-
     json[NAME] = objectName();
-   // json[PROPERTY] = updateRBJsonValue(mOwerJson[PROPERTY].toArray(),(QWidget*)this);
     json[PROPERTY] = mOwerJson[PROPERTY];
-   // dynValues[DKEY_DYN] = projson;
-   // mOwerJson[PROPERTY] = projson;
     json[CAPTION] = this->property(DKEY_TXT).toString();
     return json;
 }
-
-
-//void NewFrame::mouseMoveEvent(QMouseEvent *event)
-//{
-
-//    if (event->buttons() & Qt::LeftButton)
-//    {
-//        //NewFrame *p =(NewFrame*)(this->parentWidget());
-
-//       move( pos() + (event->pos() - mOffset));
-//        /* 把新的位置更新到右边属性框 */
-//        mWindow->posWidget->updatePosition(this);
-//       this->blockSignals(true);
-//    }
-
-//}
 
 
 
@@ -1354,16 +1319,6 @@ NewGrid::NewGrid(const QJsonValue &qv,
 
    //setProperty(DKEY_JSONSTR,qv );
     mOwerJson = qv.toObject();
-  //  this->initJsonValue();
-
-//    if(qv.toObject().contains(PROPERTY))
-//    {
-//        QVariant variant = qv.toObject()[PROPERTY].toVariant();
-//        this->copyProperty(variant);
-//      //  this->setProperty(DKEY_DYN,variant);
-//        mPropertyJson = qv.toObject()[PROPERTY];
-//        this->initJsonValue();
-//    }
 
     menuAddRow =  new QAction(QIcon(":/icon/icons/addtab.png"),"添加行",this);
     connect(menuAddRow,SIGNAL(triggered(bool)),SLOT(onAddOneRow()));
@@ -2424,15 +2379,8 @@ QWidget* NewLayout::createObjectFromJson(const QJsonValue &qv)
     NewFrame *newFrame = new NewFrame(caption,m_frame);
    // newFrame->setProperty(DKEY_JSONSTR,qv);
     newFrame->mOwerJson = qv.toObject();
-   // newFrame->initJsonValue();
-//    QVariant variant = json.value(PROPERTY).toVariant();
     newFrame->setProperty(DKEY_TYPE,json[WTYPE].toString());
-   // QRect rect = Compoent::getRectFromStruct(json[PROPERTY].toArray(),KEY_RECT);
-
- //   newlayout->setProperty(DKEY_LOCALSEQ,caption);
     newFrame->setProperty(DKEY_TXT,caption);
-  //  newFrame->setGeometry(rect);
-    //newFrame->addMainWindow(mWindow);
     childlist.append(newFrame);
     mWindow->tree->addObjectToCurrentItem(property(DKEY_LOCALSEQ).toString(),newFrame);
 

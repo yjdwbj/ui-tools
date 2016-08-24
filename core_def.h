@@ -121,6 +121,7 @@ static const QString CN_NEWLABEL = "NewLabel";
 static const QString CN_NEWLAYER = "NewLayer";
 static const QString CN_NEWLIST = "NewList";
 static const QString CN_NEWGRID = "NewGrid";
+static const QString CN_NEWPAGE = "NewPage";
 //static const QString CN_LAYER = "Layer";
 //static const QString CN_LAYOUT = "Layout";
 static const QString CN_SSNAME = "ScenesScreen";

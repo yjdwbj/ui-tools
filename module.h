@@ -128,60 +128,6 @@ protected:
 
 };
 
-
-
-//class NewLabel :public QLabel,public Compoent
-//{
-//   // friend class PropertyBox;
-//    friend class ComProperty;
-//    friend class ImgProperty;
-//    Q_OBJECT
-//signals:
-//    void Clicked();
-//public:
-//    NewLabel(QWidget *parent=0);
-//    //void createPropertyBox();
-//    void addPropertyBoxSignal(QSpinBox *b);
-//    void updatePixmap(QString imgpath);
-//    void updateComboItems(QComboBox *cb);
-//    void writeToJson(QJsonObject &json);
-
-//    QString *defaultImg;
-//    MainWindow *mWindow;
-
-
-
-//protected:
-//    void mousePressEvent(QMouseEvent *event) ;
-//    void mouseReleaseEvent(QMouseEvent *ev);
-//    void mouseDoubleClickEvent(QMouseEvent *event);
-//    void mouseMoveEvent(QMouseEvent *event);
-//    QWidget* getQWidgetByName(QString name) const;
-//    QGroupBox* CreateXYWHGBox(QWidget *p);
-//    void removeWidFromLayout(QLayout* layout);
-//    void clearOtherObjectStyleSheet();
-//  //  void onBindValue(QWidget *w,const QVariant &val);
-
-//private slots:
-
-//   // void onPictureDialog(bool );
-//    void onXYWHChangedValue(int);
-//    void onListImageChanged(QString);
-//    void onTextChanged(QString);
-//    void onNumberChanged(int num);
-//    void onEnumItemChanged(QString txt);
-
-//private:
-//    void UpdateXYWHPos();
-//    QPoint mOffset;
-
-//    QStringList myImageList;
-//    int selIndex; /* 选中的当前的图片号 */
-//    bool disDefaultList; /* 屏闭默认的图片列表　*/
-
-//};
-
-//class NewFrame :public FormResizer,public Compoent
 class NewFrame :public BaseForm
 {
     Q_OBJECT
@@ -239,9 +185,6 @@ public slots:
 
 
 private:
-
-
-
     int rowH,rowW;  //行高行宽
     int colH,colW;  //列高列宽
 
@@ -358,6 +301,20 @@ public slots:
 
 private:
     void clearOtherObjectStyleSheet();
+};
+
+
+// 场景下面放页面,页面下面放图层,图层下面放布局,布局下面放控件.
+class NewPage : public BaseForm
+{
+    Q_OBJECT
+public:
+    explicit NewPage(QString caption, QSize nsize, QWidget *parent=0);
+    void readLayoutFromJson(const QJsonValue &qv, bool flag);
+    QJsonObject  writeToJson() ;
+
+public slots:
+    void onDeleteMe();
 };
 
 #endif // MODULE_H
