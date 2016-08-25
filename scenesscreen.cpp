@@ -8,7 +8,6 @@
 
 ScenesScreen::ScenesScreen(QSize size, QWidget *parent)
     : QFrame(parent),
-      mWindow((MainWindow*)parent),
       activeObj(0)
 {
     setObjectName("PageScreen");
@@ -291,7 +290,7 @@ void ScenesScreen::pasteItem(QWidget *w)
 
         }else if(!cls.compare(CN_NEWFRAME) ||
                  !cls.compare(CN_NEWGRID) ||
-                 !cls.compare(CN_NEWLIST))
+                 !cls.compare(CN_NEWLIST) )
         {
 
             if(curtype != BaseForm::TYPELAYOUT)

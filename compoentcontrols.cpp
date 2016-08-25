@@ -915,7 +915,7 @@ QJsonArray CompoentControls::ReadTemplateWidgetFile(QString file) const
         QString dd(qba);
         dd.replace("//","/");
         QJsonParseError json_error;
-        QJsonDocument qd = QJsonDocument::fromJson(dd.toLocal8Bit(),&json_error);
+        QJsonDocument qd = QJsonDocument::fromJson(dd.toUtf8(),&json_error);
         if(json_error.error == QJsonParseError::NoError)
         {
             if(qd.isObject())
@@ -927,7 +927,8 @@ QJsonArray CompoentControls::ReadTemplateWidgetFile(QString file) const
             }
         }else{
              QMessageBox::warning(0,tr("错误"),
-             QString("读取控件文件遇到错误<%1>,请查看检查文件<%2> 格式.").arg(json_error.errorString(),
+             QString("读取控件文件遇到错误<%1> 偏移<%2>,请查看检查文件<%3> 格式.").arg(json_error.errorString(),
+                                                                                QString::number(json_error.offset),
                                                                                 file));
         }
     }
@@ -1072,7 +1073,7 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
     comLayout->setHorizontalSpacing(1);
     comLayout->setMargin(1);
     comLayout->setContentsMargins(1,1,1,1);
-#if 0
+#if 1
     QFile fdebug("debug.json");
     fdebug.open(QIODevice::WriteOnly);
     fdebug.write(QJsonDocument(comJsonArr).toJson());
@@ -1093,7 +1094,7 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
         }
         //  qDebug() << " json key is " << uname;
 
-        QPushButton *btnTest = new QPushButton(caption);
+        QPushButton *btnTest = new QPushButton(caption,this);
         btnTest->setProperty(DKEY_CATEGORY,objname);
         btnTest->setProperty(DKEY_JSONSTR,qjv.toVariant()); // 这个按钮绑定这一个JSON控件.
 

@@ -69,7 +69,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setWindowTitle(VERSION);
 
     // 左边属性框
-    lDock = new QDockWidget();
+    lDock = new QDockWidget(this);
    // lDock->setStyleSheet("QWidget{border: 0.5px solid red;}");
     lDock->setEnabled(false);
     lDock->setAllowedAreas( Qt::LeftDockWidgetArea);

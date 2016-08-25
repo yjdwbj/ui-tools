@@ -19,7 +19,7 @@ class ScenesScreen : public QFrame
     friend class Compoentcontrol;
     Q_OBJECT
 public:
-    explicit ScenesScreen(QSize size,QWidget *parent = 0);
+    explicit  ScenesScreen(QSize size,QWidget *parent = 0);
     ~ScenesScreen();
 
 

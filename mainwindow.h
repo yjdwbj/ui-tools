@@ -110,9 +110,6 @@ public:
 private slots:
       void onChangeBackgroud();
       void onDobuleClickedImage(QListWidgetItem *);
-//    void onCreateNewScenesScreen();
-//    void onDelCurrentScenesScreen();
-//    void onCreateNewProject();
 
 private:
     void mousePressEvent(QMouseEvent *ev);

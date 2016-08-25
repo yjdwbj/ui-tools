@@ -1907,15 +1907,6 @@ void NewList::readFromJson(const QJsonValue &qv)
 
 }
 
-//void NewList::onTextChanged(QString str)
-//{
-//    QLineEdit *txt = (QLineEdit *)(QObject::sender());
-
-//    changeJsonValue(txt->objectName(),str);
-//  //  dynValues[txt->objectName()] = str;
-//}
-
-
 
 NewLayout::NewLayout(QString caption, QSize nsize,
                      MainWindow *w, QWidget *parent):
@@ -1993,10 +1984,12 @@ void NewLayout::onDeleteMe()
 
 void NewLayout::onBeComeTemplateWidget()
 {
+    QString widgetdir = mWindow->mGlobalSet->value(INI_PRJCUSTOM).toString();
+    if(widgetdir.isEmpty()) widgetdir = QDir::currentPath() + BACKSLASH + "widgets";
 
-    QDir wdir(mWindow->cManager->mProjectWidgetDir );
-    if(!wdir.exists(mWindow->cManager->mProjectWidgetDir ))
-        wdir.mkdir(mWindow->cManager->mProjectWidgetDir );
+    QDir wdir(widgetdir );
+    if(!wdir.exists(widgetdir))
+        wdir.mkdir(widgetdir);
     QString fpath;
     QString name;
     while(1)
@@ -2024,7 +2017,7 @@ void NewLayout::onBeComeTemplateWidget()
 
         int ret = nWindow->result();
         name = nametxt->text();
-        fpath =mWindow->cManager->mProjectWidgetDir.replace(SLASH,BACKSLASH) + BACKSLASH + name;
+        fpath = widgetdir + BACKSLASH + name;
 
         nWindow->deleteLater();
         if(ret)
@@ -2222,7 +2215,7 @@ void NewLayout::readFromJson(const QJsonValue &qv,bool flag)
          }
     }
     else if(!clsName.compare(CN_NEWFRAME)
-             || !clsName.compare(QFRAME))
+             /*|| !clsName.compare(QFRAME)*/)
     {
         this->createObjectFromJson(qv);
     }

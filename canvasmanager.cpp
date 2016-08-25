@@ -12,12 +12,8 @@
 #include <QTimer>
 
 
-//static int Width  = 480;
-//static int Height  = 320;
-
-
 CanvasManager::CanvasManager(MainWindow *w):
-    mWindow(w),stack(new QStackedLayout),
+    mWindow(w),stack(new QStackedLayout(w)),
     mPageSize(0,0),
     newPrj(new QPushButton(tr("新建工程"))),
     newPage(new QPushButton(tr("新建页面"))),
@@ -25,9 +21,7 @@ CanvasManager::CanvasManager(MainWindow *w):
     savePrj(new QPushButton(tr("保存工程"))),
     confPrj(new QPushButton(tr("工程设置"))),
     mProjectWidgetDir(QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH + "widgets"),
-
     PrjIsChanged(false)
-
 {
     // w->ui->centralWidget;
     newPage->setEnabled(false);
@@ -124,7 +118,7 @@ void CanvasManager::screenshot()
 ScenesScreen * CanvasManager::createNewCanvas()
 {
     screenshot();
-    ScenesScreen *Scenes = new ScenesScreen(mPageSize);
+    ScenesScreen *Scenes = new ScenesScreen(mPageSize,(QWidget*)mWindow);
 
     Scenes->addMainWindow(mWindow);
     Scenes->move(mWindow->width() * 0.12,mWindow->height()* 0.3);  // 按屏幕比例调整
