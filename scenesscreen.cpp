@@ -2,15 +2,14 @@
 #include "module.h"
 #include "canvasmanager.h"
 #include <QColorDialog>
+#include <QKeySequence>
 
 
 
 ScenesScreen::ScenesScreen(QSize size, QWidget *parent)
     : QFrame(parent),
       mWindow((MainWindow*)parent),
-   //   mActiveIdx(-1),
       activeObj(0)
-      //mActiveLaySeq(-1)
 {
     setObjectName("PageScreen");
     setStyleSheet("QFrame#PageScreen{border: 1.5px solid gray;"\
@@ -26,17 +25,31 @@ void ScenesScreen::mousePressEvent(QMouseEvent *event)
     if(event->button() == Qt::RightButton)
         {
             QMenu *contextMenu = new QMenu(this);
-            QAction delme("删除当前页面",this);
+            QAction delme(QIcon(":/icon/icons/removesubmitfield.png"),"删除当前页面",this);
             connect(&delme,&QAction::triggered,[=](){
                 mWindow->cManager->onDelCurrentScenesScreen();
             });
             contextMenu->addAction(&delme);
-            QAction chgcolor("修改背景色",this);
+            QAction chgcolor(QIcon(":/icon/icons/gradient.png"),"修改背景色",this);
             contextMenu->addAction(&chgcolor);
             connect(&chgcolor,SIGNAL(triggered(bool)),SLOT(onChangedBackgroundColor()));
-            QAction chgimg("修改背景图片",this);
+            QAction chgimg(QIcon(":/icon/icons/image-icon.png"),"修改背景图片",this);
             contextMenu->addAction(&chgimg);
             connect(&chgimg,SIGNAL(triggered(bool)),SLOT(onChangedBackgroundImage()));
+
+            contextMenu->addSeparator();
+            QAction copy(QIcon(":/icon/icons/editcopy.png"),"复制",this);
+            connect(&copy,&QAction::triggered,[=](){
+               mWindow->mCopyItem = QJsonValue(writeToJson());
+            });
+
+            QAction paste(QIcon(":/icon/icons/editpaste.png"),"粘贴",this);
+            connect(&paste,&QAction::triggered,[=](){
+               mWindow->cManager->activeSS()->pasteItem(this);
+            });
+            contextMenu->addAction(&copy);
+            paste.setEnabled(!mWindow->mCopyItem.isNull());
+            contextMenu->addAction(&paste);
 
             contextMenu->exec(mapToGlobal(event->pos()));
         }
@@ -116,7 +129,6 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv,bool createflag)
     nlayer->mCreateFlag = createflag;
     nlayer->setProperty(DKEY_JSONSTR,qv);
     nlayer->setProperty(DKEY_TYPE, json[WTYPE].toString());
-   // nlayer->setGeometry(oldrect);
     LayerList.append(nlayer);
     //mActiveLaySeq = LayerList.size() - 1;
     nlayer->mOwerJson = qv.toObject();
@@ -139,7 +151,6 @@ void ScenesScreen::readLayer(const QJsonArray &array)
         case QJsonValue::Object:
         {
              NewLayer *nlayer = createNewLayer(val,false);
-
              foreach (QJsonValue layout, val.toObject()[LAYOUT].toArray()) {
                  //nlayer->readFromJson(layout.toObject());
                  // 这里一定读取工程和读取自定义控件才会有的,给他一个
@@ -178,8 +189,9 @@ void ScenesScreen::delAllObjects()
 {
     foreach (QWidget *w, LayerList) {
         // 这里递归删每一个新建的控件
-        QString cname = w->metaObject()->className();
-        if(!CN_NEWLAYOUT.compare(cname))
+      //  QString cname = w->metaObject()->className();
+        if(((BaseForm*)w)->mType == BaseForm::TYPELAYOUT)
+     //   if(!CN_NEWLAYOUT.compare(cname))
         {
             ((NewLayout*)w)->DeleteMe();
         }
@@ -195,12 +207,15 @@ void ScenesScreen::delAllObjects()
 void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
 {
 
+
+    qDebug() << " keyevent " << s;
     // 处理一些鼠标事件.
     if(activeObj)
     {
         BaseForm *bf = (BaseForm*)activeObj;
         QPoint mpos = bf->pos();
         switch (s->key()) {
+
         case Qt::Key_Delete:
 
             bf->onDeleteMe();
@@ -225,6 +240,71 @@ void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
         default:
             break;
         }
+
+        if(s->matches(QKeySequence::Copy))
+        {
+
+            //mCopyItem = bf->mUniqueStr;
+            mWindow->mCopyItem =  QJsonValue(bf->writeToJson());
+            qDebug() << "copy active object" << mWindow->mCopyItem;
+        }else if(s->matches(QKeySequence::Paste))
+        {
+            pasteItem(bf);
+
+        }
+    }
+
+}
+
+
+void ScenesScreen::pasteItem(QWidget *w)
+{
+    BaseForm *bf = (BaseForm*)w;
+    if(!mWindow->mCopyItem.isNull())
+    {
+        //QString curobj = bf->metaObject()->className();
+        BaseForm::ObjType curtype = bf->mType;
+        QString cls =  mWindow->mCopyItem.toObject()[CLASS].toString();
+
+        if(!cls.compare(CN_NEWLAYER))
+        {
+            // 复制到同级.
+            QJsonArray a;
+            a.append(mWindow->mCopyItem);
+            readLayer(a);
+
+        }else if(!cls.compare(CN_NEWLAYOUT)){
+            if( curtype == BaseForm::TYPELAYOUT)
+            {
+                NewLayout* bflayout = (NewLayout*)bf;
+                bflayout->readFromJson(mWindow->mCopyItem,true);
+            }
+            else if (curtype == BaseForm::TYPELAYER)
+            {
+                NewLayer *layer = (NewLayer *)bf;
+                layer->readLayoutFromJson(mWindow->mCopyItem,true);
+
+            }else{
+                NewLayout* bflayout = (NewLayout*)(bf->parentWidget());
+                bflayout->readFromJson(mWindow->mCopyItem,true);
+            }
+
+        }else if(!cls.compare(CN_NEWFRAME) ||
+                 !cls.compare(CN_NEWGRID) ||
+                 !cls.compare(CN_NEWLIST))
+        {
+
+            if(curtype != BaseForm::TYPELAYOUT)
+            {
+                // 不能复制到当前对像上,请重新选择LAYOUT.
+                QMessageBox::warning(this,"提示","当前的选中的对像不支持剪切板里的对像粘贴,请选择一个<布局>对像.");
+            }else
+            {
+                NewLayout* bflayout = (NewLayout*)bf;
+                bflayout->readFromJson(mWindow->mCopyItem,true);
+            }
+        }
+
     }
 
 }

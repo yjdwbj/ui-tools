@@ -32,5 +32,15 @@
         <file>icons/buildstepmovedown@2x.png</file>
         <file>icons/next@2x.png</file>
         <file>icons/prev@2x.png</file>
+        <file>icons/editpaste.png</file>
+        <file>icons/editcut.png</file>
+        <file>icons/editcopy.png</file>
+        <file>icons/eye_open@2x.png</file>
+        <file>icons/eye_closed@2x.png</file>
+        <file>icons/preferences-system.png</file>
+        <file>icons/canvas-diagram.png</file>
+        <file>icons/category_vcs.png</file>
+        <file>icons/image-icon.png</file>
+        <file>icons/gradient.png</file>
     </qresource>
 </RCC>

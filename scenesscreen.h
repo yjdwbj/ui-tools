@@ -5,6 +5,7 @@
 #include <QWidget>
 #include <QFrame>
 #include <QListWidgetItem>
+#include <QJsonValue>
 
 //#include "mainwindow.h"
 class MainWindow;
@@ -35,6 +36,8 @@ public:
    // void delSelectedLayer();
     void readLayer(const QJsonArray &array);
 
+    void pasteItem(QWidget *w);
+
 
     QJsonObject writeToJson();
 
@@ -43,6 +46,9 @@ public:
     //QWidgetList LayoutList;
     QWidgetList LayerList;
     MainWindow* mWindow;
+
+    //QString mCopyItem;
+
 
 
 signals:

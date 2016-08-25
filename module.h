@@ -64,6 +64,14 @@ class BaseForm: public FormResizer,public Compoent
 {
     Q_OBJECT
 public:
+    enum ObjType {
+        TYPELAYER =  0x0,
+        TYPELAYOUT = 0x1,
+        TYPEFRAME = 0x2,
+        TYPELIST = 0x3,
+        TYPEGRID = 0x4,
+        Object = 0x5
+    };
     explicit BaseForm(QWidget *parent=0);
     MainWindow *mWindow;
     QRect mBorder;
@@ -75,6 +83,8 @@ public:
     QString mbkImage;
     Position *posWidget;
     bool mCreateFlag; // 区分这是从原始模版读取的,还是工程读取
+
+    QString mUniqueStr;
 
 
     void onSelectMe();
@@ -97,6 +107,10 @@ public:
                                QWidget *parent, bool isCreate);
 
     QJsonValue mPropertyJson;
+
+    ObjType mType;
+
+
 
 
 
@@ -195,7 +209,7 @@ private:
 protected:
     void mouseReleaseEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent *event);
-    bool eventFilter(QObject *obj, QEvent *event);
+//    bool eventFilter(QObject *obj, QEvent *event);
 };
 
 //class NewList :public FormResizer,public Compoent
@@ -305,16 +319,16 @@ private:
 
 
 // 场景下面放页面,页面下面放图层,图层下面放布局,布局下面放控件.
-class NewPage : public BaseForm
-{
-    Q_OBJECT
-public:
-    explicit NewPage(QString caption, QSize nsize, QWidget *parent=0);
-    void readLayoutFromJson(const QJsonValue &qv, bool flag);
-    QJsonObject  writeToJson() ;
+//class NewPage : public BaseForm
+//{
+//    Q_OBJECT
+//public:
+//    explicit NewPage(QString caption, QSize nsize, QWidget *parent=0);
+//    void readLayoutFromJson(const QJsonValue &qv, bool flag);
+//    QJsonObject  writeToJson() ;
 
-public slots:
-    void onDeleteMe();
-};
+//public slots:
+//    void onDeleteMe();
+//};
 
 #endif // MODULE_H

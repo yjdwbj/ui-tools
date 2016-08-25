@@ -9,7 +9,7 @@ QT       += core gui quick
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 
-include(qtpropertybrowser/qtpropertybrowser.pri)
+#include(qtpropertybrowser/qtpropertybrowser.pri)
 
 TARGET = ui-tools
 TEMPLATE = app
@@ -75,4 +75,6 @@ RESOURCES += \
 
 DISTFILES += \
     busyindicator.qml
+
+RC_ICONS = logo.ico
 

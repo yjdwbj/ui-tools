@@ -35,14 +35,15 @@ void Backgroud::paintEvent(QPaintEvent *)
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     //out(stdout, QIODevice::WriteOnly),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    mGlobalIniFile(QStandardPaths::displayName(QStandardPaths::DataLocation) + "/ui-config")
 {
 
     ui->setupUi(this);
     ui->mainToolBar->setAllowedAreas(Qt::TopToolBarArea);
 
-    QString iniFile  =  QStandardPaths::displayName(QStandardPaths::DataLocation) + "/ui-config";
-    mGlobalSet= new QSettings(iniFile,QSettings::IniFormat);
+   // QString iniFile  =  QStandardPaths::displayName(QStandardPaths::DataLocation) + "/ui-config";
+    mGlobalSet= new QSettings(mGlobalIniFile,QSettings::IniFormat);
 
 
     QApplication::setStyle(QStyleFactory::create("Fusion"));
@@ -76,8 +77,6 @@ MainWindow::MainWindow(QWidget *parent) :
     lDock->setFixedWidth(this->size().width() * 0.14);
     lDock->setObjectName("LeftDock");
 
-
-
     //　qDockWidget 下面必需要发放一个QWidget ,　才能显示控件.
     QWidget *lDockWidget = new QWidget(lDock);
 
@@ -89,12 +88,9 @@ MainWindow::MainWindow(QWidget *parent) :
     leftLayout->setMargin(0);
     leftLayout->setContentsMargins(0,0,0,0);
 
-
     leftLayout->setObjectName("leftLayout");
    // leftLayout->setSizeConstraint(QLayout::SetFixedSize);
     lDockWidget->setLayout(leftLayout);
-
-
 
 
     ComCtrl = new  CompoentControls(this,lDock);
@@ -103,8 +99,6 @@ MainWindow::MainWindow(QWidget *parent) :
    // leftLayout->addWidget(posWidget);
 
     leftLayout->addWidget(propertyWidget);
-    //leftLayout->addWidget(imgPropertyWidget);
-
     tree = new TreeDock(this);
     // 左边两个并排的QDockWidget
     addDockWidget(Qt::LeftDockWidgetArea, tree);
@@ -120,22 +114,24 @@ MainWindow::MainWindow(QWidget *parent) :
     pageView->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
     addDockWidget(Qt::RightDockWidgetArea,pageView);
-    if(!QFileInfo(iniFile).exists())
+    if(!QFileInfo(mGlobalIniFile).exists())
     {
-        GlobalSettings gs(this);
-        gs.exec();
 
+        while (1){
+            GlobalSettings gs(this);
+            gs.exec();
+            if (gs.isSetFine()) break;
+        }
     }
      ComCtrl->ReadJsonWidgets();
 
     // 缓存一些背景图片.
-    QString dir = QDir::currentPath() + QDir::separator() +"backgrounds";
+    QString dir = QDir::currentPath().replace(SLASH,BACKSLASH) +BACKSLASH +"backgrounds";
     QDirIterator it(dir, QStringList() << "*.jpg", QDir::Files/*, QDirIterator::Subdirectories*/);
     while (it.hasNext())
     {
         QString fpath = it.next();
-        bool b = fpath.contains('/');
-        int idx = fpath.lastIndexOf(b ? '/' : '\\')+1;
+        int idx = fpath.lastIndexOf(BACKSLASH)+1;
         bakimageMap[fpath.mid(idx)] = QPixmap(fpath);
         bimgPath[fpath.mid(idx)] = fpath;
     }
@@ -405,7 +401,7 @@ void MainWindow::readCSVFile(QString csvfile)
     QFile csv(csvfile);
     if(!csv.open(QIODevice::ReadOnly|QIODevice::Text))
     {
-        QMessageBox::warning(this,"open xls file error","xls 打不开");
+        QMessageBox::warning(this,"open xls file error","xls 打不开,请查看[全局设置]里的路径目录是否正确");
         return;
     }
 
@@ -459,7 +455,8 @@ void MainWindow::createCSVFile(QString xlsfile)
     QFileInfo info(xlsfile);
 
 
-    QString outfile = info.absolutePath() + QDir::separator() +info.completeBaseName() + ".csv";
+    QString outfile = info.absolutePath().replace(SLASH,BACKSLASH)
+            + BACKSLASH +info.completeBaseName() + ".csv";
     if(QFileInfo::exists(outfile))
     {
         QFile::copy(outfile,outfile+".bak");
@@ -469,7 +466,7 @@ void MainWindow::createCSVFile(QString xlsfile)
     {
 
          /* 先用xls2csv.exe */
-        QString cmd = QDir::currentPath() + QDir::separator() +  "xls2csv.exe";
+        QString cmd = QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH +  "xls2csv.exe";
         /* 先用xls2csv.exe */
         QProcess xlsprocess;
         xlsprocess.start(cmd,QStringList() << xlsfile);
@@ -515,7 +512,7 @@ void MainWindow::createCSVFile(QString xlsfile)
     }else
     {
         // 这里是非微软系统
-        QString cmd = QDir::currentPath() + QDir::separator() +"xls2csv";
+        QString cmd = QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH +"xls2csv";
 
         QProcess xlsprocess;
         if(!QFileInfo::exists(cmd))

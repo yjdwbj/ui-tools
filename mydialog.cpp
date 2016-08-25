@@ -16,8 +16,7 @@
 #include <QRadioButton>
 #include <QFileDialog>
 #include <QStyleFactory>
-#include <qttreepropertybrowser.h>
-#include <qteditorfactory.h>
+
 
 const static char DnditemData[] = "application/x-dnditemdata";
 
@@ -202,10 +201,7 @@ void ImageFileDialog::updateListImages(QString path)
     while (it.hasNext())
     {
         QString fpath = it.next();
-        bool b = fpath.contains('/');
-        int idx = fpath.lastIndexOf(b ? '/' : '\\')+1;
-        //bakimageMap[fpath.mid(idx)] = QPixmap(fpath);
-      //  imgMap[fpath.mid(idx)] = fpath;
+        int idx = fpath.lastIndexOf(BACKSLASH)+1;
         QString basename = fpath.mid(idx);
         extMap[basename] = fpath;
         bool isFind = false;
@@ -333,11 +329,8 @@ void ImageFileDialog::onUp()
     QPushButton *btn = (QPushButton*)(QObject::sender());
 //    int row = btn->property(DKEY_ROW).toInt();
     int row = sellist->currentRow();
-//    if(row == 0)
-//    {
-//        btn->setEnabled(false);
-//        return;
-//    }
+
+
      QListWidgetItem *item =  sellist->takeItem(row);
      sellist->insertItem(row -1,item);
      sellist->setCurrentItem(item);
@@ -459,7 +452,7 @@ ProjectDialog::ProjectDialog(QWidget *parent)
     :BaseDialog(parent),
     //:QDialog(parent),
     ui(new Ui::ProjectDialog),
-    defaultXLS(QDir::currentPath() + QDir::separator() + "/行车记录仪.xls")
+    defaultXLS(QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH + "行车记录仪.xls")
 {
     ui->setupUi(this);
 
@@ -661,8 +654,9 @@ void ImageListView::updateListImages(QString path)
     while (it.hasNext())
     {
         QString fpath = it.next();
-        bool b = fpath.contains('/');
-        int idx = fpath.lastIndexOf(b ? '/' : '\\')+1;
+//        bool b = fpath.contains('/');
+//        int idx = fpath.lastIndexOf(b ? '/' : '\\')+1;
+        int idx = fpath.lastIndexOf(BACKSLASH)+1;
         //bakimageMap[fpath.mid(idx)] = QPixmap(fpath);
         imgMap[fpath.mid(idx)] = fpath;
         imglist->addItem(new QListWidgetItem(QIcon(QPixmap(fpath)),fpath.mid(idx)));
@@ -707,12 +701,7 @@ MenuItemDialog::MenuItemDialog( QString old, QWidget *parent)
         rb->setChecked(!key.trimmed().compare(old));
     }
 
-//    foreach (QString s, map) {
-//        QListWidgetItem* item = new QListWidgetItem(listWidget);
-//        QRadioButton *rb = new QRadioButton(s);
-//        listWidget->setItemWidget(item,rb);
-//        rb->setChecked(!s.compare(old));
-//    }
+
 
     connect(listWidget,&QListWidget::itemPressed,this,
             [=](QListWidgetItem *item)
@@ -849,14 +838,12 @@ void I18nLanguage::on_lang_re_clicked()
 ConfigProject::ConfigProject(QWidget *parent):
     QDialog(parent),
     ui(new Ui::ConfigProject),
-    defaultXLS(QDir::currentPath() + QDir::separator() + "/行车记录仪.xls")
+    defaultXLS(QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH + "行车记录仪.xls")
 
 {
     ui->setupUi(this);
     setWindowFlags(Qt::FramelessWindowHint| Qt::Dialog);
     mWindow = (MainWindow*)(parent);
-//    connect(ui->buttonBox,SIGNAL(accepted()),SLOT(accept()));
-//    connect(ui->buttonBox,SIGNAL(rejected()),SLOT(reject()));
     ui->buttonBox->button(QDialogButtonBox::Ok)->setText("确定");
     ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("取消");
 
@@ -1002,7 +989,8 @@ QStringList ConfigProject::getSelectLang()
 
 GlobalSettings::GlobalSettings(QWidget *parent):
     BaseDialog(parent),
-    ui(new Ui::GlobalSettings)
+    ui(new Ui::GlobalSettings),
+    isFine(true)
 {
     ui->setupUi(this);
     setObjectName(this->metaObject()->className());
@@ -1031,20 +1019,23 @@ GlobalSettings::GlobalSettings(QWidget *parent):
     // projectdir->setFilter("");
      imagedir->setFileOrDir(true);
      IniMap[INI_PRJIMAGEDIR] = imagedir;
+     imagedir->setFilePath(QDir::currentPath());
 
     FileEdit *projectdir = new FileEdit("工程目录:");
      setMap["工程目录:"] = projectdir;
      projectdir->setToolTip("工程保存的目录,默认是程序运行目录.");
      projectdir->setFileOrDir(true);
      IniMap[INI_PRJDIR] = projectdir;
+     projectdir->setFilePath(QDir::currentPath());
 
 
      FileEdit *comdir = new FileEdit("自定义控件目录:");
      setMap["自定义控件目录:"] = comdir;
-      projectdir->setToolTip("自定义的模版控件目录,默认是widgets目录.");
+      comdir->setToolTip("自定义的模版控件目录,默认是widgets目录.");
     //  projectdir->setFilter("");
-      projectdir->setFileOrDir(true);
+      comdir->setFileOrDir(true);
       IniMap[INI_PRJCUSTOM] = comdir;
+      comdir->setFilePath(QDir::currentPath()+ BACKSLASH + "widgets") ;
 
 
 
@@ -1139,13 +1130,7 @@ QTreeWidgetItem* GlobalSettings::getItemByString(QString name)
 
 void GlobalSettings::onAccepted()
 {
-//    mWindow->cManager->ProjectSize = QSize(ui->prj_width->text().toInt(),
-//                                           ui->prj_height->text().toInt());
-
     int w,h;
-//    w = ui->prj_width->value();
-//    h = ui->prj_height->value();
-
      QWidget *hwidget = ui->treeWidget->itemWidget(getItemByString(H),1);
      QWidget *wwidget =  ui->treeWidget->itemWidget(getItemByString(W),1);
      h = ((QSpinBox*)hwidget)->value();
@@ -1166,7 +1151,10 @@ void GlobalSettings::onAccepted()
     {
         // 更新来自INI文件的值.
         it.next();
-        mWindow->mGlobalSet->setValue(it.key(),((FileEdit*)it.value())->filePath());
+        QString f = ((FileEdit*)it.value())->filePath();
+        mWindow->mGlobalSet->setValue(it.key(),f);
+        if(f.isEmpty())
+            isFine = false;
     }
 }
 

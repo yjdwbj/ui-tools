@@ -25,11 +25,11 @@ class TreeDock : public QDockWidget
 public:
     explicit TreeDock(QWidget *parent=Q_NULLPTR);
     void addItemToRoot(QString node,QString property);
-    void addItemToRoot(QWidget *ww);
+    void addItemToRoot(QWidget *obj);
 //    void addCompoentControls(CompoentControls *cc);
 //    void addPropBox(PropertyBox *p);
 
-    void addObjectToCurrentItem(QString root, QWidget *ww);
+    void addObjectToCurrentItem(QString root, QWidget *obj);
     void addChildObject(QString root,QString node,QString property);
 
     void deleteAllitem();

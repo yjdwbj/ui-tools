@@ -596,6 +596,10 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                wid = cb;
                QPushButton *b = new QPushButton(tr("添加图片"),this);
                b->setObjectName(uname);
+               b->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
+               b->setProperty(DKEY_ARRIDX,this->property(DKEY_ARRIDX));
+               b->setProperty(DKEY_OWERJSON,this->metaObject()->className());
+               b->setProperty(DKEY_PARRIDX,this->property(DKEY_PARRIDX));
                connect(b,SIGNAL(clicked(bool)),p,SLOT(onPictureDialog(bool)));
                mainLayout->addWidget(b);
                mainLayout->addWidget(cb);
@@ -606,20 +610,17 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                    // 处理图片列表与它的默认值
                    QVariantList nlist = nlv.toList();
                    QString defimg = item.toObject().value(DEFAULT).toString();
-                //   int rootlen  = QDir::currentPath().length()+1;
-
-                   defimg = defimg.replace("\\",QDir::separator());
-                   int sep = defimg.lastIndexOf(QDir::separator()) + 1;
+                   int sep = defimg.lastIndexOf(BACKSLASH) + 1;
                    defimg = defimg.mid(sep);
 
                    for(QVariantList::const_iterator it = nlist.begin();
                            it != nlist.end();++it)
                    {
                        // example for key  is  "config/images/string/alarm_pol.bmp"
-                       QString key = (*it).toString().replace('\\',QDir::separator());
-                       bool b = key.contains(QDir::separator());
-                       int idx = key.lastIndexOf(b ? QDir::separator() : '\\')+1;
-                     //  cb->addItem(QIcon(key),key.mid(idx));
+                     //  QString key = (*it).toString().replace(SLASH,BACKSLASH);
+                       QString key = (*it).toString();
+
+                        int idx = key.lastIndexOf(BACKSLASH)+1;
                        imglist << QString("%1|%2").arg(key.mid(idx),key);
                    }
 
@@ -847,12 +848,25 @@ void CompoentControls::ReadJsonWidgets()
     // 读取控件目录下的所有控件文件.
    // mJsonFile =  QDir::currentPath() + "/menu_strip.json";
    // QString file = QDir::currentPath() + "/control.json";
-    QString file = mWindow->mGlobalSet->value(INI_PRJJSON).toString();
-    qDebug() << " json file name " << file;
+     QString file = mWindow->mGlobalSet->value(INI_PRJJSON).toString();
+
+     while (1){
+         if(!file.isEmpty()) break;
+         GlobalSettings gs(mWindow);
+         gs.exec();
+         if (gs.isSetFine()) {
+             mWindow->mGlobalSet->deleteLater();
+             mWindow->mGlobalSet = new QSettings(mWindow->mGlobalIniFile,QSettings::IniFormat);
+             file = mWindow->mGlobalSet->value(INI_PRJJSON).toString();
+             break;
+         }
+     }
+
+    //  qDebug() << " json file name " << file;
     QFileInfo qfi(file);
     if(!qfi.exists())
     {
-        QMessageBox::warning(this,tr("错误"),tr("找不到控件文件"));
+        QMessageBox::warning(this,tr("错误"),tr("找不到控件文件,请查看[全局设置]里的路径目录是否正确."));
         return;
     }
 
@@ -861,7 +875,7 @@ void CompoentControls::ReadJsonWidgets()
 
 
     // 读取一些自定义的控件.
-    QDirIterator it(QDir::currentPath() + "/widgets", QStringList() << "*.json", QDir::Files, QDirIterator::Subdirectories);
+    QDirIterator it(QDir::currentPath().replace(SLASH,BACKSLASH)+ BACKSLASH + "widgets", QStringList() << "*.json", QDir::Files, QDirIterator::Subdirectories);
 
     QJsonArray array;
     while (it.hasNext())
@@ -897,16 +911,13 @@ QJsonArray CompoentControls::ReadTemplateWidgetFile(QString file) const
     QJsonArray obj;
     QFile data(file);
     if (data.open(QFile::ReadOnly|QIODevice::Text)) {
-        QByteArray qba = data.readAll();
-        QTextStream in(&data);
-        QString str;
-        int ans = 0;
-        in >> str >> ans;
+        QByteArray qba = data.readAll().replace(SLASH,BACKSLASH);
+        QString dd(qba);
+        dd.replace("//","/");
         QJsonParseError json_error;
-        QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
+        QJsonDocument qd = QJsonDocument::fromJson(dd.toLocal8Bit(),&json_error);
         if(json_error.error == QJsonParseError::NoError)
         {
-            QPoint mpos;
             if(qd.isObject())
             {
                 if(qd.object().contains(COMPOENTS))
@@ -915,8 +926,9 @@ QJsonArray CompoentControls::ReadTemplateWidgetFile(QString file) const
                 }
             }
         }else{
-            // qDebug() << " read Json file error";
-            qDebug() << json_error.errorString();
+             QMessageBox::warning(0,tr("错误"),
+             QString("读取控件文件遇到错误<%1>,请查看检查文件<%2> 格式.").arg(json_error.errorString(),
+                                                                                file));
         }
     }
     return obj;
@@ -936,7 +948,7 @@ QWidget* CompoentControls::createCustomObject(const QJsonArray &comJsonArr)
 
     foreach (QJsonValue qjv, comJsonArr)
     {
-        QVariantMap  qjm = qjv.toObject().toVariantMap();
+       // QVariantMap  qjm = qjv.toObject().toVariantMap();
         QJsonObject jobj = qjv.toObject();
         QString caption = jobj[CAPTION].toString();
         QString objname = jobj[NAME].toString();
@@ -981,8 +993,10 @@ void CompoentControls::onCreateCustomWidget()
         QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
         return;
     }
-    QString clsname = wid->metaObject()->className();
-    if(!clsname.compare(CN_NEWLAYER) /*|| !clsname.compare(CN_LAYER)*/)
+ //   QString clsname = wid->metaObject()->className();
+    BaseForm::ObjType wtype = ((BaseForm*)wid)->mType;
+   // if(!clsname.compare(CN_NEWLAYER) /*|| !clsname.compare(CN_LAYER)*/)
+    if(wtype == BaseForm::TYPELAYER)
     {
         QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
         return;
@@ -991,12 +1005,14 @@ void CompoentControls::onCreateCustomWidget()
     QJsonValue value = QJsonValue::fromVariant(btn->property(DKEY_JSONSTR));
 
 
-    if(!clsname.compare(CN_NEWLAYOUT))
+  //  if(!clsname.compare(CN_NEWLAYOUT))
+    if(wtype == BaseForm::TYPELAYOUT)
     {
        ((NewLayout*)wid)->readFromJson(value,true);
        // ((NewLayout*)wid)->readFromJson(value.toArray());
     }
-    else if(!clsname.compare(CN_NEWFRAME))
+   // else if(!clsname.compare(CN_NEWFRAME))
+    else if(wtype == BaseForm::TYPEFRAME)
     {
         // 选择它的父控件.
        ((NewLayout*)(wid->parentWidget()))->readFromJson(value,true);

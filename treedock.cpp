@@ -16,19 +16,6 @@ TreeDock::TreeDock(QWidget *parent)
     :QDockWidget(parent),
       mWindow((MainWindow*)parent), treeWidget(new QTreeWidget())
 {
-
-    /*
-    QWidgetList tlist = qApp->topLevelWidgets();
-    for(QWidgetList::iterator wit = tlist.begin();wit != tlist.end();++wit)
-    {
-        if((*wit)->objectName() == "MainWindow")
-        {
-            mWindow = (MainWindow*)(*wit);
-            break;
-        }
-    }*/
-
-
     QString style = "QTreeView {\
             show-decoration-selected: 1;\
 }\
@@ -96,7 +83,8 @@ treeWidget->setColumnCount(2);
 
 treeWidget->setHeaderLabels(HeadCol.split(","));
 setStyleSheet("background-color: #C0DCC0;");
-connect(treeWidget,SIGNAL(itemClicked(QTreeWidgetItem*,int)),SLOT(onItemPressed(QTreeWidgetItem*,int)));
+connect(treeWidget,SIGNAL(itemClicked(QTreeWidgetItem*,int)),
+        SLOT(onItemPressed(QTreeWidgetItem*,int)));
 //root = new QTreeWidgetItem(treeWidget);
 //root->setText(0,"根结点");
 //root->setText(1,"画布");
@@ -113,7 +101,8 @@ treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 treeWidget->header()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
 //setFeatures(QDockWidget::DockWidgetVerticalTitleBar);
 
-connect(treeWidget,SIGNAL(customContextMenuRequested(QPoint)),SLOT(onCustomContextMenu(QPoint)));
+connect(treeWidget,SIGNAL(customContextMenuRequested(QPoint)),
+        SLOT(onCustomContextMenu(QPoint)));
 
 
 }
@@ -121,8 +110,11 @@ connect(treeWidget,SIGNAL(customContextMenuRequested(QPoint)),SLOT(onCustomConte
 
 void TreeDock::setSelectTreeItem(QWidget *obj)
 {
-    QString key  = obj->property(DKEY_LOCALSEQ).toString();
-    QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(key,Qt::MatchFixedString | Qt::MatchRecursive);
+   // QString key  = obj->property(DKEY_LOCALSEQ).toString();
+     QString key  = ((BaseForm*)obj)->mUniqueStr;
+    QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(key,
+                                                            Qt::MatchFixedString |
+                                                            Qt::MatchRecursive);
     foreach (QTreeWidgetItem *qwi, qwilist) {
         //qDebug() << " this text " << qwi->text(0);
        //if(!qwi->text(0).compare(obj->objectName()))
@@ -221,9 +213,6 @@ void TreeDock::setMyParentNode()
         if(item)
         {
             QWidget *w = mWindow->ComCtrl->ProMap[item->text(0)];
-            //mWindow->cManager->activeSS()->setSelectObject((FormResizer*)w);
-           // ((FormResizer*)w)->onSelectMe();
-
             QApplication::postEvent(w,event);
         }
         else if(!CN_NEWLAYER.compare(citem->text(1)))
@@ -234,8 +223,6 @@ void TreeDock::setMyParentNode()
             if(qwilist.count())
             {
                 QWidget *w = mWindow->ComCtrl->ProMap[qwilist.last()->text(0)];
-               // mWindow->cManager->activeSS()->setSelectObject((FormResizer*)w);
-               // ((FormResizer*)w)->onSelectMe();
                 QApplication::postEvent(w,event);
             }
         }
@@ -264,7 +251,8 @@ void TreeDock::addChildObject(QString root, QString node, QString property)
 
     if(qwilist.count())
     {
-        QTreeWidgetItem *nqwi =  new QTreeWidgetItem(qwilist.at(0), QStringList() << node << property);
+        QTreeWidgetItem *nqwi =  new QTreeWidgetItem(qwilist.at(0),
+                                                     QStringList() << node << property);
         treeWidget->setCurrentItem(nqwi);
     }
 }
@@ -276,20 +264,20 @@ void TreeDock::addItemToRoot(QString node, QString property)
      treeWidget->setCurrentItem(nroot);
 }
 
-void TreeDock::addItemToRoot(QWidget *ww)
+void TreeDock::addItemToRoot(QWidget *obj)
 {
 
-    QString key = ww->property(DKEY_LOCALSEQ).toString();
-  //  tlist << key << ww->metaObject()->className();
+    QString key = /*ww->property(DKEY_LOCALSEQ).toString()*/((BaseForm*)obj)->mUniqueStr;;
+
      QTreeWidgetItem *nroot = new QTreeWidgetItem(treeWidget,
-                          QStringList()  << key << ww->metaObject()->className());
+                          QStringList()  << key << obj->metaObject()->className());
      nroot->setIcon(0,QIcon(SHOW_ICON));
 
      treeWidget->setCurrentItem(nroot);
-     mWindow->ComCtrl->ProMap[key] = ww;
+     mWindow->ComCtrl->ProMap[key] = obj;
 }
 
-void TreeDock::addObjectToCurrentItem(QString root,QWidget *ww)
+void TreeDock::addObjectToCurrentItem(QString root,QWidget *obj)
 {
     QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(root,
                               Qt::MatchFixedString | Qt::MatchRecursive);
@@ -297,18 +285,16 @@ void TreeDock::addObjectToCurrentItem(QString root,QWidget *ww)
     if(qwilist.count())
     {
 
-        QString key = ww->property(DKEY_LOCALSEQ).toString();
-        QString clsname = ww->metaObject()->className();
+        QString key = /*ww->property(DKEY_LOCALSEQ).toString()*/((BaseForm*)obj)->mUniqueStr;;
+        QString clsname = obj->metaObject()->className();
         QTreeWidgetItem *nqwi =  new QTreeWidgetItem(qwilist.first(),
                                                      QStringList() << key << clsname);
-//        qDebug() << " layout parent text " << root
-//                 << nqwi->text(0) << nqwi->parent()->indexOfChild(nqwi)
-//                 <<"currentitem " << treeWidget->currentItem();
+
         if(!CN_NEWLAYOUT.compare(clsname))
         {
             nqwi->setIcon(0,QIcon(SHOW_ICON));
         }
-        mWindow->ComCtrl->ProMap[key] = ww;
+        mWindow->ComCtrl->ProMap[key] = obj;
         treeWidget->blockSignals(true);
         treeWidget->setCurrentItem(nqwi);
         treeWidget->blockSignals(false);
@@ -317,7 +303,7 @@ void TreeDock::addObjectToCurrentItem(QString root,QWidget *ww)
 
 void TreeDock::deleteItem(QWidget *obj)
 {
-    QString key = obj->property(DKEY_LOCALSEQ).toString();
+    QString key = /*obj->property(DKEY_LOCALSEQ).toString()*/((BaseForm*)obj)->mUniqueStr;
    // QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(obj->objectName(),Qt::MatchFixedString | Qt::MatchRecursive);
     QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(key,Qt::MatchFixedString | Qt::MatchRecursive);
 

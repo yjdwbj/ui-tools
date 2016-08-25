@@ -24,7 +24,7 @@ CanvasManager::CanvasManager(MainWindow *w):
     delPage(new QPushButton(tr("删除当前页"))),
     savePrj(new QPushButton(tr("保存工程"))),
     confPrj(new QPushButton(tr("工程设置"))),
-    mProjectWidgetDir(QDir::currentPath() + QDir::separator() + "widgets"),
+    mProjectWidgetDir(QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH + "widgets"),
 
     PrjIsChanged(false)
 
@@ -39,19 +39,6 @@ CanvasManager::CanvasManager(MainWindow *w):
 
     QComboBox *cb = new QComboBox();
     cb->addItems(QStyleFactory::keys());
-//    QVariant vstyle =mWindow->mGlobalSet->value(INI_PRJSTYLE);
-//    if(vstyle.isValid())
-//    {
-//         cb->setCurrentText(vstyle.toString());
-//    }
-
-
-//    connect(cb,&QComboBox::currentTextChanged,[=](QString text)
-//    {
-//        QApplication::setStyle(QStyleFactory::create(text));
-//        qApp->desktop()->update();
-//        mWindow->mGlobalSet->setValue(INI_PRJSTYLE,text);
-//    });
 
     mWindow->addWidgetToToolBar(newPrj);
     mWindow->addWidgetToToolBar(newPage);
@@ -64,19 +51,26 @@ CanvasManager::CanvasManager(MainWindow *w):
   //  mWindow->addWidgetToToolBar(cb);
     mWindow->centralWidget()->setLayout(stack);
     // 按屏幕的大小比例调整.
-  //  stackRect = QRect( QPoint(mWindow->width() * 0.12,mWindow->height()* 0.3),mPageSize);
-   // mWindow->centralWidget()->setGeometry(stackRect);
 
     connect(newPrj,SIGNAL(clicked(bool)),SLOT(onCreateNewProject()));
     connect(newPage,SIGNAL(clicked(bool)),SLOT(onCreateNewScenesScreen()));
     connect(delPage,SIGNAL(clicked(bool)),SLOT(onDelCurrentScenesScreen()));
     connect(savePrj,SIGNAL(clicked(bool)),SLOT(onSaveProject()));
     connect(confPrj,SIGNAL(clicked(bool)),SLOT(onConfProject()));
+    newPage->setIcon(QIcon(":/icon/icons/canvas-diagram.png"));
+    newPrj->setIcon(QIcon(":/icon/icons/category_vcs.png"));
+    savePrj->setIcon(QIcon(":/icon/icons/document-save-as.png"));
+    delPage->setIcon(QIcon(":/icon/icons/removesubmitfield.png"));
 
     QPushButton *globalbtn = new QPushButton("全局设置");
+    globalbtn->setIcon(QIcon(":/icon/icons/preferences-system.png"));
     connect(globalbtn,&QPushButton::clicked,[=](){
-       GlobalSettings gs(mWindow);
-       gs.exec();
+
+        while (1){
+            GlobalSettings gs(mWindow);
+            gs.exec();
+            if (gs.isSetFine()) break;
+        }
     });
     mWindow->addWidgetToToolBar(globalbtn);
 //    qDebug() << "centralWidget pos" << mWindow->centralWidget()->geometry()
@@ -279,8 +273,6 @@ void CanvasManager::onCreateNewScenesScreen()
     createNewCanvas();
     delPage->setEnabled(true);
     mWindow->propertyWidget->delPropertyBox();
-   // mWindow->imgPropertyWidget->delPropertyBox();
-    //mWindow->posWidget->resetValues();
 }
 
 
@@ -331,14 +323,12 @@ void CanvasManager::onSaveProject()
     QString fname;
     if(prjvar.isValid())
     {
-
-        fname = prjvar.toString() +QDir::separator()+ mProjectName + ".json";
+        fname = prjvar.toString() + BACKSLASH + mProjectName + ".json";
     }
     else
     {
         fname = "save.json" ;
     }
-
     mWindow->mGlobalSet->setValue(INI_PRJLAST,fname);
     saveProject(fname);
 }
@@ -355,11 +345,8 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
         switch (val.type()) {
         case QJsonValue::Object:
         {
-
                 int w,h;
                 QJsonObject valobj = val.toObject();
-
-
                 foreach (QJsonValue pval, valobj[PROPERTY].toArray()) {
                     QJsonObject pobj = pval.toObject();
                     if(pobj.contains(KEY_RECT))
@@ -369,21 +356,16 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
                         break;
                     }
                 }
-
                 setDefaultPageSize(QSize(w,h));
                 ScenesScreen *Scenes = createNewCanvas();
                 // 递归读取它的页面.
-
                 Scenes->readLayer(valobj[LAYER].toArray());
         }
-
             break;
         default:
             break;
         }
-
     }
-
     newPage->setEnabled(readflag);
     savePrj->setEnabled(readflag);
     delPage->setEnabled(readflag);

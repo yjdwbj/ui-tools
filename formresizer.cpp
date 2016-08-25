@@ -18,9 +18,6 @@ enum { debugFormResizer = 0 };
 FormResizer::FormResizer(QWidget *parent) :
     QWidget(parent),
     m_frame(new QFrame)
-    //m_frame(new Canvas)
-
- //   m_formWindow(0)
 {
     // Make the resize grip of a mainwindow form find us as resizable window.
     setWindowFlags(windowFlags() | Qt::SubWindow);

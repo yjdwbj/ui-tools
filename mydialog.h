@@ -269,16 +269,18 @@ class GlobalSettings: public BaseDialog
     Q_OBJECT
 public:
     explicit GlobalSettings(QWidget *parent=0);
+    QMap<QString,QWidget*> setMap;
+    bool isSetFine() {return isFine;}
 
 public slots:
     void onAccepted();
 private:
 
     QTreeWidgetItem *getItemByString(QString name);
-
+    bool isFine;
     MainWindow *mWindow;
     Ui::GlobalSettings *ui;
-    QMap<QString,QWidget*> setMap;
+
     QMap<QString,QWidget*> IniMap;
 
 };

@@ -80,6 +80,8 @@ static QString JROW = "row";
 
 
 static const char SECTION_CHAR = '|';
+static const char BACKSLASH = '/';
+static const char   SLASH='\\\\';
 
 
 static const char  DKEY_CAPTION[] = "caption";
@@ -139,8 +141,8 @@ static const QString INI_PRJIMAGEDIR = "Project/ImageDir";
 
 
 
-static const char HIDE_ICON[] = ":/icon/icons/hide-30x30.png";
-static const char SHOW_ICON[] = ":/icon/icons/visibility-30x30.png";
+static const char HIDE_ICON[] = ":/icon/icons/eye_closed@2x.png";
+static const char SHOW_ICON[] = ":/icon/icons/eye_open@2x.png";
 
 
 
