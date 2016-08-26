@@ -38,18 +38,18 @@ void BaseDialog::UpdateStyle()
     qDebug() << " basedialog stylesheet " << styleSheet();
 }
 
-ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath,QWidget *parent)
+ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath, QWidget *parent)
     :QDialog(parent),
 //      sellist(new CustomListWidget()),
 //      flistview(new CustomListWidget()),
       sellist(new QListWidget()),
       flistview(new QListWidget()),
       treefile(new QTreeView()),
-      selstrList(old),
+   //   selstrList(old),
       statusBar(new QLabel)
 {
 
-
+  //  QString imgpath =  mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString();
      flistview->setProperty(DKEY_EXTMAP,extMap);
      /* 填弃上一次的数据 */
     dirModel = new QFileSystemModel(this);
@@ -117,11 +117,6 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath,QWidget *pare
         }
     }
 
-
-  //  QString imgpath = QDir::currentPath() + "/config/images";
-
-    QFileInfo qf(imgpath);
-    qDebug() << " images path " << imgpath;
     dirModel->setRootPath(imgpath);
     dirModel->removeColumn(3);
     dirModel->removeColumn(2);
@@ -170,25 +165,30 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath,QWidget *pare
     statusBar->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
 
     mainLayout->addLayout(mlayout);
-    setOldList();
+   // setOldList();
+
+    foreach (QVariant v, old) {
+        // example for v "config/images/digital-0.png"
+        QString str = v.toString();
+        QListWidgetItem *nitem = new QListWidgetItem(QPixmap(imgpath + BACKSLASH + str),
+                                                     str.mid(str.lastIndexOf(BACKSLASH)+1));
+        sellist->addItem(nitem);
+    }
     updateListImages(imgpath);
-
-
-
     this->setModal(true);
    // exec();
 }
 
-void ImageFileDialog::setOldList()
-{
-    foreach (QVariant v, selstrList) {
-        QString str = v.toString();
-        QListWidgetItem *nitem = new QListWidgetItem(QPixmap(str.section(SECTION_CHAR,1,1)),
-                                                     str.section(SECTION_CHAR,0,0));
+//void ImageFileDialog::setOldList()
+//{
+//    foreach (QVariant v, selstrList) {
+//        QString str = v.toString();
+//        QListWidgetItem *nitem = new QListWidgetItem(QPixmap(str.section(SECTION_CHAR,1,1)),
+//                                                     str.section(SECTION_CHAR,0,0));
 
-        sellist->addItem(nitem);
-    }
-}
+//        sellist->addItem(nitem);
+//    }
+//}
 
 
 void ImageFileDialog::updateListImages(QString path)
@@ -320,8 +320,21 @@ void ImageFileDialog::appendSelectedItem(QModelIndex index)
     /* 这里不能使用MAP , QComobox 需要排序 */
    // selstrList.append(QString("%1:%2").arg(s,fileModel->fileInfo(index).absoluteFilePath()));
    // 这里的每一条数据必需是下面格式:　　文件名:文件名的绝对完全路径
-    selstrList.append(QString("%1|%2").arg(s,extMap[s].toString()));
+   // selstrList.append(QString("%1|%2").arg(s,extMap[s].toString()));
     statusBar->setText(QString::number(sellist->count()));
+}
+
+QVariantList ImageFileDialog::getSelectedList()
+{
+    QVariantList lst;
+    for(int i = 0 ; i < sellist->count();i++)
+    {
+        QListWidgetItem *item = sellist->item(i);
+        QString str = item->text();
+        lst << QString("%1|%2").arg(str,extMap[str].toString());
+    }
+    return lst;
+
 }
 
 void ImageFileDialog::onUp()
@@ -371,23 +384,23 @@ void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
              << " str to index " << fileModel->index(selstr);
 
     /* 从列表删除 */
-    foreach (QVariant str , selstrList) {
-        if(str.toString().startsWith(selstr))
-        {
-            QString tstr = str.toString();
-            selstrList.removeOne(tstr);
-            fpath = extMap[selstr].toString();
-            //example tstr-->   digital-7.png:config/images/digital-7.png
-            // exmaple fpath--> /home/user/build-ut-tools-qt5_3_2-Debug/config/images/digital-7.png
-            if(fpath.contains(tstr.section(SECTION_CHAR,1,1)))
-            {
+//    foreach (QVariant str , selstrList) {
+//        if(str.toString().startsWith(selstr))
+//        {
+//            QString tstr = str.toString();
+//            selstrList.removeOne(tstr);
+//            fpath = extMap[selstr].toString();
+//            //example tstr-->   digital-7.png:config/images/digital-7.png
+//            // exmaple fpath--> /home/user/build-ut-tools-qt5_3_2-Debug/config/images/digital-7.png
+//            if(fpath.contains(tstr.section(SECTION_CHAR,1,1)))
+//            {
 
-                flistview->addItem(new QListWidgetItem(QPixmap(fpath),selstr));
-            }
+//                flistview->addItem(new QListWidgetItem(QPixmap(fpath),selstr));
+//            }
 
-            break;
-        }
-    }
+//            break;
+//        }
+//    }
 //   int i = selstrList.indexOf( QString("%1:%2").arg(selstr,fpath));
 //   if( -1 != i )
 //       selstrList.removeAt(i);
@@ -406,10 +419,10 @@ void ImageFileDialog::onDelSelectedItems()
 
         delete sellist->takeItem(sellist->row(item));
        // selMap.remove(item->text());
-        QString fpath = fileModel->fileInfo(hRows[selstr]).absoluteFilePath();
-        int i = selstrList.indexOf( QString("%1|%2").arg(selstr,fpath));
-        if( -1 != i )
-            selstrList.removeAt(i);
+//        QString fpath = fileModel->fileInfo(hRows[selstr]).absoluteFilePath();
+//        int i = selstrList.indexOf( QString("%1|%2").arg(selstr,fpath));
+//        if( -1 != i )
+//            selstrList.removeAt(i);
     }
    // updateListWidget();
     sellist->clearSelection();
@@ -716,60 +729,45 @@ MenuItemDialog::MenuItemDialog( QString old, QWidget *parent)
     setModal(true);
 }
 
-I18nLanguage::I18nLanguage( QWidget *parent):
-    QDialog(parent),
+I18nLanguage::I18nLanguage(QVariantList oldvar, QWidget *parent):
+    BaseDialog(parent),
     ui(new Ui::I18nLanguage)
 {
 
     ui->setupUi(this);
     mWindow = (MainWindow*)(parent);
 
-    ui->langWidget->setEditTriggers(QAbstractItemView::SelectedClicked | QAbstractItemView::DoubleClicked);
+    //ui->langWidget->setEditTriggers(QAbstractItemView::SelectedClicked | QAbstractItemView::DoubleClicked);
     ui->itemWidget->setEditTriggers(QAbstractItemView::SelectedClicked | QAbstractItemView::DoubleClicked);
-    foreach (QString s, mWindow->mLanguageList) {
 
-        QListWidgetItem* item = new QListWidgetItem(s, ui->langWidget);
-       // item->setFlags(item->flags() | Qt::ItemIsUserCheckable | Qt::ItemIsEditable); // set checkable flag
-
-        item->setFlags(item->flags() | Qt::ItemIsUserCheckable |
-                       Qt::ItemIsEditable| Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-        item->setCheckState(Qt::Unchecked); // AND initialize check state
-
-    }
-   // ui->langWidget->addItems(mWindow->LanguageList);
-
-    QMapIterator<QString,QString> iter(mWindow->mItemMap);
-    while(iter.hasNext())
+    foreach(QString v,mWindow->mOrderlist)
     {
-        iter.next();
-        QListWidgetItem* item = new QListWidgetItem(ui->itemWidget);
-        ui->itemWidget->setItemWidget(item,new QRadioButton(iter.value()));
-       // item->setData(Qt::CheckStateRole,Qt::Unchecked);
-      //  item->setFlags(item->flags() | Qt::ItemIsUserCheckable); // set checkable flag
-     //   item->setCheckState(Qt::Unchecked); // AND initialize check state
+        QListWidgetItem* item = new QListWidgetItem(mWindow->mItemMap.value(v),
+                                                    ui->itemWidget);
+        item->setData(Qt::CheckStateRole,Qt::Unchecked);
+        item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+        item->setCheckState(Qt::Unchecked);
     }
 
+    foreach(QVariant v,oldvar)
+    {
+        int n = mWindow->mOrderlist.indexOf(v.toString());
+        QListWidgetItem* item = ui->itemWidget->item(n);
+        item->setCheckState(Qt::Checked);
+    }
+
+    connect(ui->btn_ok,SIGNAL(clicked(bool)),SLOT(accept()));
     setModal(true);
 }
 
-QStringList I18nLanguage::getSelectedItems(bool isLang)
+QStringList I18nLanguage::getSelectedItems()
 {
     QStringList lst;
-    if(isLang)
+    for(int i = 0;i < ui->itemWidget->count();i++)
     {
-        for(int i = 0;i < ui->langWidget->count();i++)
-        {
-            QListWidgetItem *item = ui->langWidget->item(i);
-            if(item->checkState() == Qt::Checked)
+        QListWidgetItem *item = ui->itemWidget->item(i);
+        if(item->checkState() == Qt::Checked)
             lst.append(item->text());
-        }
-    }else{
-        for(int i = 0;i < ui->itemWidget->count();i++)
-        {
-            QListWidgetItem *item = ui->itemWidget->item(i);
-            if(item->checkState() == Qt::Checked)
-            lst.append(item->text());
-        }
     }
     return lst;
 }
@@ -806,33 +804,33 @@ void I18nLanguage::on_item_re_clicked()
     }
 }
 
-void I18nLanguage::on_lang_selectall_clicked()
-{
-    for(int i = 0;i < ui->langWidget->count();i++)
-    {
-        QListWidgetItem *item = ui->langWidget->item(i);
-        item->setCheckState(Qt::Checked);
-    }
-}
+//void I18nLanguage::on_lang_selectall_clicked()
+//{
+//    for(int i = 0;i < ui->langWidget->count();i++)
+//    {
+//        QListWidgetItem *item = ui->langWidget->item(i);
+//        item->setCheckState(Qt::Checked);
+//    }
+//}
 
-void I18nLanguage::on_lang_dselectall_clicked()
-{
-    for(int i = 0;i < ui->langWidget->count();i++)
-    {
-        QListWidgetItem *item = ui->langWidget->item(i);
-        item->setCheckState(Qt::Unchecked);
-    }
-}
+//void I18nLanguage::on_lang_dselectall_clicked()
+//{
+//    for(int i = 0;i < ui->langWidget->count();i++)
+//    {
+//        QListWidgetItem *item = ui->langWidget->item(i);
+//        item->setCheckState(Qt::Unchecked);
+//    }
+//}
 
-void I18nLanguage::on_lang_re_clicked()
-{
-    for(int i = 0;i < ui->langWidget->count();i++)
-    {
-        QListWidgetItem *item = ui->langWidget->item(i);
-        item->setCheckState(item->checkState() == Qt::Checked ? Qt::Unchecked : Qt::Checked);
-       // item->setSelected(!item->isSelected());
-    }
-}
+//void I18nLanguage::on_lang_re_clicked()
+//{
+//    for(int i = 0;i < ui->langWidget->count();i++)
+//    {
+//        QListWidgetItem *item = ui->langWidget->item(i);
+//        item->setCheckState(item->checkState() == Qt::Checked ? Qt::Unchecked : Qt::Checked);
+//        // item->setSelected(!item->isSelected());
+//    }
+//}
 
 
 ConfigProject::ConfigProject(QWidget *parent):
@@ -1183,12 +1181,41 @@ FileEdit::FileEdit(QString txt, QWidget *parent)
                 this, SLOT(buttonClicked()));
 }
 
+//void FileEdit::onDirDialog(QString dirPath)
+//{
+//    BaseDialog bd(this);
+//    QTreeView *fileTree = new QTreeWidget(bd);
+//    dirModel->setRootPath(QDir::currentPath());
+//    dirModel->removeColumn(3);
+//    dirModel->removeColumn(2);
+//    dirModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
+//    fileTree->setModel(dirModel);
+//    fileTree->setRootIndex(dirModel->index(dirPath));
+
+//    QVBoxLayout *vb = new QVBoxLayout();
+//    vb->addWidget(fileTree);
+//    bd.setLayout(vb);
+//    bd.exec();
+//    int result = bd.result();
+//    if(result)
+//        filePath = dirModel->data(fileTree->currentIndex()).toString();
+//    else
+//        filePath() = dirPath;
+//}
+
 void FileEdit::buttonClicked()
 {
     QString txt = QObject::sender()->objectName();
     QString filePath;
     if(isDir)
     {
+//        QFileDialog dlg(this);
+//        dlg.setDirectory(QDir::currentPath());
+//        QObject::connect(&dlg,&QFileDialog::directoryEntered,[=](QString txt){
+//           qDebug() << " enterd dir " << txt;
+//           dlg.setDirectory(QDir::currentPath());
+//        });
+
         filePath = QFileDialog::getExistingDirectory(this,  QString("选择目录 -- %1").arg(txt),
                                                      QDir::currentPath());
 

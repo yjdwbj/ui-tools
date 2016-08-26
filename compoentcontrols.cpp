@@ -96,10 +96,12 @@ void Border::setConnectNewQWidget(QWidget *com)
     rect.setLeft(bobj[LEFT].toInt());
     rect.setTop(bobj[TOP].toInt());
     rect.setRight(bobj[BOTTOM].toInt());
-    if(!Left->property(DKEY_ARRIDX).toInt())
-    {
-        ((BaseForm*)com)->mBorder = rect;
-    }
+//    if(!Left->property(DKEY_ARRIDX).toInt())
+//    {
+//        ((BaseForm*)com)->mBorder = rect;
+//    }
+
+    ((BaseForm*)com)->mBorder = rect;
 
     Left->setValue(rect.left());
     Top->setValue(rect.top());
@@ -238,7 +240,7 @@ void Position::setConnectNewQWidget(QWidget *com)
     Ypos->setValue(rect.y());
     Hpos->setValue(rect.height());
     Wpos->setValue(rect.width());
-    if(!property(DKEY_ARRIDX).toInt())
+    //if(!property(DKEY_ARRIDX).toInt())
         com->setGeometry(rect);
 
     if(!isLW)
@@ -273,13 +275,6 @@ void Position::updatePosition(QWidget *w)
 
 void Position::updateSize(QWidget *w)
 {
-
-//    bool isLW = w->property(DKEY_INTOCONTAINER).toBool();
-//    QPoint pos = w->size();
-//    if(isLW)
-//    {
-//        pos =  w->parentWidget()->size();
-//    }
     QSize size = w->size();
     Wpos->blockSignals(true);
     Hpos->blockSignals(true);
@@ -324,6 +319,37 @@ PropertyTab::PropertyTab(QWidget *parent)
 {
 
     show();
+    connect(this,SIGNAL(currentChanged(int)),SLOT(onTabChanged(int)));
+}
+
+//    QObject::connect(this,&QTabWidget::currentChanged,[=](int index){
+void PropertyTab::onTabChanged(int index){
+        // 更改tab 项,刷新界面里的控件.
+        //int index = currentIndex();
+        int pindex = currentWidget()->property(DKEY_PARRIDX).toInt();
+        QJsonArray parry = ((BaseForm *)mOwerObj)->mOwerJson[PROPERTY].toArray();
+        QJsonObject structobj = parry.at(pindex).toObject();
+        QJsonArray structarry = structobj[STRUCT].toArray();
+
+        QString objname= QString("%1_%2").arg(((BaseForm*)mOwerObj)->mUniqueStr,
+                                          QString::number(index));
+        ((BaseForm *)mOwerObj)->posWidget = findChild<Position*>(objname);
+        QJsonValue val =  structarry.at(index);
+        QColor color = QColor(((BaseForm *)mOwerObj)->getJsonValue(val.toArray(),
+                                                                   BAKCOLOR).toString());
+        ((BaseForm *)mOwerObj)->mbkColor = color.name();
+        QString img =  ((BaseForm *)mOwerObj)->getJsonValue(val.toArray(),BAKIMAGE).toString();
+        QString imgdir = ((BaseForm *)mOwerObj)->mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString();
+        ((BaseForm *)mOwerObj)->mbkImage =  imgdir + BACKSLASH + img;
+
+        ((BaseForm *)mOwerObj)->mBorder =
+                ((BaseForm *)mOwerObj)->getRectFromStruct(val.toArray(),BORDER);
+        color = QColor(((BaseForm *)mOwerObj)->getJsonValue(val.toArray(),
+                                                                           GRAYCOLOR).toString());
+        ((BaseForm *)mOwerObj)->mBorderColor = color.name();
+        ((BaseForm *)mOwerObj)->setGeometry(((BaseForm *)mOwerObj)->getRectFromStruct(val.toArray(),KEY_RECT));
+        ((BaseForm *)mOwerObj)->updateStyleSheets();
+   // });
 }
 
 void PropertyTab::setNewObject(QWidget *w)
@@ -521,238 +547,346 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
         switch (item.type()) {
         case QJsonValue::Array:
         {
-          //   parseJsonToWidget(p,item.toArray());
+            //   parseJsonToWidget(p,item.toArray());
         }
             break;
         case QJsonValue::Object:
         {
-           QJsonObject object = item.toObject();
-           QString uname = object[WTYPE].toString();
-           QString caption = object[CAPTION].toString();
-           if(object.contains(ISTRUE))
-           {
-               continue;
-           }
+            QJsonObject object = item.toObject();
+            QString uname = object[WTYPE].toString();
+            QString caption = object[CAPTION].toString();
+            if(object.contains(ISTRUE))
+            {
+                continue;
+            }
 
-           if(object.contains(STRUCT)) // 处理struct 关键字,QJsonArray
-           {
-              // parseJsonToWidget(p,object[STRUCT].toArray());
-               PropertyTab *csstab = new PropertyTab(this);
-               csstab->setProperty(DKEY_ARRIDX,i);
-               csstab->mOwerObj = p;
+            if(object.contains(STRUCT)) // 处理struct 关键字,QJsonArray
+            {
+                // parseJsonToWidget(p,object[STRUCT].toArray());
+                PropertyTab *csstab = new PropertyTab(this);
+                csstab->setProperty(DKEY_ARRIDX,i);
+                csstab->mOwerObj = p;
 
-               bool manyCss = false;
-               // 这个STRUCT属性,对应于Ｃ语言中的结构体的成员变量,这里可能有多份不同的值.
-               QJsonArray structArray = object[STRUCT].toArray();
-               for(int n = 0 ; n < structArray.size();n++)
-               {
-                   QJsonValue sval =structArray.at(n);
-                   if(sval.isArray())
-                   {
-                       CssProperty *cp = new CssProperty(csstab);
+                bool manyCss = false;
+                // 这个STRUCT属性,对应于Ｃ语言中的结构体的成员变量,这里可能有多份不同的值.
+                QJsonArray structArray = object[STRUCT].toArray();
+                for(int n = 0 ; n < structArray.size();n++)
+                {
+                    QJsonValue sval =structArray.at(n);
+                    if(sval.isArray())
+                    {
+                        CssProperty *cp = new CssProperty(csstab);
                         cp->setProperty(DKEY_PARRIDX,i);   // STRUCT 属性在　PROPERTY属性数组里的位置.
                         cp->setProperty(DKEY_ARRIDX,n);    //在STRUCT 属性数组的位置.
-                       csstab->addTab(cp,QString("CSS属性_%1").
-                                      arg(QString::number(n)));
-                       cp->parseJsonToWidget(p,sval.toArray());
+                        csstab->addTab(cp,QString("CSS属性_%1").
+                                       arg(QString::number(n)));
+                        cp->parseJsonToWidget(p,sval.toArray());
 
-                       manyCss = true;
-                   }
+                        manyCss = true;
+                    }
 
-               }
+                }
 
-               if(!manyCss)
-               {
-                   csstab->deleteLater();
-                   parseJsonToWidget(p,object[STRUCT].toArray());
-               }else{
-                   mainLayout->addWidget(csstab);
-               }
+                if(!manyCss)
+                {
+                    csstab->deleteLater();
+                    parseJsonToWidget(p,object[STRUCT].toArray());
+                }else{
+                    csstab->setCurrentIndex(csstab->count() -1);
+                    csstab->setCurrentIndex(0);
+                    mainLayout->addWidget(csstab);
+                }
 
 
-           }else if(object.contains(ENUM)){
-               QLabel *title = new QLabel(caption,this);
-               QComboBox *cb = new QComboBox(this);
-               cb->setObjectName(uname);
-               cb->setProperty(DKEY_CAPTION,caption);
-               cb->setProperty(DKEY_VALTYPE,ENUM);
-               QVariantList qvlist = object[ENUM].toArray().toVariantList();
-               for(QVariantList::const_iterator it = qvlist.begin();
-                   it != qvlist.end();++it)
-               {
-                   cb->addItem((*it).toMap().firstKey());
-               }
-               mainLayout->addWidget(title);
-               mainLayout->addWidget(cb);
-               wid = cb;
-               connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onEnumItemChanged(QString)));
-           }else if(object.contains(LIST))
-           {
-               //QLabel *title = new QLabel(caption);
-               QComboBox *cb = new QComboBox(this);
-               cb->setObjectName(uname);
-               cb->setProperty(DKEY_VALTYPE,LIST);
-               // 这里通过它的JSON组数的位置去找它.
-               wid = cb;
-               QPushButton *b = new QPushButton(tr("添加图片"),this);
-               b->setObjectName(uname);
-               b->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
-               b->setProperty(DKEY_ARRIDX,this->property(DKEY_ARRIDX));
-               b->setProperty(DKEY_OWERJSON,this->metaObject()->className());
-               b->setProperty(DKEY_PARRIDX,this->property(DKEY_PARRIDX));
-               connect(b,SIGNAL(clicked(bool)),p,SLOT(onPictureDialog(bool)));
-               mainLayout->addWidget(b);
-               mainLayout->addWidget(cb);
-               QVariant nlv =  item.toObject().value(LIST);
-               QVariantList imglist ;
-               if(nlv.isValid() )
-               {
-                   // 处理图片列表与它的默认值
-                   QVariantList nlist = nlv.toList();
-                   QString defimg = item.toObject().value(DEFAULT).toString();
-                   int sep = defimg.lastIndexOf(BACKSLASH) + 1;
-                   defimg = defimg.mid(sep);
+            }else if(object.contains(ENUM)){
+                QLabel *title = new QLabel(caption,this);
+                QComboBox *cb = new QComboBox(this);
+                cb->setObjectName(uname);
+                cb->setProperty(DKEY_CAPTION,caption);
+                cb->setProperty(DKEY_VALTYPE,ENUM);
+                QVariantList qvlist = object[ENUM].toArray().toVariantList();
+                for(QVariantList::const_iterator it = qvlist.begin();
+                    it != qvlist.end();++it)
+                {
+                    cb->addItem((*it).toMap().firstKey());
+                }
+                mainLayout->addWidget(title);
+                mainLayout->addWidget(cb);
+                wid = cb;
+                connect(cb,SIGNAL(currentTextChanged(QString)),
+                        p,SLOT(onEnumItemChanged(QString)));
+            }else if(object.contains(LIST))
+            {
+                //QLabel *title = new QLabel(caption);
+                QComboBox *cb = new QComboBox(this);
+                cb->setObjectName(uname);
+                cb->setProperty(DKEY_VALTYPE,LIST);
+                // 这里通过它的JSON组数的位置去找它.
+                wid = cb;
+                QPushButton *btn = new QPushButton(caption,this);
+                btn->setObjectName(uname);
+                btn->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
+                btn->setProperty(DKEY_ARRIDX,this->property(DKEY_ARRIDX));
+                btn->setProperty(DKEY_OWERJSON,this->metaObject()->className());
+                btn->setProperty(DKEY_PARRIDX,this->property(DKEY_PARRIDX));
+                mainLayout->addWidget(btn);
+                mainLayout->addWidget(cb);
+                QJsonArray array = object[LIST].toArray();
+                btn->setProperty(DKEY_CBLIST,array);
+                QStringList lst ;
+                if(!uname.compare(PIC_TEXT))
+                {
 
-                   for(QVariantList::const_iterator it = nlist.begin();
-                           it != nlist.end();++it)
-                   {
-                       // example for key  is  "config/images/string/alarm_pol.bmp"
-                     //  QString key = (*it).toString().replace(SLASH,BACKSLASH);
-                       QString key = (*it).toString();
+                    foreach(QJsonValue v,array) lst << ((BaseForm*)p)->mWindow->mItemMap.value(v.toString());
+                    QString defstr = object[DEFAULT].toString().toLower();
+                    cb->addItems(lst);
+                    cb->setCurrentText(((BaseForm*)p)->mWindow->mItemMap.value(defstr));
 
+
+                    QObject::connect(btn,&QPushButton::clicked,[=](){
+                        QJsonArray cblist =btn->property(DKEY_CBLIST).toJsonArray();
+                        I18nLanguage lang(cblist.toVariantList(),((BaseForm*)p)->mWindow);
+                        lang.exec();
+
+                        QStringList nlst = lang.getSelectedItems();
+                        QString curstr = cb->currentText();
+                        cb->clear();
+                        cb->addItems(nlst);
+                        cb->setCurrentText(curstr);
+                        QStringList klist ;
+                        foreach(QString v,nlst) klist << ((BaseForm*)p)->mWindow->mItemMap.key(v);
+                        ((BaseForm*)p)->changeJsonValue(btn,uname,klist);
+                        btn->setProperty(DKEY_CBLIST,QJsonArray::fromStringList(klist));
+                    });
+
+                    QObject::connect(cb,&QComboBox::currentTextChanged,[=](QString txt){
+                        ((BaseForm*)p)->changeJsonValue(btn,uname,
+                                                        ((BaseForm*)p)->mWindow->mItemMap.key(txt));
+                    });
+                    continue;
+
+                }else {
+                    // 图片列表处理分支.这里不用Ｍap而用LIST来暂存一些数值,是因为map是无序的.
+                    QString imgdir = ((BaseForm*)p)->mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString();
+
+                    QJsonArray array =  object[LIST].toArray();
+                    QString defimg = object[DEFAULT].toString();
+                    foreach (QVariant v, array) {
+                        QString key = v.toString();
                         int idx = key.lastIndexOf(BACKSLASH)+1;
-                       imglist << QString("%1|%2").arg(key.mid(idx),key);
-                   }
+                        lst << QString("%1|%2").arg(key.mid(idx),key);
+                        cb->addItem(QIcon(imgdir+BACKSLASH+key),key.mid(idx));
+                    }
 
-                   cb->setProperty(DKEY_IMGIDX,defimg);
-                   p->setProperty(DKEY_IMAGELST,imglist);
-                   cb->setProperty(DKEY_IMAGELST,imglist);
+                    cb->setCurrentText(defimg);
 
-                  // changeJsonValue(LIST,nlv);
-               }
-               // 绑定QComoBox的更改信号,更改它的值就要在相应的画版控件更新图片
-               connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onListImageChanged(QString)));
+                    if(imgdir.isEmpty())
+                        imgdir = QDir::currentPath();
 
-           }else if(object.contains(KEY_RECT))
-           {
-               Position* posWidget =   new Position(this);
-              // posWidget->setProperty(DKEY_ARRIDX,i);
-               posWidget->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
-               if(!property(DKEY_ARRIDX).toInt())
-                  ((BaseForm*)p)->posWidget = posWidget;
+                    int rootlen  = imgdir.length() +1;
+                    cb->setProperty(DKEY_CBLIST,array);
+                    QObject::connect(btn,&QPushButton::clicked,[=](){
+                        QJsonArray cblist =btn->property(DKEY_CBLIST).toJsonArray();
+                        ImageFileDialog ifd(cblist.toVariantList(),
+                                            imgdir,((BaseForm*)p)->mWindow);
+                        ifd.exec();
+                        QVariantList imglist = ifd.getSelectedList();
+                        QJsonArray qa;
+                        QString curstr = cb->currentText();
+                        cb->clear();
 
-              posWidget->setConnectNewQWidget(p);
-              mainLayout->addWidget(posWidget);
-           }else if(object.contains(BORDER))
-           {
+                        foreach (QVariant v, imglist) {
+                            QString s = v.toString();
+                            // example for s   "alarm_du.bmp|/home/yjdwbj/build-ut-tools-Desktop_Qt_5_6_0_GCC_64bit-Debug/images/string/alarm_du.bmp
+                            // example for s   ""m104.bmp|config/images/string/m104.bmp"
+                            QString lastsection = s.section(SECTION_CHAR,1,1);
+                            QString substr;
+                            if(lastsection.indexOf(BACKSLASH) == 0)
+                            {
+                                substr = s.section(SECTION_CHAR,1,1).mid(rootlen);
+                            }else
+                            {
+                                substr = s.section(SECTION_CHAR,1,1);
+                            }
+                            qa.append(substr);
+                            cb->addItem(QIcon(substr), s.section(SECTION_CHAR,0,0));
+                        }
+                        cb->setCurrentText(curstr);
+                        ((BaseForm*)p)->changeJsonValue(btn,uname,qa);
+                        btn->setProperty(DKEY_CBLIST,qa);
+                        cb->setProperty(DKEY_CBLIST,imglist);
+                    });
 
-              Border *b = new Border(this);
-              b->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
+                    QObject::connect(cb,&QComboBox::currentTextChanged,[=](QString txt){
 
-              b->setConnectNewQWidget(p);
-              mainLayout->addWidget(b);
-              QPushButton *btn = new QPushButton(caption,this);
-              mainLayout->addWidget(btn);
-              btn->setObjectName(uname);
+                        QVariantList imglist= cb->property(DKEY_CBLIST).toList();
+                        foreach (QVariant v, imglist) {
+                            QString s = v.toString();
+                            QString k = s.section(SECTION_CHAR,0,0);
+                            if(!k.compare(txt))
+                            {
+                                QString fpath = s.section(SECTION_CHAR,1,1);
+                                ((BaseForm*)p)->changeJsonValue(btn,uname,fpath.mid(rootlen)); // 修改JSON里的值
+                                break;
+                            }
+                        }
+                    });
+                }
+                continue;
+                //               connect(btn,SIGNAL(clicked(bool)),p,SLOT(onPictureDialog));
+                //               QVariant nlv =  object.value(LIST);
+                //               QVariantList imglist ;
+                //               if(nlv.isValid() )
+                //               {
+                //                   // 处理图片列表与它的默认值
+                //                   QVariantList nlist = nlv.toList();
+                //                   QString defimg = item.toObject().value(DEFAULT).toString();
+                //                   int sep = defimg.lastIndexOf(BACKSLASH) + 1;
+                //                   defimg = defimg.mid(sep);
 
-              connect(btn,SIGNAL(clicked(bool)),p,SLOT(onColorButtonClicked()));
-              wid = btn;
-           }else if(object.contains(UID))
-           {
-               QLabel *title = new QLabel(caption,this);
-               mainLayout->addWidget(title);
+                //                   for(QVariantList::const_iterator it = nlist.begin();
+                //                           it != nlist.end();++it)
+                //                   {
+                //                       // example for key  is  "config/images/string/alarm_pol.bmp"
+                //                     //  QString key = (*it).toString().replace(SLASH,BACKSLASH);
+                //                       QString key = (*it).toString();
+                //                        int idx = key.lastIndexOf(BACKSLASH)+1;
+                //                       imglist << QString("%1|%2").arg(key.mid(idx),key);
+                //                   }
 
-               QLineEdit *nameEdt = new QLineEdit(this);
-               nameEdt->setObjectName(uname);
+                //                   cb->setProperty(DKEY_IMGIDX,defimg);
+                //                   p->setProperty(DKEY_IMAGELST,imglist);
+                //                   cb->setProperty(DKEY_IMAGELST,imglist);
 
-               nameEdt->setMaxLength(8);
-               nameEdt->setInputMask("nnnnnnnn;"); // or NNNNNNNN;_
-               nameEdt->setCursorPosition(0);
-               mainLayout->addWidget(nameEdt);
-               connect(nameEdt,SIGNAL(textChanged(QString)),p,SLOT(onTextChanged(QString)));
-               wid = nameEdt;
-               // 这里是一个特殊属性,唯一序号
-           }
-           else if(object.contains(BAKIMAGE))
-           {
-               QPushButton *bkimage = new QPushButton(caption,this);
-               bkimage->setObjectName(uname);
-               mainLayout->addWidget(bkimage);
+                //                  // changeJsonValue(LIST,nlv);
+                //               }
+                //               // 绑定QComoBox的更改信号,更改它的值就要在相应的画版控件更新图片
+                //               connect(cb,SIGNAL(currentTextChanged(QString)),
+                //                       p,SLOT(onListImageChanged(QString)));
+
+            }else if(object.contains(KEY_RECT))
+            {
+                Position* posWidget =   new Position(this);
+                posWidget->setObjectName(QString("%1_%2").arg(((BaseForm*)p)->mUniqueStr,
+                                                              QString::number(property(DKEY_ARRIDX).toInt())));
+                // posWidget->setProperty(DKEY_ARRIDX,i);
+                posWidget->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
+                if(!property(DKEY_ARRIDX).toInt())
+                    ((BaseForm*)p)->posWidget = posWidget;
+
+                posWidget->setConnectNewQWidget(p);
+                mainLayout->addWidget(posWidget);
+            }else if(object.contains(BORDER))
+            {
+
+                Border *b = new Border(this);
+                b->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
+
+                b->setConnectNewQWidget(p);
+                mainLayout->addWidget(b);
+                QPushButton *btn = new QPushButton(caption,this);
+                mainLayout->addWidget(btn);
+                btn->setObjectName(uname);
+
+                connect(btn,SIGNAL(clicked(bool)),p,SLOT(onColorButtonClicked()));
+                wid = btn;
+            }else if(object.contains(UID))
+            {
+                QLabel *title = new QLabel(caption,this);
+                mainLayout->addWidget(title);
+
+                QLineEdit *nameEdt = new QLineEdit(this);
+                nameEdt->setObjectName(uname);
+
+                nameEdt->setMaxLength(8);
+                nameEdt->setInputMask("nnnnnnnn;"); // or NNNNNNNN;_
+                nameEdt->setCursorPosition(0);
+                mainLayout->addWidget(nameEdt);
+                connect(nameEdt,SIGNAL(textChanged(QString)),
+                        p,SLOT(onTextChanged(QString)));
+                wid = nameEdt;
+                // 这里是一个特殊属性,唯一序号
+            }
+            else if(object.contains(BAKIMAGE))
+            {
+                QPushButton *bkimage = new QPushButton(caption,this);
+                bkimage->setObjectName(uname);
+                mainLayout->addWidget(bkimage);
                 p->setProperty(DKEY_CURVAL,BAKIMAGE);
-               wid = bkimage;
-               connect(bkimage,SIGNAL(clicked(bool)),p,SLOT(onBackgroundImageDialog()));
-           }
-           else if(object.contains(BAKCOLOR))
-           {
-               QPushButton *bkcolor = new QPushButton(caption,this);
-               bkcolor->setObjectName(uname);
-               mainLayout->addWidget(bkcolor);
-               p->setProperty(DKEY_CURVAL,BAKCOLOR);
+                wid = bkimage;
+                connect(bkimage,SIGNAL(clicked(bool)),p,SLOT(onBackgroundImageDialog()));
+            }
+            else if(object.contains(BAKCOLOR))
+            {
+                QPushButton *bkcolor = new QPushButton(caption,this);
+                bkcolor->setObjectName(uname);
+                mainLayout->addWidget(bkcolor);
+                p->setProperty(DKEY_CURVAL,BAKCOLOR);
 
-               connect(bkcolor,SIGNAL(clicked(bool)),p,SLOT(onColorButtonClicked()));
-               wid = bkcolor;
-           }else{
-              //下面是通JSON值类型来区分来创建不同类型的控件.
-               if(object[DEFAULT].isString())
-               {
-                   if(!uname.compare(PIC_TEXT))
-                   {
+                connect(bkcolor,SIGNAL(clicked(bool)),p,SLOT(onColorButtonClicked()));
+                wid = bkcolor;
+            }else{
+                //下面是通JSON值类型来区分来创建不同类型的控件.
+                if(object[DEFAULT].isString())
+                {
+                    if(!uname.compare(PIC_TEXT))
+                    {
 
-                       QLabel *title = new QLabel(caption,this);
-                       QComboBox *cb = new QComboBox(this);
-                       cb->setObjectName(uname);
-                       QString defstr = object[DEFAULT].toString().toLower();
-                       foreach (QString key, ((BaseForm*)p)->mWindow->mOrderlist) {
+                        QLabel *title = new QLabel(caption,this);
+                        QComboBox *cb = new QComboBox(this);
+                        cb->setObjectName(uname);
+                        QString defstr = object[DEFAULT].toString().toLower();
+                        foreach (QString key, ((BaseForm*)p)->mWindow->mOrderlist) {
                             cb->addItem( ((BaseForm*)p)->mWindow->mItemMap[key] );
-                       }
-                       cb->setCurrentIndex(((BaseForm*)p)->mWindow->mOrderlist.indexOf(defstr));
-                       mainLayout->addWidget(title);
-                       mainLayout->addWidget(cb);
-                       wid = cb;
-                       connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onEnumItemChanged(QString)));
-                   }else{
+                        }
+                        cb->setCurrentIndex(((BaseForm*)p)->mWindow->mOrderlist.indexOf(defstr));
+                        mainLayout->addWidget(title);
+                        mainLayout->addWidget(cb);
+                        wid = cb;
+                        connect(cb,SIGNAL(currentTextChanged(QString)),p,SLOT(onEnumItemChanged(QString)));
+                    }else{
 
-                       QLineEdit *txt = new QLineEdit(object[DEFAULT].toString(),this);
-                       txt->setObjectName(uname);
-                       txt->setProperty(DKEY_VALTYPE,TEXT);
-                       if(object.contains(MAXLEN))
-                       {
-                           txt->setMaxLength(object[MAXLEN].toDouble());
-                       }
+                        QLineEdit *txt = new QLineEdit(object[DEFAULT].toString(),this);
+                        txt->setObjectName(uname);
+                        txt->setProperty(DKEY_VALTYPE,TEXT);
+                        if(object.contains(MAXLEN))
+                        {
+                            txt->setMaxLength(object[MAXLEN].toDouble());
+                        }
                         wid = txt;
-                       // QLabel * l = new QLabel(uname);
-                       QLabel *title = new QLabel(caption,this);
-                       mainLayout->addWidget(title);
-                       mainLayout->addWidget(txt);
-                       txt->setFixedHeight(25);
-                       connect(txt,SIGNAL(textChanged(QString)),p,SLOT(onTextChanged(QString)));
-                   }
+                        // QLabel * l = new QLabel(uname);
+                        QLabel *title = new QLabel(caption,this);
+                        mainLayout->addWidget(title);
+                        mainLayout->addWidget(txt);
+                        txt->setFixedHeight(25);
+                        connect(txt,SIGNAL(textChanged(QString)),p,SLOT(onTextChanged(QString)));
+                    }
 
 
-               }else if(object[DEFAULT].isDouble())
-               {
-                   QLabel *title = new QLabel(caption,this);
-                   //int val = object[DEFAULT].toDouble();
-                   mainLayout->addWidget(title);
-                   QSpinBox *s = new QSpinBox(this);
+                }else if(object[DEFAULT].isDouble())
+                {
+                    QLabel *title = new QLabel(caption,this);
+                    //int val = object[DEFAULT].toDouble();
+                    mainLayout->addWidget(title);
+                    QSpinBox *s = new QSpinBox(this);
 
-                   s->setObjectName(uname);
+                    s->setObjectName(uname);
 
-                   s->setProperty(DKEY_VALTYPE,NUMBER);
-                   //要保存每一次修改过的值.
-                   mainLayout->addWidget(s);
-                   wid = s;
-                   if(object.contains(MAX))
-                   {
-                       s->setMaximum(object[MAX].toInt());
-                   }
-                   if(object.contains(MIN))
-                   {
-                       s->setMinimum(object[MIN].toInt());
-                   }
-                   connect(s,SIGNAL(valueChanged(int)),p,SLOT(onNumberChanged(int)));
-               }
-           }
+                    s->setProperty(DKEY_VALTYPE,NUMBER);
+                    //要保存每一次修改过的值.
+                    mainLayout->addWidget(s);
+                    wid = s;
+                    if(object.contains(MAX))
+                    {
+                        s->setMaximum(object[MAX].toInt());
+                    }
+                    if(object.contains(MIN))
+                    {
+                        s->setMinimum(object[MIN].toInt());
+                    }
+                    connect(s,SIGNAL(valueChanged(int)),p,SLOT(onNumberChanged(int)));
+                }
+            }
         }
 
         default:

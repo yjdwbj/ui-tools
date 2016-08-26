@@ -111,6 +111,7 @@ static const char DKEY_TYPE[] = "DKtypeID";
 static const char DKEY_CURVAL[] = "CurrentProperty";
 static const char DKEY_EVT_TIME[] = "EventTimestamp";
 static const char DKEY_OWERJSON[] = "OwerJsonClassName";
+static const char DKEY_CBLIST[] = "CbList";
 //static const char DKEY_PARENTPOS[] = "ParentPos";
 
 static const char DKEY_ROW[] = "gridrow";

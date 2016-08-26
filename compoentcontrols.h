@@ -79,7 +79,8 @@ public:
 
 
     enum TabHandle { Append, Insert,Delete };
-
+public slots:
+    void onTabChanged(int idex);
 
 protected:
     void mousePressEvent(QMouseEvent *event);

@@ -156,11 +156,6 @@ void Compoent::changeJsonValue(QWidget *w,QString key, const QVariant &val)
     if(!owercls.compare("ComProperty"))
     {
         // 默就解析到 JSON PROPERTY 里的属性,不递归到CSS属性里去.
-//        int index = w->property(DKEY_ARRIDX).toInt();
-//        QJsonArray parray = mOwerJson[PROPERTY].toArray();
-//        QJsonValue val = parray.at(index);
-//        parray[index] = changeJsonValue(val.toArray(),key,val);
-//        mOwerJson[PROPERTY] = parray;
         changeJsonValue(key,val);
 
     }else if(!owercls.compare("CssProperty"))
@@ -249,22 +244,27 @@ QVariant Compoent::getJsonValue(const QJsonArray &parr,QString key)
 {
     int asize = parr.size();
    // for(int i = 0;i < asize;i++)
+    QVariant ret;
     foreach (QJsonValue val, parr)
     {
         if(val.isArray())
         {
-            QVariant ret = getJsonValue(val.toArray(),key);
+            ret = getJsonValue(val.toArray(),key);
             if(ret.isValid())
                 return ret;
             else
                 continue;
         }
         QJsonObject obj = val.toObject();
-        foreach (QString str, KeyList) {
-            if(obj.contains(str))
-                return obj[str].toVariant();
-        }
+        QString  wtype = obj[WTYPE].toString();
+        if(!wtype.compare(key) || obj.contains(key))
+        {
+            foreach (QString str, KeyList) {
+                if(obj.contains(str))
+                    return obj[str].toVariant();
+            }
 
+        }
 
     }
     return QVariant();
@@ -272,7 +272,7 @@ QVariant Compoent::getJsonValue(const QJsonArray &parr,QString key)
 
 QVariant Compoent::getJsonValue(QString key) const
 {
-//    return getJsonValue(dynValues[DKEY_DYN].toArray(),key);
+
     return getJsonValue(mOwerJson[PROPERTY].toArray(),key);
 }
 
@@ -288,7 +288,7 @@ void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
      QJsonValue  item = QJsonValue::fromVariant(w->property(DKEY_JSONSTR));
 
      // 是否是第一个TAB;
-     bool isFirst = !w->property(DKEY_ARRIDX).toInt();
+    // bool isFirst = !w->property(DKEY_ARRIDX).toInt();
      QString n = w->metaObject()->className();
      QString uname = w->objectName();
      if(!n.compare("QLineEdit"))
@@ -335,7 +335,8 @@ void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
           if(!uname.compare(BAKCOLOR))
           {
                c = QColor(getJsonValue(item,BAKCOLOR).toString()) ;
-               if(isFirst) myself->mbkColor =c.name();
+              // if(isFirst)
+                   myself->mbkColor =c.name();
           }
           else if(!uname.compare(BORDER))
           {
@@ -345,7 +346,8 @@ void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
               //QColor c = QColor::fromRgb(n);
               // 这里暂时有RGB颜色测试
               c = QColor(getJsonValue(item,GRAYCOLOR).toString());
-              if(isFirst) myself->mBorderColor = c.name();
+             // if(isFirst)
+                  myself->mBorderColor = c.name();
 
           }else if(!uname.compare(BAKIMAGE))
           {
@@ -354,14 +356,17 @@ void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
               img = myself->mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString() + BACKSLASH + img;
               p.load(img);
               ((QPushButton*)w)->setIcon(p);
-              if(isFirst) myself->mbkImage = img;
+             // if(isFirst)
+                  myself->mbkImage = img;
               return;
-
           }else if(!uname.compare(PIC_TEXT))
           {
+
+
               return;
           }
-          if(isFirst) myself->updateStyleSheets();
+          //if(isFirst)
+              myself->updateStyleSheets();
           QPixmap p(12,12);
           p.fill(c);
 
@@ -477,10 +482,12 @@ void BaseForm::mouseMoveEvent(QMouseEvent *event)
     {
         move(this->pos() + (event->pos() - mOffset));
         /* 把新的位置更新到右边属性框 */
-        if(!posWidget->property(DKEY_ARRIDX).toInt())
-        {
-            posWidget->updatePosition(this);
-        }
+//        if(!posWidget->property(DKEY_ARRIDX).toInt())
+//        {
+//            posWidget->updatePosition(this);
+//        }
+
+        posWidget->updatePosition(this);
         changeJsonValue(posWidget,
                         KEY_RECT,
                         QString("%1:%2").arg(LX,
@@ -609,11 +616,14 @@ void BaseForm::mouseReleaseEvent(QMouseEvent *event)
 
     //mWindow->posWidget->updateSize(this->size());
 
-    if(!posWidget->property(DKEY_ARRIDX).toInt())
-    {
-        posWidget->updateSize(this);
-        posWidget->updatePosition(this);
-    }
+//    if(!posWidget->property(DKEY_ARRIDX).toInt())
+//    {
+//        posWidget->updateSize(this);
+//        posWidget->updatePosition(this);
+//    }
+
+    posWidget->updateSize(this);
+    posWidget->updatePosition(this);
 
     changeJsonValue(posWidget,
                     KEY_RECT,
@@ -673,47 +683,51 @@ void BaseForm::onXYWHChangedValue(int v)
     /* 绑定坐标控件的更新 */
 
     QWidget *sender =(QWidget *)(QObject::sender());
-    bool isFirst = !sender->property(DKEY_ARRIDX).toInt();
+   // bool isFirst = !sender->property(DKEY_ARRIDX).toInt();
     if(!sender->objectName().compare(X))
     {
 
-        if(isFirst) {
+       // if(isFirst) {
             QPoint pos = this->pos();
             pos.setX(v);
-            this->move(pos);}
+            this->move(pos);
+        //}
         changeJsonValue(sender,
                         KEY_RECT,
                         QString("%1:%2").arg(LX,QString::number(v)));
 
     }else if(!sender->objectName().compare(Y))
     {
-        if(isFirst) {
+       // if(isFirst) {
             QPoint pos = this->pos();
             pos.setY(v);
-            this->move(pos );}
+            this->move(pos );
+     //}
         changeJsonValue(sender,
                         KEY_RECT,
                         QString("%1:%2").arg(LY,QString::number(v)));
 
     }else if(!sender->objectName().compare(W))
     {
-        if(isFirst) {
+        //if(isFirst) {
             if((this->pos().x() + v )> this->parentWidget()->size().width())
                 return;
             QSize n(this->size());
             n.setWidth(v);
-            this->resize(n);}
+            this->resize(n);
+    //}
         changeJsonValue(sender,
                         KEY_RECT,
                         QString("%1:%2").arg(WIDTH,QString::number(v)));
     }else if(!sender->objectName().compare(H))
     {
-        if(isFirst) {
+        //if(isFirst) {
             if((this->pos().y() + v )> this->parentWidget()->size().height())
                 return;
             QSize n(this->size());
             n.setHeight(v);
-            this->resize(n);}
+            this->resize(n);
+    //}
         changeJsonValue(sender,
                         KEY_RECT,
                         QString("%1:%2").arg(HEIGHT,QString::number(v)));
@@ -755,8 +769,8 @@ void BaseForm::onBorderChangedValue(int v)
     QString name = w->objectName();
      changeJsonValue(w,BORDER,
                QString("%1:%2").arg(name,QString::number(v)));
-     if(!w->property(DKEY_ARRIDX).toInt())  // 只有第一全CSS属性可以与界面互动.
-     {
+//     if(!w->property(DKEY_ARRIDX).toInt())  // 只有第一全CSS属性可以与界面互动.
+//     {
          if(!name.compare(LEFT))
          {
              mBorder.setLeft(v);
@@ -774,7 +788,7 @@ void BaseForm::onBorderChangedValue(int v)
              mBorder.setBottom(v);
          }
          updateStyleSheets();
-     }
+   //  }
     this->blockSignals(true);
 }
 
@@ -876,11 +890,11 @@ void BaseForm::onColorButtonClicked()
         btn->setIcon(p);
         btn->update();
         QString objname = btn->objectName();
-        bool isFirst = !btn->property(DKEY_ARRIDX).toInt();
+     //   bool isFirst = !btn->property(DKEY_ARRIDX).toInt();
         if(!objname.compare(BAKCOLOR))
         {
             changeJsonValue(btn,BAKCOLOR,c.name());
-            if(isFirst)
+          //  if(isFirst)
                 mbkColor = c.name(QColor::HexArgb);
         }
         else if(!objname.compare(BORDER))
@@ -890,11 +904,12 @@ void BaseForm::onColorButtonClicked()
                             QString("%1:%2").arg( GRAYCOLOR,c.name(QColor::HexArgb)));
                                                  // QString::number(c.value())));
                                                 //  QString::number(qGray(c.rgb()))));
-            if(isFirst)
+            //if(isFirst)
                 mBorderColor = c.name(QColor::HexArgb);
             //  changeJsonValue(btn,BORDER,c);
         }
-        if(isFirst) updateStyleSheets();
+      //  if(isFirst)
+            updateStyleSheets();
 
     }
 
@@ -911,7 +926,7 @@ void BaseForm::onSelectMe()
     mWindow->cManager->activeSS()->setSelectObject(this);
 
     mWindow->propertyWidget->createPropertyBox(this);
-    posWidget->setConnectNewQWidget(this);
+   // posWidget->setConnectNewQWidget(this);
     posWidget->updatePosition(this);
     posWidget->updateSize(this);
 }
@@ -967,11 +982,11 @@ void BaseForm::onBackgroundImageDialog()
         if(!vmap.isEmpty())
         {
             QString fpath = vmap[item->text()].toString();
-            if(!imgview->imglist->property(DKEY_ARRIDX).toInt())
-            {
+//            if(!imgview->imglist->property(DKEY_ARRIDX).toInt())
+//            {
                 mbkImage = fpath;
                 updateStyleSheets();
-            }
+           // }
 
             int n = imgdir.length() +1;
 
@@ -998,11 +1013,11 @@ void BaseForm::onSelectedBackgroundImage(QListWidgetItem *item)
     if(!vmap.isEmpty())
     {
         QString fpath = vmap[item->text()].toString();
-        if(!sender->property(DKEY_ARRIDX).toInt())
-        {
+//        if(!sender->property(DKEY_ARRIDX).toInt())
+//        {
             mbkImage = fpath;
             updateStyleSheets();
-        }
+      //  }
         changeJsonValue(sender,property(DKEY_CURVAL).toString(),fpath);
     }
 
@@ -1028,55 +1043,53 @@ void BaseForm::onListImageChanged(QString img)
 
 }
 
+//void BaseForm::onPictureDialog( )
+//{
+//    QWidget *sparent =((QWidget*)QObject::sender())->parentWidget();
 
+//    QString key = QObject::sender()->objectName();
+//    QComboBox *cb = sparent->findChild<QComboBox*>(key);
 
-void BaseForm::onPictureDialog(bool )
-{
-    QWidget *sparent =((QWidget*)QObject::sender())->parentWidget();
+//    // QMessageBox::warning(this,"test","your clicked me: ");
+//    QVariantList imglist = this->property(DKEY_IMAGELST).toList();
+//    ImageFileDialog *ifd = new ImageFileDialog(imglist,
+//                                               mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString(),
+//                                               this);
 
-    QString key = QObject::sender()->objectName();
-    QComboBox *cb = sparent->findChild<QComboBox*>(key);
+//    ifd->exec();
+//     imglist = ifd->getSelectedList();
+//    ifd->deleteLater();
+//    QString imgdir = mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString();
+//    if(imgdir.isEmpty())
+//        imgdir = QDir::currentPath();
 
-    // QMessageBox::warning(this,"test","your clicked me: ");
-    QVariantList imglist = this->property(DKEY_IMAGELST).toList();
-    ImageFileDialog *ifd = new ImageFileDialog(imglist,
-                                               mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString(),
-                                               this);
+//    int rootlen  = /*QDir::currentPath().length()+1;*/imgdir.length() +1;
+//    QJsonArray qa;
 
-    ifd->exec();
-     imglist = ifd->getSelectedList();
-    ifd->deleteLater();
-    QString imgdir = mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString();
-    if(imgdir.isEmpty())
-        imgdir = QDir::currentPath();
+//    cb->clear();
+//    setProperty(DKEY_IMAGELST,imglist);
+//    foreach (QVariant v, imglist) {
+//        QString s = v.toString();
+//        // example for s   "alarm_du.bmp:/home/yjdwbj/build-ut-tools-Desktop_Qt_5_6_0_GCC_64bit-Debug/images/string/alarm_du.bmp
+//        // example for s   ""m104.bmp:config/images/string/m104.bmp"
+//        QString lastsection = s.section(SECTION_CHAR,1,1);
+//         QString substr;
+//        if(lastsection.indexOf(BACKSLASH) == 0)
+//        {
+//           substr = s.section(SECTION_CHAR,1,1).mid(rootlen);
+//        }else
+//        {
+//            substr = s.section(SECTION_CHAR,1,1);
+//        }
+//        qa.append(substr);
+//        cb->addItem(QIcon(substr), s.section(SECTION_CHAR,0,0));
+//    }
+//    cb->setCurrentText(cb->property(DKEY_IMGIDX).toString());
+//    changeJsonValue((QWidget*)QObject::sender(),key,qa);
+//    //json[LIST] = qa;
+//    // 把新的列表更新的json中.
 
-    int rootlen  = /*QDir::currentPath().length()+1;*/imgdir.length() +1;
-    QJsonArray qa;
-
-    cb->clear();
-    setProperty(DKEY_IMAGELST,imglist);
-    foreach (QVariant v, imglist) {
-        QString s = v.toString();
-        // example for s   "alarm_du.bmp:/home/yjdwbj/build-ut-tools-Desktop_Qt_5_6_0_GCC_64bit-Debug/images/string/alarm_du.bmp
-        // example for s   ""m104.bmp:config/images/string/m104.bmp"
-        QString lastsection = s.section(SECTION_CHAR,1,1);
-         QString substr;
-        if(lastsection.indexOf(BACKSLASH) == 0)
-        {
-           substr = s.section(SECTION_CHAR,1,1).mid(rootlen);
-        }else
-        {
-            substr = s.section(SECTION_CHAR,1,1);
-        }
-        qa.append(substr);
-        cb->addItem(QIcon(substr), s.section(SECTION_CHAR,0,0));
-    }
-    cb->setCurrentText(cb->property(DKEY_IMGIDX).toString());
-    changeJsonValue((QWidget*)QObject::sender(),key,qa);
-    //json[LIST] = qa;
-    // 把新的列表更新的json中.
-
-}
+//}
 
 
 int  BaseForm::tinySpinBoxDialog(QString  str,int val ,int min ,int max)
@@ -2321,24 +2334,14 @@ QWidget* NewLayout::createObjectFromJson(const QJsonValue &qv)
     newFrame->setProperty(DKEY_TXT,caption);
     childlist.append(newFrame);
     mWindow->tree->addObjectToCurrentItem(mUniqueStr,newFrame);
-
     QJsonObject obj = getValueFromProperty(json[PROPERTY].toArray(),BAKIMAGE);
     if(!obj.isEmpty() && obj.contains(BAKIMAGE))
     {
        // QPixmap p;
         QString path = obj[BAKIMAGE].toString();
-//        if(path.contains("\\"))
-//        {
-//            path.replace("\\","/");
-//        }
         newFrame->mbkImage = path;
         newFrame->updateStyleSheets();
     }
-
-    // 这里不再需要添加图片了.
-//    foreach (QJsonValue item, json[WIDGET].toArray()) {
-//        newFrame->readFromJson(item.toObject());
-//    }
     newFrame->show();
     newFrame->onSelectMe();
 
@@ -2347,8 +2350,6 @@ QWidget* NewLayout::createObjectFromJson(const QJsonValue &qv)
 
 NewLayer::NewLayer(QString caption,QSize nsize, QWidget *parent)
     :BaseForm(parent)
-    // mActiveIdx(-1)
-
 {
     mType = TYPELAYER;
     mWindow = ((ScenesScreen*)parent)->mWindow;

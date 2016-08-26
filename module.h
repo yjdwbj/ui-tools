@@ -74,14 +74,18 @@ public:
     };
     explicit BaseForm(QWidget *parent=0);
     MainWindow *mWindow;
-    QRect mBorder;
+
     QPoint mOffset;
     QList<QWidget*> childlist;
     QWidget *parentControl;
+
+    //　界面显示的一些变量.
     QString mBorderColor;
     QString mbkColor;
     QString mbkImage;
     Position *posWidget;
+    QRect mBorder;
+
     bool mCreateFlag; // 区分这是从原始模版读取的,还是工程读取
 
     QString mUniqueStr;
@@ -128,7 +132,7 @@ public slots:
     void onSelectedBackgroundImage(QListWidgetItem *item);
 
     virtual void onDeleteMe() =0;
-    void onPictureDialog(bool );
+   // void onPictureDialog();
     void onListImageChanged(QString);
 
 protected:
@@ -292,10 +296,6 @@ public slots:
    // void onXYWHChangedValue(int v);
     void onDeleteMe();
     void onBeComeTemplateWidget();
-
-//protected:
-//    void mouseMoveEvent(QMouseEvent *event) override;
-//    void mouseReleaseEvent(QMouseEvent *event) override;
 };
 
 

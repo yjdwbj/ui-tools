@@ -36,11 +36,11 @@ class ImageFileDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit ImageFileDialog(QVariantList old, QString imgpath, QWidget *parent = 0);
+    explicit ImageFileDialog(QVariantList old, QString imgpath,  QWidget *parent = 0);
     ~ImageFileDialog();
 
     //const selectedMap getSelectedMap() const { return selMap;}
-    const QVariantList getSelectedList() const { return selstrList;}
+    QVariantList getSelectedList() ;
     void updateListImages(QString path);
 
     void setOldList();
@@ -82,7 +82,7 @@ private:
    // QMap<QString,QString> extMap;
     QVariantMap extMap;
     //selectedMap selMap;
-    QVariantList selstrList;
+   // QStringList selstrList;
 protected:
     void dragEnterEvent();
 
@@ -152,13 +152,13 @@ namespace Ui {
     class I18nLanguage;
 }
 
-class I18nLanguage: public QDialog
+class I18nLanguage: public BaseDialog
 {
     Q_OBJECT
 public:
-    explicit I18nLanguage(QWidget *parent=0);
+    explicit I18nLanguage(QVariantList oldvar, QWidget *parent=0);
 
-    QStringList getSelectedItems(bool isLang=true);
+    QStringList getSelectedItems();
 
 
     QListWidget *languageSel;
@@ -171,11 +171,6 @@ private slots:
 
     void on_item_re_clicked();
 
-    void on_lang_selectall_clicked();
-
-    void on_lang_dselectall_clicked();
-
-    void on_lang_re_clicked();
 
 private:
     bool CheckLangFile(QString path);
@@ -255,6 +250,7 @@ private:
     QLabel *theLineEdit;
     QString theFilter;
     bool isDir;
+    QFileSystemModel *dirModel;
 };
 
 
