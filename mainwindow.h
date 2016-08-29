@@ -27,6 +27,8 @@
 #include <QPainter>
 #include <QSettings>
 #include "treedock.h"
+
+#include <QRunnable>
 //#include "propertybox.h"
 
 
@@ -102,6 +104,7 @@ public:
     QStringList mLanguageList;
     QStringList mOrderlist;
     QMap<QString,QString> mItemMap;
+    QMap<QString,QPixmap> mImgMap;
 
     QJsonValue mCopyItem;
 
@@ -131,6 +134,17 @@ private:
 
 
 
+};
+
+class LoadImgTask : public QRunnable , public QWidget
+{
+public:
+    MainWindow *mWindow;
+    LoadImgTask(QWidget *parent=0):QWidget(parent){
+        mWindow = (MainWindow*)parent;
+    }
+
+   void run();
 };
 
 #endif // MAINWINDOW_H

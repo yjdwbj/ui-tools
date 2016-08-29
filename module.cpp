@@ -967,7 +967,7 @@ void BaseForm::onBackgroundImageDialog()
 {
     QWidget *w  = (QWidget*)(QObject::sender());
     QString imgdir = mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString();
-    ImageListView *imgview = new ImageListView(imgdir,this);
+    ImageListView *imgview = new ImageListView(imgdir,this->mWindow);
     // 把一个动态属性传递给另一个事件发送对像,用来确定要修改JSON里的那一段值.
     imgview->imglist->setProperty(DKEY_ARRIDX,w->property(DKEY_ARRIDX));
     imgview->imglist->setProperty(DKEY_PARRIDX,w->property(DKEY_PARRIDX));

@@ -359,7 +359,7 @@ void PropertyTab::setNewObject(QWidget *w)
 }
 
 
-QJsonArray PropertyTab::handleCSSProperty(TabHandle  handle)
+void PropertyTab::handleCSSProperty(TabHandle  handle)
 {
     int index = currentIndex();
     int pindex = currentWidget()->property(DKEY_PARRIDX).toInt();
@@ -367,10 +367,11 @@ QJsonArray PropertyTab::handleCSSProperty(TabHandle  handle)
     QJsonObject structobj = parry.at(pindex).toObject();
     QJsonArray structarry = structobj[STRUCT].toArray();
     QJsonValue val =  structarry.at(index);
+    CssProperty *cp =(CssProperty*)(currentWidget());
     switch (handle) {
     case Append:
     {
-        CssProperty *cp = new CssProperty(this);
+        cp = new CssProperty(this);
         cp->setProperty(DKEY_PARRIDX,
                         currentWidget()->property(DKEY_PARRIDX));   // STRUCT 属性在　PROPERTY属性数组里的位置.
         cp->setProperty(DKEY_ARRIDX,this->count());    //在STRUCT 属性数组的位置.
@@ -378,12 +379,11 @@ QJsonArray PropertyTab::handleCSSProperty(TabHandle  handle)
         addTab(cp,QString("CSS属性_%1").
                arg(this->count()));
         structarry.append(val);
-        setCurrentWidget(cp);
     }
         break;
     case Insert:
     {
-        CssProperty *cp = new CssProperty(this);
+        cp = new CssProperty(this);
         cp->setProperty(DKEY_PARRIDX,
                         currentWidget()->property(DKEY_PARRIDX));   // STRUCT 属性在　PROPERTY属性数组里的位置.
         cp->setProperty(DKEY_ARRIDX,index);    //在STRUCT 属性数组的位置.
@@ -391,7 +391,6 @@ QJsonArray PropertyTab::handleCSSProperty(TabHandle  handle)
         this->insertTab(index,cp,QString("CSS属性_%1").
                         arg(count()));
         structarry.insert(index,val);
-        setCurrentWidget(cp);
     }
         break;
     case Delete:
@@ -406,7 +405,10 @@ QJsonArray PropertyTab::handleCSSProperty(TabHandle  handle)
 
     structobj[STRUCT] = structarry;
     parry[pindex] = structobj;
-    return parry;
+
+    ((BaseForm *)mOwerObj)->mOwerJson[PROPERTY] = parry;
+    setCurrentWidget(cp);
+    //return parry;
 }
 
 void PropertyTab::mousePressEvent(QMouseEvent *event)
@@ -417,20 +419,19 @@ void PropertyTab::mousePressEvent(QMouseEvent *event)
         QAction menuCopyAdd("复制添加",this);
         QObject::connect(&menuCopyAdd,
                          &QAction::triggered,[=](){
-
-            ((BaseForm *)mOwerObj)->mOwerJson[PROPERTY] =handleCSSProperty(Append);
+                handleCSSProperty(Append);
         });
         QAction menuCopyInsert("复制插入",this);
         QObject::connect(&menuCopyInsert,
                          &QAction::triggered,[=](){
 
-            ((BaseForm *)mOwerObj)->mOwerJson[PROPERTY] =handleCSSProperty(Insert);
+                handleCSSProperty(Insert);
         });
 
         QAction menuDelete("删除活动项",this);
         QObject::connect(&menuDelete,
                          &QAction::triggered,[=](){
-            ((BaseForm *)mOwerObj)->mOwerJson[PROPERTY] =handleCSSProperty(Delete);
+             handleCSSProperty(Delete);
         });
 
         menu->addAction(&menuCopyAdd);
@@ -570,22 +571,25 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                 bool manyCss = false;
                 // 这个STRUCT属性,对应于Ｃ语言中的结构体的成员变量,这里可能有多份不同的值.
                 QJsonArray structArray = object[STRUCT].toArray();
+                csstab->blockSignals(true);
                 for(int n = 0 ; n < structArray.size();n++)
                 {
                     QJsonValue sval =structArray.at(n);
                     if(sval.isArray())
                     {
+
                         CssProperty *cp = new CssProperty(csstab);
                         cp->setProperty(DKEY_PARRIDX,i);   // STRUCT 属性在　PROPERTY属性数组里的位置.
                         cp->setProperty(DKEY_ARRIDX,n);    //在STRUCT 属性数组的位置.
                         csstab->addTab(cp,QString("CSS属性_%1").
                                        arg(QString::number(n)));
                         cp->parseJsonToWidget(p,sval.toArray());
-
+                       // csstab->setCurrentWidget(cp);
                         manyCss = true;
                     }
 
                 }
+                csstab->blockSignals(false);
 
                 if(!manyCss)
                 {
@@ -593,7 +597,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                     parseJsonToWidget(p,object[STRUCT].toArray());
                 }else{
                     csstab->setCurrentIndex(csstab->count() -1);
-                    csstab->setCurrentIndex(0);
+                    //csstab->setCurrentIndex(0);
                     mainLayout->addWidget(csstab);
                 }
 
@@ -733,36 +737,6 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                     });
                 }
                 continue;
-                //               connect(btn,SIGNAL(clicked(bool)),p,SLOT(onPictureDialog));
-                //               QVariant nlv =  object.value(LIST);
-                //               QVariantList imglist ;
-                //               if(nlv.isValid() )
-                //               {
-                //                   // 处理图片列表与它的默认值
-                //                   QVariantList nlist = nlv.toList();
-                //                   QString defimg = item.toObject().value(DEFAULT).toString();
-                //                   int sep = defimg.lastIndexOf(BACKSLASH) + 1;
-                //                   defimg = defimg.mid(sep);
-
-                //                   for(QVariantList::const_iterator it = nlist.begin();
-                //                           it != nlist.end();++it)
-                //                   {
-                //                       // example for key  is  "config/images/string/alarm_pol.bmp"
-                //                     //  QString key = (*it).toString().replace(SLASH,BACKSLASH);
-                //                       QString key = (*it).toString();
-                //                        int idx = key.lastIndexOf(BACKSLASH)+1;
-                //                       imglist << QString("%1|%2").arg(key.mid(idx),key);
-                //                   }
-
-                //                   cb->setProperty(DKEY_IMGIDX,defimg);
-                //                   p->setProperty(DKEY_IMAGELST,imglist);
-                //                   cb->setProperty(DKEY_IMAGELST,imglist);
-
-                //                  // changeJsonValue(LIST,nlv);
-                //               }
-                //               // 绑定QComoBox的更改信号,更改它的值就要在相应的画版控件更新图片
-                //               connect(cb,SIGNAL(currentTextChanged(QString)),
-                //                       p,SLOT(onListImageChanged(QString)));
 
             }else if(object.contains(KEY_RECT))
             {

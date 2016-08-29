@@ -75,6 +75,7 @@ private:
     QPushButton *down;
     QPushButton *del;
     QLabel *statusBar;
+    MainWindow *mWindow;
 
     QStringList filters;
 
@@ -141,6 +142,8 @@ private:
 //    QMap<QString,QString> imgMap;
     QVariantMap imgMap;
     QTreeView *treefile;
+
+    MainWindow *mWindow;
 
     QStringList filters;
 private slots:
@@ -246,11 +249,13 @@ signals:
 
 private slots:
     void buttonClicked();
+    void onDirDialog();
 private:
     QLabel *theLineEdit;
     QString theFilter;
+   // QTreeView *fileTree;
     bool isDir;
-    QFileSystemModel *dirModel;
+    //QFileSystemModel *dirModel;
 };
 
 

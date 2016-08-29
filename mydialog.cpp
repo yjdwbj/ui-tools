@@ -49,6 +49,7 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath, QWidget *par
       statusBar(new QLabel)
 {
 
+    mWindow = (MainWindow*)parent;
   //  QString imgpath =  mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString();
      flistview->setProperty(DKEY_EXTMAP,extMap);
      /* 填弃上一次的数据 */
@@ -170,7 +171,9 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath, QWidget *par
     foreach (QVariant v, old) {
         // example for v "config/images/digital-0.png"
         QString str = v.toString();
-        QListWidgetItem *nitem = new QListWidgetItem(QPixmap(imgpath + BACKSLASH + str),
+//        QListWidgetItem *nitem = new QListWidgetItem(QPixmap(imgpath + BACKSLASH + str),
+//                                                     str.mid(str.lastIndexOf(BACKSLASH)+1));
+        QListWidgetItem *nitem = new QListWidgetItem(mWindow->mImgMap[imgpath + BACKSLASH + str],
                                                      str.mid(str.lastIndexOf(BACKSLASH)+1));
         sellist->addItem(nitem);
     }
@@ -195,7 +198,7 @@ void ImageFileDialog::updateListImages(QString path)
 {
   //  imgMap.clear();
     flistview->clear();
-    extMap.clear();
+   // extMap.clear();
     QDirIterator it(path,filters, QDir::Files /*,QDirIterator::Subdirectories*/);
 
     while (it.hasNext())
@@ -218,7 +221,8 @@ void ImageFileDialog::updateListImages(QString path)
         if(isFind)
             continue;
 
-        flistview->addItem(new QListWidgetItem(QPixmap(fpath),fpath.mid(idx)));
+       // flistview->addItem(new QListWidgetItem(QPixmap(fpath),fpath.mid(idx)));
+        flistview->addItem(new QListWidgetItem(mWindow->mImgMap[fpath],basename));
     }
   //  flistview->setProperty(DKEY_IMGMAP,imgMap);
 }
@@ -449,7 +453,8 @@ ImageFileDialog::~ImageFileDialog()
 void ImageFileDialog::onTreeViewClicked(QModelIndex index)
 {
     QString mPath = dirModel->fileInfo(index).absoluteFilePath();
-    qDebug() << " DirModel AbsoluteFile Path " << mPath;
+    qDebug() << " DirModel AbsoluteFile Path " << mPath
+             << "current name" << dirModel->fileInfo(index).bundleName();
    // flistview->setRootIndex(fileModel->setRootPath(mPath));
     updateListImages(mPath);
 
@@ -613,7 +618,7 @@ ImageListView::ImageListView(QString path, QWidget *parent)
      treefile(new QTreeView()),
      imglist(new QListWidget)
 {
-
+    mWindow = (MainWindow*)parent;
     QHBoxLayout *mh = new QHBoxLayout();
     this->setLayout(mh);
     this->setWindowTitle(tr("图片编辑"));
@@ -672,7 +677,8 @@ void ImageListView::updateListImages(QString path)
         int idx = fpath.lastIndexOf(BACKSLASH)+1;
         //bakimageMap[fpath.mid(idx)] = QPixmap(fpath);
         imgMap[fpath.mid(idx)] = fpath;
-        imglist->addItem(new QListWidgetItem(QIcon(QPixmap(fpath)),fpath.mid(idx)));
+        //imglist->addItem(new QListWidgetItem(QIcon(QPixmap(fpath)),fpath.mid(idx)));
+        imglist->addItem(new QListWidgetItem(QIcon(mWindow->mImgMap[fpath]),fpath.mid(idx)));
     }
     imglist->setProperty(DKEY_IMGMAP,imgMap);
 }
@@ -1175,33 +1181,79 @@ FileEdit::FileEdit(QString txt, QWidget *parent)
     setFocusProxy(theLineEdit);
     setFocusPolicy(Qt::StrongFocus);
     setAttribute(Qt::WA_InputMethodEnabled);
-//    connect(theLineEdit, SIGNAL(textEdited(const QString &)),
-//                this, SIGNAL(filePathChanged(const QString &)));
-    connect(button, SIGNAL(clicked()),
-                this, SLOT(buttonClicked()));
+    connect(button,&QToolButton::clicked,[=](){
+        BaseDialog *bd = new BaseDialog(this);
+        bd->setWindowTitle(txt);
+        QTreeView *fileTree = new QTreeView(this);
+        QFileSystemModel *dirModel = new QFileSystemModel;
+        //qDebug() << " path " << theLineEdit->text();
+        dirModel->setRootPath(theLineEdit->text());
+        dirModel->removeColumn(3);
+        dirModel->removeColumn(2);
+        dirModel->removeColumn(1);
+
+        fileTree->setModel(dirModel);
+        fileTree->hideColumn(3);
+        fileTree->hideColumn(2);
+        fileTree->hideColumn(1);
+        fileTree->setRootIndex(dirModel->index(QDir::currentPath()));
+        if(isDir){
+            dirModel->setFilter(QDir::NoDotDot | QDir::AllDirs);
+        }else{
+            dirModel->setFilter(QDir::NoDotDot| QDir::Files | QDir::Dirs);
+       }
+
+
+        QVBoxLayout *vb = new QVBoxLayout();
+
+        QPushButton *okbtn = new QPushButton("确认",this);
+        vb->addWidget(fileTree);
+        vb->addWidget(okbtn);
+        connect(okbtn,&QPushButton::clicked,[=](){
+            QString abpath = dirModel->fileInfo(fileTree->currentIndex()).absoluteFilePath();
+            theLineEdit->setText(abpath);
+            emit bd->accept();
+        });
+
+        bd->setLayout(vb);
+        bd->exec();
+        bd->deleteLater();
+        fileTree->deleteLater();
+        dirModel->deleteLater();
+    });
+
 }
 
-//void FileEdit::onDirDialog(QString dirPath)
-//{
-//    BaseDialog bd(this);
-//    QTreeView *fileTree = new QTreeWidget(bd);
-//    dirModel->setRootPath(QDir::currentPath());
-//    dirModel->removeColumn(3);
-//    dirModel->removeColumn(2);
-//    dirModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
-//    fileTree->setModel(dirModel);
-//    fileTree->setRootIndex(dirModel->index(dirPath));
+void FileEdit::onDirDialog()
+{
+    BaseDialog *bd = new BaseDialog(this);
+    QTreeView *fileTree = new QTreeView(this);
+    QFileSystemModel *dirModel = new QFileSystemModel;
+    qDebug() << " path " << theLineEdit->text();
+    dirModel->setRootPath(theLineEdit->text());
+    dirModel->removeColumn(3);
+    dirModel->removeColumn(2);
+    dirModel->removeColumn(1);
+    dirModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
+    fileTree->setModel(dirModel);
+    fileTree->setRootIndex(dirModel->index(theLineEdit->text()));
 
-//    QVBoxLayout *vb = new QVBoxLayout();
-//    vb->addWidget(fileTree);
-//    bd.setLayout(vb);
-//    bd.exec();
-//    int result = bd.result();
-//    if(result)
-//        filePath = dirModel->data(fileTree->currentIndex()).toString();
-//    else
-//        filePath() = dirPath;
-//}
+    QVBoxLayout *vb = new QVBoxLayout();
+
+    QPushButton *okbtn = new QPushButton("确认",this);
+    vb->addWidget(fileTree);
+    vb->addWidget(okbtn);
+    connect(okbtn,&QPushButton::clicked,[=](){
+        theLineEdit->setText(dirModel->data(fileTree->currentIndex()).toString());
+        emit bd->accept();
+    });
+
+    bd->setLayout(vb);
+    bd->exec();
+    bd->deleteLater();
+    fileTree->deleteLater();
+    dirModel->deleteLater();
+}
 
 void FileEdit::buttonClicked()
 {

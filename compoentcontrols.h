@@ -86,7 +86,7 @@ protected:
     void mousePressEvent(QMouseEvent *event);
 
 private:
-    QJsonArray handleCSSProperty(TabHandle  handle);
+    void handleCSSProperty(TabHandle  handle);
 };
 
 

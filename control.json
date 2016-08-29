@@ -1,0 +1,1015 @@
+{
+    "compoents": [
+        {
+            "-class": "NewFrame",
+            "-name": "Button",
+            "-type": "Button",
+            "caption": "按钮",
+            "icon": "images/panel_button_checked@2x.png",
+            "property": [
+                {
+                    "-name": "id",
+                    "-type": "id",
+                    "caption": "ID号",
+                    "ename": "",
+                    "id": 0
+                },
+                {
+                    "-name": "version",
+                    "-type": "int32",
+                    "caption": "版本",
+                    "default": 0,
+                    "max": 10000000,
+                    "min": 0
+                },
+                {
+                    "-name": "tabstop",
+                    "-type": "int8",
+                    "caption": "制表符",
+                    "default": 0,
+                    "max": 128,
+                    "disable":1,
+                    "min": 0
+                },
+                {
+                    "-name": "invisable",
+                    "-type": "enum",
+                    "caption": "是否可见",
+                    "default": "true",
+                    "enum": [
+                        {
+                            "true": 1
+                        },
+                        {
+                            "false": 0
+                        }
+                    ]
+                },
+                {
+                    "-name": "element_css",
+                    "-type": "struct",
+                    "caption": "CSS元素",
+                    "info": "",
+                    "struct": [[
+                        {
+                            "-name": "align",
+                            "-type": "enum",
+                            "caption": "对齐方式",
+                            "default": "ALIGN_CENTER",
+                            "enum": [
+                                {
+                                    "ALIGN_LEFT": 1
+                                },
+                                {
+                                    "ALIGN_CENTER": 2
+                                },
+                                {
+                                    "ALIGN_RIGHT": 3
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "alpha",
+                            "-type": "int8",
+                            "caption": "alpha",
+                            "default": 0,
+                            "max": 128,
+                            "min": 0
+                        },
+                        {
+                            "-name": "invisible",
+                            "-type": "enum",
+                            "caption": "是否可见",
+                            "default": "true",
+                            "enum": [
+                                {
+                                    "true": 1
+                                },
+                                {
+                                    "false": 0
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "rect",
+                            "-type": "rect",
+                            "caption": "坐标",
+                            "rect": {
+                                "height": 25,
+                                "width": 75,
+                                "x": 0,
+                                "y": 0
+                            }
+                        },
+                        {
+                            "-name": "background_color",
+                            "-type": "background-color",
+                            "background-color": "#368FEE",
+                            "caption": "背景颜色"
+                        },
+                        {
+                            "-name": "background_image",
+                            "-type": "background-image",
+                            "background-image": "",
+                            "caption": "背景图片"
+                        },
+                        {
+                            "-name": "border",
+                            "-type": "border",
+                            "border": {
+                                "bottom": 0,
+                                "left": 0,
+                                "right": 0,
+                                "top": 0
+                            },
+                            "caption": "边框",
+                            "gray-color": 0
+                        }
+                    ]]
+                }
+            ],
+            "tip": "",
+            "version": "1",
+            "widget": [
+            ]
+        },
+        {
+            "-class": "NewFrame",
+            "-name": "ImageList",
+            "-type": "ImageList",
+            "caption": "图片列表",
+            "icon": "images/creator_android_tutorial_ex_app.png",
+            "property": [
+                {
+                    "-name": "id",
+                    "-type": "id",
+                    "caption": "ID号",
+                    "ename": "",
+                    "id": 0
+                },
+                {
+                    "-name": "element_css",
+                    "-type": "struct",
+                    "caption": "元素",
+                    "info": "",
+                    "struct": [
+                    [
+                        {
+                            "-name": "align",
+                            "-type": "enum",
+                            "caption": "对齐方式",
+                            "default": "ALIGN_CENTER",
+                            "enum": [
+                                {
+                                    "ALIGN_LEFT": 1
+                                },
+                                {
+                                    "ALIGN_CENTER": 2
+                                },
+                                {
+                                    "ALIGN_RIGHT": 3
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "alpha",
+                            "-type": "int8",
+                            "caption": "alpha",
+                            "default": 0,
+                            "max": 128,
+                            "min": 0
+                        },
+                        {
+                            "-name": "invisible",
+                            "-type": "enum",
+                            "caption": "是否可见",
+                            "default": "true",
+                            "enum": [
+                                {
+                                    "true": 1
+                                },
+                                {
+                                    "false": 0
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "rect",
+                            "-type": "rect",
+                            "caption": "坐标",
+                            "rect": {
+                                "height": 75,
+                                "width": 75,
+                                "x": 0,
+                                "y": 0
+                            }
+                        },
+                        {
+                            "-name": "background_color",
+                            "-type": "background-color",
+                            "background-color": "#7ADF81",
+                            "caption": "背景颜色"
+                        },
+                        {
+                            "-name": "background_image",
+                            "-type": "background-image",
+                            "background-image": "",
+                            "caption": "背景图片"
+                        },
+                        {
+                            "-name": "border",
+                            "-type": "border",
+                            "border": {
+                                "bottom": 0,
+                                "left": 0,
+                                "right": 0,
+                                "top": 0
+                            },
+                            "caption": "边框",
+                            "gray-color": 0
+                        }
+                    ],
+                     [
+                        {
+                            "-name": "align",
+                            "-type": "enum",
+                            "caption": "对齐方式",
+                            "default": "ALIGN_CENTER",
+                            "enum": [
+                                {
+                                    "ALIGN_LEFT": 1
+                                },
+                                {
+                                    "ALIGN_CENTER": 2
+                                },
+                                {
+                                    "ALIGN_RIGHT": 3
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "alpha",
+                            "-type": "int8",
+                            "caption": "alpha",
+                            "default": 0,
+                            "max": 128,
+                            "min": 0
+                        },
+                        {
+                            "-name": "invisible",
+                            "-type": "enum",
+                            "caption": "是否可见",
+                            "default": "true",
+                            "enum": [
+                                {
+                                    "true": 1
+                                },
+                                {
+                                    "false": 0
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "rect",
+                            "-type": "rect",
+                            "caption": "坐标",
+                            "rect": {
+                                "height": 75,
+                                "width": 75,
+                                "x": 0,
+                                "y": 0
+                            }
+                        },
+                        {
+                            "-name": "background_color",
+                            "-type": "background-color",
+                            "background-color": "#7ADF81",
+                            "caption": "背景颜色"
+                        },
+                        {
+                            "-name": "background_image",
+                            "-type": "background-image",
+                            "background-image": "images/creator_android_tutorial_ex_app.png",
+                            "caption": "背景图片"
+                        },
+                        {
+                            "-name": "border",
+                            "-type": "border",
+                            "border": {
+                                "bottom": 0,
+                                "left": 0,
+                                "right": 0,
+                                "top": 0
+                            },
+                            "caption": "边框",
+                            "gray-color": 0
+                        }
+                    ],[
+                        {
+                            "-name": "align",
+                            "-type": "enum",
+                            "caption": "对齐方式",
+                            "default": "ALIGN_CENTER",
+                            "enum": [
+                                {
+                                    "ALIGN_LEFT": 1
+                                },
+                                {
+                                    "ALIGN_CENTER": 2
+                                },
+                                {
+                                    "ALIGN_RIGHT": 3
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "alpha",
+                            "-type": "int8",
+                            "caption": "alpha",
+                            "default": 0,
+                            "max": 128,
+                            "min": 0
+                        },
+                        {
+                            "-name": "invisible",
+                            "-type": "enum",
+                            "caption": "是否可见",
+                            "default": "true",
+                            "enum": [
+                                {
+                                    "true": 1
+                                },
+                                {
+                                    "false": 0
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "rect",
+                            "-type": "rect",
+                            "caption": "坐标",
+                            "rect": {
+                                "height": 75,
+                                "width": 75,
+                                "x": 0,
+                                "y": 0
+                            }
+                        },
+                        {
+                            "-name": "background_color",
+                            "-type": "background-color",
+                            "background-color": "#7ADF81",
+                            "caption": "背景颜色"
+                        },
+                        {
+                            "-name": "background_image",
+                            "-type": "background-image",
+                            "background-image": "images/creator_android_tutorial_ex_app.png",
+                            "caption": "背景图片"
+                        },
+                        {
+                            "-name": "border",
+                            "-type": "border",
+                            "border": {
+                                "bottom": 0,
+                                "left": 0,
+                                "right": 0,
+                                "top": 0
+                            },
+                            "caption": "边框",
+                            "gray-color": 0
+                        }
+                    ],[
+                        {
+                            "-name": "align",
+                            "-type": "enum",
+                            "caption": "对齐方式",
+                            "default": "ALIGN_CENTER",
+                            "enum": [
+                                {
+                                    "ALIGN_LEFT": 1
+                                },
+                                {
+                                    "ALIGN_CENTER": 2
+                                },
+                                {
+                                    "ALIGN_RIGHT": 3
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "alpha",
+                            "-type": "int8",
+                            "caption": "alpha",
+                            "default": 0,
+                            "max": 128,
+                            "min": 0
+                        },
+                        {
+                            "-name": "invisible",
+                            "-type": "enum",
+                            "caption": "是否可见",
+                            "default": "true",
+                            "enum": [
+                                {
+                                    "true": 1
+                                },
+                                {
+                                    "false": 0
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "rect",
+                            "-type": "rect",
+                            "caption": "坐标",
+                            "rect": {
+                                "height": 75,
+                                "width": 75,
+                                "x": 0,
+                                "y": 0
+                            }
+                        },
+                        {
+                            "-name": "background_color",
+                            "-type": "background-color",
+                            "background-color": "#7ADF81",
+                            "caption": "背景颜色"
+                        },
+                        {
+                            "-name": "background_image",
+                            "-type": "background-image",
+                            "background-image": "images/creator_android_tutorial_ex_app.png",
+                            "caption": "背景图片"
+                        },
+                        {
+                            "-name": "border",
+                            "-type": "border",
+                            "border": {
+                                "bottom": 0,
+                                "left": 0,
+                                "right": 0,
+                                "top": 0
+                            },
+                            "caption": "边框",
+                            "gray-color": 0
+                        }
+                    ]
+                    	]
+                },
+                {
+                    "-name": "piclist",
+                    "-type": "piclist",
+                    "caption": "图片列表",
+                    "default": "images/01.png",
+                    "list": [
+                       "images/01.png",
+						"images/02.png",
+						"images/03.png",
+						"images/04.png",
+						"images/05.png"
+                    ]
+                },
+                {
+                    "-name": "text_str",
+                    "-type": "text-str",
+                    "caption": "定长文本",
+                    "default": "HH:mm:ss",
+                    "maxlength": 16
+                },
+                {
+                    "-name": "text_pic",
+                    "-type": "text-pic",
+                    "caption": "多国语言文本",
+                    "default": "m25",
+					"list":[
+					],
+                    "maxlength": 10000
+                }
+            ],
+            "tip": "",
+            "version": "1",
+            "widget": [
+            ]
+        },
+        {
+            "-class": "NewLayer",
+            "-name": "NewLayer",
+            "-type": "NewLayer",
+            "caption": "图层",
+            "icon": "images/window-new@2x.png",
+            "property": [
+                {
+                    "-name": "id",
+                    "-type": "id",
+                    "caption": "ID号",
+                    "ename": "",
+                    "id": 0
+                },
+                {
+                    "-name": "element_css",
+                    "-type": "struct",
+                    "caption": "元素",
+                    "info": "",
+                    "struct": [[
+                        {
+                            "-name": "align",
+                            "-type": "enum",
+                            "caption": "对齐方式",
+                            "default": "ALIGN_CENTER",
+                            "enum": [
+                                {
+                                    "ALIGN_LEFT": 1
+                                },
+                                {
+                                    "ALIGN_CENTER": 2
+                                },
+                                {
+                                    "ALIGN_RIGHT": 3
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "alpha",
+                            "-type": "int8",
+                            "caption": "alpha",
+                            "default": 0,
+                            "max": 128,
+                            "min": 0
+                        },
+                        {
+                            "-name": "invisible",
+                            "-type": "enum",
+                            "caption": "是否可见",
+                            "default": "true",
+                            "enum": [
+                                {
+                                    "true": 1
+                                },
+                                {
+                                    "false": 0
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "rect",
+                            "-type": "rect",
+                            "caption": "坐标",
+                            "rect": {
+                                "height": 100,
+                                "width": 100,
+                                "x": 0,
+                                "y": 0
+                            }
+                        },
+                        {
+                            "-name": "background_color",
+                            "-type": "background-color",
+                            "background-color": "#3BE774",
+                            "caption": "背景颜色"
+                        },
+                        {
+                            "-name": "background_image",
+                            "-type": "background-image",
+                            "background-image": "",
+                            "caption": "背景图片"
+                        },
+                        {
+                            "-name": "border",
+                            "-type": "border",
+                            "border": {
+                                "bottom": 0,
+                                "left": 0,
+                                "right": 0,
+                                "top": 0
+                            },
+                            "caption": "边框",
+                            "gray-color": 0
+                        }
+                    ]]
+                }
+            ],
+            "tip": "",
+            "version": "1",
+            "widget": [
+            ]
+        },
+        {
+            "-class": "NewLayout",
+            "-name": "NewLayout",
+            "-type": "NewLayout",
+            "caption": "布局",
+            "icon": "images/frame.png",
+            "property": [
+                {
+                    "-name": "id",
+                    "-type": "id",
+                    "caption": "ID号",
+                    "ename": "",
+                    "id": 0
+                },
+                {
+                    "-name": "element_css",
+                    "-type": "struct",
+                    "caption": "元素",
+                    "info": "",
+                    "struct": [[
+                        {
+                            "-name": "align",
+                            "-type": "enum",
+                            "caption": "对齐方式",
+                            "default": "ALIGN_CENTER",
+                            "enum": [
+                                {
+                                    "ALIGN_LEFT": 1
+                                },
+                                {
+                                    "ALIGN_CENTER": 2
+                                },
+                                {
+                                    "ALIGN_RIGHT": 3
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "alpha",
+                            "-type": "int8",
+                            "caption": "alpha",
+                            "default": 0,
+                            "max": 128,
+                            "min": 0
+                        },
+                        {
+                            "-name": "invisible",
+                            "-type": "enum",
+                            "caption": "是否可见",
+                            "default": "true",
+                            "enum": [
+                                {
+                                    "true": 1
+                                },
+                                {
+                                    "false": 0
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "rect",
+                            "-type": "rect",
+                            "caption": "坐标",
+                            "rect": {
+                                "height": 80,
+                                "width": 80,
+                                "x": 0,
+                                "y": 0
+                            }
+                        },
+                        {
+                            "-name": "background_color",
+                            "-type": "background-color",
+                            "background-color": "#F96480",
+                            "caption": "背景颜色"
+                        },
+                        {
+                            "-name": "background_image",
+                            "-type": "background-image",
+                            "background-image": "",
+                            "caption": "背景图片"
+                        },
+                        {
+                            "-name": "border",
+                            "-type": "border",
+                            "border": {
+                                "bottom": 0,
+                                "left": 0,
+                                "right": 0,
+                                "top": 0
+                            },
+                            "caption": "边框",
+                            "gray-color": 0
+                        }
+                    ]]
+                }
+            ],
+            "tip": "",
+            "version": "1",
+            "widget": [
+            ]
+        },
+        {
+            "-class": "NewList",
+            "-name": "NewList",
+            "-type": "NewList",
+            "caption": "垂直列表",
+            "orientation":"Vertical",
+            "icon": "images/column-layouts-icon.png",
+            "sizehw": 30,
+            "space" : 6,
+            "property": [
+                {
+                    "-name": "id",
+                    "-type": "id",
+                    "caption": "ID号",
+                    "ename": "",
+                    "id": 0
+                },
+                {
+                    "-name": "element_css",
+                    "-type": "struct",
+                    "caption": "元素",
+                    "info": "",
+                    "struct": [[
+                        {
+                            "-name": "align",
+                            "-type": "enum",
+                            "caption": "对齐方式",
+                            "default": "ALIGN_CENTER",
+                            "enum": [
+                                {
+                                    "ALIGN_LEFT": 1
+                                },
+                                {
+                                    "ALIGN_CENTER": 2
+                                },
+                                {
+                                    "ALIGN_RIGHT": 3
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "alpha",
+                            "-type": "int8",
+                            "caption": "alpha",
+                            "default": 0,
+                            "max": 128,
+                            "min": 0
+                        },
+                        {
+                            "-name": "invisible",
+                            "-type": "enum",
+                            "caption": "是否可见",
+                            "default": "true",
+                            "enum": [
+                                {
+                                    "true": 1
+                                },
+                                {
+                                    "false": 0
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "rect",
+                            "-type": "rect",
+                            "caption": "坐标",
+                            "rect": {
+                                "height": 80,
+                                "width": 80,
+                                "x": 0,
+                                "y": 0
+                            }
+                        },
+                        {
+                            "-name": "background_color",
+                            "-type": "background-color",
+                            "background-color": "#F96480",
+                            "caption": "背景颜色"
+                        },
+                        {
+                            "-name": "background_image",
+                            "-type": "background-image",
+                            "background-image": "",
+                            "caption": "背景图片"
+                        },
+                        {
+                            "-name": "border",
+                            "-type": "border",
+                            "border": {
+                                "bottom": 0,
+                                "left": 0,
+                                "right": 0,
+                                "top": 0
+                            },
+                            "caption": "边框",
+                            "gray-color": 0
+                        }
+                    ]]
+                }
+            ],
+            "tip": "",
+            "version": "1",
+            "widget": [
+            ]
+        },
+        {
+            "-class": "NewList",
+            "-name": "NewList",
+            "-type": "NewList",
+            "caption": "水平列表",
+            "orientation":"Horizontal",
+            "icon": "images/row-layouts-icon.png",
+            "sizehw": 30,
+            "space" : 6,
+            "property": [
+                {
+                    "-name": "id",
+                    "-type": "id",
+                    "caption": "ID号",
+                    "ename": "",
+                    "id": 0
+                },
+                {
+                    "-name": "element_css",
+                    "-type": "struct",
+                    "caption": "元素",
+                    "info": "",
+                    "struct": [[
+                        {
+                            "-name": "align",
+                            "-type": "enum",
+                            "caption": "对齐方式",
+                            "default": "ALIGN_CENTER",
+                            "enum": [
+                                {
+                                    "ALIGN_LEFT": 1
+                                },
+                                {
+                                    "ALIGN_CENTER": 2
+                                },
+                                {
+                                    "ALIGN_RIGHT": 3
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "alpha",
+                            "-type": "int8",
+                            "caption": "alpha",
+                            "default": 0,
+                            "max": 128,
+                            "min": 0
+                        },
+                        {
+                            "-name": "invisible",
+                            "-type": "enum",
+                            "caption": "是否可见",
+                            "default": "true",
+                            "enum": [
+                                {
+                                    "true": 1
+                                },
+                                {
+                                    "false": 0
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "rect",
+                            "-type": "rect",
+                            "caption": "坐标",
+                            "rect": {
+                                "height": 80,
+                                "width": 80,
+                                "x": 0,
+                                "y": 0
+                            }
+                        },
+                        {
+                            "-name": "background_color",
+                            "-type": "background-color",
+                            "background-color": "#F96480",
+                            "caption": "背景颜色"
+                        },
+                        {
+                            "-name": "background_image",
+                            "-type": "background-image",
+                            "background-image": "",
+                            "caption": "背景图片"
+                        },
+                        {
+                            "-name": "border",
+                            "-type": "border",
+                            "border": {
+                                "bottom": 0,
+                                "left": 0,
+                                "right": 0,
+                                "top": 0
+                            },
+                            "caption": "边框",
+                            "gray-color": 0
+                        }
+                    ]]
+                }
+            ],
+            "tip": "",
+            "version": "1",
+            "widget": [
+            ]
+        },
+        {
+            "-class": "NewGrid",
+            "-name": "NewGrid",
+            "-type": "NewGrid",
+            "caption": "表格控件",
+            "orientation":"Horizontal",
+            "icon": "images/gridview-icon.png",
+            "sizehw": 30,
+            "space" : 6,
+            "property": [
+                {
+                    "-name": "id",
+                    "-type": "id",
+                    "caption": "ID号",
+                    "ename": "",
+                    "id": 0
+                },
+                {
+                    "-name": "element_css",
+                    "-type": "struct",
+                    "caption": "元素",
+                    "info": "",
+                    "struct": [[
+                        {
+                            "-name": "align",
+                            "-type": "enum",
+                            "caption": "对齐方式",
+                            "default": "ALIGN_CENTER",
+                            "enum": [
+                                {
+                                    "ALIGN_LEFT": 1
+                                },
+                                {
+                                    "ALIGN_CENTER": 2
+                                },
+                                {
+                                    "ALIGN_RIGHT": 3
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "alpha",
+                            "-type": "int8",
+                            "caption": "alpha",
+                            "default": 0,
+                            "max": 128,
+                            "min": 0
+                        },
+                        {
+                            "-name": "invisible",
+                            "-type": "enum",
+                            "caption": "是否可见",
+                            "default": "true",
+                            "enum": [
+                                {
+                                    "true": 1
+                                },
+                                {
+                                    "false": 0
+                                }
+                            ]
+                        },
+                        {
+                            "-name": "rect",
+                            "-type": "rect",
+                            "caption": "坐标",
+                            "rect": {
+                                "height": 80,
+                                "width": 80,
+                                "x": 0,
+                                "y": 0
+                            }
+                        },
+                        {
+                            "-name": "background_color",
+                            "-type": "background-color",
+                            "background-color": "#F9A480",
+                            "caption": "背景颜色"
+                        },
+                        {
+                            "-name": "background_image",
+                            "-type": "background-image",
+                            "background-image": "",
+                            "caption": "背景图片"
+                        },
+                        {
+                            "-name": "border",
+                            "-type": "border",
+                            "border": {
+                                "bottom": 0,
+                                "left": 0,
+                                "right": 0,
+                                "top": 0
+                            },
+                            "caption": "边框",
+                            "gray-color": 0
+                        }
+                    ]]
+                }
+            ],
+            "tip": "",
+            "version": "1",
+            "widget": [
+            ]
+        }
+    ]
+}

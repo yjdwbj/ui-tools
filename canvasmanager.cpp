@@ -40,7 +40,7 @@ CanvasManager::CanvasManager(MainWindow *w):
     mWindow->addWidgetToToolBar(savePrj);
 
 
-    mWindow->addWidgetToToolBar(confPrj);
+   // mWindow->addWidgetToToolBar(confPrj);
     mWindow->addWidgetToToolBar(Q_NULLPTR);
   //  mWindow->addWidgetToToolBar(cb);
     mWindow->centralWidget()->setLayout(stack);
@@ -62,6 +62,7 @@ CanvasManager::CanvasManager(MainWindow *w):
 
         while (1){
             GlobalSettings gs(mWindow);
+            gs.setWindowTitle(globalbtn->text());
             gs.exec();
             if (gs.isSetFine()) break;
         }

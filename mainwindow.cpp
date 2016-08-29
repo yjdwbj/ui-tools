@@ -11,6 +11,8 @@
 #include <QMessageBox>
 #include <QStandardPaths>
 
+#include <QtConcurrent/QtConcurrent>
+
 #include "mydialog.h"
 
 
@@ -30,6 +32,27 @@ void Backgroud::paintEvent(QPaintEvent *)
       // 这里必需要得新定义一个类,重写它的paintEvent才能画出它的背景.
       QPainter p(this);
       p.drawPixmap(this->rect(),QPixmap(backImage));
+}
+
+
+
+void LoadImgTask::run()
+{
+    QString imgpath =mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString();
+    if(!imgpath.isEmpty())
+    {
+
+        QDirIterator it(imgpath, QStringList() << "*.bmp" << "*.png" << "*.jpg",
+                        QDir::Files ,QDirIterator::Subdirectories);
+        while (it.hasNext())
+        {
+            QString fpath = it.next();
+            int idx = fpath.lastIndexOf(BACKSLASH)+1;
+           // QString basename = fpath.mid(idx);
+            mWindow->mImgMap[fpath] = QPixmap(fpath);
+        }
+    }
+
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -149,6 +172,11 @@ MainWindow::MainWindow(QWidget *parent) :
     this->centralWidget()->update();
     show();  // 这里不能少.
 
+
+    LoadImgTask *imgload = new LoadImgTask(this);
+    imgload->setAutoDelete(true);
+    // QThreadPool takes ownership and deletes 'hello' automatically
+    QThreadPool::globalInstance()->start(imgload);
 
 
 
