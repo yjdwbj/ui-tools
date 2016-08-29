@@ -1141,31 +1141,6 @@ void CompoentControls::onCreateCustomWidget()
 void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
 {
     int row,col = 0;
-
-    //    this->setStyleSheet("QPushButton:hover:!pressed\
-    //    {\
-    //                            border: 1px solid red;\
-    //                            radious: 1px;\
-    //                            background-color: #729FCF;\
-    //                        }\
-    //                        QPushButton:open {  \
-    //                            background-color: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,\
-    //                            stop: 0 #dadbde, stop: 1 #f6f7fa);\
-    //                        }\
-    //                        QPushButton::menu-indicator {\
-    //                            image: url(menu_indicator.png);\
-    //                            subcontrol-origin: padding;\
-    //                            subcontrol-position: bottom right;\
-    //                        }\
-    //                        QPushButton::menu-indicator:pressed, QPushButton::menu-indicator:open {\
-    //                            position: relative;\
-    //                            top: 2px; left: 2px; \
-    //                        }"\
-    //                        );
-
-
-
-
     QGridLayout *comLayout = new QGridLayout();
 
     // mainLayout->addWidget(new QPushButton());

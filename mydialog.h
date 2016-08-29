@@ -247,9 +247,6 @@ public:
 signals:
     void filePathChanged(const QString &filePath);
 
-private slots:
-    void buttonClicked();
-    void onDirDialog();
 private:
     QLabel *theLineEdit;
     QString theFilter;

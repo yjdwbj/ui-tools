@@ -182,17 +182,6 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath, QWidget *par
    // exec();
 }
 
-//void ImageFileDialog::setOldList()
-//{
-//    foreach (QVariant v, selstrList) {
-//        QString str = v.toString();
-//        QListWidgetItem *nitem = new QListWidgetItem(QPixmap(str.section(SECTION_CHAR,1,1)),
-//                                                     str.section(SECTION_CHAR,0,0));
-
-//        sellist->addItem(nitem);
-//    }
-//}
-
 
 void ImageFileDialog::updateListImages(QString path)
 {
@@ -388,26 +377,7 @@ void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
              << " str to index " << fileModel->index(selstr);
 
     /* 从列表删除 */
-//    foreach (QVariant str , selstrList) {
-//        if(str.toString().startsWith(selstr))
-//        {
-//            QString tstr = str.toString();
-//            selstrList.removeOne(tstr);
-//            fpath = extMap[selstr].toString();
-//            //example tstr-->   digital-7.png:config/images/digital-7.png
-//            // exmaple fpath--> /home/user/build-ut-tools-qt5_3_2-Debug/config/images/digital-7.png
-//            if(fpath.contains(tstr.section(SECTION_CHAR,1,1)))
-//            {
 
-//                flistview->addItem(new QListWidgetItem(QPixmap(fpath),selstr));
-//            }
-
-//            break;
-//        }
-//    }
-//   int i = selstrList.indexOf( QString("%1:%2").arg(selstr,fpath));
-//   if( -1 != i )
-//       selstrList.removeAt(i);
    statusBar->setText(QString::number(sellist->count()));
 //   statusBar->repaint();
 }
@@ -422,11 +392,6 @@ void ImageFileDialog::onDelSelectedItems()
         flistview->setRowHidden(hRows[selstr].row(),false);
 
         delete sellist->takeItem(sellist->row(item));
-       // selMap.remove(item->text());
-//        QString fpath = fileModel->fileInfo(hRows[selstr]).absoluteFilePath();
-//        int i = selstrList.indexOf( QString("%1|%2").arg(selstr,fpath));
-//        if( -1 != i )
-//            selstrList.removeAt(i);
     }
    // updateListWidget();
     sellist->clearSelection();
@@ -707,8 +672,6 @@ MenuItemDialog::MenuItemDialog( QString old, QWidget *parent)
 
 
     foreach (QString key , mWindow->mOrderlist) {
-//        QListWidgetItem* item = new QListWidgetItem(QString("    %1").arg(key),listWidget);
-//        QRadioButton *rb = new QRadioButton(QString("            %1").arg(map[key]));
         QListWidgetItem* item = new QListWidgetItem(listWidget);
         QRadioButton *rb = new QRadioButton(mWindow->mItemMap[key]);
         connect(rb,&QRadioButton::toggled,[=](bool f){
@@ -809,34 +772,6 @@ void I18nLanguage::on_item_re_clicked()
        // item->setSelected(!item->isSelected());
     }
 }
-
-//void I18nLanguage::on_lang_selectall_clicked()
-//{
-//    for(int i = 0;i < ui->langWidget->count();i++)
-//    {
-//        QListWidgetItem *item = ui->langWidget->item(i);
-//        item->setCheckState(Qt::Checked);
-//    }
-//}
-
-//void I18nLanguage::on_lang_dselectall_clicked()
-//{
-//    for(int i = 0;i < ui->langWidget->count();i++)
-//    {
-//        QListWidgetItem *item = ui->langWidget->item(i);
-//        item->setCheckState(Qt::Unchecked);
-//    }
-//}
-
-//void I18nLanguage::on_lang_re_clicked()
-//{
-//    for(int i = 0;i < ui->langWidget->count();i++)
-//    {
-//        QListWidgetItem *item = ui->langWidget->item(i);
-//        item->setCheckState(item->checkState() == Qt::Checked ? Qt::Unchecked : Qt::Checked);
-//        // item->setSelected(!item->isSelected());
-//    }
-//}
 
 
 ConfigProject::ConfigProject(QWidget *parent):
@@ -1222,63 +1157,6 @@ FileEdit::FileEdit(QString txt, QWidget *parent)
         dirModel->deleteLater();
     });
 
-}
-
-void FileEdit::onDirDialog()
-{
-    BaseDialog *bd = new BaseDialog(this);
-    QTreeView *fileTree = new QTreeView(this);
-    QFileSystemModel *dirModel = new QFileSystemModel;
-    qDebug() << " path " << theLineEdit->text();
-    dirModel->setRootPath(theLineEdit->text());
-    dirModel->removeColumn(3);
-    dirModel->removeColumn(2);
-    dirModel->removeColumn(1);
-    dirModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
-    fileTree->setModel(dirModel);
-    fileTree->setRootIndex(dirModel->index(theLineEdit->text()));
-
-    QVBoxLayout *vb = new QVBoxLayout();
-
-    QPushButton *okbtn = new QPushButton("确认",this);
-    vb->addWidget(fileTree);
-    vb->addWidget(okbtn);
-    connect(okbtn,&QPushButton::clicked,[=](){
-        theLineEdit->setText(dirModel->data(fileTree->currentIndex()).toString());
-        emit bd->accept();
-    });
-
-    bd->setLayout(vb);
-    bd->exec();
-    bd->deleteLater();
-    fileTree->deleteLater();
-    dirModel->deleteLater();
-}
-
-void FileEdit::buttonClicked()
-{
-    QString txt = QObject::sender()->objectName();
-    QString filePath;
-    if(isDir)
-    {
-//        QFileDialog dlg(this);
-//        dlg.setDirectory(QDir::currentPath());
-//        QObject::connect(&dlg,&QFileDialog::directoryEntered,[=](QString txt){
-//           qDebug() << " enterd dir " << txt;
-//           dlg.setDirectory(QDir::currentPath());
-//        });
-
-        filePath = QFileDialog::getExistingDirectory(this,  QString("选择目录 -- %1").arg(txt),
-                                                     QDir::currentPath());
-
-    }else{
-        filePath = QFileDialog::getOpenFileName(this, QString("选择文件 -- %1").arg(txt),
-                                                theLineEdit->text(), theFilter);
-    }
-    if(filePath.isNull())
-        return ;
-    theLineEdit->setText(filePath);
-    emit filePathChanged(filePath);
 }
 
 

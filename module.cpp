@@ -482,11 +482,6 @@ void BaseForm::mouseMoveEvent(QMouseEvent *event)
     {
         move(this->pos() + (event->pos() - mOffset));
         /* 把新的位置更新到右边属性框 */
-//        if(!posWidget->property(DKEY_ARRIDX).toInt())
-//        {
-//            posWidget->updatePosition(this);
-//        }
-
         posWidget->updatePosition(this);
         changeJsonValue(posWidget,
                         KEY_RECT,
@@ -613,14 +608,6 @@ void BaseForm::mouseReleaseEvent(QMouseEvent *event)
     QPoint pos = this->pos();
     moveNewPos(pos);
     // 这里只能在释放鼠标时改变左边的控件值
-
-    //mWindow->posWidget->updateSize(this->size());
-
-//    if(!posWidget->property(DKEY_ARRIDX).toInt())
-//    {
-//        posWidget->updateSize(this);
-//        posWidget->updatePosition(this);
-//    }
 
     posWidget->updateSize(this);
     posWidget->updatePosition(this);

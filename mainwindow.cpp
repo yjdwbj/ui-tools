@@ -65,7 +65,9 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 
     ui->setupUi(this);
-    ui->mainToolBar->setAllowedAreas(Qt::TopToolBarArea);
+    //ui->mainToolBar->setAllowedAreas(Qt::TopToolBarArea);
+    ui->mainToolBar->setContextMenuPolicy(Qt::PreventContextMenu);
+
 
    // QString iniFile  =  QStandardPaths::displayName(QStandardPaths::DataLocation) + "/ui-config";
     mGlobalSet= new QSettings(mGlobalIniFile,QSettings::IniFormat);
