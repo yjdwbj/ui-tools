@@ -104,7 +104,7 @@ public:
     QStringList mLanguageList;
     QStringList mOrderlist;
     QMap<QString,QString> mItemMap;
-    QMap<QString,QPixmap> mImgMap;
+    QMap<QString,QPixmap> mImgMap; //这里只用来缓图片
 
     QJsonValue mCopyItem;
 
@@ -130,6 +130,8 @@ private:
     void readExcelFile(char *xlsfile);
     void createCSVFile(QString xlsfile);
     void readCSVFile(QString csvfile);
+
+    void closeEvent(QCloseEvent *);
     QWidget *pWin;
 
 

@@ -49,6 +49,8 @@ void LoadImgTask::run()
             QString fpath = it.next();
             int idx = fpath.lastIndexOf(BACKSLASH)+1;
            // QString basename = fpath.mid(idx);
+            if(!mWindow) // 主程退出了.
+                break;
             mWindow->mImgMap[fpath] = QPixmap(fpath);
         }
     }
@@ -233,6 +235,16 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     }
 
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    if (QThreadPool::globalInstance()->activeThreadCount() == 0)
+       event->accept();
+    else{
+        hide();
+        this->setHidden(true);
+    }
 }
 
 void MainWindow::readMultiLanguage(QString file)
