@@ -68,11 +68,6 @@ CanvasManager::CanvasManager(MainWindow *w):
         }
     });
     mWindow->addWidgetToToolBar(globalbtn);
-//    qDebug() << "centralWidget pos" << mWindow->centralWidget()->geometry()
-//             << " stack pos " << stackRect;
-    //stack->setGeometry(stackRect);
-   // stack->update();
-
     QTimer *autoSaveTimer = new QTimer(this);
 
     //将定时器超时信号与槽(功能函数)联系起来
@@ -161,7 +156,6 @@ void CanvasManager::setActiveSS(int index)
     if(index == -1) return;
     if(index < mCanvasList.size())
     {
-      //  qDebug() << " show previous object" << index;
         screenshot();
         stack->setCurrentIndex(index);
         // 清理treeWidget 的行

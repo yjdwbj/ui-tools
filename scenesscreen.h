@@ -55,9 +55,6 @@ signals:
 
 public slots:
     void onChangedBackgroundColor();
-    void onChangedBackgroundImage();
-    void onDobuleClickedImage(QListWidgetItem*);
-
 private:
    void keyReleaseEvent(QKeyEvent *);
    int mActiveIdx; //  当前激活的布局.

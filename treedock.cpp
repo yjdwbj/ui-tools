@@ -91,9 +91,6 @@ connect(treeWidget,SIGNAL(itemClicked(QTreeWidgetItem*,int)),
 
 this->setWidget(treeWidget);
 
-//this->setFeatures(DockWidgetMovable|DockWidgetFloatable);
-//tree->setStyleSheet(style);
-
 setFixedWidth(200);
 //treeWidget->setFixedHeight(mWindow->size().height()-80);
 treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -149,7 +146,7 @@ void TreeDock::onCustomContextMenu(const QPoint &point)
     QTreeWidgetItem *item = treeWidget->itemAt(point);
     if(item)
     {
-        qDebug() << " item is " << item->text(0) << " pos " << point;
+        //qDebug() << " item is " << item->text(0) << " pos " << point;
        // contextMenu->exec(treeWidget->mapToGlobal(point));
 
 //       if(!item->parent()) // 顶级

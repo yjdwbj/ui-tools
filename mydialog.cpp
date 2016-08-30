@@ -130,6 +130,7 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath, QWidget *par
 
     treefile->setModel(dirModel);
     treefile->setRootIndex(dirModel->index(imgpath));
+    treefile->setAlternatingRowColors(true);
 
     treefile->hideColumn(3);
     treefile->hideColumn(2);
@@ -142,11 +143,15 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath, QWidget *par
 //    flistview->setModel(fileModel);
 //    flistview->setRootIndex(fileModel->index(imgpath));
 
-    connect(sellist,SIGNAL(doubleClicked(QModelIndex)),SLOT(onSelListViewDoubleClicked(QModelIndex)));
-    connect(sellist,SIGNAL(clicked(QModelIndex)),SLOT(onSelectCurrentItem(QModelIndex)));
-    connect(flistview,SIGNAL(doubleClicked(QModelIndex)),SLOT(onListViewDoubleClicked(QModelIndex)));
+    connect(sellist,SIGNAL(doubleClicked(QModelIndex)),
+            SLOT(onSelListViewDoubleClicked(QModelIndex)));
+    connect(sellist,SIGNAL(clicked(QModelIndex)),
+            SLOT(onSelectCurrentItem(QModelIndex)));
+    connect(flistview,SIGNAL(doubleClicked(QModelIndex)),
+            SLOT(onListViewDoubleClicked(QModelIndex)));
 
-    connect(treefile,SIGNAL(clicked(QModelIndex)),SLOT(onTreeViewClicked(QModelIndex)));
+    connect(treefile,SIGNAL(clicked(QModelIndex)),
+            SLOT(onTreeViewClicked(QModelIndex)));
 
     /* 主布局是水平布局,左(QListWidget),中(垂直布局),右(文件系统) */
     // sellist->setModel(strListMode);
@@ -166,20 +171,24 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath, QWidget *par
     statusBar->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
 
     mainLayout->addLayout(mlayout);
-   // setOldList();
 
     foreach (QVariant v, old) {
         // example for v "config/images/digital-0.png"
         QString str = v.toString();
-//        QListWidgetItem *nitem = new QListWidgetItem(QPixmap(imgpath + BACKSLASH + str),
-//                                                     str.mid(str.lastIndexOf(BACKSLASH)+1));
-        QListWidgetItem *nitem = new QListWidgetItem(mWindow->mImgMap[imgpath + BACKSLASH + str],
-                                                     str.mid(str.lastIndexOf(BACKSLASH)+1));
+        QString fpath = imgpath + BACKSLASH + str;
+        QPixmap pic = mWindow->mImgMap[fpath];
+        if(pic.isNull())
+        {
+            pic = mWindow->mImgMap[fpath] = QPixmap(fpath);
+        }
+        QString sname = str.mid(str.lastIndexOf(BACKSLASH)+1);
+        QListWidgetItem *nitem = new QListWidgetItem(pic,sname);
         sellist->addItem(nitem);
+        selectedMap[sname] = fpath;
     }
     updateListImages(imgpath);
     this->setModal(true);
-   // exec();
+
 }
 
 
@@ -187,7 +196,7 @@ void ImageFileDialog::updateListImages(QString path)
 {
   //  imgMap.clear();
     flistview->clear();
-   // extMap.clear();
+    extMap.clear();
     QDirIterator it(path,filters, QDir::Files /*,QDirIterator::Subdirectories*/);
 
     while (it.hasNext())
@@ -211,9 +220,14 @@ void ImageFileDialog::updateListImages(QString path)
             continue;
 
        // flistview->addItem(new QListWidgetItem(QPixmap(fpath),fpath.mid(idx)));
-        flistview->addItem(new QListWidgetItem(mWindow->mImgMap[fpath],basename));
+        QPixmap pic =  mWindow->mImgMap[fpath];
+        if(pic.isNull())
+        {
+           pic = mWindow->mImgMap[fpath] = QPixmap(fpath);
+
+        }
+        flistview->addItem(new QListWidgetItem(pic,basename));
     }
-  //  flistview->setProperty(DKEY_IMGMAP,imgMap);
 }
 
 void ImageFileDialog::onSelectCurrentItem(QModelIndex index)
@@ -304,8 +318,14 @@ QWidget* ImageFileDialog::createUpAndDownButton(int row)
 void ImageFileDialog::appendSelectedItem(QModelIndex index)
 {
     QString s = flistview->item(index.row())->text();
-    QListWidgetItem *nitem = new QListWidgetItem(QPixmap(extMap[s].toString()),s);
+    QPixmap pic = mWindow->mImgMap[extMap[s].toString()];
+    if(pic.isNull())
+    {
+        pic = mWindow->mImgMap[extMap[s].toString()] = QPixmap(extMap[s].toString());
+    }
+    QListWidgetItem *nitem = new QListWidgetItem(pic,s);
     sellist->addItem(nitem);
+    selectedMap[s] = extMap[s].toString();
     QListWidgetItem *item = flistview->takeItem(index.row());
     delete item;
     hRows[s] = index;
@@ -324,7 +344,7 @@ QVariantList ImageFileDialog::getSelectedList()
     {
         QListWidgetItem *item = sellist->item(i);
         QString str = item->text();
-        lst << QString("%1|%2").arg(str,extMap[str].toString());
+        lst << QString("%1|%2").arg(str,selectedMap[str].toString());
     }
     return lst;
 
@@ -366,7 +386,7 @@ void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
 
   //  QModelIndex qmi = fileModel->index(selstr);
     QString fpath = fileModel->fileInfo(fileModel->index(selstr)).absoluteFilePath();
-    qDebug() << " will show the " << fpath << " selected str: " << selstr;
+   // qDebug() << " will show the " << fpath << " selected str: " << selstr;
 
     //sellist->setRowHidden(index.row(),true);
     delete sellist->takeItem(index.row());
@@ -390,6 +410,7 @@ void ImageFileDialog::onDelSelectedItems()
         QString selstr = item->text();
 
         flistview->setRowHidden(hRows[selstr].row(),false);
+        selectedMap.remove(item->text());
 
         delete sellist->takeItem(sellist->row(item));
     }
@@ -599,6 +620,7 @@ ImageListView::ImageListView(QString path, QWidget *parent)
 
     treefile->setModel(treeModel);
     treefile->setRootIndex(treeModel->index(path));
+    treefile->setAlternatingRowColors(true);
 
     treefile->hideColumn(3);
     treefile->hideColumn(2);
@@ -640,10 +662,15 @@ void ImageListView::updateListImages(QString path)
 //        bool b = fpath.contains('/');
 //        int idx = fpath.lastIndexOf(b ? '/' : '\\')+1;
         int idx = fpath.lastIndexOf(BACKSLASH)+1;
-        //bakimageMap[fpath.mid(idx)] = QPixmap(fpath);
-        imgMap[fpath.mid(idx)] = fpath;
+        QString shortname = fpath.mid(idx);
+        imgMap[shortname] = fpath;
         //imglist->addItem(new QListWidgetItem(QIcon(QPixmap(fpath)),fpath.mid(idx)));
-        imglist->addItem(new QListWidgetItem(QIcon(mWindow->mImgMap[fpath]),fpath.mid(idx)));
+        QPixmap pic = mWindow->mImgMap[fpath];
+        if(pic.isNull())
+        {
+            pic = mWindow->mImgMap[fpath] = QPixmap(fpath);
+        }
+        imglist->addItem(new QListWidgetItem(pic,shortname));
     }
     imglist->setProperty(DKEY_IMGMAP,imgMap);
 }
@@ -1120,6 +1147,7 @@ FileEdit::FileEdit(QString txt, QWidget *parent)
         BaseDialog *bd = new BaseDialog(this);
         bd->setWindowTitle(txt);
         QTreeView *fileTree = new QTreeView(this);
+        fileTree->setAlternatingRowColors(true);
         QFileSystemModel *dirModel = new QFileSystemModel;
         //qDebug() << " path " << theLineEdit->text();
         dirModel->setRootPath(theLineEdit->text());

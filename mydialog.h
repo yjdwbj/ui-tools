@@ -80,8 +80,7 @@ private:
     QStringList filters;
 
     QMap<QString,QModelIndex> hRows;
-   // QMap<QString,QString> extMap;
-    QVariantMap extMap;
+    QVariantMap extMap,selectedMap;
     //selectedMap selMap;
    // QStringList selstrList;
 protected:

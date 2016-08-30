@@ -47,7 +47,7 @@ void LoadImgTask::run()
         while (it.hasNext())
         {
             QString fpath = it.next();
-            int idx = fpath.lastIndexOf(BACKSLASH)+1;
+           // int idx = fpath.lastIndexOf(BACKSLASH)+1;
            // QString basename = fpath.mid(idx);
             if(!mWindow) // 主程退出了.
                 break;
@@ -68,10 +68,8 @@ MainWindow::MainWindow(QWidget *parent) :
     //ui->mainToolBar->setAllowedAreas(Qt::TopToolBarArea);
     ui->mainToolBar->setContextMenuPolicy(Qt::PreventContextMenu);
 
-
    // QString iniFile  =  QStandardPaths::displayName(QStandardPaths::DataLocation) + "/ui-config";
     mGlobalSet= new QSettings(mGlobalIniFile,QSettings::IniFormat);
-
 
     QApplication::setStyle(QStyleFactory::create("Fusion"));
 
@@ -79,9 +77,6 @@ MainWindow::MainWindow(QWidget *parent) :
     QString stylestr = "QPushButton::hover{"\
                         "background: #F48024}";
                        //"background: #5EBA7D}";
-
-
-
 
     setStyleSheet(stylestr);
     setCentralWidget(bk);
@@ -143,45 +138,54 @@ MainWindow::MainWindow(QWidget *parent) :
     addDockWidget(Qt::RightDockWidgetArea,pageView);
     if(!QFileInfo(mGlobalIniFile).exists())
     {
-
         while (1){
             GlobalSettings gs(this);
             gs.exec();
             if (gs.isSetFine()) break;
         }
+        mGlobalSet->deleteLater();
+        mGlobalSet= new QSettings(mGlobalIniFile,QSettings::IniFormat);
     }
      ComCtrl->ReadJsonWidgets();
 
+     // 用一个线程在后如缓存图片.
+//     LoadImgTask *imgload = new LoadImgTask(this);
+//     imgload->setAutoDelete(true);
+//     // QThreadPool takes ownership and deletes 'hello' automatically
+//     QThreadPool::globalInstance()->start(imgload);
+
     // 缓存一些背景图片.
-    QString dir = QDir::currentPath().replace(SLASH,BACKSLASH) +BACKSLASH +"backgrounds";
-    QDirIterator it(dir, QStringList() << "*.jpg", QDir::Files/*, QDirIterator::Subdirectories*/);
-    while (it.hasNext())
-    {
-        QString fpath = it.next();
-        int idx = fpath.lastIndexOf(BACKSLASH)+1;
-        bakimageMap[fpath.mid(idx)] = QPixmap(fpath);
-        bimgPath[fpath.mid(idx)] = fpath;
-    }
+     QString dir = QDir::currentPath().replace(SLASH,BACKSLASH) +BACKSLASH +"backgrounds";
+     if(!QFileInfo::exists(dir))
+     {
+         QDir d(dir);
+         d.mkdir(dir);
+     }
+     QDirIterator it(dir, QStringList() << "*.jpg", QDir::Files/*, QDirIterator::Subdirectories*/);
+     while (it.hasNext())
+     {
+         QString fpath = it.next();
+         int idx = fpath.lastIndexOf(BACKSLASH)+1;
+         // bakimageMap[fpath.mid(idx)] = QPixmap(fpath);
+         mImgMap[fpath] = QPixmap(fpath);
+         bakimageList << fpath;
+         // bakimageMap[fpath.mid(idx)] = mImgMap[fpath];
+         bimgPath[fpath.mid(idx)] = fpath;
+     }
+
     QVariant bkvar = mGlobalSet->value(INI_PRJBAKIMG);
     if(bkvar.isValid())
     {
-        bk->backImage = bakimageMap[bkvar.toString()];
+       // bk->backImage = bakimageMap[bkvar.toString()];
+        bk->backImage = mImgMap[bkvar.toString()];
     }
     else
     {
-        if(!bakimageMap.isEmpty())
-            bk->backImage = bakimageMap[0];
+      bk->backImage = mImgMap[bakimageList.first()];
     }
 
     this->centralWidget()->update();
     show();  // 这里不能少.
-
-
-    LoadImgTask *imgload = new LoadImgTask(this);
-    imgload->setAutoDelete(true);
-    // QThreadPool takes ownership and deletes 'hello' automatically
-    QThreadPool::globalInstance()->start(imgload);
-
 
 
     QVariant langfile = mGlobalSet->value(INI_PRJMLANG);
@@ -189,8 +193,6 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         readMultiLanguage(langfile.toString());
     }
-
-
 
     QVariant prjvar = mGlobalSet->value(INI_PRJLAST);
     QFile PrjFile;
@@ -215,8 +217,6 @@ MainWindow::MainWindow(QWidget *parent) :
         QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
         if(json_error.error == QJsonParseError::NoError)
         {
-
-            QPoint mpos;
             if(qd.isObject())
             {
                 QJsonObject  qdobj = qd.object();
@@ -448,8 +448,6 @@ void MainWindow::readCSVFile(QString csvfile)
     }
 
 
-
-    QStringList langList;
     QByteArray firstline=csv.readLine();
     QByteArrayList balist ;
     char comma = ',';
@@ -632,18 +630,26 @@ void MainWindow::onChangeBackgroud()
     QVBoxLayout *v = new QVBoxLayout();
     dig.setLayout( v);
     QListWidget *imglist = new QListWidget();
+    QString tooltip = "背景图片目录是<backgrounds>,\n把背景图片放在该目录下就可以显示了,只支持JPG格式";
+    v->addWidget(new QLabel(tooltip));
     imglist->setSelectionMode(QAbstractItemView::SingleSelection);
     imglist->setViewMode(QListWidget::IconMode);
     imglist->setIconSize(QSize(160,140));
+    imglist->setToolTip(tooltip);
 
     connect(imglist,SIGNAL(itemClicked(QListWidgetItem*)),SLOT(onDobuleClickedImage(QListWidgetItem*)));
     v->addWidget(imglist);
-    QMapIterator<QString,QPixmap> it(bakimageMap);
-    while(it.hasNext())
-    {
-        it.next();
-        imglist->addItem(new QListWidgetItem(QIcon(it.value()),it.key()));
+    foreach (QString path, bakimageList) {
+       // int len = path.lastIndexOf(BACKSLASH)+1;
+        imglist->addItem(new QListWidgetItem(QIcon(mImgMap[path]),
+                                             bimgPath.key(path)));
     }
+//    QMapIterator<QString,QPixmap> it(bakimageMap);
+//    while(it.hasNext())
+//    {
+//        it.next();
+//        imglist->addItem(new QListWidgetItem(QIcon(it.value()),it.key()));
+//    }
 
     dig.setModal(true);
     dig.exec();
@@ -652,8 +658,10 @@ void MainWindow::onChangeBackgroud()
 
 void MainWindow::onDobuleClickedImage(QListWidgetItem *item)
 {
-    bk->backImage = bakimageMap[item->text()];
-    mGlobalSet->setValue(INI_PRJBAKIMG,item->text());
+    //bk->backImage = bakimageMap[item->text()];
+    // bk->backImage = item->icon();
+    bk->backImage = mImgMap[bimgPath.value(item->text())];
+    mGlobalSet->setValue(INI_PRJBAKIMG,bimgPath.value(item->text()));
     this->centralWidget()->update();
     //update();
 }

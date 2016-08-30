@@ -30,11 +30,38 @@ void ScenesScreen::mousePressEvent(QMouseEvent *event)
             });
             contextMenu->addAction(&delme);
             QAction chgcolor(QIcon(":/icon/icons/gradient.png"),"修改背景色",this);
-            contextMenu->addAction(&chgcolor);
+           // contextMenu->addAction(&chgcolor);
             connect(&chgcolor,SIGNAL(triggered(bool)),SLOT(onChangedBackgroundColor()));
             QAction chgimg(QIcon(":/icon/icons/image-icon.png"),"修改背景图片",this);
-            contextMenu->addAction(&chgimg);
-            connect(&chgimg,SIGNAL(triggered(bool)),SLOT(onChangedBackgroundImage()));
+            //contextMenu->addAction(&chgimg);
+            connect(&chgimg,&QAction::triggered,[=](){
+                QDialog dig(mWindow);
+                dig.setFixedSize(mWindow->size() * 0.5);
+                dig.setWindowTitle(tr("修改背景"));
+
+                QVBoxLayout *v = new QVBoxLayout();
+                dig.setLayout( v);
+                QListWidget *imglist = new QListWidget();
+                imglist->setSelectionMode(QAbstractItemView::SingleSelection);
+                imglist->setViewMode(QListWidget::IconMode);
+                imglist->setIconSize(QSize(160,140));
+
+                connect(imglist,&QListWidget::itemDoubleClicked,
+                        [=](QListWidgetItem* item){
+                    setStyleSheet(QString("background-image: url(%1);").arg(mWindow->bimgPath[item->text()]));
+                    update();
+                });
+                v->addWidget(imglist);
+//                QMapIterator<QString,QPixmap> it(mWindow->bakimageMap);
+//                while(it.hasNext())
+//                {
+//                    it.next();
+//                    imglist->addItem(new QListWidgetItem(QIcon(it.value()),it.key()));
+//                }
+
+                dig.setModal(true);
+                dig.exec();
+            });
 
             contextMenu->addSeparator();
             QAction copy(QIcon(":/icon/icons/editcopy.png"),"复制",this);
@@ -59,40 +86,6 @@ void ScenesScreen::mousePressEvent(QMouseEvent *event)
 ScenesScreen::~ScenesScreen()
 {
 
-}
-
-void ScenesScreen::onChangedBackgroundImage()
-{
-    QDialog dig(mWindow);
-    dig.setFixedSize(mWindow->size() * 0.5);
-    dig.setWindowTitle(tr("修改背景"));
-
-    QVBoxLayout *v = new QVBoxLayout();
-    dig.setLayout( v);
-    QListWidget *imglist = new QListWidget();
-    imglist->setSelectionMode(QAbstractItemView::SingleSelection);
-    imglist->setViewMode(QListWidget::IconMode);
-    imglist->setIconSize(QSize(160,140));
-
-    connect(imglist,SIGNAL(itemClicked(QListWidgetItem*)),SLOT(onDobuleClickedImage(QListWidgetItem*)));
-    v->addWidget(imglist);
-    QMapIterator<QString,QPixmap> it(mWindow->bakimageMap);
-    while(it.hasNext())
-    {
-        it.next();
-        imglist->addItem(new QListWidgetItem(QIcon(it.value()),it.key()));
-    }
-
-    dig.setModal(true);
-    dig.exec();
-
-}
-
-void ScenesScreen::onDobuleClickedImage(QListWidgetItem *item)
-{
-    setStyleSheet(QString("background-image: url(%1);").arg(mWindow->bimgPath[item->text()]));
-    update();
-    qDebug() << " this stylesheet " << styleSheet();
 }
 
 void ScenesScreen::onChangedBackgroundColor()
@@ -265,7 +258,7 @@ void ScenesScreen::pasteItem(QWidget *w)
         BaseForm::ObjType curtype = bf->mType;
         QString cls =  mWindow->mCopyItem.toObject()[CLASS].toString();
 
-        if(!cls.compare(CN_NEWLAYER))
+        if(!cls.compare(CN_NEWLAYER) )
         {
             // 复制到同级.
             QJsonArray a;
@@ -302,6 +295,12 @@ void ScenesScreen::pasteItem(QWidget *w)
                 NewLayout* bflayout = (NewLayout*)bf;
                 bflayout->readFromJson(mWindow->mCopyItem,true);
             }
+        }else if(!cls.compare(this->metaObject()->className()))
+        {
+            QJsonObject ssobj = mWindow->mCopyItem.toObject();
+
+            readLayer(ssobj[LAYER].toArray());
+
         }
 
     }

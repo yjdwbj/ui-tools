@@ -78,9 +78,8 @@ public:
     void readMultiLanguage(QString file);
 
     QString mGlobalIniFile;
-
-    //QGroupBox *propertyWidget;
-    QMap<QString,QPixmap> bakimageMap; // 背景图片
+    QStringList bakimageList; // 背景图片列表.
+   // QMap<QString,QPixmap> bakimageMap; // 背景图片
     QMap<QString,QString> bimgPath; // 背景图片的全路径
     ComProperty *propertyWidget;
     //QGroupBox *imgPropertyWidget;

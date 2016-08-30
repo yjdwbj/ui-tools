@@ -542,10 +542,7 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
         paste.setEnabled(!mWindow->mCopyItem.isNull());
         contextMenu->addAction(&copy);
         contextMenu->addAction(&paste);
-
-
-
-
+        contextMenu->addSeparator();
        // QWidget *parentWidget = this->parentWidget();
        // QString pobjname = parentWidget->objectName();
         bool inContainer = property(DKEY_INTOCONTAINER).toBool();
@@ -1030,54 +1027,6 @@ void BaseForm::onListImageChanged(QString img)
 
 }
 
-//void BaseForm::onPictureDialog( )
-//{
-//    QWidget *sparent =((QWidget*)QObject::sender())->parentWidget();
-
-//    QString key = QObject::sender()->objectName();
-//    QComboBox *cb = sparent->findChild<QComboBox*>(key);
-
-//    // QMessageBox::warning(this,"test","your clicked me: ");
-//    QVariantList imglist = this->property(DKEY_IMAGELST).toList();
-//    ImageFileDialog *ifd = new ImageFileDialog(imglist,
-//                                               mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString(),
-//                                               this);
-
-//    ifd->exec();
-//     imglist = ifd->getSelectedList();
-//    ifd->deleteLater();
-//    QString imgdir = mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString();
-//    if(imgdir.isEmpty())
-//        imgdir = QDir::currentPath();
-
-//    int rootlen  = /*QDir::currentPath().length()+1;*/imgdir.length() +1;
-//    QJsonArray qa;
-
-//    cb->clear();
-//    setProperty(DKEY_IMAGELST,imglist);
-//    foreach (QVariant v, imglist) {
-//        QString s = v.toString();
-//        // example for s   "alarm_du.bmp:/home/yjdwbj/build-ut-tools-Desktop_Qt_5_6_0_GCC_64bit-Debug/images/string/alarm_du.bmp
-//        // example for s   ""m104.bmp:config/images/string/m104.bmp"
-//        QString lastsection = s.section(SECTION_CHAR,1,1);
-//         QString substr;
-//        if(lastsection.indexOf(BACKSLASH) == 0)
-//        {
-//           substr = s.section(SECTION_CHAR,1,1).mid(rootlen);
-//        }else
-//        {
-//            substr = s.section(SECTION_CHAR,1,1);
-//        }
-//        qa.append(substr);
-//        cb->addItem(QIcon(substr), s.section(SECTION_CHAR,0,0));
-//    }
-//    cb->setCurrentText(cb->property(DKEY_IMGIDX).toString());
-//    changeJsonValue((QWidget*)QObject::sender(),key,qa);
-//    //json[LIST] = qa;
-//    // 把新的列表更新的json中.
-
-//}
-
 
 int  BaseForm::tinySpinBoxDialog(QString  str,int val ,int min ,int max)
 {
@@ -1149,7 +1098,8 @@ QSize  BaseForm::ChangeSizeDialog(QSize size)
         glayout->addWidget(wbox,0,1);
         glayout->addWidget(ht,1,0);
         glayout->addWidget(hbox,1,1);
-        QDialogButtonBox *dbb = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel,
+        QDialogButtonBox *dbb = new QDialogButtonBox(QDialogButtonBox::Ok|
+                                                     QDialogButtonBox::Cancel,
                                                      Qt::Horizontal,
                                                      nWindow);
         dbb->button(QDialogButtonBox::Ok)->setText("确定");
@@ -1223,7 +1173,8 @@ NewFrame::NewFrame(QString caption, QWidget *parent)
     setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
     setFocusPolicy(Qt::ClickFocus);
 
-    QString uname = QString("%1_%2").arg(caption,QString::number(mWindow->ComCtrl->ProMap.size()));
+    QString uname = QString("%1_%2").arg(caption,
+                                         QString::number(mWindow->ComCtrl->ProMap.size()));
     mUniqueStr = uname;
     //setProperty(DKEY_LOCALSEQ,uname);
     setObjectName(uname);
@@ -1339,7 +1290,8 @@ NewGrid::NewGrid(const QJsonValue &qv,
     menuSpace = new QAction(QIcon(":/icon/icons/same-width.png"),"单元间距",this);
 
     connect(menuSpace,&QAction::triggered,[=](){
-        gridLayout->setSpacing(tinySpinBoxDialog(menuSpace->text(),gridLayout->spacing(),1,99));
+        gridLayout->setSpacing(tinySpinBoxDialog(menuSpace->text(),
+                                                 gridLayout->spacing(),1,99));
     });
 
     menuSize = new QAction(QIcon(":/icon/icons/scale-icon.png"),"单元尺寸",this);
@@ -1517,19 +1469,6 @@ void NewGrid::wheelEvent(QWheelEvent *event)
 
 }
 
-
-//bool NewGrid::eventFilter(QObject *obj, QEvent *event)
-//{
-//    if(!CN_NEWLAYOUT.compare(obj->metaObject()->className()) &&
-//            event->type() == QEvent::Wheel)
-//    {
-//        this->wheelEvent((QWheelEvent*)event);
-//        return true;
-//    }
-//    return BaseForm::eventFilter(obj,event);
-//}
-
-
 void NewGrid::readFromJson(const QJsonValue &value)
 {
 
@@ -1571,11 +1510,6 @@ QJsonObject NewGrid::writeToJson()
     json[GROWS] = rows;
     json[WIDTH] = itemSize.width();
     json[HEIGHT] = itemSize.height();
-
-
-   // QJsonArray projson = dynValues[DKEY_DYN].toArray();
-
-   // json[PROPERTY] = updateRBJsonValue(json[PROPERTY].toArray(),this);;
      json[PROPERTY] = mOwerJson[PROPERTY];
     return json;
 }
@@ -1634,7 +1568,8 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
     connect(menuAddLine,SIGNAL(triggered(bool)),SLOT(onAddManyLine()));
     connect(menuSetHeight,SIGNAL(triggered(bool)),SLOT(onSetFixedHeight()));
     connect(menuSetSpace,&QAction::triggered,[=]{
-        listLayout->setSpacing( tinySpinBoxDialog(menuSetSpace->text(),listLayout->spacing(),0,99));
+        listLayout->setSpacing( tinySpinBoxDialog(menuSetSpace->text(),
+                                                  listLayout->spacing(),0,99));
         listLayout->update();
     });
 
@@ -1661,12 +1596,7 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
 
     QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonRelease,QCursor::pos(),
                       Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
-
-//    QMouseEvent event(QMouseEvent::MouseButtonRelease,QCursor::pos(),
-//                      Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
-  //  QApplication::sendEvent(this,&event);
     QApplication::postEvent(this,event);
- //   qApp->notify(this,&event);
     show();
 }
 
@@ -2004,7 +1934,8 @@ void NewLayout::onBeComeTemplateWidget()
         nametxt->selectAll();
         vb->addWidget(nametxt);
 
-        QDialogButtonBox *dbb = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel,
+        QDialogButtonBox *dbb = new QDialogButtonBox(QDialogButtonBox::Ok|
+                                                     QDialogButtonBox::Cancel,
                                                      Qt::Horizontal,
                                                      nWindow);
         dbb->button(QDialogButtonBox::Ok)->setText("确定");
@@ -2280,7 +2211,8 @@ QList<int> NewLayout::rowcoldialog()
         vb->addLayout(wdlayout);
         vb->addLayout(htlayout);
 
-        QDialogButtonBox *dbb = new QDialogButtonBox(QDialogButtonBox::Ok|QDialogButtonBox::Cancel,
+        QDialogButtonBox *dbb = new QDialogButtonBox(QDialogButtonBox::Ok|
+                                                     QDialogButtonBox::Cancel,
                                                      Qt::Horizontal,
                                                      nWindow);
         dbb->button(QDialogButtonBox::Ok)->setText("确定");
@@ -2397,7 +2329,6 @@ void NewLayer::onDeleteMe()
     }
 }
 
-
 QJsonObject  NewLayer::writeToJson()
 {
     QJsonArray layoutarr;
@@ -2411,8 +2342,3 @@ QJsonObject  NewLayer::writeToJson()
     json[PROPERTY] = mOwerJson[PROPERTY];
     return json;
 }
-
-
-
-
-
