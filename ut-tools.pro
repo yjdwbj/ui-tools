@@ -38,7 +38,8 @@ SOURCES += main.cpp\
     ole.c \
     getopt.c \
     endian.c \
-    xlstool.c
+    xlstool.c \
+    busyindicator.cpp
 
 HEADERS  += mainwindow.h \
     module.h \
@@ -59,7 +60,8 @@ HEADERS  += mainwindow.h \
     libxls/endian.h \
     libxls/brdb.h \
     libxls/brdb.c.h \
-    config.h
+    config.h \
+    busyindicator.h
 
 FORMS    += mainwindow.ui \
     dialog.ui \

@@ -460,7 +460,8 @@ QJsonObject Compoent::getBorderJson(QWidget *w)
 BaseForm::BaseForm(QWidget *parent)
     :FormResizer(parent), mBorderColor("#FFFFFF"),
       mBorder(0,0,0,0),
-      mCreateFlag(false)
+      mCreateFlag(false),
+      posWidget(0)
 {
     setStyleSheet("");
     mbkImage = "";
@@ -601,27 +602,36 @@ void BaseForm::mouseReleaseEvent(QMouseEvent *event)
 {
 
     /* 放开鼠标时检查它的是否出了边界要 */
-   // QWidget *p = this->parentWidget();
+    // QWidget *p = this->parentWidget();
     QPoint pos = this->pos();
     moveNewPos(pos);
     // 这里只能在释放鼠标时改变左边的控件值
 
-    posWidget->updateSize(this);
-    posWidget->updatePosition(this);
+    if(!property(DKEY_INTOCONTAINER).toBool())
+    {
+        if(posWidget)
+        {
+            posWidget->updateSize(this);
+            posWidget->updatePosition(this);
+            changeJsonValue(posWidget,
+                            KEY_RECT,
+                            QString("%1:%2").arg(LX,QString::number(this->x())));
+            changeJsonValue(posWidget,
+                            KEY_RECT,
+                            QString("%1:%2").arg(LY,QString::number(this->y())));
 
-    changeJsonValue(posWidget,
-                    KEY_RECT,
-                    QString("%1:%2").arg(LX,QString::number(this->x())));
-    changeJsonValue(posWidget,
-                    KEY_RECT,
-                    QString("%1:%2").arg(LY,QString::number(this->y())));
+            changeJsonValue(posWidget,
+                            KEY_RECT,
+                            QString("%1:%2").arg(WIDTH,QString::number(this->width())));
+            changeJsonValue(posWidget,
+                            KEY_RECT,
+                            QString("%1:%2").arg(HEIGHT,QString::number(this->height())));
 
-    changeJsonValue(posWidget,
-                    KEY_RECT,
-                    QString("%1:%2").arg(WIDTH,QString::number(this->width())));
-    changeJsonValue(posWidget,
-                    KEY_RECT,
-                    QString("%1:%2").arg(HEIGHT,QString::number(this->height())));
+        }
+    }
+
+
+
 }
 
 void BaseForm::moveNewPos(int x,int y)
@@ -861,8 +871,10 @@ void BaseForm::onColorButtonClicked()
 {
     QPushButton *btn = (QPushButton*)QObject::sender();
     QColor c = QColor::fromRgb(btn->property(DKEY_COLOR).toUInt());
-    QColorDialog *color =new  QColorDialog(c);
-    color->setOptions( QColorDialog::DontUseNativeDialog);
+    QColorDialog *color =new  QColorDialog(c,this);
+
+    color->setOptions( QColorDialog::DontUseNativeDialog /*|
+                       QColorDialog::ShowAlphaChannel*/);
     color->exec();
     c =  color->selectedColor();
 
@@ -911,8 +923,12 @@ void BaseForm::onSelectMe()
 
     mWindow->propertyWidget->createPropertyBox(this);
    // posWidget->setConnectNewQWidget(this);
-    posWidget->updatePosition(this);
-    posWidget->updateSize(this);
+    if(!property(DKEY_INTOCONTAINER).toBool())
+    {
+        posWidget->updatePosition(this);
+        posWidget->updateSize(this);
+    }
+
 }
 
 void BaseForm::DeleteMe()
@@ -951,7 +967,20 @@ void BaseForm::onBackgroundImageDialog()
 {
     QWidget *w  = (QWidget*)(QObject::sender());
     QString imgdir = mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString();
+
+    //QThread *thread = new QThread(this);
+
     ImageListView *imgview = new ImageListView(imgdir,this->mWindow);
+//    BusyIndicator *bi = new BusyIndicator(imgview);
+
+//    connect(thread,SIGNAL(started()),imgview,SLOT(exec()));
+//    connect(thread,SIGNAL(finished()),
+//            thread,SLOT(deleteLater()));
+//    connect(imgview,SIGNAL(accepted()),thread,SLOT(quit()));
+//    connect(imgview,SIGNAL(accepted()),bi,SLOT(accept()));
+//    connect(imgview,SIGNAL(loadImageDone()),bi,SLOT(accept()));
+//    thread->start();
+//    bi->exec();
     // 把一个动态属性传递给另一个事件发送对像,用来确定要修改JSON里的那一段值.
     imgview->imglist->setProperty(DKEY_ARRIDX,w->property(DKEY_ARRIDX));
     imgview->imglist->setProperty(DKEY_PARRIDX,w->property(DKEY_PARRIDX));
@@ -974,7 +1003,9 @@ void BaseForm::onBackgroundImageDialog()
 
             int n = imgdir.length() +1;
 
-            changeJsonValue(imgview->imglist,property(DKEY_CURVAL).toString(),fpath.mid(n));
+            changeJsonValue(imgview->imglist,
+                            property(DKEY_CURVAL).toString(),
+                            fpath.mid(n));
 
             QPixmap p(12,12);
             p.load(fpath);
@@ -984,9 +1015,10 @@ void BaseForm::onBackgroundImageDialog()
     });
 
     imgview->setFixedSize(mWindow->size() * 0.6);
+    //imgview->moveToThread(thread);
     imgview->exec();
     //int ret = imgview->result() ;
-    imgview->deleteLater();
+  //  imgview->deleteLater();
 }
 
 
@@ -1408,6 +1440,16 @@ void NewGrid::updateAllItemsSize()
     foreach (QWidget *w, childlist) {
         ((NewLayout*)w)->setMaximumSize(this->size());
         ((NewLayout*)w)->setFixedSize(itemSize);
+        ((BaseForm*)w)->onSelectMe();
+        ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
+                        KEY_RECT,
+                        QString("%1:%2").arg(WIDTH,
+                                             QString::number(itemSize.width())));
+        ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
+                        KEY_RECT,
+                        QString("%1:%2").arg(HEIGHT,
+                                             QString::number(itemSize.height())));
+
     }
     onSelectMe();
 
@@ -1446,6 +1488,7 @@ void NewGrid::mouseReleaseEvent(QMouseEvent *event)
 
      mainScroll->resize(this->size());
      mainWidget->resize(this->size());
+     BaseForm::mouseReleaseEvent(event);
 
 }
 
@@ -1553,6 +1596,7 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
         menuSetHeight =  new QAction(QIcon(":/icon/icons/fileoverlay_ui@2x.png"),"设置列宽",this);
         menuAddLine = new QAction(QIcon(":/icon/icons/addtab.png"),"添加列",this);
         mainScroll->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
+
     }else
     {
         menuAddLine = new QAction(QIcon(":/icon/icons/addtab.png"),"添加行",this);
@@ -1561,6 +1605,7 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
         mainScroll->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Expanding);
         sliderOrientation = Qt::Vertical;
     }
+    mainWidget->setSizePolicy(mainScroll->sizePolicy());
 
     listLayout->setSpacing(obj[ITEMSPACE].toInt());
     itemHeight = obj[ITEMSIZE].toInt();
@@ -1594,8 +1639,11 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
     mbkColor = "#00BCD4";
     updateStyleSheets();
 
-    QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonRelease,QCursor::pos(),
-                      Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
+    QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonRelease,
+                                         QCursor::pos(),
+                                         Qt::LeftButton,
+                                         Qt::LeftButton,
+                                         Qt::NoModifier);
     QApplication::postEvent(this,event);
     show();
 }
@@ -1604,12 +1652,38 @@ void NewList::updateAllItemsSize()
 {
     foreach (QWidget *w, childlist) {
 
+
         ((NewLayout*)w)->setMaximumSize(this->size());
-         ((NewLayout*)w)->setFixedSize(this->size());
+        // ((NewLayout*)w)->setFixedSize(this->size());
+
         if(sliderOrientation == Qt::Horizontal)
-            ((NewLayout*)w)->setFixedWidth(itemHeight);
+        {
+            if(itemHeight == w->width() &&
+                    w->height() == this->height())
+                return;
+            ((BaseForm*)w)->onSelectMe();
+            w->setFixedWidth(itemHeight);
+            w->setFixedHeight(this->height());
+            ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
+                            KEY_RECT,
+                            QString("%1:%2").arg(WIDTH,
+                                                 QString::number(itemHeight)));
+        }
+
         else
-            ((NewLayout*)w)->setFixedHeight(itemHeight);
+        {
+            if(itemHeight == w->height() &&
+                    w->width() == this->width())
+                return;
+            ((BaseForm*)w)->onSelectMe();
+            w->setFixedHeight(itemHeight);
+            w->setFixedWidth(this->width());
+            ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
+                            KEY_RECT,
+                            QString("%1:%2").arg(HEIGHT,
+                                                 QString::number(itemHeight)));
+        }
+
     }
     onSelectMe();
 }
@@ -1649,8 +1723,8 @@ NewLayout * NewList::AddOneLine(QJsonValue value)
     onSelectMe();
     NewLayout *newlayout = CreateNewLayout(value,mainWidget,mCreateFlag);
     onSelectMe();
-    newlayout->onSelectMe();
     newlayout->setProperty(DKEY_INTOCONTAINER,true);
+    newlayout->onSelectMe();
     childlist.append(newlayout);
     newlayout->container = this;
     listLayout->addWidget(newlayout);
@@ -1687,40 +1761,10 @@ void NewList::onDeleteMe()
 
 void NewList::mouseReleaseEvent(QMouseEvent *event)
 {
-    /* 放开鼠标时检查它的是否出了边界要 */
-    QWidget *p = this->parentWidget();
-    QPoint pos = this->pos();
-
-    if(this->x() < 0)
-    {
-        pos.setX(0 );
-        this->move(pos);
-
-    }
-    if(this->y() < 0 )
-    {
-        pos.setY(0 );
-        this->move(pos);
-    }
-    QSize ms = p->size();
-    //左出界检查
-    if((this->x()  + this->size().width()) > ms.width())
-    {
-        pos.setX( ms.width() - this->size().width()  );
-        this->move(pos);
-    }
-
-    //上出界检查
-    if((this->y() + this->size().height()) > ms.height())
-    {
-        pos.setY(ms.height() - this->size().height() );
-        this->move(pos);
-    }
-
-//    mainListWidget->resize(m_frame->size());
-
+    BaseForm::mouseReleaseEvent(event);
     // 把　QScrollArea　的大小调成与父控件一样大.
     mainScroll->resize(this->size());
+  //  qDebug() << "release event " << event;
     updateAllItemsSize();
 
 }
@@ -2112,6 +2156,7 @@ void NewLayout::readFromJson(const QJsonValue &qv,bool flag)
       foreach (QJsonValue item, valobj[LISTWIDGET].toArray()) {
           nlist->readFromJson(item);
       }
+      nlist->updateAllItemsSize();
     }else if(!clsName.compare(CN_NEWGRID))
     {
         NewGrid *ngrid;

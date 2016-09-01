@@ -224,6 +224,7 @@ public:
     NewList(QJsonValue json,const QSize size,QWidget *parent=0);
     QJsonObject writeToJson();
     void readFromJson(const QJsonValue &valobj);
+    void updateAllItemsSize();
    // void addChildrenToTree();
     QScrollArea *mainScroll;
    // ContainerScroll *mainScroll;
@@ -240,7 +241,7 @@ public:
 private:
       //int tinySpinBoxDialog(QString str, int val, int min, int max);
       NewLayout *AddOneLine(QJsonValue value);
-      void updateAllItemsSize();
+
       int itemHeight; // 垂直是宽随父控件,水平是高随父控件.
 
 public slots:

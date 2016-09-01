@@ -26,6 +26,8 @@
 
 
 
+
+
 using namespace xls;
 void Backgroud::paintEvent(QPaintEvent *)
 {
@@ -38,23 +40,7 @@ void Backgroud::paintEvent(QPaintEvent *)
 
 void LoadImgTask::run()
 {
-    QString imgpath =mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString();
-    if(!imgpath.isEmpty())
-    {
-
-        QDirIterator it(imgpath, QStringList() << "*.bmp" << "*.png" << "*.jpg",
-                        QDir::Files ,QDirIterator::Subdirectories);
-        while (it.hasNext())
-        {
-            QString fpath = it.next();
-           // int idx = fpath.lastIndexOf(BACKSLASH)+1;
-           // QString basename = fpath.mid(idx);
-            if(!mWindow) // 主程退出了.
-                break;
-            mWindow->mImgMap[fpath] = QPixmap(fpath);
-        }
-    }
-
+    rotate.exec();
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -75,8 +61,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     bk = new Backgroud();
     QString stylestr = "QPushButton::hover{"\
-                        "background: #F48024}";
+                        "background: #F48024}"\
+                        "QDialog {background-color: #FFFFBF};";
                        //"background: #5EBA7D}";
+
 
     setStyleSheet(stylestr);
     setCentralWidget(bk);
@@ -84,7 +72,7 @@ MainWindow::MainWindow(QWidget *parent) :
     cManager = new CanvasManager(this);
     // posWidget = new Position(this);
       posWidget = 0;
-    propertyWidget = new ComProperty("控件属性",this) ;
+
     //imgPropertyWidget = new ComProperty("图片属性",this);
 
 
@@ -104,7 +92,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     lDock->setWidget(lDockWidget);
     lDockWidget->setObjectName("lDockWidget");
-    lDockWidget->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
+    lDockWidget->setSizePolicy(QSizePolicy::Preferred,
+                               QSizePolicy::Preferred);
     QVBoxLayout *leftLayout = new QVBoxLayout(lDockWidget);
     leftLayout->setSpacing(2);
     leftLayout->setMargin(0);
@@ -119,7 +108,7 @@ MainWindow::MainWindow(QWidget *parent) :
     leftLayout->addWidget(ComCtrl);
 
    // leftLayout->addWidget(posWidget);
-
+     propertyWidget = new ComProperty("控件属性",this) ;
     leftLayout->addWidget(propertyWidget);
     tree = new TreeDock(this);
     // 左边两个并排的QDockWidget
@@ -187,6 +176,13 @@ MainWindow::MainWindow(QWidget *parent) :
     this->centralWidget()->update();
     show();  // 这里不能少.
 
+//    LoadImgTask imgload;
+//    imgload.setAutoDelete(true);
+//    // QThreadPool takes ownership and deletes 'hello' automatically
+//    QThreadPool::globalInstance()->start(&imgload);
+//    sleep(6000);
+//    imgload.setDone();
+
 
     QVariant langfile = mGlobalSet->value(INI_PRJMLANG);
     if(langfile.isValid())
@@ -215,6 +211,7 @@ MainWindow::MainWindow(QWidget *parent) :
         in >> str >> ans;
         QJsonParseError json_error;
         QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
+
         if(json_error.error == QJsonParseError::NoError)
         {
             if(qd.isObject())
@@ -222,10 +219,10 @@ MainWindow::MainWindow(QWidget *parent) :
                 QJsonObject  qdobj = qd.object();
                 cManager->mProjectName = qdobj[NAME].toString();
                 setWindowTitle( VERSION + cManager->mProjectName);
-
                 foreach (QJsonValue val,qdobj[MLANG].toArray() ) {
                     cManager->mPrjSelectlang.append(val.toString());
                 }
+
 
                 cManager->readProjectJson(qdobj[PAGES].toArray());
                 cManager->setActiveSS(qdobj[ACTPAGE].toInt());
@@ -235,6 +232,7 @@ MainWindow::MainWindow(QWidget *parent) :
             // qDebug() << " read Json file error";
             qDebug() << json_error.errorString();
         }
+
     }
 
 }

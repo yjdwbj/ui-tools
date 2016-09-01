@@ -54,7 +54,7 @@ private slots:
     void onAddSelectedItems();
     void onUp();
     void onDown();
-    void onSelectCurrentItem(QModelIndex index);
+ //   void onSelectCurrentItem(QModelIndex index);
 
 
 
@@ -74,6 +74,7 @@ private:
     QPushButton *up;
     QPushButton *down;
     QPushButton *del;
+    QPushButton *okbtn;
     QLabel *statusBar;
     MainWindow *mWindow;
 
@@ -96,7 +97,7 @@ namespace Ui {
     class ProjectDialog;
 }
 
-class ProjectDialog : public BaseDialog
+class ProjectDialog : public QDialog
 {
     Q_OBJECT
 public:
@@ -145,6 +146,10 @@ private:
     MainWindow *mWindow;
 
     QStringList filters;
+
+signals:
+    void loadImageDone();
+
 private slots:
     void onTreeViewClicked(QModelIndex );
 
@@ -154,7 +159,7 @@ namespace Ui {
     class I18nLanguage;
 }
 
-class I18nLanguage: public BaseDialog
+class I18nLanguage: public QDialog
 {
     Q_OBJECT
 public:
@@ -261,7 +266,7 @@ namespace Ui {
     class GlobalSettings;
 }
 
-class GlobalSettings: public BaseDialog
+class GlobalSettings: public QDialog
 {
     Q_OBJECT
 public:

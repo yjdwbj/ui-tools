@@ -28,6 +28,8 @@
 #include <QSettings>
 #include "treedock.h"
 
+#include "busyindicator.h"
+
 #include <QRunnable>
 //#include "propertybox.h"
 
@@ -137,15 +139,19 @@ private:
 
 };
 
-class LoadImgTask : public QRunnable , public QWidget
+class LoadImgTask : public QRunnable
 {
 public:
-    MainWindow *mWindow;
-    LoadImgTask(QWidget *parent=0):QWidget(parent){
-        mWindow = (MainWindow*)parent;
+
+    LoadImgTask()
+    {
+
     }
 
    void run();
+   void setDone(){;}
+private:
+   BusyIndicator rotate;
 };
 
 #endif // MAINWINDOW_H

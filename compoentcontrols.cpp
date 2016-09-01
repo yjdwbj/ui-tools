@@ -438,7 +438,9 @@ ComProperty::ComProperty(QString title,QWidget *parent):
     //setTitle(title);
     setStyleSheet("QGroupBox,QLabel,QScrollArea,QWidget{background-color: #C0DCC0;}");
     this->setFixedHeight((parent->height()-50) * 0.7);
-    this->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
+    this->setFixedWidth(((MainWindow*)parent)->lDock->width());
+    qDebug() << "property size " << this->size();
+    this->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Preferred);
     QHBoxLayout *hb = new QHBoxLayout(this);
     hb->setSpacing(0);
     hb->setMargin(0);
@@ -448,11 +450,17 @@ ComProperty::ComProperty(QString title,QWidget *parent):
     mainWidget = new QWidget();
 
     QScrollArea *scroll =  new QScrollArea();
+    scroll->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Preferred);
+   // scroll->setSizeAdjustPolicy(QAbstractScrollArea::AdjustIgnored);
     scroll->setContentsMargins(0,0,0,0);
     scroll->setParent(this);
+    scroll->setFixedSize(this->size());
     hb->addWidget(scroll);
     scroll->setWidget(mainWidget);
     mainWidget->setLayout(mainLayout);
+    mainWidget->setFixedSize(this->size());
+    mainLayout->setSizeConstraint(QLayout::SetFixedSize);
+
     scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
@@ -480,6 +488,9 @@ void ComProperty::createPropertyBox(QWidget *p)
     if(mainLayout)
     {
         removeWidFromLayout(mainLayout);
+        ((BaseForm*)p)->posWidget = 0;
+        if(oldobject)
+        ((BaseForm*)oldobject)->posWidget = 0;
         delete mainLayout;
         mainLayout = 0;
     }
@@ -616,6 +627,9 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                 btn->setProperty(DKEY_ARRIDX,this->property(DKEY_ARRIDX));
                 btn->setProperty(DKEY_OWERJSON,this->metaObject()->className());
                 btn->setProperty(DKEY_PARRIDX,this->property(DKEY_PARRIDX));
+
+                cb->setFixedWidth(this->width()-30);
+                btn->setFixedWidth(this->width() -30);
                 mainLayout->addWidget(btn);
                 mainLayout->addWidget(cb);
                 QJsonArray array = object[LIST].toArray();
@@ -720,20 +734,28 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                         }
                     });
                 }
+
                 continue;
 
             }else if(object.contains(KEY_RECT))
             {
+
                 Position* posWidget =   new Position(this);
                 posWidget->setObjectName(QString("%1_%2").arg(((BaseForm*)p)->mUniqueStr,
                                                               QString::number(property(DKEY_ARRIDX).toInt())));
-                // posWidget->setProperty(DKEY_ARRIDX,i);
                 posWidget->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
-                if(!property(DKEY_ARRIDX).toInt())
+                if(!p->property(DKEY_ARRIDX).toInt())
                     ((BaseForm*)p)->posWidget = posWidget;
+                if(p->property(DKEY_INTOCONTAINER).toBool())
+                {
+                    posWidget->setHidden(true);
 
-                posWidget->setConnectNewQWidget(p);
+                }else{
+                    posWidget->setConnectNewQWidget(p);
+                }
+
                 mainLayout->addWidget(posWidget);
+
             }else if(object.contains(BORDER))
             {
 
@@ -852,7 +874,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
         }
         if(!wid)
             continue;
-
+       // wid->setFixedWidth(this->width()-15);
         wid->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
         wid->setProperty(DKEY_ARRIDX,this->property(DKEY_ARRIDX));
         wid->setProperty(DKEY_OWERJSON,this->metaObject()->className());
@@ -962,7 +984,8 @@ void CompoentControls::ReadJsonWidgets()
         return;
     }
 
-    CreateButtonList(ReadTemplateWidgetFile(file));
+    QJsonArray qjv = ReadTemplateWidgetFile(file);
+    CreateButtonList(qjv);
  //   QString customdir = QDir::currentPath() + "/widgets";
 
 

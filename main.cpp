@@ -12,14 +12,9 @@ int main(int argc, char *argv[])
 
      QDesktopWidget *pDwgt = a.desktop();
     QRect desk_rect = pDwgt->screenGeometry(pDwgt->screenNumber(QCursor::pos()));
-
-
     w.setMaximumSize(desk_rect.size());
     w.showMaximized();
     w.show();
-
-
-
 
     return a.exec();
 }

@@ -200,7 +200,7 @@ void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
 {
 
 
-    qDebug() << " keyevent " << s;
+  //  qDebug() << " keyevent " << s;
     // 处理一些鼠标事件.
     if(activeObj)
     {

@@ -16,6 +16,7 @@
 #include <QRadioButton>
 #include <QFileDialog>
 #include <QStyleFactory>
+#include <QThread>
 
 
 const static char DnditemData[] = "application/x-dnditemdata";
@@ -27,8 +28,6 @@ BaseDialog::BaseDialog(QWidget *parent):
     setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     setModal(true);
    // setStyleSheet( QString("BaseDialog#%1 {background-color: #FFFFBF;}").arg(objectName()));
-    qDebug() << " basedialog stylesheet " << styleSheet()
-             << " meta class name " << metaObject()->className();
 }
 
 
@@ -46,10 +45,14 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath, QWidget *par
       flistview(new QListWidget()),
       treefile(new QTreeView()),
    //   selstrList(old),
-      statusBar(new QLabel)
+      statusBar(new QLabel(this)),
+      okbtn(new QPushButton("确定",this))
 {
 
     mWindow = (MainWindow*)parent;
+    setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
+    setModal(true);
+    treefile->header()->setHidden(true);
   //  QString imgpath =  mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString();
      flistview->setProperty(DKEY_EXTMAP,extMap);
      /* 填弃上一次的数据 */
@@ -143,10 +146,16 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath, QWidget *par
 //    flistview->setModel(fileModel);
 //    flistview->setRootIndex(fileModel->index(imgpath));
 
-    connect(sellist,SIGNAL(doubleClicked(QModelIndex)),
-            SLOT(onSelListViewDoubleClicked(QModelIndex)));
-    connect(sellist,SIGNAL(clicked(QModelIndex)),
-            SLOT(onSelectCurrentItem(QModelIndex)));
+//    connect(sellist,SIGNAL(doubleClicked(QModelIndex)),
+//            SLOT(onSelListViewDoubleClicked(QModelIndex)));
+    connect(sellist,&QListWidget::clicked,
+            [=](QModelIndex index){
+        sellist->clearSelection();
+        sellist->setCurrentIndex(index);
+        findChild<QPushButton*>(UP)->setEnabled(index.row() == 0 ? false : true);
+        findChild<QPushButton*>(DOWN)->setEnabled(index.row()
+                                                  == sellist->count() -1 ? false : true);
+    });
     connect(flistview,SIGNAL(doubleClicked(QModelIndex)),
             SLOT(onListViewDoubleClicked(QModelIndex)));
 
@@ -168,6 +177,7 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath, QWidget *par
     statusBar->setText("0");
     mlayout->addWidget(msg);
     mlayout->addWidget(statusBar);
+    mlayout->addWidget(okbtn);
     statusBar->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Fixed);
 
     mainLayout->addLayout(mlayout);
@@ -186,8 +196,11 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath, QWidget *par
         sellist->addItem(nitem);
         selectedMap[sname] = fpath;
     }
+    statusBar->setText(QString::number(sellist->count()));
     updateListImages(imgpath);
     this->setModal(true);
+//    UpdateStyle();
+    connect(okbtn,SIGNAL(clicked(bool)),SLOT(accept()));
 
 }
 
@@ -216,8 +229,7 @@ void ImageFileDialog::updateListImages(QString path)
                break;
            }
         }
-        if(isFind)
-            continue;
+
 
        // flistview->addItem(new QListWidgetItem(QPixmap(fpath),fpath.mid(idx)));
         QPixmap pic =  mWindow->mImgMap[fpath];
@@ -227,15 +239,9 @@ void ImageFileDialog::updateListImages(QString path)
 
         }
         flistview->addItem(new QListWidgetItem(pic,basename));
+        if(isFind)
+            flistview->setRowHidden(flistview->count()-1,true);
     }
-}
-
-void ImageFileDialog::onSelectCurrentItem(QModelIndex index)
-{
-
-  findChild<QPushButton*>(UP)->setEnabled(index.row() == 0 ? false : true);
-  findChild<QPushButton*>(DOWN)->setEnabled(index.row() == sellist->count() -1 ? false : true);
-
 }
 
 void ImageFileDialog::onListViewDoubleClicked(QModelIndex index)
@@ -326,8 +332,9 @@ void ImageFileDialog::appendSelectedItem(QModelIndex index)
     QListWidgetItem *nitem = new QListWidgetItem(pic,s);
     sellist->addItem(nitem);
     selectedMap[s] = extMap[s].toString();
-    QListWidgetItem *item = flistview->takeItem(index.row());
-    delete item;
+    flistview->setRowHidden(index.row(),true);
+//    QListWidgetItem *item = flistview->takeItem(index.row());
+//    delete item;
     hRows[s] = index;
    // selMap[s] = fileModel->fileInfo(index).absoluteFilePath();
     /* 这里不能使用MAP , QComobox 需要排序 */
@@ -367,11 +374,6 @@ void ImageFileDialog::onDown()
 {
     QPushButton *btn = (QPushButton*)(QObject::sender());
     int row = sellist->currentRow();
-//    if(row == sellist->count() -1)
-//    {
-//        btn->setEnabled(false);
-//        return;
-//    }
      QListWidgetItem *item =  sellist->takeItem(row);
      sellist->insertItem(row +1,item);
      sellist->setCurrentItem(item);
@@ -383,22 +385,19 @@ void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
     /* 双击从右框删除 */
     // sellist->takeItem(index.row())->text();
     QString selstr = sellist->takeItem(index.row())->text();
-
-  //  QModelIndex qmi = fileModel->index(selstr);
-    QString fpath = fileModel->fileInfo(fileModel->index(selstr)).absoluteFilePath();
-   // qDebug() << " will show the " << fpath << " selected str: " << selstr;
-
     //sellist->setRowHidden(index.row(),true);
     delete sellist->takeItem(index.row());
-
-    flistview->setRowHidden(hRows[selstr].row(),false);
-   // selMap.remove(selstr);
-    qDebug() << " filemodel rootpath" << fileModel->rootPath()
-             << " str to index " << fileModel->index(selstr);
-
+    foreach(QListWidgetItem *fitem,flistview->findItems(selstr,
+                                              Qt::MatchExactly))
+    {
+        flistview->setRowHidden(flistview->row(fitem),false);
+        break;
+    }
+    selectedMap.remove(selstr);
     /* 从列表删除 */
 
    statusBar->setText(QString::number(sellist->count()));
+   sellist->clearSelection();
 //   statusBar->repaint();
 }
 
@@ -408,9 +407,14 @@ void ImageFileDialog::onDelSelectedItems()
     foreach(QListWidgetItem * item, items)
     {
         QString selstr = item->text();
+        foreach(QListWidgetItem *fitem,flistview->findItems(selstr,
+                                                  Qt::MatchExactly))
+        {
+            flistview->setRowHidden(flistview->row(fitem),false);
+            break;
+        }
 
-        flistview->setRowHidden(hRows[selstr].row(),false);
-        selectedMap.remove(item->text());
+        selectedMap.remove(selstr);
 
         delete sellist->takeItem(sellist->row(item));
     }
@@ -439,9 +443,6 @@ ImageFileDialog::~ImageFileDialog()
 void ImageFileDialog::onTreeViewClicked(QModelIndex index)
 {
     QString mPath = dirModel->fileInfo(index).absoluteFilePath();
-    qDebug() << " DirModel AbsoluteFile Path " << mPath
-             << "current name" << dirModel->fileInfo(index).bundleName();
-   // flistview->setRootIndex(fileModel->setRootPath(mPath));
     updateListImages(mPath);
 
     // dirModel->fetchMore(index);
@@ -453,15 +454,17 @@ void ImageFileDialog::onTreeViewClicked(QModelIndex index)
 
 
 ProjectDialog::ProjectDialog(QWidget *parent)
-    :BaseDialog(parent),
+    :QDialog(parent),
     //:QDialog(parent),
     ui(new Ui::ProjectDialog),
     defaultXLS(QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH + "行车记录仪.xls")
 {
     ui->setupUi(this);
+    setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
+    setModal(true);
 
     setObjectName(this->metaObject()->className());
-    this->UpdateStyle();
+//    this->UpdateStyle();
     //setStyleSheet( QString("ProjectDialog#%1 {background-color: #FFFFBF;}").arg(metaObject()->className()));
 
     mWindow = (MainWindow*)(parent);
@@ -605,20 +608,36 @@ ImageListView::ImageListView(QString path, QWidget *parent)
      imglist(new QListWidget)
 {
     mWindow = (MainWindow*)parent;
+    //setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+    setModal(true);
+    QVBoxLayout *mvb = new QVBoxLayout();
     QHBoxLayout *mh = new QHBoxLayout();
-    this->setLayout(mh);
+    mvb->addLayout(mh);
+    this->setLayout(mvb);
     this->setWindowTitle(tr("图片编辑"));
     filters << "*.bmp" << "*.png" << "*.jpg";
     treeModel->setRootPath(path);
-    treeModel->removeColumn(3);
-    treeModel->removeColumn(2);
+    //treeModel->removeColumn(3);
+    //treeModel->removeColumn(2);
     treeModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
+    //  QPushButton *okbtn = new QPushButton("确定",this);
+    // okbtn->setFixedWidth(60);
+    // connect(okbtn,SIGNAL(clicked(bool)),SLOT(accept()));
+
 
 
     treeModel->setNameFilters(filters);
 
 
+    treeModel->setHeaderData(1,
+                             Qt::Horizontal,
+                             "目录",Qt::DisplayRole);
     treefile->setModel(treeModel);
+    treefile->header()->model()->setHeaderData(0, Qt::Horizontal,
+                                               "目录");
+    treefile->header()->setHidden(true);
+
+
     treefile->setRootIndex(treeModel->index(path));
     treefile->setAlternatingRowColors(true);
 
@@ -626,27 +645,32 @@ ImageListView::ImageListView(QString path, QWidget *parent)
     treefile->hideColumn(2);
     treefile->hideColumn(1);
 
+
     fileModel->setRootPath(path);
     fileModel->setNameFilters(filters);
     fileModel->setFilter(QDir::Files);
-//    imglist->setModel(fileModel);
-//    imglist->setRootIndex(fileModel->index(path));
+    //    imglist->setModel(fileModel);
+    //    imglist->setRootIndex(fileModel->index(path));
 
 
 
     imglist->setSelectionMode(QAbstractItemView::SingleSelection);
     imglist->setViewMode(QListWidget::IconMode);
     imglist->setIconSize(QSize(160,140));
+    imglist->setAlternatingRowColors(true);
 
     mh->addWidget(treefile);
     mh->addWidget(imglist);
+    // mvb->addWidget(okbtn);
 
-    updateListImages(path);
+
+
     treefile->setFixedWidth(160);
     connect(treefile,SIGNAL(clicked(QModelIndex)),SLOT(onTreeViewClicked(QModelIndex)));
-//    connect(imglist,SIGNAL(itemDoubleClicked(QListWidgetItem*)),
-//            parent,SLOT(onSelectedBackgroundImage(QListWidgetItem*)));
+    //    connect(imglist,SIGNAL(itemDoubleClicked(QListWidgetItem*)),
+    //            parent,SLOT(onSelectedBackgroundImage(QListWidgetItem*)));
 
+    updateListImages(path);
 }
 
 void ImageListView::updateListImages(QString path)
@@ -654,8 +678,7 @@ void ImageListView::updateListImages(QString path)
     imgMap.clear();
     imglist->clear();
 
-    QDirIterator it(path,filters, QDir::Files, QDirIterator::Subdirectories);
-
+     QDirIterator it(path,filters, QDir::Files, QDirIterator::Subdirectories);
     while (it.hasNext())
     {
         QString fpath = it.next();
@@ -672,6 +695,8 @@ void ImageListView::updateListImages(QString path)
         }
         imglist->addItem(new QListWidgetItem(pic,shortname));
     }
+   // thread->quit();
+    emit loadImageDone();
     imglist->setProperty(DKEY_IMGMAP,imgMap);
 }
 
@@ -726,16 +751,18 @@ MenuItemDialog::MenuItemDialog( QString old, QWidget *parent)
 }
 
 I18nLanguage::I18nLanguage(QVariantList oldvar, QWidget *parent):
-    BaseDialog(parent),
+    QDialog(parent),
     ui(new Ui::I18nLanguage)
 {
 
     ui->setupUi(this);
     mWindow = (MainWindow*)(parent);
+    setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
+    setModal(true);
 
     //ui->langWidget->setEditTriggers(QAbstractItemView::SelectedClicked | QAbstractItemView::DoubleClicked);
     ui->itemWidget->setEditTriggers(QAbstractItemView::SelectedClicked | QAbstractItemView::DoubleClicked);
-
+    ui->itemWidget->setAlternatingRowColors(true);
     foreach(QString v,mWindow->mOrderlist)
     {
         QListWidgetItem* item = new QListWidgetItem(mWindow->mItemMap.value(v),
@@ -754,6 +781,7 @@ I18nLanguage::I18nLanguage(QVariantList oldvar, QWidget *parent):
 
     connect(ui->btn_ok,SIGNAL(clicked(bool)),SLOT(accept()));
     setModal(true);
+//    UpdateStyle();
 }
 
 QStringList I18nLanguage::getSelectedItems()
@@ -808,6 +836,8 @@ ConfigProject::ConfigProject(QWidget *parent):
 
 {
     ui->setupUi(this);
+    setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+    setModal(true);
     setWindowFlags(Qt::FramelessWindowHint| Qt::Dialog);
     mWindow = (MainWindow*)(parent);
     ui->buttonBox->button(QDialogButtonBox::Ok)->setText("确定");
@@ -954,13 +984,15 @@ QStringList ConfigProject::getSelectLang()
 
 
 GlobalSettings::GlobalSettings(QWidget *parent):
-    BaseDialog(parent),
+    QDialog(parent),
     ui(new Ui::GlobalSettings),
     isFine(true)
 {
     ui->setupUi(this);
+    setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
+    setModal(true);
     setObjectName(this->metaObject()->className());
-    this->UpdateStyle();
+//    this->UpdateStyle();
     mWindow = (MainWindow*)parent;
 
 
@@ -1077,6 +1109,7 @@ GlobalSettings::GlobalSettings(QWidget *parent):
 
     connect(this,SIGNAL(accepted()),SLOT(onAccepted()));
     setModal(true);
+//    UpdateStyle();
 }
 
 
@@ -1144,7 +1177,9 @@ FileEdit::FileEdit(QString txt, QWidget *parent)
     setFocusPolicy(Qt::StrongFocus);
     setAttribute(Qt::WA_InputMethodEnabled);
     connect(button,&QToolButton::clicked,[=](){
-        BaseDialog *bd = new BaseDialog(this);
+        QDialog *bd = new QDialog(this);
+        bd->setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+        bd->setModal(true);
         bd->setWindowTitle(txt);
         QTreeView *fileTree = new QTreeView(this);
         fileTree->setAlternatingRowColors(true);
@@ -1156,6 +1191,7 @@ FileEdit::FileEdit(QString txt, QWidget *parent)
         dirModel->removeColumn(1);
 
         fileTree->setModel(dirModel);
+        fileTree->header()->setHidden(true);
         fileTree->hideColumn(3);
         fileTree->hideColumn(2);
         fileTree->hideColumn(1);
@@ -1179,6 +1215,7 @@ FileEdit::FileEdit(QString txt, QWidget *parent)
         });
 
         bd->setLayout(vb);
+//        bd->UpdateStyle();
         bd->exec();
         bd->deleteLater();
         fileTree->deleteLater();
