@@ -35,21 +35,29 @@ public:
 
     QStackedLayout *stack;
     MainWindow *mWindow;
-    bool PrjIsChanged;
+    bool mPrjIsChanged;
 
     QStringList mPrjSelectlang; // 工程选择的多国语言
     QString mProjectName;  // 工程名
     QSize mProjectSize; // 工程默认大小
     QString mProjectWidgetDir; // 自定义控件目录.
     QString mProjectImageDir; // 工程图片资源目录.
+    QString mProjectFullPath;
+    bool mIsOpenProject;
 
 
+
+public slots:
+      void onSaveProject();
+      void onSaveAsProject();
+      void onOpenProject();
+      void onCreateNewProject();
 
 private slots:
-    void onCreateNewProject();
+
     void onCreateNewScenesScreen();
     void onDelCurrentScenesScreen();
-    void onSaveProject();
+
     void onConfProject();
 
 
@@ -64,7 +72,7 @@ private:
     QRect stackRect;
     QSize mPageSize;
 
-    QPushButton *newPrj,*newPage,*delPage,*savePrj,*confPrj;
+    QPushButton *newPrj,*newPage,*delPage,*savePrj,*confPrj,*saveas;
     QString PrjJsonPath;
 
 };

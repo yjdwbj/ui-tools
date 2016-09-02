@@ -4,11 +4,13 @@
 #include "scenesscreen.h"
 #include "canvasmanager.h"
 #include "module.h"
-#include <QHash>
+
 #include <QComboBox>
 #include <QApplication>
+#include <QThread>
 
 //static int pwidth = 20;
+#define DBGPRINT 0
 
 
 Border::Border(QWidget *parent)
@@ -985,23 +987,50 @@ void CompoentControls::ReadJsonWidgets()
     }
 
     QJsonArray qjv = ReadTemplateWidgetFile(file);
+
     CreateButtonList(qjv);
  //   QString customdir = QDir::currentPath() + "/widgets";
 
-
+#if DBGPRINT
+    QFile fdebug("custom_debug.json");
+    fdebug.open(QIODevice::WriteOnly);
+#endif
     // 读取一些自定义的控件.
-    QDirIterator it(QDir::currentPath().replace(SLASH,BACKSLASH)+ BACKSLASH + "widgets", QStringList() << "*.json", QDir::Files, QDirIterator::Subdirectories);
-
-    QJsonArray array;
-    while (it.hasNext())
+   // QDirIterator it(QDir::currentPath().replace(SLASH,BACKSLASH)+ BACKSLASH + "widgets", QStringList() << "*.json", QDir::Files, QDirIterator::Subdirectories);
+    QVariant witdir = mWindow->mGlobalSet->value(INI_PRJCUSTOM);
+#if DBGPRINT
+    fdebug.write(witdir.toString().toLocal8Bit());
+#endif
+    if(witdir.isValid() && QFileInfo(witdir.toString()).exists())
     {
-        // 读取每一个自定义控件的JSON文件
-        foreach (QJsonValue val, ReadTemplateWidgetFile(it.next())) {
-            array.append(val);
+        QDirIterator it( witdir.toString() , QStringList() << "*.json",
+                        QDir::Files, QDirIterator::NoIteratorFlags);
+        QJsonArray array;
+        while (it.hasNext())
+        {
+            // 读取每一个自定义控件的JSON文件
+            foreach (QJsonValue val, ReadTemplateWidgetFile(it.next())) {
+                array.append(val);
+#if DBGPRINT
+
+                fdebug.write(it.filePath().toLocal8Bit());
+                fdebug.write(val.toString().toLocal8Bit());
+#endif
+            }
+            mCWidgetCount++;
         }
-        mCWidgetCount++;
+
+
+#if DBGPRINT
+                fdebug.write(QJsonDocument(array).toJson());
+#endif
+                mainLayout->addWidget(createCustomObject(array));
+
+#if DBGPRINT
+ fdebug.close();
+#endif
     }
-    mainLayout->addWidget(createCustomObject(array));
+
 }
 
 
@@ -1023,7 +1052,7 @@ QWidget *CompoentControls::getQWidgetByName(QString name) const
 
 QJsonArray CompoentControls::ReadTemplateWidgetFile(QString file) const
 {
-    QJsonArray obj;
+    QJsonArray array;
     QFile data(file);
     if (data.open(QFile::ReadOnly|QIODevice::Text)) {
         QByteArray qba = data.readAll().replace(SLASH,BACKSLASH);
@@ -1037,7 +1066,7 @@ QJsonArray CompoentControls::ReadTemplateWidgetFile(QString file) const
             {
                 if(qd.object().contains(COMPOENTS))
                 {
-                   obj = qd.object()[COMPOENTS].toArray();
+                   array = qd.object()[COMPOENTS].toArray();
                 }
             }
         }else{
@@ -1047,13 +1076,12 @@ QJsonArray CompoentControls::ReadTemplateWidgetFile(QString file) const
                                                                                 file));
         }
     }
-    return obj;
+    return array;
 }
 
 
 QWidget* CompoentControls::createCustomObject(const QJsonArray &comJsonArr)
 {
-
     QGroupBox *gb = new QGroupBox(tr("自定义控件"));
     QGridLayout *comLayout = new QGridLayout();
     comLayout->setMargin(0);
@@ -1064,12 +1092,17 @@ QWidget* CompoentControls::createCustomObject(const QJsonArray &comJsonArr)
 
     foreach (QJsonValue qjv, comJsonArr)
     {
-       // QVariantMap  qjm = qjv.toObject().toVariantMap();
+        // QVariantMap  qjm = qjv.toObject().toVariantMap();
+
         QJsonObject jobj = qjv.toObject();
+        QByteArray ba = QJsonDocument(jobj).toJson();
+
+        QThread::msleep(100);
+
         QString caption = jobj[CAPTION].toString();
         QString objname = jobj[NAME].toString();
         //  qDebug() << " json key is " << uname;
-      //  comMap[caption] = jobj;
+        //  comMap[caption] = jobj;
         QPushButton *btnTest = new QPushButton(caption);
         btnTest->setProperty(DKEY_CATEGORY,objname);
         btnTest->setProperty(DKEY_JSONSTR,qjv.toVariant()); // 这个按钮绑定这一个JSON控件.
@@ -1079,7 +1112,7 @@ QWidget* CompoentControls::createCustomObject(const QJsonArray &comJsonArr)
         if(jobj.contains(ICON))
             btnTest->setIcon(QIcon(jobj[ICON].toString()));
 
-      //  QString wtype = jobj[WTYPE].toString();
+        //  QString wtype = jobj[WTYPE].toString();
         btnTest->setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
         if(col == 2)
         {
@@ -1089,8 +1122,8 @@ QWidget* CompoentControls::createCustomObject(const QJsonArray &comJsonArr)
 
         // 这样能把tooltip显示成一张图片.
         btnTest->setToolTip( QString("<img src='%1'>").arg(qjv.toObject()[ICON].toString()));
-//        btnTest->setStyleSheet("QPushButton::hover{"\
-//        "background: #F48024;}");
+        //        btnTest->setStyleSheet("QPushButton::hover{"\
+        //        "background: #F48024;}");
         comLayout->addWidget(btnTest,row,col++);
         // 这里要创建单独处理自定义控件的函数.
         connect(btnTest,SIGNAL(clicked(bool)),this,SLOT(onCreateCustomWidget()));
@@ -1164,7 +1197,9 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
     fdebug.close();
 #endif
 
-
+    // 不写下面这句,Linux下mingw交叉编译的程序在winxp会出内存错误崩溃,
+    //　winxp下的mingw编译没有测试.我服了它.
+    QByteArray winba = QJsonDocument(comJsonArr).toJson();
     foreach (QJsonValue qjv, comJsonArr)
     {
         QJsonObject jobj = qjv.toObject();

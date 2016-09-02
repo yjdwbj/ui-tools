@@ -197,6 +197,7 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath, QWidget *par
         selectedMap[sname] = fpath;
     }
     statusBar->setText(QString::number(sellist->count()));
+
     updateListImages(imgpath);
     this->setModal(true);
 //    UpdateStyle();
@@ -211,7 +212,9 @@ void ImageFileDialog::updateListImages(QString path)
     flistview->clear();
     extMap.clear();
     QDirIterator it(path,filters, QDir::Files /*,QDirIterator::Subdirectories*/);
-
+    LoadImgTask *imgload = new LoadImgTask(this);
+    imgload->setAutoDelete(true);
+    QThreadPool::globalInstance()->start(imgload);
     while (it.hasNext())
     {
         QString fpath = it.next();
@@ -242,6 +245,7 @@ void ImageFileDialog::updateListImages(QString path)
         if(isFind)
             flistview->setRowHidden(flistview->count()-1,true);
     }
+    imgload->setDone();
 }
 
 void ImageFileDialog::onListViewDoubleClicked(QModelIndex index)
@@ -623,12 +627,8 @@ ImageListView::ImageListView(QString path, QWidget *parent)
     //  QPushButton *okbtn = new QPushButton("确定",this);
     // okbtn->setFixedWidth(60);
     // connect(okbtn,SIGNAL(clicked(bool)),SLOT(accept()));
-
-
-
+    setToolTip("双击选中图片并更新到控件显示.");
     treeModel->setNameFilters(filters);
-
-
     treeModel->setHeaderData(1,
                              Qt::Horizontal,
                              "目录",Qt::DisplayRole);
@@ -678,7 +678,8 @@ void ImageListView::updateListImages(QString path)
     imgMap.clear();
     imglist->clear();
 
-     QDirIterator it(path,filters, QDir::Files, QDirIterator::Subdirectories);
+     QDirIterator it(path,filters, QDir::Files
+                     /*, QDirIterator::Subdirectories*/);
     while (it.hasNext())
     {
         QString fpath = it.next();
@@ -695,8 +696,6 @@ void ImageListView::updateListImages(QString path)
         }
         imglist->addItem(new QListWidgetItem(pic,shortname));
     }
-   // thread->quit();
-    emit loadImageDone();
     imglist->setProperty(DKEY_IMGMAP,imgMap);
 }
 
@@ -1213,6 +1212,13 @@ FileEdit::FileEdit(QString txt, QWidget *parent)
             theLineEdit->setText(abpath);
             emit bd->accept();
         });
+
+        // QTreeView 双击事件处理的例子.
+        connect(fileTree,&QTreeView::doubleClicked,[=](QModelIndex index){
+            theLineEdit->setText(dirModel->fileInfo(index).absoluteFilePath());
+            emit bd->accept();
+        });
+
 
         bd->setLayout(vb);
 //        bd->UpdateStyle();

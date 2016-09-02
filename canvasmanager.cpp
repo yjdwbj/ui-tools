@@ -10,6 +10,8 @@
 #include <QStyleFactory>
 #include <QComboBox>
 #include <QTimer>
+#include <QFileDialog>
+#include <QTextBrowser>
 
 
 CanvasManager::CanvasManager(MainWindow *w):
@@ -20,24 +22,37 @@ CanvasManager::CanvasManager(MainWindow *w):
     delPage(new QPushButton(tr("删除当前页"))),
     savePrj(new QPushButton(tr("保存工程"))),
     confPrj(new QPushButton(tr("工程设置"))),
+    saveas(new QPushButton(QIcon(":/icon/icons/document-save-as.png"),"另存为")),
     mProjectWidgetDir(QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH + "widgets"),
-    PrjIsChanged(false)
+    mPrjIsChanged(false),
+    mIsOpenProject(false)
 {
     // w->ui->centralWidget;
     newPage->setEnabled(false);
     delPage->setEnabled(false);
     savePrj->setEnabled(false);
+    saveas->setEnabled(false);
     confPrj->setEnabled(false);
 
 
 
     QComboBox *cb = new QComboBox();
+
+    QPushButton *openPrj = new QPushButton("打开工程");
+    QPushButton *globalbtn = new QPushButton("全局设置");
+    QPushButton *aboutbtn = new QPushButton(QIcon(":/icon/icons/mode_help@2x.png"),"关于");
     cb->addItems(QStyleFactory::keys());
 
     mWindow->addWidgetToToolBar(newPrj);
+    mWindow->addWidgetToToolBar(openPrj);
+    mWindow->addWidgetToToolBar(Q_NULLPTR);
+    mWindow->addWidgetToToolBar(savePrj);
+    mWindow->addWidgetToToolBar(saveas);
+    mWindow->addWidgetToToolBar(Q_NULLPTR);
     mWindow->addWidgetToToolBar(newPage);
     mWindow->addWidgetToToolBar(delPage);
-    mWindow->addWidgetToToolBar(savePrj);
+
+
 
 
    // mWindow->addWidgetToToolBar(confPrj);
@@ -56,7 +71,7 @@ CanvasManager::CanvasManager(MainWindow *w):
     savePrj->setIcon(QIcon(":/icon/icons/document-save-as.png"));
     delPage->setIcon(QIcon(":/icon/icons/removesubmitfield.png"));
 
-    QPushButton *globalbtn = new QPushButton("全局设置");
+
     globalbtn->setIcon(QIcon(":/icon/icons/preferences-system.png"));
     connect(globalbtn,&QPushButton::clicked,[=](){
 
@@ -75,6 +90,32 @@ CanvasManager::CanvasManager(MainWindow *w):
     connect( autoSaveTimer,&QTimer::timeout,[=](){
             saveProject("autosave.json");
     } );
+
+    connect(openPrj,SIGNAL(clicked(bool)),SLOT(onOpenProject()));
+
+    connect(saveas,SIGNAL(clicked(bool)),SLOT(onSaveAsProject()));
+
+
+    mWindow->addWidgetToToolBar(Q_NULLPTR);
+    mWindow->addWidgetToToolBar(aboutbtn);
+    connect(aboutbtn,&QPushButton::clicked,[=](){
+        QDialog *aboutdlg  = new QDialog(mWindow);
+        aboutdlg->setWindowTitle(WIN_TITLE);
+        aboutdlg->setFixedSize(430,360);
+        aboutdlg->setModal(true);
+        QLabel *label = new QLabel(aboutbtn);
+        QVBoxLayout *vbox = new QVBoxLayout(aboutdlg);
+        //vbox->setContentsMargins(0,0,0,0);
+       // vbox->setMargin(0);
+        vbox->setSpacing(0);
+        aboutdlg->setLayout(vbox);
+        vbox->addWidget(label);
+        QString txt = QString("<b><img src=':/icon/icons/QtBareMetal.png'></b>"\
+                    "<b><p>版本:</p><p> %1 </p></b>").arg(VERSION);
+        label->setText(txt);
+        aboutdlg->exec();
+        aboutdlg->deleteLater();
+    });
 
     //开始运行定时器，定时时间间隔为6000ms
 
@@ -214,7 +255,8 @@ void CanvasManager::onDelCurrentScenesScreen()
 void CanvasManager::onCreateNewProject()
 {
 
-    if(PrjIsChanged)
+
+    if(mPrjIsChanged)
     {
         // 当前工程有修改还没有保存.
         QMessageBox msgBox;
@@ -233,12 +275,15 @@ void CanvasManager::onCreateNewProject()
             onSaveProject();
         }
     }
+
+
     closeCurrentProject(); // 关闭当前工程.
     ProjectDialog *pd = new ProjectDialog(mWindow);
     pd->exec();
     // qDebug() << " ProjectDialog result " << pd->result();
     newPage->setEnabled(pd->result());
     savePrj->setEnabled(pd->result());
+    saveas->setEnabled(pd->result());
     confPrj->setEnabled(pd->result());
     pd->deleteLater();
     if(pd->result())
@@ -249,16 +294,83 @@ void CanvasManager::onCreateNewProject()
 
 }
 
+
+void CanvasManager::onOpenProject()
+{
+    if(mIsOpenProject)
+    {
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("打开工程提示");
+        msgBox.setText("当前编辑的工程有新的修改没有保存,选请择<保存>进行保存.");
+        // msgBox.setInformativeText("Do you want to save your changes?");
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+        msgBox.setButtonText(QMessageBox::Yes,"保存");
+        msgBox.setButtonText(QMessageBox::Cancel,"取消");
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+        int ret = msgBox.exec();
+        //qDebug() << " QMessageBox result " << ret;
+        if(ret == QMessageBox::Yes)
+        {
+            //　需要保存
+            onSaveProject();
+        }
+
+    }
+    closeCurrentProject();
+    QString pfile = QFileDialog::getOpenFileName(mWindow,
+                                                 tr("打开工程文件"),
+                                                 QDir::currentPath(),
+                                                 tr("json files, json file (*.json)"));
+
+    if(!pfile.isEmpty())
+    {
+        QFile PrjFile(pfile);
+        if (PrjFile.open(QFile::ReadOnly|QIODevice::Text)) {
+            QByteArray qba = PrjFile.readAll();
+            QTextStream in(&PrjFile);
+            QString str;
+            int ans = 0;
+            in >> str >> ans;
+            QJsonParseError json_error;
+            QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
+
+            if(json_error.error == QJsonParseError::NoError)
+            {
+                if(qd.isObject())
+                {
+                    QJsonObject  qdobj = qd.object();
+                    mProjectName = qdobj[NAME].toString();
+                    mWindow->setWindowTitle( VERSION + mProjectName);
+                    foreach (QJsonValue val,qdobj[MLANG].toArray() ) {
+                        mPrjSelectlang.append(val.toString());
+                    }
+                    readProjectJson(qdobj[PAGES].toArray());
+                    setActiveSS(qdobj[ACTPAGE].toInt());
+                    mPrjIsChanged=true;
+                }
+            }else{
+                // qDebug() << " read Json file error";
+                qDebug() << json_error.errorString();
+            }
+
+        }
+    }
+}
+
+
 void CanvasManager::closeCurrentProject()
 {
     foreach (QWidget *w, mCanvasList) {
        deleteCurrentPage();
     }
     mWindow->ComCtrl->ProMap.clear();
+    mIsOpenProject = false;
 }
 
 void CanvasManager::onCreateNewScenesScreen()
 {
+    mIsOpenProject = true;
+    mPrjIsChanged = true;
     createNewCanvas();
     delPage->setEnabled(true);
     mWindow->propertyWidget->delPropertyBox();
@@ -302,6 +414,26 @@ void CanvasManager::saveProject(QString fname)
    obj[MLANG] = lang;
    QJsonDocument jsonDoc(obj);
    saveFile.write(jsonDoc.toJson());
+   mIsOpenProject = false;
+}
+
+void CanvasManager::onSaveAsProject()
+{
+    QVariant prjvar = mWindow->mGlobalSet->value(INI_PRJDIR);
+    QString fname = QFileDialog::getSaveFileName(mWindow,
+                                                 tr("保存工程文件"),
+                                                 prjvar.toString(),
+                                                 tr("json files, json file (*.json)"));
+
+    if(!fname.isEmpty())
+    {
+        if(!fname.endsWith(".json"))
+        {
+            fname = fname+".json";
+        }
+        mWindow->mGlobalSet->setValue(INI_PRJLAST,fname);
+        saveProject(fname);
+    }
 }
 
 void CanvasManager::onSaveProject()
@@ -316,10 +448,14 @@ void CanvasManager::onSaveProject()
     }
     else
     {
-        fname = "save.json" ;
+        fname = QDir::currentPath() + BACKSLASH+ "save.json" ;
     }
+
+    mProjectFullPath = fname;
     mWindow->mGlobalSet->setValue(INI_PRJLAST,fname);
     saveProject(fname);
+
+
 }
 
 
@@ -357,6 +493,7 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
     }
     newPage->setEnabled(readflag);
     savePrj->setEnabled(readflag);
+    saveas->setEnabled(readflag);
     delPage->setEnabled(readflag);
     confPrj->setEnabled(readflag);
 }

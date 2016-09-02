@@ -200,7 +200,7 @@ void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
 {
 
 
-  //  qDebug() << " keyevent " << s;
+    //  qDebug() << " keyevent " << s;
     // 处理一些鼠标事件.
     if(activeObj)
     {
@@ -235,16 +235,25 @@ void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
 
         if(s->matches(QKeySequence::Copy))
         {
-
-            //mCopyItem = bf->mUniqueStr;
             mWindow->mCopyItem =  QJsonValue(bf->writeToJson());
-            qDebug() << "copy active object" << mWindow->mCopyItem;
+            //    qDebug() << "copy active object" << mWindow->mCopyItem;
         }else if(s->matches(QKeySequence::Paste))
         {
             pasteItem(bf);
 
+        }else if(s->matches(QKeySequence::Save))
+        {
+            mWindow->cManager->onSaveProject();
         }
+        else if(s->matches(QKeySequence::SaveAs))
+        {
+            mWindow->cManager->onSaveAsProject();
+        }
+
     }
+
+
+
 
 }
 

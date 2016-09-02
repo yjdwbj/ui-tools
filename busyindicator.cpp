@@ -5,18 +5,30 @@
 BusyIndicator::BusyIndicator(QWidget *parent) :
     QDialog(parent),
     pixmap(":/icon/icons/progressindicator_big@2x.png"),
-    startAngle(0)
+    startAngle(0),
+    isStop(false)
 {
 
     setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground,true);
-    this->setAutoFillBackground(true);
+    setAutoFillBackground(true);
     setFixedSize(pixmap.size());
     timer.setInterval(50);
-    connect(&timer, SIGNAL(timeout()), this, SLOT(onRotate()));
+    connect(&timer, &QTimer::timeout,[=](){
+        startAngle += 30;
+        startAngle %= 360;
+        update();
+    });
+    setModal(true);
     timer.start();
-    setModal(true);   
 
+}
+
+void BusyIndicator::onRotate()
+{
+    startAngle += 30;
+    startAngle %= 360;
+    update();
 }
 
 void BusyIndicator::paintEvent(QPaintEvent *e)
@@ -32,18 +44,7 @@ void BusyIndicator::drawPixmapType(QPainter *painter)
     painter->rotate(startAngle);
     painter->translate(-center.x(),-center.y());
     painter->drawPixmap(center/2, pixmap);
-    qDebug() << " draw indictor ";
+
 }
 
-
-void BusyIndicator::onRotate()
-{
-    startAngle += 30;
-    startAngle %= 360;
-    update();
-}
-
-BusyIndicator::~BusyIndicator(){
-    this->deleteLater();
-}
 

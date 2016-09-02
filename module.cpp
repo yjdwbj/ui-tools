@@ -968,19 +968,13 @@ void BaseForm::onBackgroundImageDialog()
     QWidget *w  = (QWidget*)(QObject::sender());
     QString imgdir = mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString();
 
-    //QThread *thread = new QThread(this);
+
 
     ImageListView *imgview = new ImageListView(imgdir,this->mWindow);
-//    BusyIndicator *bi = new BusyIndicator(imgview);
 
-//    connect(thread,SIGNAL(started()),imgview,SLOT(exec()));
-//    connect(thread,SIGNAL(finished()),
-//            thread,SLOT(deleteLater()));
-//    connect(imgview,SIGNAL(accepted()),thread,SLOT(quit()));
-//    connect(imgview,SIGNAL(accepted()),bi,SLOT(accept()));
-//    connect(imgview,SIGNAL(loadImageDone()),bi,SLOT(accept()));
-//    thread->start();
-//    bi->exec();
+    LoadImgTask *imgload = new LoadImgTask(this);
+    imgload->setAutoDelete(true);
+    QThreadPool::globalInstance()->start(imgload);
     // 把一个动态属性传递给另一个事件发送对像,用来确定要修改JSON里的那一段值.
     imgview->imglist->setProperty(DKEY_ARRIDX,w->property(DKEY_ARRIDX));
     imgview->imglist->setProperty(DKEY_PARRIDX,w->property(DKEY_PARRIDX));
@@ -995,18 +989,12 @@ void BaseForm::onBackgroundImageDialog()
         if(!vmap.isEmpty())
         {
             QString fpath = vmap[item->text()].toString();
-//            if(!imgview->imglist->property(DKEY_ARRIDX).toInt())
-//            {
-                mbkImage = fpath;
-                updateStyleSheets();
-           // }
-
+            mbkImage = fpath;
+            updateStyleSheets();
             int n = imgdir.length() +1;
-
             changeJsonValue(imgview->imglist,
                             property(DKEY_CURVAL).toString(),
                             fpath.mid(n));
-
             QPixmap p(12,12);
             p.load(fpath);
             ((QPushButton*)w)->setIcon(p);
@@ -1015,8 +1003,13 @@ void BaseForm::onBackgroundImageDialog()
     });
 
     imgview->setFixedSize(mWindow->size() * 0.6);
-    //imgview->moveToThread(thread);
+
+
     imgview->exec();
+    imgload->setDone();
+
+
+
     //int ret = imgview->result() ;
   //  imgview->deleteLater();
 }

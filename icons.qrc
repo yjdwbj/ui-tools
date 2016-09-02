@@ -42,5 +42,6 @@
         <file>icons/category_vcs.png</file>
         <file>icons/image-icon.png</file>
         <file>icons/gradient.png</file>
+        <file>icons/mode_help@2x.png</file>
     </qresource>
 </RCC>

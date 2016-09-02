@@ -35,12 +35,20 @@ void Backgroud::paintEvent(QPaintEvent *)
       QPainter p(this);
       p.drawPixmap(this->rect(),QPixmap(backImage));
 }
+LoadImgTask::LoadImgTask(QWidget *parent)
+{
+   rotate = new BusyIndicator(parent);
+}
 
-
+void LoadImgTask::setDone()
+{
+    rotate->onStop();
+}
 
 void LoadImgTask::run()
 {
-    rotate.exec();
+   rotate->exec();
+   rotate->deleteLater();
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -125,8 +133,10 @@ MainWindow::MainWindow(QWidget *parent) :
     pageView->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
     addDockWidget(Qt::RightDockWidgetArea,pageView);
+    show();
     if(!QFileInfo(mGlobalIniFile).exists())
     {
+
         while (1){
             GlobalSettings gs(this);
             gs.exec();
@@ -161,7 +171,7 @@ MainWindow::MainWindow(QWidget *parent) :
          // bakimageMap[fpath.mid(idx)] = mImgMap[fpath];
          bimgPath[fpath.mid(idx)] = fpath;
      }
-
+        qApp->processEvents();
     QVariant bkvar = mGlobalSet->value(INI_PRJBAKIMG);
     if(bkvar.isValid())
     {
@@ -176,13 +186,11 @@ MainWindow::MainWindow(QWidget *parent) :
     this->centralWidget()->update();
     show();  // 这里不能少.
 
-//    LoadImgTask imgload;
-//    imgload.setAutoDelete(true);
-//    // QThreadPool takes ownership and deletes 'hello' automatically
-//    QThreadPool::globalInstance()->start(&imgload);
-//    sleep(6000);
-//    imgload.setDone();
 
+
+
+
+    // 读取上次的工程.
 
     QVariant langfile = mGlobalSet->value(INI_PRJMLANG);
     if(langfile.isValid())
@@ -190,50 +198,6 @@ MainWindow::MainWindow(QWidget *parent) :
         readMultiLanguage(langfile.toString());
     }
 
-    QVariant prjvar = mGlobalSet->value(INI_PRJLAST);
-    QFile PrjFile;
-    if(prjvar.isValid())
-    {
-
-        PrjFile.setFileName(prjvar.toString());
-    }
-    else
-    {
-       // PrjFile.setFileName("save.json");
-        PrjFile.setFileName(mGlobalSet->value(INI_PRJDIR).toString());
-    }
-
-    if (PrjFile.open(QFile::ReadOnly|QIODevice::Text)) {
-        QByteArray qba = PrjFile.readAll();
-        QTextStream in(&PrjFile);
-        QString str;
-        int ans = 0;
-        in >> str >> ans;
-        QJsonParseError json_error;
-        QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
-
-        if(json_error.error == QJsonParseError::NoError)
-        {
-            if(qd.isObject())
-            {
-                QJsonObject  qdobj = qd.object();
-                cManager->mProjectName = qdobj[NAME].toString();
-                setWindowTitle( VERSION + cManager->mProjectName);
-                foreach (QJsonValue val,qdobj[MLANG].toArray() ) {
-                    cManager->mPrjSelectlang.append(val.toString());
-                }
-
-
-                cManager->readProjectJson(qdobj[PAGES].toArray());
-                cManager->setActiveSS(qdobj[ACTPAGE].toInt());
-
-            }
-        }else{
-            // qDebug() << " read Json file error";
-            qDebug() << json_error.errorString();
-        }
-
-    }
 
 }
 
@@ -486,109 +450,109 @@ void MainWindow::readCSVFile(QString csvfile)
 
 }
 
-void MainWindow::createCSVFile(QString xlsfile)
-{
-    QString sysname = QSysInfo::prettyProductName();
+//void MainWindow::createCSVFile(QString xlsfile)
+//{
+//    QString sysname = QSysInfo::prettyProductName();
 
-    QFileInfo info(xlsfile);
-
-
-    QString outfile = info.absolutePath().replace(SLASH,BACKSLASH)
-            + BACKSLASH +info.completeBaseName() + ".csv";
-    if(QFileInfo::exists(outfile))
-    {
-        QFile::copy(outfile,outfile+".bak");
-    }
-
-    if(sysname.contains("Windows"))
-    {
-
-         /* 先用xls2csv.exe */
-        QString cmd = QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH +  "xls2csv.exe";
-        /* 先用xls2csv.exe */
-        QProcess xlsprocess;
-        xlsprocess.start(cmd,QStringList() << xlsfile);
-        xlsprocess.waitForFinished();
-        QTextStream rsyncStdoutStream(xlsprocess.readAllStandardOutput());
-        bool once = true;
-
-        QFile csvfile("debug.csv");
-        csvfile.open(QIODevice::WriteOnly);
-        QTextStream out(&csvfile);
-        while(1)
-        {
-           QString line =  rsyncStdoutStream.readLine();
-           if(line.isNull())
-           {
-               out << "empty line";
-                  break;
-           }
-            out << line;
-
-           if(once)
-           {
-
-               mLanguageList =   line.split(';');
-               if(mLanguageList.size())
-                   mLanguageList.removeAt(0);
-               once = false;
-           }else
-           {
-               QStringList tmp = line.split(';');
-               QString key = tmp[0].toLower().trimmed();
-               mItemMap[key]=tmp[1].trimmed() ;
-               mOrderlist << key;
-
-           }
-          // qDebug() << line;
-        }
-
-        csvfile.close();
-        qApp->processEvents();
+//    QFileInfo info(xlsfile);
 
 
-    }else
-    {
-        // 这里是非微软系统
-        QString cmd = QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH +"xls2csv";
+//    QString outfile = info.absolutePath().replace(SLASH,BACKSLASH)
+//            + BACKSLASH +info.completeBaseName() + ".csv";
+//    if(QFileInfo::exists(outfile))
+//    {
+//        QFile::copy(outfile,outfile+".bak");
+//    }
 
-        QProcess xlsprocess;
-        if(!QFileInfo::exists(cmd))
-        {
-            qDebug() << "  tools not exists ";
-            return;
-        }
-        xlsprocess.start(cmd,QStringList() << xlsfile);
-        xlsprocess.waitForFinished();
-        QTextStream rsyncStdoutStream(xlsprocess.readAllStandardOutput());
-        //while(!xlsprocess.waitForFinished())
-        bool once = true;
+//    if(sysname.contains("Windows"))
+//    {
 
-        while(1)
-        {
-           QString line =  rsyncStdoutStream.readLine();
-           if(line.isNull())
-               break;
+//         /* 先用xls2csv.exe */
+//        QString cmd = QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH +  "xls2csv.exe";
+//        /* 先用xls2csv.exe */
+//        QProcess xlsprocess;
+//        xlsprocess.start(cmd,QStringList() << xlsfile);
+//        xlsprocess.waitForFinished();
+//        QTextStream rsyncStdoutStream(xlsprocess.readAllStandardOutput());
+//        bool once = true;
 
-           if(once)
-           {
-               mLanguageList =   line.split(';');
-               if(mLanguageList.size())
-                   mLanguageList.removeAt(0);
-               once = false;
-           }else
-           {
-               QStringList tmp = line.split(';');
-               QString key = tmp[0].toLower().trimmed();
-               mItemMap[key]=tmp[1].trimmed() ;
-               mOrderlist << key;
+//        QFile csvfile("debug.csv");
+//        csvfile.open(QIODevice::WriteOnly);
+//        QTextStream out(&csvfile);
+//        while(1)
+//        {
+//           QString line =  rsyncStdoutStream.readLine();
+//           if(line.isNull())
+//           {
+//               out << "empty line";
+//                  break;
+//           }
+//            out << line;
 
-           }
-          // qDebug() << line;
-        }
-        qApp->processEvents();
-    }
-}
+//           if(once)
+//           {
+
+//               mLanguageList =   line.split(';');
+//               if(mLanguageList.size())
+//                   mLanguageList.removeAt(0);
+//               once = false;
+//           }else
+//           {
+//               QStringList tmp = line.split(';');
+//               QString key = tmp[0].toLower().trimmed();
+//               mItemMap[key]=tmp[1].trimmed() ;
+//               mOrderlist << key;
+
+//           }
+//          // qDebug() << line;
+//        }
+
+//        csvfile.close();
+//        qApp->processEvents();
+
+
+//    }else
+//    {
+//        // 这里是非微软系统
+//        QString cmd = QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH +"xls2csv";
+
+//        QProcess xlsprocess;
+//        if(!QFileInfo::exists(cmd))
+//        {
+//            qDebug() << "  tools not exists ";
+//            return;
+//        }
+//        xlsprocess.start(cmd,QStringList() << xlsfile);
+//        xlsprocess.waitForFinished();
+//        QTextStream rsyncStdoutStream(xlsprocess.readAllStandardOutput());
+//        //while(!xlsprocess.waitForFinished())
+//        bool once = true;
+
+//        while(1)
+//        {
+//           QString line =  rsyncStdoutStream.readLine();
+//           if(line.isNull())
+//               break;
+
+//           if(once)
+//           {
+//               mLanguageList =   line.split(';');
+//               if(mLanguageList.size())
+//                   mLanguageList.removeAt(0);
+//               once = false;
+//           }else
+//           {
+//               QStringList tmp = line.split(';');
+//               QString key = tmp[0].toLower().trimmed();
+//               mItemMap[key]=tmp[1].trimmed() ;
+//               mOrderlist << key;
+
+//           }
+//          // qDebug() << line;
+//        }
+//        qApp->processEvents();
+//    }
+//}
 
 
 
@@ -628,7 +592,8 @@ void MainWindow::onChangeBackgroud()
     QVBoxLayout *v = new QVBoxLayout();
     dig.setLayout( v);
     QListWidget *imglist = new QListWidget();
-    QString tooltip = "背景图片目录是<backgrounds>,\n把背景图片放在该目录下就可以显示了,只支持JPG格式";
+    QString tooltip = "<b><p>背景图片目录名是 'backgrounds'　</p>"\
+              "<p>把背景图片放在该目录下就可以显示了,只支持JPG格式</p></b>";
     v->addWidget(new QLabel(tooltip));
     imglist->setSelectionMode(QAbstractItemView::SingleSelection);
     imglist->setViewMode(QListWidget::IconMode);
@@ -642,13 +607,6 @@ void MainWindow::onChangeBackgroud()
         imglist->addItem(new QListWidgetItem(QIcon(mImgMap[path]),
                                              bimgPath.key(path)));
     }
-//    QMapIterator<QString,QPixmap> it(bakimageMap);
-//    while(it.hasNext())
-//    {
-//        it.next();
-//        imglist->addItem(new QListWidgetItem(QIcon(it.value()),it.key()));
-//    }
-
     dig.setModal(true);
     dig.exec();
 
@@ -663,6 +621,8 @@ void MainWindow::onDobuleClickedImage(QListWidgetItem *item)
     this->centralWidget()->update();
     //update();
 }
+
+
 
 MainWindow::~MainWindow()
 {

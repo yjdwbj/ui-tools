@@ -17,7 +17,7 @@ TEMPLATE = app
 
 
 QMAKE_LIBS_OPENGL -= -lGL
-QMAKE_CFLAGS += -std=c99
+QMAKE_CFLAGS += -std=c99 -DDBGPRINT
 
 REVISION = $$system(git rev-parse HEAD)
 DEFINES += APP_REVISION=\\\"$$REVISION\\\"

@@ -12,7 +12,6 @@ class BusyIndicator : public QDialog
     Q_OBJECT
 public:
     explicit BusyIndicator(QWidget *parent = 0);
-    ~BusyIndicator();
     QString bkimg;
     QPixmap pixmap;
     QTimer timer;
@@ -23,10 +22,14 @@ public:
 signals:
 
 public slots:
+    void onStart(){ timer.start();exec();}
+    void onStop(){timer.stop();this->accept();}
     void onRotate();
+
 
 protected:
     void paintEvent(QPaintEvent *);
+    bool isStop;
 };
 
 #endif // BUSYINDICATOR_H

@@ -115,8 +115,10 @@ private slots:
       void onChangeBackgroud();
       void onDobuleClickedImage(QListWidgetItem *);
 
-private:
+protected:
+    void keyReleaseEvent(QMouseEvent *);
     void mousePressEvent(QMouseEvent *ev);
+private:
     Ui::MainWindow *ui;
 
     QDockWidget* rDock;
@@ -139,19 +141,19 @@ private:
 
 };
 
+
 class LoadImgTask : public QRunnable
 {
 public:
 
-    LoadImgTask()
-    {
+    LoadImgTask(QWidget *parent);
 
-    }
 
    void run();
-   void setDone(){;}
+   void setDone();
 private:
-   BusyIndicator rotate;
+   bool isStop;
+   BusyIndicator *rotate;
 };
 
 #endif // MAINWINDOW_H

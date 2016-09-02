@@ -162,7 +162,7 @@ static QSize MARGIN_SIZE = QSize(SELECTION_MARGIN * 2, SELECTION_MARGIN *2);
 
 static const QString WIN_TITLE = "图片编辑工具  ";
 
-static QString VERSION = QString("%1 Ver:1.0-r%2 build time:<%3,%4>  ").arg(WIN_TITLE,
+static QString VERSION = QString("%1 Ver:1.0-r%2 build time: %3 , %4   ").arg(WIN_TITLE,
                                 QString(APP_REVISION).mid(0,6),
                                 QDate::currentDate().toString("yyyy-MM-dd"),
                                 __TIME__);
