@@ -147,7 +147,7 @@ class CompoentControls : public QGroupBox
     friend class CanvasManager;
     Q_OBJECT
 public:
-    explicit CompoentControls(MainWindow *mw,QWidget *parent = 0);
+    explicit CompoentControls(QWidget *parent = 0);
     void ReadJsonWidgets();
      int mCWidgetCount; // 自定义控件的个数.
      QMap<QString,QWidget*> ProMap; // 新生成的控件.

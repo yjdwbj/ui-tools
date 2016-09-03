@@ -61,7 +61,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     //ui->mainToolBar->setAllowedAreas(Qt::TopToolBarArea);
     ui->mainToolBar->setContextMenuPolicy(Qt::PreventContextMenu);
-
+    mGlobalIniFile = mGlobalIniFile.toUtf8();
    // QString iniFile  =  QStandardPaths::displayName(QStandardPaths::DataLocation) + "/ui-config";
     mGlobalSet= new QSettings(mGlobalIniFile,QSettings::IniFormat);
 
@@ -77,6 +77,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setStyleSheet(stylestr);
     setCentralWidget(bk);
    // lDock = ui->dockWidget;
+
     cManager = new CanvasManager(this);
     // posWidget = new Position(this);
       posWidget = 0;
@@ -85,6 +86,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     setWindowTitle(VERSION);
+
 
     // 左边属性框
     lDock = new QDockWidget(this);
@@ -109,13 +111,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     leftLayout->setObjectName("leftLayout");
    // leftLayout->setSizeConstraint(QLayout::SetFixedSize);
+
     lDockWidget->setLayout(leftLayout);
 
-
-    ComCtrl = new  CompoentControls(this,lDock);
+    ComCtrl = new  CompoentControls(this);
     leftLayout->addWidget(ComCtrl);
 
    // leftLayout->addWidget(posWidget);
+
+
      propertyWidget = new ComProperty("控件属性",this) ;
     leftLayout->addWidget(propertyWidget);
     tree = new TreeDock(this);
@@ -123,6 +127,7 @@ MainWindow::MainWindow(QWidget *parent) :
     addDockWidget(Qt::LeftDockWidgetArea, tree);
     tree->setFeatures(QDockWidget::NoDockWidgetFeatures);
     splitDockWidget(tree,lDock,Qt::Horizontal);
+
 
 
     //　右边的截图页面.
@@ -136,7 +141,9 @@ MainWindow::MainWindow(QWidget *parent) :
     show();
     if(!QFileInfo(mGlobalIniFile).exists())
     {
-
+//        QString abpath = QFileInfo(mGlobalIniFile).absolutePath();
+//        QDir tdir(abpath);
+//        tdir.mkdir(abpath);
         while (1){
             GlobalSettings gs(this);
             gs.exec();
@@ -145,13 +152,8 @@ MainWindow::MainWindow(QWidget *parent) :
         mGlobalSet->deleteLater();
         mGlobalSet= new QSettings(mGlobalIniFile,QSettings::IniFormat);
     }
-     ComCtrl->ReadJsonWidgets();
 
-     // 用一个线程在后如缓存图片.
-//     LoadImgTask *imgload = new LoadImgTask(this);
-//     imgload->setAutoDelete(true);
-//     // QThreadPool takes ownership and deletes 'hello' automatically
-//     QThreadPool::globalInstance()->start(imgload);
+     ComCtrl->ReadJsonWidgets();
 
     // 缓存一些背景图片.
      QString dir = QDir::currentPath().replace(SLASH,BACKSLASH) +BACKSLASH +"backgrounds";
@@ -163,15 +165,13 @@ MainWindow::MainWindow(QWidget *parent) :
      QDirIterator it(dir, QStringList() << "*.jpg", QDir::Files/*, QDirIterator::Subdirectories*/);
      while (it.hasNext())
      {
-         QString fpath = it.next();
+         QString fpath = it.next().toUtf8();
          int idx = fpath.lastIndexOf(BACKSLASH)+1;
-         // bakimageMap[fpath.mid(idx)] = QPixmap(fpath);
          mImgMap[fpath] = QPixmap(fpath);
          bakimageList << fpath;
-         // bakimageMap[fpath.mid(idx)] = mImgMap[fpath];
          bimgPath[fpath.mid(idx)] = fpath;
      }
-        qApp->processEvents();
+
     QVariant bkvar = mGlobalSet->value(INI_PRJBAKIMG);
     if(bkvar.isValid())
     {
@@ -180,17 +180,13 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     else
     {
-      bk->backImage = mImgMap[bakimageList.first()];
+               bk->backImage = bakimageList.count() > 0 ? mImgMap[bakimageList.first()] :
+                       QPixmap() ;
     }
 
     this->centralWidget()->update();
     show();  // 这里不能少.
 
-
-
-
-
-    // 读取上次的工程.
 
     QVariant langfile = mGlobalSet->value(INI_PRJMLANG);
     if(langfile.isValid())
@@ -257,7 +253,8 @@ void MainWindow::readExcelFile(char *xlsfile)
         return ;
     }
 
-    QFile cvsfile("qtread.csv");
+   // int n = QString(xlsfile).lastIndexOf(QDir::separator());
+    QFile cvsfile(/*QString(xlsfile).mid(n) + QDir::separator() +*/ "qtread.csv");
     cvsfile.open(QIODevice::WriteOnly|QIODevice::Text);
 
     // check if the requested sheet (if any) exists
@@ -617,7 +614,7 @@ void MainWindow::onDobuleClickedImage(QListWidgetItem *item)
     //bk->backImage = bakimageMap[item->text()];
     // bk->backImage = item->icon();
     bk->backImage = mImgMap[bimgPath.value(item->text())];
-    mGlobalSet->setValue(INI_PRJBAKIMG,bimgPath.value(item->text()));
+    mGlobalSet->setValue(INI_PRJBAKIMG,bimgPath.value(item->text()).toUtf8());
     this->centralWidget()->update();
     //update();
 }

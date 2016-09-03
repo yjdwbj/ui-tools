@@ -14,7 +14,8 @@ int main(int argc, char *argv[])
     QRect desk_rect = pDwgt->screenGeometry(pDwgt->screenNumber(QCursor::pos()));
     w.setMaximumSize(desk_rect.size());
     w.showMaximized();
-    w.show();
+   // w.show();
+
 
     return a.exec();
 }

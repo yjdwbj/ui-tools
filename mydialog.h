@@ -248,12 +248,14 @@ public:
     void setFilter(const QString &filter) { theFilter = filter; }
     QString filter() const { return theFilter; }
     void setFileOrDir(bool f) { isDir = f;}
+    QStringList filters;
 signals:
     void filePathChanged(const QString &filePath);
 
 private:
     QLabel *theLineEdit;
     QString theFilter;
+
    // QTreeView *fileTree;
     bool isDir;
     //QFileSystemModel *dirModel;

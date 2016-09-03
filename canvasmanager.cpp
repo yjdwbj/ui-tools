@@ -15,7 +15,7 @@
 
 
 CanvasManager::CanvasManager(MainWindow *w):
-    mWindow(w),stack(new QStackedLayout(w)),
+    mWindow(w),stack(new QStackedLayout()),
     mPageSize(0,0),
     newPrj(new QPushButton(tr("新建工程"))),
     newPage(new QPushButton(tr("新建页面"))),
@@ -25,7 +25,8 @@ CanvasManager::CanvasManager(MainWindow *w):
     saveas(new QPushButton(QIcon(":/icon/icons/document-save-as.png"),"另存为")),
     mProjectWidgetDir(QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH + "widgets"),
     mPrjIsChanged(false),
-    mIsOpenProject(false)
+    mIsOpenProject(false),
+    autoSaveTimer(new QTimer(this))
 {
     // w->ui->centralWidget;
     newPage->setEnabled(false);
@@ -83,7 +84,7 @@ CanvasManager::CanvasManager(MainWindow *w):
         }
     });
     mWindow->addWidgetToToolBar(globalbtn);
-    QTimer *autoSaveTimer = new QTimer(this);
+
 
     //将定时器超时信号与槽(功能函数)联系起来
 
@@ -104,7 +105,7 @@ CanvasManager::CanvasManager(MainWindow *w):
         aboutdlg->setFixedSize(430,360);
         aboutdlg->setModal(true);
         QLabel *label = new QLabel(aboutbtn);
-        QVBoxLayout *vbox = new QVBoxLayout(aboutdlg);
+        QVBoxLayout *vbox = new QVBoxLayout();
         //vbox->setContentsMargins(0,0,0,0);
        // vbox->setMargin(0);
         vbox->setSpacing(0);
@@ -119,7 +120,7 @@ CanvasManager::CanvasManager(MainWindow *w):
 
     //开始运行定时器，定时时间间隔为6000ms
 
-    autoSaveTimer->start(60000);
+
 }
 
 
@@ -290,6 +291,7 @@ void CanvasManager::onCreateNewProject()
     {
 
         onCreateNewScenesScreen();
+         autoSaveTimer->start(60000);
     }
 
 }
@@ -354,6 +356,7 @@ void CanvasManager::onOpenProject()
             }
 
         }
+        autoSaveTimer->start(60000);
     }
 }
 
@@ -365,6 +368,7 @@ void CanvasManager::closeCurrentProject()
     }
     mWindow->ComCtrl->ProMap.clear();
     mIsOpenProject = false;
+     autoSaveTimer->stop();
 }
 
 void CanvasManager::onCreateNewScenesScreen()
@@ -431,7 +435,7 @@ void CanvasManager::onSaveAsProject()
         {
             fname = fname+".json";
         }
-        mWindow->mGlobalSet->setValue(INI_PRJLAST,fname);
+        mWindow->mGlobalSet->setValue(INI_PRJLAST,fname.toUtf8());
         saveProject(fname);
     }
 }
@@ -452,7 +456,7 @@ void CanvasManager::onSaveProject()
     }
 
     mProjectFullPath = fname;
-    mWindow->mGlobalSet->setValue(INI_PRJLAST,fname);
+    mWindow->mGlobalSet->setValue(INI_PRJLAST,fname.toUtf8());
     saveProject(fname);
 
 

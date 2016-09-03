@@ -185,7 +185,7 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath, QWidget *par
     foreach (QVariant v, old) {
         // example for v "config/images/digital-0.png"
         QString str = v.toString();
-        QString fpath = imgpath + BACKSLASH + str;
+        QString fpath = QString(imgpath + BACKSLASH + str).toUtf8();
         QPixmap pic = mWindow->mImgMap[fpath];
         if(pic.isNull())
         {
@@ -217,7 +217,7 @@ void ImageFileDialog::updateListImages(QString path)
     QThreadPool::globalInstance()->start(imgload);
     while (it.hasNext())
     {
-        QString fpath = it.next();
+        QString fpath = it.next().toUtf8();
         int idx = fpath.lastIndexOf(BACKSLASH)+1;
         QString basename = fpath.mid(idx);
         extMap[basename] = fpath;
@@ -545,7 +545,7 @@ void ProjectDialog::on_pushButton_clicked()
 //                                                  );
    if(!xlsfile.isEmpty() || CheckLangFile(xlsfile))
    {
-      mWindow->mGlobalSet->setValue(INI_PRJMLANG, xlsfile );
+      mWindow->mGlobalSet->setValue(INI_PRJMLANG, xlsfile.toUtf8() );
       ui->view_lang->setText(xlsfile);
 
    }
@@ -682,7 +682,7 @@ void ImageListView::updateListImages(QString path)
                      /*, QDirIterator::Subdirectories*/);
     while (it.hasNext())
     {
-        QString fpath = it.next();
+        QString fpath = it.next().toUtf8();
 //        bool b = fpath.contains('/');
 //        int idx = fpath.lastIndexOf(b ? '/' : '\\')+1;
         int idx = fpath.lastIndexOf(BACKSLASH)+1;
@@ -934,7 +934,7 @@ void ConfigProject::on_openfile_clicked()
     if(!xlsfile.isEmpty() || CheckLangFile(xlsfile))
     {
 
-           mWindow->mGlobalSet->setValue(INI_PRJMLANG,xlsfile);
+           mWindow->mGlobalSet->setValue(INI_PRJMLANG,xlsfile.toUtf8());
            ui->view_lang->setText(xlsfile);
            mWindow->readMultiLanguage(xlsfile);
            updateListWidget();
@@ -1000,6 +1000,7 @@ GlobalSettings::GlobalSettings(QWidget *parent):
     mlangfile->setToolTip("工程控件要用的语言文,可选office2003版本的xls文件,或者utf8格式,分号(;)间隔的csv文件.");
     mlangfile->setFilter(tr("xls 文件 , CSV UTF-8 文件 (*.xls *.csv )"));
     mlangfile->setFileOrDir(false);
+    mlangfile->filters << "*.xls" << "*.csv";
     IniMap[INI_PRJMLANG] = mlangfile;
 
 
@@ -1008,6 +1009,7 @@ GlobalSettings::GlobalSettings(QWidget *parent):
     comfile->setToolTip("原始的模版控件文件,json格式.");
     comfile->setFilter(tr("json 文件 (*.json)"));
     comfile->setFileOrDir(false);
+    comfile->filters << "*.json";
     IniMap[INI_PRJJSON] = comfile;
 
     FileEdit *imagedir = new FileEdit("图片资源目录:");
@@ -1149,7 +1151,7 @@ void GlobalSettings::onAccepted()
     {
         // 更新来自INI文件的值.
         it.next();
-        QString f = ((FileEdit*)it.value())->filePath();
+        QString f = ((FileEdit*)it.value())->filePath().toUtf8();
         mWindow->mGlobalSet->setValue(it.key(),f);
         if(f.isEmpty())
             isFine = false;
@@ -1188,12 +1190,14 @@ FileEdit::FileEdit(QString txt, QWidget *parent)
         dirModel->removeColumn(3);
         dirModel->removeColumn(2);
         dirModel->removeColumn(1);
+        dirModel->setNameFilters(filters);
 
         fileTree->setModel(dirModel);
         fileTree->header()->setHidden(true);
         fileTree->hideColumn(3);
         fileTree->hideColumn(2);
         fileTree->hideColumn(1);
+
         fileTree->setRootIndex(dirModel->index(QDir::currentPath()));
         if(isDir){
             dirModel->setFilter(QDir::NoDotDot | QDir::AllDirs);

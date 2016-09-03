@@ -441,7 +441,6 @@ ComProperty::ComProperty(QString title,QWidget *parent):
     setStyleSheet("QGroupBox,QLabel,QScrollArea,QWidget{background-color: #C0DCC0;}");
     this->setFixedHeight((parent->height()-50) * 0.7);
     this->setFixedWidth(((MainWindow*)parent)->lDock->width());
-    qDebug() << "property size " << this->size();
     this->setSizePolicy(QSizePolicy::Fixed,QSizePolicy::Preferred);
     QHBoxLayout *hb = new QHBoxLayout(this);
     hb->setSpacing(0);
@@ -922,13 +921,13 @@ void removeWidFromLayout(QLayout *layout)
 }
 
 
-CompoentControls::CompoentControls(MainWindow *mw, QWidget *parent)
+CompoentControls::CompoentControls(QWidget *parent)
     : QGroupBox(parent),
     //:QWidget(parent),
       mainLayout(new QVBoxLayout()),
       mainWidget(new QWidget()),
       mCWidgetCount(0),
-      mWindow(mw)
+      mWindow((MainWindow*)parent)
 {
 
     setTitle(tr("控件列表"));
@@ -940,7 +939,7 @@ CompoentControls::CompoentControls(MainWindow *mw, QWidget *parent)
     mainLayout->setMargin(1);
     mainLayout->setSizeConstraint(QLayout::SetFixedSize);
 
-    QVBoxLayout *hb = new QVBoxLayout(this);
+    QVBoxLayout *hb = new QVBoxLayout();
    // hb->addWidget(new QLabel("控件列表"));
     hb->setSpacing(0);
     hb->setMargin(0);
@@ -987,7 +986,7 @@ void CompoentControls::ReadJsonWidgets()
     }
 
     QJsonArray qjv = ReadTemplateWidgetFile(file);
-
+    if(!qjv.isEmpty())
     CreateButtonList(qjv);
  //   QString customdir = QDir::currentPath() + "/widgets";
 
@@ -1004,7 +1003,7 @@ void CompoentControls::ReadJsonWidgets()
     if(witdir.isValid() && QFileInfo(witdir.toString()).exists())
     {
         QDirIterator it( witdir.toString() , QStringList() << "*.json",
-                        QDir::Files, QDirIterator::NoIteratorFlags);
+                         QDir::Files, QDirIterator::NoIteratorFlags);
         QJsonArray array;
         while (it.hasNext())
         {
@@ -1022,12 +1021,16 @@ void CompoentControls::ReadJsonWidgets()
 
 
 #if DBGPRINT
-                fdebug.write(QJsonDocument(array).toJson());
+        fdebug.write(QJsonDocument(array).toJson());
 #endif
-                mainLayout->addWidget(createCustomObject(array));
+        if(!array.isEmpty())
+        {
+            QWidget *wid = createCustomObject(array);
+            mainLayout->addWidget(wid);
+        }
 
 #if DBGPRINT
- fdebug.close();
+        fdebug.close();
 #endif
     }
 
@@ -1089,6 +1092,7 @@ QWidget* CompoentControls::createCustomObject(const QJsonArray &comJsonArr)
     comLayout->setContentsMargins(1,5,1,0);
     gb->setLayout(comLayout);
     int row,col = 0;
+    QByteArray winba= QJsonDocument(comJsonArr).toJson();
 
     foreach (QJsonValue qjv, comJsonArr)
     {

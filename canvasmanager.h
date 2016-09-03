@@ -71,6 +71,7 @@ private:
 
     QRect stackRect;
     QSize mPageSize;
+    QTimer *autoSaveTimer;
 
     QPushButton *newPrj,*newPage,*delPage,*savePrj,*confPrj,*saveas;
     QString PrjJsonPath;
