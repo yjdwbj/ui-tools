@@ -59,6 +59,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 
     ui->setupUi(this);
+    mRootPathLen = QDir::currentPath().length()+1;
     //ui->mainToolBar->setAllowedAreas(Qt::TopToolBarArea);
     ui->mainToolBar->setContextMenuPolicy(Qt::PreventContextMenu);
     mGlobalIniFile = mGlobalIniFile.toUtf8();
@@ -120,7 +121,7 @@ MainWindow::MainWindow(QWidget *parent) :
    // leftLayout->addWidget(posWidget);
 
 
-     propertyWidget = new ComProperty("控件属性",this) ;
+     propertyWidget = new ComProperty(this) ;
     leftLayout->addWidget(propertyWidget);
     tree = new TreeDock(this);
     // 左边两个并排的QDockWidget
@@ -232,7 +233,7 @@ void MainWindow::readExcelFile(char *xlsfile)
     static char *encoding = "UTF-8";
 
     struct st_row_data* row;
-    WORD cellRow, cellCol;
+    WORD cellRow =0, cellCol=0;
     xlsWorkBook* pWB;
     xlsWorkSheet* pWS;
     unsigned int i;
@@ -614,7 +615,9 @@ void MainWindow::onDobuleClickedImage(QListWidgetItem *item)
     //bk->backImage = bakimageMap[item->text()];
     // bk->backImage = item->icon();
     bk->backImage = mImgMap[bimgPath.value(item->text())];
-    mGlobalSet->setValue(INI_PRJBAKIMG,bimgPath.value(item->text()).toUtf8());
+    QString imgpath = bimgPath.value(item->text()).toUtf8().mid(mRootPathLen);
+    if(imgpath.isEmpty()) imgpath=".";
+    mGlobalSet->setValue(INI_PRJBAKIMG,imgpath);
     this->centralWidget()->update();
     //update();
 }

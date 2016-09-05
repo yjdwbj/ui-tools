@@ -99,6 +99,7 @@ public:
     QString backImage;
     Backgroud *bk;
     QSettings *mGlobalSet;
+    int mRootPathLen;
 
     QString mJsonfile; // 控件模版文件.
     QString mLangfile; // 多国语言文件.

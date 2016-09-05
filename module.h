@@ -31,7 +31,7 @@ class Compoent
 {
 public:
      Compoent(){}
-     void onBindValue(QWidget *w, const QVariantMap &map);
+     void onBindValue(QWidget *w);
      static QJsonObject getRectJson(QWidget* w);
      QJsonObject getBorderJson(QWidget *w);
      void copyProperty(const QVariant &va);
@@ -191,7 +191,7 @@ public:
     QAction *menuSize;
     QActionGroup *menuOrientation;
     QAction *menuV,*menuH;
-    int rows,cols;  //行列数
+    int rows =0,cols=0;  //行列数
     QSize itemSize;
 
 

@@ -113,7 +113,7 @@ class ComProperty: public BaseProperty
 {
     Q_OBJECT
 public:
-    explicit ComProperty(QString title, QWidget *parent=0);
+    explicit ComProperty(QWidget *parent=0);
     ~ComProperty(){}
 
     void createPropertyBox(QWidget *p);
@@ -164,8 +164,6 @@ private:
 
      void CreateButtonList(const QJsonArray &comJsonArr);
      QWidget *createCustomObject(const QJsonArray &comJsonArr);
-
-     QWidget *getQWidgetByName(QString name) const;
      QJsonArray ReadTemplateWidgetFile(QString file) const;
 
 

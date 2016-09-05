@@ -212,9 +212,9 @@ void ImageFileDialog::updateListImages(QString path)
     flistview->clear();
     extMap.clear();
     QDirIterator it(path,filters, QDir::Files /*,QDirIterator::Subdirectories*/);
-    LoadImgTask *imgload = new LoadImgTask(this);
-    imgload->setAutoDelete(true);
-    QThreadPool::globalInstance()->start(imgload);
+//    LoadImgTask *imgload = new LoadImgTask(this);
+//    imgload->setAutoDelete(true);
+//    QThreadPool::globalInstance()->start(imgload);
     while (it.hasNext())
     {
         QString fpath = it.next().toUtf8();
@@ -244,8 +244,9 @@ void ImageFileDialog::updateListImages(QString path)
         flistview->addItem(new QListWidgetItem(pic,basename));
         if(isFind)
             flistview->setRowHidden(flistview->count()-1,true);
+        qApp->processEvents();
     }
-    imgload->setDone();
+   // imgload->setDone();
 }
 
 void ImageFileDialog::onListViewDoubleClicked(QModelIndex index)
@@ -545,7 +546,7 @@ void ProjectDialog::on_pushButton_clicked()
 //                                                  );
    if(!xlsfile.isEmpty() || CheckLangFile(xlsfile))
    {
-      mWindow->mGlobalSet->setValue(INI_PRJMLANG, xlsfile.toUtf8() );
+      mWindow->mGlobalSet->setValue(INI_PRJMLANG, xlsfile.toUtf8().mid(mWindow->mRootPathLen) );
       ui->view_lang->setText(xlsfile);
 
    }
@@ -695,6 +696,7 @@ void ImageListView::updateListImages(QString path)
             pic = mWindow->mImgMap[fpath] = QPixmap(fpath);
         }
         imglist->addItem(new QListWidgetItem(pic,shortname));
+        qApp->processEvents();
     }
     imglist->setProperty(DKEY_IMGMAP,imgMap);
 }
@@ -934,7 +936,7 @@ void ConfigProject::on_openfile_clicked()
     if(!xlsfile.isEmpty() || CheckLangFile(xlsfile))
     {
 
-           mWindow->mGlobalSet->setValue(INI_PRJMLANG,xlsfile.toUtf8());
+           mWindow->mGlobalSet->setValue(INI_PRJMLANG,xlsfile.toUtf8().mid(mWindow->mRootPathLen));
            ui->view_lang->setText(xlsfile);
            mWindow->readMultiLanguage(xlsfile);
            updateListWidget();
@@ -1101,7 +1103,15 @@ GlobalSettings::GlobalSettings(QWidget *parent):
          it.next();
          QVariant va= mWindow->mGlobalSet->value(it.key());
          if(va.isValid())
-         ((FileEdit*)it.value())->setFilePath(va.toString());
+         {
+             QString pf = va.toString();
+             if(pf.startsWith("."))
+                 pf.remove(0,1).prepend(QDir::currentPath());
+             else
+                 pf.prepend(QDir::currentPath() +BACKSLASH );
+             ((FileEdit*)it.value())->setFilePath(pf);
+         }
+
      }
 
 
@@ -1152,6 +1162,10 @@ void GlobalSettings::onAccepted()
         // 更新来自INI文件的值.
         it.next();
         QString f = ((FileEdit*)it.value())->filePath().toUtf8();
+        if(f.startsWith(QDir::currentPath()))
+            f = f.mid(mWindow->mRootPathLen);
+
+        if(f.isEmpty()) f= ".";
         mWindow->mGlobalSet->setValue(it.key(),f);
         if(f.isEmpty())
             isFine = false;

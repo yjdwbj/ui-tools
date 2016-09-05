@@ -37,7 +37,6 @@ QJsonValue Compoent::changeJsonValue(const QJsonArray &arg,QString key,
 {
     QJsonArray parr = arg;
     int asize = parr.size();
-    int i = 0;
     for(int i = 0;i < asize;i++)
     {
         QJsonValue item = parr.at(i);
@@ -242,7 +241,6 @@ QVariant Compoent::getJsonValue(const QJsonValue &val, QString key)
 
 QVariant Compoent::getJsonValue(const QJsonArray &parr,QString key)
 {
-    int asize = parr.size();
    // for(int i = 0;i < asize;i++)
     QVariant ret;
     foreach (QJsonValue val, parr)
@@ -278,7 +276,7 @@ QVariant Compoent::getJsonValue(QString key) const
 
 
 
-void Compoent::onBindValue(QWidget *w,const QVariantMap &map)
+void Compoent::onBindValue(QWidget *w)
 {
  //   qDebug() << " dyn size " << dynValues.size();
      // 通过关键字来设置控件的默认值.
@@ -972,9 +970,9 @@ void BaseForm::onBackgroundImageDialog()
 
     ImageListView *imgview = new ImageListView(imgdir,this->mWindow);
 
-    LoadImgTask *imgload = new LoadImgTask(this);
-    imgload->setAutoDelete(true);
-    QThreadPool::globalInstance()->start(imgload);
+//    LoadImgTask *imgload = new LoadImgTask(this);
+//    imgload->setAutoDelete(true);
+//    QThreadPool::globalInstance()->start(imgload);
     // 把一个动态属性传递给另一个事件发送对像,用来确定要修改JSON里的那一段值.
     imgview->imglist->setProperty(DKEY_ARRIDX,w->property(DKEY_ARRIDX));
     imgview->imglist->setProperty(DKEY_PARRIDX,w->property(DKEY_PARRIDX));
@@ -1006,7 +1004,7 @@ void BaseForm::onBackgroundImageDialog()
 
 
     imgview->exec();
-    imgload->setDone();
+   // imgload->setDone();
 
 
 

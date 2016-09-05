@@ -141,7 +141,7 @@ void TreeDock::swapIconForItem(QString txt)
 
 void TreeDock::onCustomContextMenu(const QPoint &point)
 {
-    QModelIndex index = treeWidget->indexAt(point);
+   // QModelIndex index = treeWidget->indexAt(point);
 
     QTreeWidgetItem *item = treeWidget->itemAt(point);
     if(item)

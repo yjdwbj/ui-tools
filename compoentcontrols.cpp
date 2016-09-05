@@ -10,7 +10,7 @@
 #include <QThread>
 
 //static int pwidth = 20;
-#define DBGPRINT 0
+#define DBGPRINT 1
 
 
 Border::Border(QWidget *parent)
@@ -431,7 +431,7 @@ void PropertyTab::mousePressEvent(QMouseEvent *event)
 
 
 
-ComProperty::ComProperty(QString title,QWidget *parent):
+ComProperty::ComProperty(QWidget *parent):
     BaseProperty(parent),
    // mainLayout(new QVBoxLayout()),
     oldobject(0)
@@ -880,7 +880,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
         wid->setProperty(DKEY_ARRIDX,this->property(DKEY_ARRIDX));
         wid->setProperty(DKEY_OWERJSON,this->metaObject()->className());
         wid->setProperty(DKEY_PARRIDX,this->property(DKEY_PARRIDX));
-        ((BaseForm*)p)->onBindValue(wid,item.toObject().toVariantMap());
+        ((BaseForm*)p)->onBindValue(wid);
 
     }
 }
@@ -972,7 +972,8 @@ void CompoentControls::ReadJsonWidgets()
          if (gs.isSetFine()) {
              mWindow->mGlobalSet->deleteLater();
              mWindow->mGlobalSet = new QSettings(mWindow->mGlobalIniFile,QSettings::IniFormat);
-             file = mWindow->mGlobalSet->value(INI_PRJJSON).toString();
+             file = QFileInfo(mWindow->mGlobalSet->value(INI_PRJJSON).toString()).absoluteFilePath();
+
              break;
          }
      }
@@ -986,6 +987,7 @@ void CompoentControls::ReadJsonWidgets()
     }
 
     QJsonArray qjv = ReadTemplateWidgetFile(file);
+    QByteArray bba = QJsonDocument(qjv).toJson();
     if(!qjv.isEmpty())
     CreateButtonList(qjv);
  //   QString customdir = QDir::currentPath() + "/widgets";
@@ -1007,8 +1009,9 @@ void CompoentControls::ReadJsonWidgets()
         QJsonArray array;
         while (it.hasNext())
         {
-            // 读取每一个自定义控件的JSON文件
-            foreach (QJsonValue val, ReadTemplateWidgetFile(it.next())) {
+            // 读取每一个自定义控件的JSON文件,静态编绎要防止的这个变量被优化了.
+            QJsonArray  tarr =  ReadTemplateWidgetFile(it.next());
+            foreach (QJsonValue val,tarr ) {
                 array.append(val);
 #if DBGPRINT
 
@@ -1038,21 +1041,6 @@ void CompoentControls::ReadJsonWidgets()
 
 
 
-QWidget *CompoentControls::getQWidgetByName(QString name) const
-{
-    QWidgetList tlist = qApp->topLevelWidgets();
-
-    for(QWidgetList::iterator wit = tlist.begin();wit != tlist.end();++wit)
-    {
-        if((*wit)->objectName() == name)
-        {
-            return *wit;
-            break;
-        }
-    }
-    return (QWidget*)0;
-}
-
 QJsonArray CompoentControls::ReadTemplateWidgetFile(QString file) const
 {
     QJsonArray array;
@@ -1069,7 +1057,8 @@ QJsonArray CompoentControls::ReadTemplateWidgetFile(QString file) const
             {
                 if(qd.object().contains(COMPOENTS))
                 {
-                   array = qd.object()[COMPOENTS].toArray();
+                   QJsonObject retobj = qd.object();
+                   return retobj[COMPOENTS].toArray();
                 }
             }
         }else{
@@ -1091,7 +1080,8 @@ QWidget* CompoentControls::createCustomObject(const QJsonArray &comJsonArr)
     comLayout->setSpacing(2);
     comLayout->setContentsMargins(1,5,1,0);
     gb->setLayout(comLayout);
-    int row,col = 0;
+    int row =0;
+    int col = 0;
     QByteArray winba= QJsonDocument(comJsonArr).toJson();
 
     foreach (QJsonValue qjv, comJsonArr)
@@ -1100,8 +1090,6 @@ QWidget* CompoentControls::createCustomObject(const QJsonArray &comJsonArr)
 
         QJsonObject jobj = qjv.toObject();
         QByteArray ba = QJsonDocument(jobj).toJson();
-
-        QThread::msleep(100);
 
         QString caption = jobj[CAPTION].toString();
         QString objname = jobj[NAME].toString();
@@ -1125,7 +1113,7 @@ QWidget* CompoentControls::createCustomObject(const QJsonArray &comJsonArr)
         }
 
         // 这样能把tooltip显示成一张图片.
-        btnTest->setToolTip( QString("<img src='%1'>").arg(qjv.toObject()[ICON].toString()));
+        btnTest->setToolTip( QString("<img src='%1'>").arg(jobj[ICON].toString()));
         //        btnTest->setStyleSheet("QPushButton::hover{"\
         //        "background: #F48024;}");
         comLayout->addWidget(btnTest,row,col++);
@@ -1178,7 +1166,8 @@ void CompoentControls::onCreateCustomWidget()
 
 void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
 {
-    int row,col = 0;
+    int row = 0;
+    int col = 0;
     QGridLayout *comLayout = new QGridLayout();
 
     // mainLayout->addWidget(new QPushButton());
@@ -1194,11 +1183,9 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
     comLayout->setHorizontalSpacing(1);
     comLayout->setMargin(1);
     comLayout->setContentsMargins(1,1,1,1);
-#if 0
+#if DBGPRINT
     QFile fdebug("debug.json");
     fdebug.open(QIODevice::WriteOnly);
-    fdebug.write(QJsonDocument(comJsonArr).toJson());
-    fdebug.close();
 #endif
 
     // 不写下面这句,Linux下mingw交叉编译的程序在winxp会出内存错误崩溃,
@@ -1209,7 +1196,9 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
         QJsonObject jobj = qjv.toObject();
         QString caption = jobj[CAPTION].toString();
         QString objname = jobj[NAME].toString();
-
+#if DBGPRINT
+        fdebug.write(QJsonDocument(jobj).toJson());
+#endif
         QString clsname = jobj[CLASS].toString();
         if(!CN_NEWLAYOUT.compare(clsname) /*||!CN_LAYOUT.compare(clsname)*/)
         {
@@ -1250,6 +1239,10 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
             connect(btnTest,SIGNAL(clicked(bool)),SLOT(onCreateCompoentToCanvas()));
         }
     }
+
+#if DBGPRINT
+    fdebug.close();
+#endif
 }
 
 
