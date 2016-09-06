@@ -155,6 +155,15 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
      ComCtrl->ReadJsonWidgets();
+     cManager->mProjectImageDir = mGlobalSet->value(INI_PRJIMAGEDIR).toString();
+     if(!cManager->mProjectImageDir.compare("."))
+     {
+         cManager->mProjectImageDir = QDir::currentPath();
+     }else
+     {
+         cManager->mProjectImageDir.prepend(BACKSLASH);
+         cManager->mProjectImageDir.prepend(QDir::currentPath());
+     }
 
     // 缓存一些背景图片.
      QString dir = QDir::currentPath().replace(SLASH,BACKSLASH) +BACKSLASH +"backgrounds";
@@ -198,15 +207,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 }
 
-void MainWindow::closeEvent(QCloseEvent *event)
-{
-    if (QThreadPool::globalInstance()->activeThreadCount() == 0)
-       event->accept();
-    else{
-        hide();
-        this->setHidden(true);
-    }
-}
+
 
 void MainWindow::readMultiLanguage(QString file)
 {
@@ -622,7 +623,28 @@ void MainWindow::onDobuleClickedImage(QListWidgetItem *item)
     //update();
 }
 
-
+void MainWindow::closeEvent(QCloseEvent *e)
+{
+    if(cManager->mIsOpenProject)
+    {
+        QMessageBox msgBox;
+        msgBox.setWindowTitle("打开工程提示");
+        msgBox.setText("当前编辑的工程有新的修改没有保存,选请择<保存>进行保存.");
+        // msgBox.setInformativeText("Do you want to save your changes?");
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+        msgBox.setButtonText(QMessageBox::Yes,"保存");
+        msgBox.setButtonText(QMessageBox::Cancel,"取消");
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+        int ret = msgBox.exec();
+        //qDebug() << " QMessageBox result " << ret;
+        if(ret == QMessageBox::Yes)
+        {
+            //　需要保存
+            cManager->onSaveProject();
+        }
+        cManager->closeCurrentProject();
+    }
+}
 
 MainWindow::~MainWindow()
 {

@@ -37,6 +37,9 @@ CanvasManager::CanvasManager(MainWindow *w):
 
 
 
+
+
+
     QComboBox *cb = new QComboBox();
 
     QPushButton *openPrj = new QPushButton("打开工程");
@@ -349,6 +352,7 @@ void CanvasManager::onOpenProject()
                     readProjectJson(qdobj[PAGES].toArray());
                     setActiveSS(qdobj[ACTPAGE].toInt());
                     mPrjIsChanged=true;
+                    mIsOpenProject = true;
                 }
             }else{
                 // qDebug() << " read Json file error";

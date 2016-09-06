@@ -43,5 +43,6 @@
         <file>icons/image-icon.png</file>
         <file>icons/gradient.png</file>
         <file>icons/mode_help@2x.png</file>
+        <file>icons/undo.png</file>
     </qresource>
 </RCC>

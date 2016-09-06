@@ -96,7 +96,8 @@ class BaseProperty: public QWidget
 public:
     explicit BaseProperty(QWidget *parent=0);
     void parseJsonToWidget(QWidget *p, const QJsonArray &array);
-    QVBoxLayout* mainLayout;
+     QVBoxLayout* mainLayout;
+
 
 };
 
@@ -105,7 +106,7 @@ class CssProperty: public BaseProperty
     Q_OBJECT
 public:
     explicit CssProperty(QWidget *parent=0);
-//    QVBoxLayout* mainLayout;
+   // QVBoxLayout* mainLayout;
 
 };
 
@@ -120,12 +121,14 @@ public:
     void delPropertyBox();
     void updateImageComboBox(QString key, int index, const QStringList &list);
     QWidget* getPropertyObject(QString key) const { return widgetMap.value(key);}
+   // QVBoxLayout* mainLayout;
 
     //Position *posWidget;// 只有第一个可以与控件互动.
 
 
 
 private:
+
     // QGroupBox *CreateXYWHGBox(QWidget *p);
     // QVBoxLayout* mainLayout;
      QWidget *mainWidget;

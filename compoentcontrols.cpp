@@ -47,21 +47,19 @@ Border::Border(QWidget *parent)
     Right->setObjectName(RIGHT);
     Bottom->setObjectName(BOTTOM);
 
-    Top->setProperty(DKEY_ARRIDX,parent->property(DKEY_ARRIDX));
-    Top->setProperty(DKEY_OWERJSON,parent->metaObject()->className());
-    Top->setProperty(DKEY_PARRIDX,parent->property(DKEY_PARRIDX));
-
-    Right->setProperty(DKEY_ARRIDX,parent->property(DKEY_ARRIDX));
-    Right->setProperty(DKEY_OWERJSON,parent->metaObject()->className());
-    Right->setProperty(DKEY_PARRIDX,parent->property(DKEY_PARRIDX));
-
-    Left->setProperty(DKEY_ARRIDX,parent->property(DKEY_ARRIDX));
-    Left->setProperty(DKEY_OWERJSON,parent->metaObject()->className());
-    Left->setProperty(DKEY_PARRIDX,parent->property(DKEY_PARRIDX));
-
-    Bottom->setProperty(DKEY_ARRIDX,parent->property(DKEY_ARRIDX));
-    Bottom->setProperty(DKEY_OWERJSON,parent->metaObject()->className());
-    Bottom->setProperty(DKEY_PARRIDX,parent->property(DKEY_PARRIDX));
+    QVariant arridx = parent->property(DKEY_ARRIDX);
+    QVariant parridx = parent->property(DKEY_PARRIDX);
+    QVariant jsonidx = parent->property(DKEY_JSONIDX);
+    QVariant cname = parent->metaObject()->className();
+   QList<QWidget*> lst;
+   lst << Left << Top << Right << Bottom << this;
+   foreach(QWidget *sp,lst)
+    {
+       sp->setProperty(DKEY_ARRIDX,arridx);
+       sp->setProperty(DKEY_OWERJSON,cname);
+       sp->setProperty(DKEY_PARRIDX,parridx);
+       sp->setProperty(DKEY_JSONIDX,jsonidx);
+    }
 
 
     xywh->setContentsMargins(0,15,0,0);
@@ -97,7 +95,7 @@ void Border::setConnectNewQWidget(QWidget *com)
     rect.setBottom(bobj[BOTTOM].toInt());
     rect.setLeft(bobj[LEFT].toInt());
     rect.setTop(bobj[TOP].toInt());
-    rect.setRight(bobj[BOTTOM].toInt());
+    rect.setRight(bobj[RIGHT].toInt());
 //    if(!Left->property(DKEY_ARRIDX).toInt())
 //    {
 //        ((BaseForm*)com)->mBorder = rect;
@@ -153,28 +151,26 @@ Position::Position(QWidget *parent)
     Wpos->setObjectName(W);
     Hpos->setObjectName(H);
 
+    QVariant arridx = parent->property(DKEY_ARRIDX);
+    QVariant parridx = parent->property(DKEY_PARRIDX);
+    QVariant jsonidx = parent->property(DKEY_JSONIDX);
+    QVariant cname = parent->metaObject()->className();
 
-    setProperty(DKEY_ARRIDX,parent->property(DKEY_ARRIDX));
-    setProperty(DKEY_OWERJSON,parent->metaObject()->className());
-    setProperty(DKEY_PARRIDX,parent->property(DKEY_PARRIDX));
 
+//    setProperty(DKEY_ARRIDX,arridx);
+//    setProperty(DKEY_OWERJSON,cname);
+//    setProperty(DKEY_PARRIDX,parridx);
+//    setProperty(DKEY_JSONIDX,jsonidx);
 
-    Xpos->setProperty(DKEY_ARRIDX,parent->property(DKEY_ARRIDX));
-    Xpos->setProperty(DKEY_OWERJSON,parent->metaObject()->className());
-    Xpos->setProperty(DKEY_PARRIDX,parent->property(DKEY_PARRIDX));
-
-    Ypos->setProperty(DKEY_ARRIDX,parent->property(DKEY_ARRIDX));
-    Ypos->setProperty(DKEY_OWERJSON,parent->metaObject()->className());
-    Ypos->setProperty(DKEY_PARRIDX,parent->property(DKEY_PARRIDX));
-
-    Wpos->setProperty(DKEY_ARRIDX,parent->property(DKEY_ARRIDX));
-    Wpos->setProperty(DKEY_OWERJSON,parent->metaObject()->className());
-    Wpos->setProperty(DKEY_PARRIDX,parent->property(DKEY_PARRIDX));
-
-    Hpos->setProperty(DKEY_ARRIDX,parent->property(DKEY_ARRIDX));
-    Hpos->setProperty(DKEY_OWERJSON,parent->metaObject()->className());
-    Hpos->setProperty(DKEY_PARRIDX,parent->property(DKEY_PARRIDX));
-
+    QList<QWidget*> lst ;
+    lst << Xpos << Ypos << Wpos << Hpos << this;
+    foreach(QWidget *sp,lst )
+     {
+        sp->setProperty(DKEY_ARRIDX,arridx);
+        sp->setProperty(DKEY_OWERJSON,cname);
+        sp->setProperty(DKEY_PARRIDX,parridx);
+        sp->setProperty(DKEY_JSONIDX,jsonidx);
+     }
 
     xywh->setContentsMargins(0,15,0,0);
 }
@@ -331,8 +327,8 @@ void PropertyTab::onTabChanged(int index){
                                                                    BAKCOLOR).toString());
         ((BaseForm *)mOwerObj)->mbkColor = color.name();
         QString img =  ((BaseForm *)mOwerObj)->getJsonValue(val.toArray(),BAKIMAGE).toString();
-        QString imgdir = ((BaseForm *)mOwerObj)->mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString();
-        ((BaseForm *)mOwerObj)->mbkImage =  imgdir + BACKSLASH + img;
+       // QString imgdir = ((BaseForm *)mOwerObj)->mWindow->cManager->mProjectImageDir;
+        ((BaseForm *)mOwerObj)->mbkImage =  QDir::currentPath() + BACKSLASH + img;
 
         ((BaseForm *)mOwerObj)->mBorder =
                 ((BaseForm *)mOwerObj)->getRectFromStruct(val.toArray(),BORDER);
@@ -539,6 +535,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
     {
         QJsonValue item = array.at(i);
         QWidget *wid = 0;
+        this->setProperty(DKEY_JSONIDX,i);
 
         switch (item.type()) {
         case QJsonValue::Array:
@@ -600,6 +597,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
             }else if(object.contains(ENUM)){
                 QLabel *title = new QLabel(caption,this);
                 QComboBox *cb = new QComboBox(this);
+
                 cb->setObjectName(uname);
                 cb->setProperty(DKEY_CAPTION,caption);
                 cb->setProperty(DKEY_VALTYPE,ENUM);
@@ -633,13 +631,13 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                 btn->setFixedWidth(this->width() -30);
                 mainLayout->addWidget(btn);
                 mainLayout->addWidget(cb);
-                QJsonArray array = object[LIST].toArray();
-                btn->setProperty(DKEY_CBLIST,array);
+                QJsonArray cbarray = object[LIST].toArray();
+                btn->setProperty(DKEY_CBLIST,cbarray);
                 QStringList lst ;
                 if(!uname.compare(PIC_TEXT))
                 {
 
-                    foreach(QJsonValue v,array) lst << ((BaseForm*)p)->mWindow->mItemMap.value(v.toString());
+                    foreach(QJsonValue v,cbarray) lst << ((BaseForm*)p)->mWindow->mItemMap.value(v.toString());
                     QString defstr = object[DEFAULT].toString().toLower();
                     cb->addItems(lst);
                     cb->setCurrentText(((BaseForm*)p)->mWindow->mItemMap.value(defstr));
@@ -667,7 +665,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
 
                 }else {
                     // 图片列表处理分支.这里不用Ｍap而用LIST来暂存一些数值,是因为map是无序的.
-                    QString imgdir = ((BaseForm*)p)->mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString();
+                   // QString imgdir = ((BaseForm*)p)->mWindow->cManager->mProjectImageDir;
 
                     QJsonArray imgarray =  object[LIST].toArray();
                     QString defimg = object[DEFAULT].toString();
@@ -676,21 +674,22 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                         int idx = key.lastIndexOf(BACKSLASH)+1;
                         lst << QString("%1|%2").arg(key.mid(idx),key);
                         //  QPixmap pic =  ((BaseForm*)p)->mWindow->mImgMap[imgdir+BACKSLASH+key];
-                        cb->addItem(QIcon(imgdir+BACKSLASH+key),
+                        cb->addItem(QIcon(key),
                                     key.mid(idx));
                     }
 
                     cb->setCurrentText(defimg);
 
-                    if(imgdir.isEmpty())
-                        imgdir = QDir::currentPath();
+//                    if(imgdir.isEmpty())
+//                        imgdir = QDir::currentPath();
 
-                    int rootlen  = imgdir.length() +1;
+                    //int rootlen  = imgdir.length() +1;
                     cb->setProperty(DKEY_CBLIST,imgarray);
                     QObject::connect(btn,&QPushButton::clicked,[=](){
                         QJsonArray cblist =btn->property(DKEY_CBLIST).toJsonArray();
                         ImageFileDialog ifd(cblist.toVariantList(),
-                                            imgdir,((BaseForm*)p)->mWindow);
+                                            ((BaseForm*)p)->mWindow->cManager->mProjectImageDir,
+                                            ((BaseForm*)p)->mWindow);
                         ifd.exec();
                         QVariantList imglist = ifd.getSelectedList();
                         QJsonArray qa;
@@ -705,7 +704,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                             QString substr;
                             if(lastsection.indexOf(BACKSLASH) == 0)
                             {
-                                substr = s.section(SECTION_CHAR,1,1).mid(rootlen);
+                                substr = s.section(SECTION_CHAR,1,1).mid(((BaseForm*)p)->mWindow->mRootPathLen);
                             }else
                             {
                                 substr = s.section(SECTION_CHAR,1,1);
@@ -729,7 +728,8 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                             if(!k.compare(txt))
                             {
                                 QString fpath = s.section(SECTION_CHAR,1,1);
-                                ((BaseForm*)p)->changeJsonValue(btn,uname,fpath.mid(rootlen)); // 修改JSON里的值
+                                ((BaseForm*)p)->changeJsonValue(btn,uname,
+                                                                fpath.mid(((BaseForm*)p)->mWindow->mRootPathLen)); // 修改JSON里的值
                                 break;
                             }
                         }
@@ -742,6 +742,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
             {
 
                 Position* posWidget =   new Position(this);
+                posWidget->setProperty(DKEY_JSONIDX,i);
                 posWidget->setObjectName(QString("%1_%2").arg(((BaseForm*)p)->mUniqueStr,
                                                               QString::number(property(DKEY_ARRIDX).toInt())));
                 posWidget->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
@@ -762,6 +763,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
 
                 Border *b = new Border(this);
                 b->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
+                b->setProperty(DKEY_JSONIDX,i);
 
                 b->setConnectNewQWidget(p);
                 mainLayout->addWidget(b);
@@ -779,9 +781,10 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                 QLineEdit *nameEdt = new QLineEdit(this);
                 nameEdt->setObjectName(uname);
 
-                nameEdt->setMaxLength(8);
-                nameEdt->setInputMask("nnnnnnnn;"); // or NNNNNNNN;_
+              //  nameEdt->setMaxLength(8);
+             //   nameEdt->setInputMask("nnnnnnnn;"); // or NNNNNNNN;_
                 nameEdt->setCursorPosition(0);
+                nameEdt->setText(((BaseForm*)p)->mUniqueStr);
                 mainLayout->addWidget(nameEdt);
                 connect(nameEdt,SIGNAL(textChanged(QString)),
                         p,SLOT(onTextChanged(QString)));
@@ -790,22 +793,54 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
             }
             else if(object.contains(BAKIMAGE))
             {
+                QHBoxLayout *hb = new QHBoxLayout;
+                 hb->setObjectName(uname);
+
                 QPushButton *bkimage = new QPushButton(caption,this);
                 bkimage->setObjectName(uname);
-                mainLayout->addWidget(bkimage);
+
+                QPushButton *clearBtn = new QPushButton(QIcon(":/icon/icons/undo.png"),"",this);
+                clearBtn->setToolTip("清除" + caption);
+                clearBtn->setObjectName(uname);
+                clearBtn->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
+                clearBtn->setProperty(DKEY_ARRIDX,this->property(DKEY_ARRIDX));
+                clearBtn->setProperty(DKEY_OWERJSON,this->metaObject()->className());
+                clearBtn->setProperty(DKEY_PARRIDX,this->property(DKEY_PARRIDX));
+                hb->addWidget(bkimage);
+                hb->addWidget(clearBtn);
+                connect(clearBtn,SIGNAL(clicked(bool)),p,SLOT(onClearJsonValue()));
+
+                mainLayout->addLayout(hb);
                 p->setProperty(DKEY_CURVAL,BAKIMAGE);
                 wid = bkimage;
                 connect(bkimage,SIGNAL(clicked(bool)),p,SLOT(onBackgroundImageDialog()));
             }
             else if(object.contains(BAKCOLOR))
             {
+                QHBoxLayout *hb = new QHBoxLayout;
+                hb->setObjectName(uname);
                 QPushButton *bkcolor = new QPushButton(caption,this);
                 bkcolor->setObjectName(uname);
-                mainLayout->addWidget(bkcolor);
+
+                QPushButton *clearBtn = new QPushButton(QIcon(":/icon/icons/undo.png"),"",this);
+                clearBtn->setToolTip("清除" + caption);
+                clearBtn->setObjectName(uname);
+                hb->addWidget(bkcolor);
+                hb->addWidget(clearBtn);
+
+                clearBtn->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
+                clearBtn->setProperty(DKEY_ARRIDX,this->property(DKEY_ARRIDX));
+                clearBtn->setProperty(DKEY_OWERJSON,this->metaObject()->className());
+                clearBtn->setProperty(DKEY_PARRIDX,this->property(DKEY_PARRIDX));
+
+                connect(clearBtn,SIGNAL(clicked(bool)),p,SLOT(onClearJsonValue()));
+
+                mainLayout->addLayout(hb);
+                //mainLayout->addWidget(bkcolor);
                 p->setProperty(DKEY_CURVAL,BAKCOLOR);
 
                 connect(bkcolor,SIGNAL(clicked(bool)),p,SLOT(onColorButtonClicked()));
-                wid = bkcolor;
+                wid = bkcolor;     
             }else{
                 //下面是通JSON值类型来区分来创建不同类型的控件.
                 if(object[DEFAULT].isString())
@@ -850,9 +885,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                     //int val = object[DEFAULT].toDouble();
                     mainLayout->addWidget(title);
                     QSpinBox *s = new QSpinBox(this);
-
                     s->setObjectName(uname);
-
                     s->setProperty(DKEY_VALTYPE,NUMBER);
                     //要保存每一次修改过的值.
                     mainLayout->addWidget(s);
@@ -880,6 +913,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
         wid->setProperty(DKEY_ARRIDX,this->property(DKEY_ARRIDX));
         wid->setProperty(DKEY_OWERJSON,this->metaObject()->className());
         wid->setProperty(DKEY_PARRIDX,this->property(DKEY_PARRIDX));
+        wid->setProperty(DKEY_JSONIDX,i);
         ((BaseForm*)p)->onBindValue(wid);
 
     }
@@ -913,7 +947,20 @@ void removeWidFromLayout(QLayout *layout)
         }
         else if(child->widget() != 0)
         {
-            delete child->widget();
+            qDebug() << " delete object class "
+                     << child->widget()->metaObject()->className()
+                     << child->widget()->objectName();
+            QWidget *w = child->widget();
+            if(w)
+            {
+                if(w->layout())
+                {
+                    removeWidFromLayout(w->layout());
+                }else {
+
+                    w->deleteLater();
+                }
+            }
         }
 
         delete child;

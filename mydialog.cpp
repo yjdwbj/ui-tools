@@ -53,7 +53,6 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath, QWidget *par
     setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
     setModal(true);
     treefile->header()->setHidden(true);
-  //  QString imgpath =  mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString();
      flistview->setProperty(DKEY_EXTMAP,extMap);
      /* 填弃上一次的数据 */
     dirModel = new QFileSystemModel(this);
@@ -185,7 +184,7 @@ ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath, QWidget *par
     foreach (QVariant v, old) {
         // example for v "config/images/digital-0.png"
         QString str = v.toString();
-        QString fpath = QString(imgpath + BACKSLASH + str).toUtf8();
+        QString fpath = QDir::currentPath() + BACKSLASH + str;
         QPixmap pic = mWindow->mImgMap[fpath];
         if(pic.isNull())
         {
@@ -212,9 +211,6 @@ void ImageFileDialog::updateListImages(QString path)
     flistview->clear();
     extMap.clear();
     QDirIterator it(path,filters, QDir::Files /*,QDirIterator::Subdirectories*/);
-//    LoadImgTask *imgload = new LoadImgTask(this);
-//    imgload->setAutoDelete(true);
-//    QThreadPool::globalInstance()->start(imgload);
     while (it.hasNext())
     {
         QString fpath = it.next().toUtf8();
@@ -224,7 +220,7 @@ void ImageFileDialog::updateListImages(QString path)
         bool isFind = false;
         for(int i =0; i < sellist->count();i++)
         {
-           QListWidgetItem *item =    sellist->item(i);
+           QListWidgetItem *item = sellist->item(i);
            if(!item->text().compare(basename))
            {
                // 这里有相同文件名了,所以在待选列表不再添加它,这里没有处理不同目录下的同名文件.都视为同名.
@@ -246,7 +242,7 @@ void ImageFileDialog::updateListImages(QString path)
             flistview->setRowHidden(flistview->count()-1,true);
         qApp->processEvents();
     }
-   // imgload->setDone();
+
 }
 
 void ImageFileDialog::onListViewDoubleClicked(QModelIndex index)

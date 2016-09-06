@@ -25,7 +25,7 @@
 
 
 
-static   QStringList KeyList = QStringList() << DEFAULT << UID
+static   QStringList KeyList = QStringList() << DEFAULT << ENAME
                                              << IMAGE << GRAYCOLOR
                                              << COLOR << BAKCOLOR
                                              << BAKIMAGE ;
@@ -137,19 +137,87 @@ void Compoent::changeJsonValue(QString key, const QVariant &val)
     mOwerJson[PROPERTY] = changeJsonValue(parr,key,val);
 }
 
+
+QJsonValue Compoent::changeJsonValue(const QJsonArray &json,int index, const QVariant &val)
+{
+    QJsonArray tmpa = json;
+    QJsonObject obj = json.at(index).toObject();
+    QString wtype  = obj[WTYPE].toString();
+
+    if(!wtype.compare(KEY_RECT))
+    {
+
+        QString str = val.toString();
+        QString section1 = str.section(":",0,0);
+        int num = str.section(":",1,1).toInt();
+
+        foreach (QString str, QStringList() << LX << LY
+                 << WIDTH << HEIGHT) {
+            if(!str.compare(section1))
+            {
+                QJsonObject rect = obj[KEY_RECT].toObject();
+                rect[section1] = num;
+                obj[KEY_RECT] = rect;
+                break;
+            }
+        }
+    }else if(!wtype.compare(BAKCOLOR)){
+        obj[BAKCOLOR] = QJsonValue::fromVariant(val);
+    }
+    else if(!wtype.compare(UID)){
+            obj[UID] = QJsonValue::fromVariant(val);
+    }else if(!wtype.compare(BAKIMAGE))
+    {
+        obj[BAKIMAGE] = QJsonValue::fromVariant(val);
+    }else if(!wtype.compare(ENUM))
+    {
+        obj[DEFAULT] = QJsonValue::fromVariant(val);
+    }
+    else if(!wtype.compare(ALPHA))
+    {
+        obj[DEFAULT] = QJsonValue::fromVariant(val);
+    }else if(!wtype.compare(BORDER))
+    {
+        QString str = val.toString();
+        QString section1 = str.section(":",0,0);
+        int num = str.section(":",1,1).toInt();
+        if(!section1.compare(GRAYCOLOR))
+        {
+            obj[GRAYCOLOR] = str.section(":",1,1);
+        }else{
+            foreach (QString kstr, QStringList() << TOP << LEFT
+                     << RIGHT << BOTTOM) {
+                if(!kstr.compare(section1))
+                {
+                    QJsonObject bobj = obj[BORDER].toObject();
+                    bobj[kstr] = num;
+                    obj[BORDER] = bobj;
+                    break;
+                }
+            }
+        }
+    }else if(!wtype.compare(PIC_TEXT))
+    {
+
+    }else if(!wtype.compare(LIST))
+    {
+        QJsonValue v =  QJsonValue::fromVariant(val);
+        if(v.isArray())
+        {
+            obj[LIST] = v;
+        }else
+        {
+            obj[DEFAULT] = v;
+        }
+    }
+
+    tmpa.replace(index,obj);
+    return tmpa;
+}
+
+
 void Compoent::changeJsonValue(QWidget *w,QString key, const QVariant &val)
 {
-
-//    BaseForm *bfthis = (BaseForm *)this;
-//    foreach(QByteArray ba, bfthis->dynamicPropertyNames())
-//    {
-//        qDebug()   << "objname " << bfthis->objectName() << " dynamic Name " << ba;
-//    }
-//    qDebug() << " QWidget property "
-//             << w->property(DKEY_ARRIDX)
-//             << w->property(DKEY_PARRIDX)
-//             << " objname " << w->objectName();
-
     QString owercls = w->property(DKEY_OWERJSON).toString();
 
     if(!owercls.compare("ComProperty"))
@@ -166,8 +234,10 @@ void Compoent::changeJsonValue(QWidget *w,QString key, const QVariant &val)
         QJsonObject pobj = parray.at(index).toObject();
         QJsonArray structarray = pobj[STRUCT].toArray();
         int  cssindex = w->property(DKEY_ARRIDX).toInt();
+        int jsonindex = w->property(DKEY_JSONIDX).toInt();
         QJsonArray cssArray = structarray.at(cssindex).toArray();
-        structarray[cssindex] = changeJsonValue(cssArray,key,val);
+        structarray[cssindex] = changeJsonValue(cssArray,jsonindex,val);
+        //structarray[cssindex] = changeJsonValue(cssArray,key,val);
         pobj[STRUCT] = structarray;
 
         parray[index] = pobj;
@@ -222,6 +292,12 @@ QJsonArray Compoent::updateRBJsonValue(const QJsonArray &arr, QWidget *w)
 
     }
      return projson;
+}
+
+
+QVariant Compoent::getJsonValue(const QJsonArray &arr, QString key,int index)
+{
+
 }
 
 QVariant Compoent::getJsonValue(const QJsonValue &val, QString key)
@@ -293,7 +369,9 @@ void Compoent::onBindValue(QWidget *w)
      {
          QLineEdit *txt = (QLineEdit *)w;
 
-         txt->setText(getJsonValue(item, uname).toString());
+         QString jstr = getJsonValue(item, uname).toString();
+         if(!jstr.isEmpty())
+         txt->setText(jstr);
      }else if(!n.compare("QComboBox"))
      {
          QComboBox *cb = (QComboBox *)w;
@@ -332,9 +410,10 @@ void Compoent::onBindValue(QWidget *w)
            QColor c;
           if(!uname.compare(BAKCOLOR))
           {
-               c = QColor(getJsonValue(item,BAKCOLOR).toString()) ;
+               QString cname = getJsonValue(item,BAKCOLOR).toString();
+               c = QColor(cname) ;
               // if(isFirst)
-                   myself->mbkColor =c.name();
+                   myself->mbkColor =c.name(QColor::HexArgb);
           }
           else if(!uname.compare(BORDER))
           {
@@ -351,11 +430,15 @@ void Compoent::onBindValue(QWidget *w)
           {
               QPixmap p(12,12);
               QString img = getJsonValue(item,BAKIMAGE).toString();
-              img = myself->mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString() + BACKSLASH + img;
-              p.load(img);
+              if(!img.isEmpty())
+              {
+
+                img = QDir::currentPath() + BACKSLASH + img;
+                p.load(img);
               ((QPushButton*)w)->setIcon(p);
              // if(isFirst)
                   myself->mbkImage = img;
+              }
               return;
           }else if(!uname.compare(PIC_TEXT))
           {
@@ -364,7 +447,7 @@ void Compoent::onBindValue(QWidget *w)
               return;
           }
           //if(isFirst)
-              myself->updateStyleSheets();
+          //    myself->updateStyleSheets();
           QPixmap p(12,12);
           p.fill(c);
 
@@ -604,7 +687,8 @@ void BaseForm::mouseReleaseEvent(QMouseEvent *event)
     QPoint pos = this->pos();
     moveNewPos(pos);
     // 这里只能在释放鼠标时改变左边的控件值
-
+//    qDebug() << " object size " << this->size()
+//             << " object pos " << this->pos();
     if(!property(DKEY_INTOCONTAINER).toBool())
     {
         if(posWidget)
@@ -640,32 +724,37 @@ void BaseForm::moveNewPos(int x,int y)
 void BaseForm::moveNewPos(QPoint pos)
 {
     QWidget *p = this->parentWidget();
-    if(this->x() < 0)
+    if(this->width() >= p->width() && this->height() >= p->height())
     {
-        pos.setX(0 /*- MARGIN_SIZE.width() /2*/);
-        this->move(pos);
+        this->setGeometry(0,0,p->width(),p->height());
+    }else {
+        if(this->x() < 0)
+        {
+            pos.setX(0 /*- MARGIN_SIZE.width() /2*/);
+            this->move(pos);
 
-    }
-    if(this->y() < 0 )
-    {
-        pos.setY(0 /*-MARGIN_SIZE.width() /2*/);
-        this->move(pos);
-    }
+        }
+        if(this->y() < 0 )
+        {
+            pos.setY(0 /*-MARGIN_SIZE.width() /2*/);
+            this->move(pos);
+        }
 
-    QSize ms = p->size();
-    //左出界检查
-    if((this->x()  + this->size().width()) > ms.width())
-    {
-        pos.setX( ms.width() - this->size().width() /*+ MARGIN_SIZE.width() /2*/ );
-        this->move(pos);
+        QSize ms = p->size();
+        //左出界检查
+        if((this->x()  + this->size().width()) > ms.width())
+        {
+            pos.setX( ms.width() - this->size().width() /*+ MARGIN_SIZE.width() /2*/ );
+            this->move(pos);
 
-    }
+        }
 
-    //上出界检查
-    if((this->y() + this->size().height()) > ms.height())
-    {
-        pos.setY(ms.height() - this->size().height() /*+ MARGIN_SIZE.height() /2*/);
-        this->move(pos);
+        //上出界检查
+        if((this->y() + this->size().height()) > ms.height())
+        {
+            pos.setY(ms.height() - this->size().height() /*+ MARGIN_SIZE.height() /2*/);
+            this->move(pos);
+        }
     }
 }
 
@@ -731,7 +820,14 @@ void BaseForm::onNumberChanged(int num)
 
     QSpinBox *sp = (QSpinBox *)(QObject::sender());
     changeJsonValue(sp,sp->objectName(),num);
-  //  dynValues[sp->objectName()] = num;
+    if(!sp->objectName().compare(ALPHA))
+    {
+        QColor c(this->mbkColor);
+        c.setAlpha(num);
+        mbkColor = c.name(QColor::HexArgb);
+        this->updateStyleSheets();
+      //  changeJsonValue(sp,BAKCOLOR,mbkColor);
+    }
 }
 
 void BaseForm::onTextChanged(QString str)
@@ -787,18 +883,17 @@ void BaseForm::onBorderChangedValue(int v)
 
 void BaseForm::updateStyleSheets()
 {
-    QString str = QString("background-color: %6;" \
+    QString str = QString(
                           "border-style: outset; "\
-                          "border-color: %5; "\
+
                           "border-left-width: %1px; "\
                           "border-top-width: %2px; " \
                           "border-right-width: %3px; "\
                           "border-bottom-width: %4px;").arg(QString::number(mBorder.left()),
                                                                QString::number(mBorder.top()),
                                                                QString::number(mBorder.right()),
-                                                               QString::number(mBorder.bottom()),
-                                                               mBorderColor,
-                                                               mbkColor);
+                                                               QString::number(mBorder.bottom())
+                                                           );
    // 没有背景图片这个参数时就显示背景色.
    if(!mbkImage.isEmpty())
    {
@@ -807,6 +902,12 @@ void BaseForm::updateStyleSheets()
           mbkImage = QFileInfo(mbkImage).absoluteFilePath();
       }
       str =  QString("background-image: url(%1); %2").arg(mbkImage,str);
+   }else if(!mbkColor.isEmpty())
+   {
+      str = QString("background-color: %1; %2").arg(mbkColor,str);
+   }else if(!mBorderColor.isEmpty())
+   {
+       str = QString("border-color: %1; %2").arg(mBorderColor,str);
    }
 
    QString clsname = metaObject()->className();
@@ -819,13 +920,17 @@ void BaseForm::updateStyleSheets()
    }
    else if(!clsname.compare(CN_NEWLIST))
    {
-       ((NewList*)this)->mainScroll->setStyleSheet(QString("%1#%2 { %3 }").arg(clsname,
+//       ((NewList*)this)->mainScroll->setStyleSheet(QString("%1#%2 { %3 }").arg(clsname,
+//                                                 this->objectName(),
+//                                                 str));
+       ((NewList*)this)->mainScroll->setStyleSheet(QString("QScrollArea#%1 { %2 }").arg(
                                                  this->objectName(),
                                                  str));
    }else{
        setStyleSheet(QString("BaseForm#%1 { %2 }").arg(this->objectName(),str));
    }
 
+  // qDebug() << " base form stylesheet " << this->styleSheet();
    update();
    repaint();
 
@@ -860,9 +965,6 @@ void BaseForm::onEnumItemChanged(QString txt)
        changeJsonValue(cb,cb->objectName(),mWindow->mOrderlist[cb->currentIndex()]);
    }else
        changeJsonValue(cb,cb->objectName(),txt);
-
-
-    this->signalsBlocked();
 }
 
 void BaseForm::onColorButtonClicked()
@@ -887,9 +989,10 @@ void BaseForm::onColorButtonClicked()
      //   bool isFirst = !btn->property(DKEY_ARRIDX).toInt();
         if(!objname.compare(BAKCOLOR))
         {
-            changeJsonValue(btn,BAKCOLOR,c.name());
+             mbkColor = c.name(QColor::HexArgb);
+            changeJsonValue(btn,BAKCOLOR,mbkColor);
           //  if(isFirst)
-                mbkColor = c.name(QColor::HexArgb);
+
         }
         else if(!objname.compare(BORDER))
         {
@@ -961,10 +1064,43 @@ void BaseForm::initJsonValue()
     //changeJsonValue(UID,mWindow->ComCtrl->ProMap.size());
 }
 
+
+void BaseForm::onClearJsonValue()
+{
+    QWidget *sender  = (QWidget*)(QObject::sender());
+
+
+    QHBoxLayout *hbp = sender->parentWidget()->findChild<QHBoxLayout*>(sender->objectName());
+    for(int i  =0;i < hbp->count() ;i++)
+    {
+        QWidget *w =hbp->itemAt(i)->widget();
+        if(w && w != sender)
+        {
+            ((QPushButton*)w)->setIcon(QIcon());
+            sender->setProperty(DKEY_JSONIDX,w->property(DKEY_JSONIDX));
+            break;
+        }
+    }
+
+    this->changeJsonValue(sender,sender->objectName(),"");
+    if(!sender->objectName().compare(BAKCOLOR))
+    {
+        mbkColor = "";
+    }else if(!sender->objectName().compare(BAKIMAGE))
+    {
+         mbkImage = "";
+    }else if(!sender->objectName().compare(GRAYCOLOR))
+    {
+        mBorderColor = "";
+    }
+    updateStyleSheets();
+
+}
+
 void BaseForm::onBackgroundImageDialog()
 {
     QWidget *w  = (QWidget*)(QObject::sender());
-    QString imgdir = mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString();
+    QString imgdir = mWindow->cManager->mProjectImageDir;
 
 
 
@@ -977,6 +1113,7 @@ void BaseForm::onBackgroundImageDialog()
     imgview->imglist->setProperty(DKEY_ARRIDX,w->property(DKEY_ARRIDX));
     imgview->imglist->setProperty(DKEY_PARRIDX,w->property(DKEY_PARRIDX));
     imgview->imglist->setProperty(DKEY_OWERJSON,w->property(DKEY_OWERJSON));
+    imgview->imglist->setProperty(DKEY_JSONIDX,w->property(DKEY_JSONIDX));
 
 
     QObject::connect(imgview->imglist,&QListWidget::itemDoubleClicked,
@@ -989,10 +1126,9 @@ void BaseForm::onBackgroundImageDialog()
             QString fpath = vmap[item->text()].toString();
             mbkImage = fpath;
             updateStyleSheets();
-            int n = imgdir.length() +1;
             changeJsonValue(imgview->imglist,
                             property(DKEY_CURVAL).toString(),
-                            fpath.mid(n));
+                            fpath.mid(mWindow->mRootPathLen));
             QPixmap p(12,12);
             p.load(fpath);
             ((QPushButton*)w)->setIcon(p);
@@ -1042,8 +1178,8 @@ void BaseForm::onListImageChanged(QString img)
        if(!k.compare(img))
        {
            QString fpath = s.section(SECTION_CHAR,1,1);
-           int len = mWindow->mGlobalSet->value(INI_PRJIMAGEDIR).toString().length()+1;
-           changeJsonValue(w,objname,fpath.mid(len)); // 修改JSON里的值
+
+           changeJsonValue(w,objname,fpath.mid(mWindow->mRootPathLen)); // 修改JSON里的值
            break;
        }
    }
@@ -1202,7 +1338,7 @@ NewFrame::NewFrame(QString caption, QWidget *parent)
     //setProperty(DKEY_LOCALSEQ,uname);
     setObjectName(uname);
     mbkColor = "#4285F4";
-    updateStyleSheets();
+  //  updateStyleSheets();
     setToolTip(uname);
 }
 
@@ -1299,7 +1435,7 @@ NewGrid::NewGrid(const QJsonValue &qv,
    // repaint();
 
     mbkColor = "#FFE4C4";
-    updateStyleSheets();
+   // updateStyleSheets();
 
    //setProperty(DKEY_JSONSTR,qv );
     mOwerJson = qv.toObject();
@@ -1385,7 +1521,7 @@ void NewGrid::initRowsCols(int row,int col,const QJsonValue &value)
                 nl->mbkColor = nodd;
         }
         nl->changeJsonValue(BAKCOLOR,QColor(nl->mbkColor));
-        nl->updateStyleSheets();
+      //  nl->updateStyleSheets();
     }
     gridLayout->addWidget(nl,row,col);
 
@@ -1628,7 +1764,7 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
     //show();
    // repaint();
     mbkColor = "#00BCD4";
-    updateStyleSheets();
+  //  updateStyleSheets();
 
     QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonRelease,
                                          QCursor::pos(),
@@ -1704,7 +1840,7 @@ void NewList::onAddManyLine()
             n->mbkColor = i % 2 ? one : two;
             n->changeJsonValue(BAKCOLOR,QColor(n->mbkColor));
 
-            n->updateStyleSheets();
+          //  n->updateStyleSheets();
         }
         if(num) updateAllItemsSize();
 }

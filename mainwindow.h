@@ -119,6 +119,7 @@ private slots:
 protected:
     void keyReleaseEvent(QMouseEvent *);
     void mousePressEvent(QMouseEvent *ev);
+    void closeEvent(QCloseEvent *e);
 private:
     Ui::MainWindow *ui;
 
@@ -135,7 +136,7 @@ private:
     void createCSVFile(QString xlsfile);
     void readCSVFile(QString csvfile);
 
-    void closeEvent(QCloseEvent *);
+ //   void closeEvent(QCloseEvent *);
     QWidget *pWin;
 
 
