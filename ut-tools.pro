@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui quick
+QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -80,8 +80,8 @@ CONFIG += c++11
 RESOURCES += \
     icons.qrc
 
-DISTFILES += \
-    busyindicator.qml
+#DISTFILES += \
+#    busyindicator.qml
 
 RC_ICONS = logo.ico
 

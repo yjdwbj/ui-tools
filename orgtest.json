@@ -110,7 +110,7 @@
                         {
                             "-name": "background_image",
                             "-type": "background-image",
-                            "background-image": "",
+                            "background-image": "images/empty.png",
                             "caption": "背景图片"
                         },
                         {

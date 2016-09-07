@@ -124,23 +124,22 @@ QJsonValue Compoent::changeJsonValue(const QJsonArray &arg,QString key,
     return parr;
 }
 
+void Compoent::changeJsonValue(int idex, const QVariant &val)
+{
+   QJsonArray parr =  mOwerJson[PROPERTY].toArray();
+    mOwerJson[PROPERTY] = changeJsonValue(parr,idex,val);
+}
+
 void Compoent::changeJsonValue(QString key, const QVariant &val)
 {
    QJsonArray parr =  mOwerJson[PROPERTY].toArray();
-  // changeJsonValue(parr,key,val);
-   // int asize = parr.size();
-
-    // 这个QJsonObject 都是只读的,修改之后必需重新赋值.
-   // dynValues[DKEY_DYN] = parr;
-
-   // dynValues[DKEY_DYN] = changeJsonValue(parr,key,val);
     mOwerJson[PROPERTY] = changeJsonValue(parr,key,val);
 }
 
 
 QJsonValue Compoent::changeJsonValue(const QJsonArray &json,int index, const QVariant &val)
 {
-    QJsonArray tmpa = json;
+
     QJsonObject obj = json.at(index).toObject();
     QString wtype  = obj[WTYPE].toString();
 
@@ -165,7 +164,7 @@ QJsonValue Compoent::changeJsonValue(const QJsonArray &json,int index, const QVa
         obj[BAKCOLOR] = QJsonValue::fromVariant(val);
     }
     else if(!wtype.compare(UID)){
-            obj[UID] = QJsonValue::fromVariant(val);
+            obj[ENAME] = QJsonValue::fromVariant(val);
     }else if(!wtype.compare(BAKIMAGE))
     {
         obj[BAKIMAGE] = QJsonValue::fromVariant(val);
@@ -211,19 +210,23 @@ QJsonValue Compoent::changeJsonValue(const QJsonArray &json,int index, const QVa
         }
     }
 
-    tmpa.replace(index,obj);
-    return tmpa;
+    QJsonArray ret(json);
+    ret.replace(index,obj);
+    return ret;
 }
 
 
 void Compoent::changeJsonValue(QWidget *w,QString key, const QVariant &val)
 {
+    QVariant sval(val);
+  //  qDebug() << "QWidget name " << key << val;
     QString owercls = w->property(DKEY_OWERJSON).toString();
+     int jsonindex = w->property(DKEY_JSONIDX).toInt();
 
     if(!owercls.compare("ComProperty"))
     {
         // 默就解析到 JSON PROPERTY 里的属性,不递归到CSS属性里去.
-        changeJsonValue(key,val);
+        changeJsonValue(jsonindex,sval);
 
     }else if(!owercls.compare("CssProperty"))
     {
@@ -234,12 +237,29 @@ void Compoent::changeJsonValue(QWidget *w,QString key, const QVariant &val)
         QJsonObject pobj = parray.at(index).toObject();
         QJsonArray structarray = pobj[STRUCT].toArray();
         int  cssindex = w->property(DKEY_ARRIDX).toInt();
-        int jsonindex = w->property(DKEY_JSONIDX).toInt();
+
         QJsonArray cssArray = structarray.at(cssindex).toArray();
-        structarray[cssindex] = changeJsonValue(cssArray,jsonindex,val);
+
+//        if(!key.compare(ALPHA)){
+//            for(int n = 0; n<cssArray.size();n++)
+//            {
+//               QJsonObject o =  cssArray.at(n).toObject();
+//               if(o.contains(BAKCOLOR))
+//               {
+//                  QString s = o[BAKCOLOR].toString();
+//                  QColor c = QColor(s);
+//                  int alpha = sval.toInt();
+//                  c.setAlpha(alpha);
+//                  sval = c.name(QColor::HexArgb);
+//                  cssArray = changeJsonValue(cssArray,n,sval).toArray();
+//                  sval = alpha;
+//                  break;
+//               }
+//            }
+//        }
+        structarray[cssindex] = changeJsonValue(cssArray,jsonindex,sval);
         //structarray[cssindex] = changeJsonValue(cssArray,key,val);
         pobj[STRUCT] = structarray;
-
         parray[index] = pobj;
         mOwerJson[PROPERTY] = parray;
     }
@@ -424,7 +444,7 @@ void Compoent::onBindValue(QWidget *w)
               // 这里暂时有RGB颜色测试
               c = QColor(getJsonValue(item,GRAYCOLOR).toString());
              // if(isFirst)
-                  myself->mBorderColor = c.name();
+                  myself->mBorderColor = c.name(QColor::HexArgb);
 
           }else if(!uname.compare(BAKIMAGE))
           {
@@ -452,7 +472,7 @@ void Compoent::onBindValue(QWidget *w)
           p.fill(c);
 
           ((QPushButton*)w)->setIcon(p);
-          ((QPushButton*)w)->setProperty(DKEY_COLOR,c);
+          ((QPushButton*)w)->setProperty(DKEY_COLOR,c.name(QColor::HexArgb));
      }
  }
 
@@ -539,7 +559,7 @@ QJsonObject Compoent::getBorderJson(QWidget *w)
 
 
 BaseForm::BaseForm(QWidget *parent)
-    :FormResizer(parent), mBorderColor("#FFFFFF"),
+    :FormResizer(parent), mBorderColor("#FFFFFFFF"),
       mBorder(0,0,0,0),
       mCreateFlag(false),
       posWidget(0)
@@ -820,14 +840,14 @@ void BaseForm::onNumberChanged(int num)
 
     QSpinBox *sp = (QSpinBox *)(QObject::sender());
     changeJsonValue(sp,sp->objectName(),num);
-    if(!sp->objectName().compare(ALPHA))
-    {
-        QColor c(this->mbkColor);
-        c.setAlpha(num);
-        mbkColor = c.name(QColor::HexArgb);
-        this->updateStyleSheets();
-      //  changeJsonValue(sp,BAKCOLOR,mbkColor);
-    }
+//    if(!sp->objectName().compare(ALPHA))
+//    {
+//        QColor c(this->mbkColor);
+//        c.setAlpha(num);
+//        mbkColor = c.name(QColor::HexArgb);
+//        this->updateStyleSheets();
+//      //  changeJsonValue(sp,BAKCOLOR,mbkColor);
+//    }
 }
 
 void BaseForm::onTextChanged(QString str)
@@ -897,15 +917,19 @@ void BaseForm::updateStyleSheets()
    // 没有背景图片这个参数时就显示背景色.
    if(!mbkImage.isEmpty())
    {
-      if(!QFileInfo(mbkImage).exists())
-      {
-          mbkImage = QFileInfo(mbkImage).absoluteFilePath();
-      }
+//      if(!QFileInfo(mbkImage).exists())
+//      {
+//          mbkImage = QFileInfo(mbkImage).absoluteFilePath();
+//      }
       str =  QString("background-image: url(%1); %2").arg(mbkImage,str);
-   }else if(!mbkColor.isEmpty())
+   }
+
+   if(!mbkColor.isEmpty())
    {
       str = QString("background-color: %1; %2").arg(mbkColor,str);
-   }else if(!mBorderColor.isEmpty())
+   }
+
+   if(!mBorderColor.isEmpty())
    {
        str = QString("border-color: %1; %2").arg(mBorderColor,str);
    }
@@ -930,7 +954,7 @@ void BaseForm::updateStyleSheets()
        setStyleSheet(QString("BaseForm#%1 { %2 }").arg(this->objectName(),str));
    }
 
-  // qDebug() << " base form stylesheet " << this->styleSheet();
+   qDebug() << " base form stylesheet " << this->styleSheet();
    update();
    repaint();
 
@@ -970,11 +994,13 @@ void BaseForm::onEnumItemChanged(QString txt)
 void BaseForm::onColorButtonClicked()
 {
     QPushButton *btn = (QPushButton*)QObject::sender();
-    QColor c = QColor::fromRgb(btn->property(DKEY_COLOR).toUInt());
+    QColor c = QColor(btn->property(DKEY_COLOR).toString());
+    qDebug() << "old color " << c.name(QColor::HexArgb);
     QColorDialog *color =new  QColorDialog(c,this);
+    color->setCurrentColor(c);
 
-    color->setOptions( QColorDialog::DontUseNativeDialog /*|
-                       QColorDialog::ShowAlphaChannel*/);
+    color->setOptions( QColorDialog::DontUseNativeDialog |
+                       QColorDialog::ShowAlphaChannel);
     color->exec();
     c =  color->selectedColor();
 
@@ -989,7 +1015,30 @@ void BaseForm::onColorButtonClicked()
      //   bool isFirst = !btn->property(DKEY_ARRIDX).toInt();
         if(!objname.compare(BAKCOLOR))
         {
-             mbkColor = c.name(QColor::HexArgb);
+
+             // 这下面一砣代码是因为,RGB 与Alpha 值是分开设置,同时又要把ALPHA同步到RGBA
+//             int index = btn->property(DKEY_PARRIDX).toInt();
+//             QJsonArray parray = mOwerJson[PROPERTY].toArray();
+//             QJsonObject pobj = parray.at(index).toObject();
+//             QJsonArray structarray = pobj[STRUCT].toArray();
+//             int  cssindex = btn->property(DKEY_ARRIDX).toInt();
+
+//             QJsonArray cssArray = structarray.at(cssindex).toArray();
+
+//             for(int n = 0; n<cssArray.size();n++)
+//             {
+//                QJsonObject o =  cssArray.at(n).toObject();
+//                if(!o[NAME].toString().compare(ALPHA))
+//                {
+//                   int alpha = o[DEFAULT].toInt();
+//                   c.setAlpha(alpha);
+//                   break;
+//                }
+//             }
+
+              mbkColor = c.name(QColor::HexArgb);
+              btn->setProperty(DKEY_COLOR,mbkColor);
+
             changeJsonValue(btn,BAKCOLOR,mbkColor);
           //  if(isFirst)
 
@@ -1969,7 +2018,37 @@ QJsonObject NewList::writeToJson()
 
         if(!clsname.compare(CN_NEWLAYOUT))
         {
-           outjson = ((NewLayout*)w)->writeToJson();
+           NewLayout *layout =  (NewLayout*)w;
+           QJsonArray parray = layout->mOwerJson[PROPERTY].toArray();
+
+           for(int n = 0; n < parray.count() ; n++)
+           {
+               QJsonObject obj = parray.at(n).toObject();
+               if(obj.contains(STRUCT))
+               {
+                   QJsonArray structArray = obj[STRUCT].toArray();
+                   QJsonArray cssarray = structArray.at(0).toArray();
+                   for( int num =0;num < cssarray.count();num++)
+                   {
+                       QJsonObject cobj = cssarray.at(num).toObject();
+                       if(cobj.contains(KEY_RECT))
+                       {
+                            cobj[KEY_RECT] = getRectJson(layout)[KEY_RECT].toObject();
+                            cssarray.replace(num,cobj);
+                            break;
+                       }
+
+                   }
+                  structArray.replace(0,cssarray);
+                  obj[STRUCT] = structArray;
+                  parray[n] = obj;
+                  break;
+               }
+
+           }
+
+           layout->mOwerJson[PROPERTY] = parray;
+           outjson = layout->writeToJson();
         }else{
            outjson = ((NewFrame*)w)->writeToJson();
         }

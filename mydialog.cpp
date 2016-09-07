@@ -6,9 +6,9 @@
 #include <QMessageBox>
 #include "mainwindow.h"
 #include "canvasmanager.h"
-#include <QQmlApplicationEngine>
-#include <QQmlContext>
-#include <QQuickView>
+//#include <QQmlApplicationEngine>
+//#include <QQmlContext>
+//#include <QQuickView>
 #include <QDrag>
 #include <QMimeData>
 #include <QDataStream>

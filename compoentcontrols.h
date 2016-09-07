@@ -69,6 +69,10 @@ class PropertyTab: public QTabWidget
     Q_OBJECT
 public:
     explicit PropertyTab(QWidget *parent=0);
+     ~PropertyTab(){}
+    void clearLayout();
+
+
 
     void setNewObject(QWidget *);
     void addNewTab();
@@ -97,6 +101,10 @@ public:
     explicit BaseProperty(QWidget *parent=0);
     void parseJsonToWidget(QWidget *p, const QJsonArray &array);
      QVBoxLayout* mainLayout;
+//     ~BaseProperty(){
+
+//         removeWidFromLayout(mainLayout);
+//     }
 
 
 };
@@ -106,6 +114,7 @@ class CssProperty: public BaseProperty
     Q_OBJECT
 public:
     explicit CssProperty(QWidget *parent=0);
+    ~CssProperty(){}
    // QVBoxLayout* mainLayout;
 
 };

@@ -38,11 +38,12 @@ public:
      static QVariant getJsonValue(const QJsonArray &arr,QString key);
      QVariant getJsonValue(QString key) const;
      QVariant getJsonValue(const QJsonArray &arr, QString key,int index);
+     void changeJsonValue(int idex, const QVariant &val);
      void changeJsonValue(QString key, const QVariant &val);
      QJsonValue changeJsonValue( const QJsonArray &json,QString key,
                                     const QVariant &val);
      void changeJsonValue(QWidget *w, QString key, const QVariant &val);
-     QJsonValue changeJsonValue(const QJsonArray &json,int index, const QVariant &val);
+     QJsonValue changeJsonValue(const QJsonArray &json, int index, const QVariant &val);
 
      QJsonArray updateRBJsonValue(const QJsonArray &json,QWidget *w); // 更新UID,RECT,BORDER三个属性
 
