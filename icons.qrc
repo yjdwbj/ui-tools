@@ -2,7 +2,6 @@
     <qresource prefix="/icon">
         <file>icons/visibility-30x30.png</file>
         <file>icons/hide-30x30.png</file>
-        <file>busyindicator.qml</file>
         <file>icons/busy.png</file>
         <file>icons/arrowup.png</file>
         <file>icons/arrowdown.png</file>

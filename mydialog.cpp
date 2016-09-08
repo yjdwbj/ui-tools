@@ -240,7 +240,7 @@ void ImageFileDialog::updateListImages(QString path)
         flistview->addItem(new QListWidgetItem(pic,basename));
         if(isFind)
             flistview->setRowHidden(flistview->count()-1,true);
-        qApp->processEvents();
+     //   qApp->processEvents();
     }
 
 }
@@ -1103,8 +1103,12 @@ GlobalSettings::GlobalSettings(QWidget *parent):
              QString pf = va.toString();
              if(pf.startsWith("."))
                  pf.remove(0,1).prepend(QDir::currentPath());
-             else
-                 pf.prepend(QDir::currentPath() +BACKSLASH );
+             else{
+                  pf.prepend(QDir::currentPath() +BACKSLASH );
+                  if(!QFileInfo::exists(pf))
+                      pf = QDir::currentPath();
+             }
+
              ((FileEdit*)it.value())->setFilePath(pf);
          }
 

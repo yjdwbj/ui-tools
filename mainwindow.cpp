@@ -24,10 +24,6 @@
 #include <stdio.h>
 #include <unistd.h>
 
-
-
-
-
 using namespace xls;
 void Backgroud::paintEvent(QPaintEvent *)
 {
@@ -205,6 +201,9 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
 
+    QVariant lastprj = mGlobalSet->value(INI_PRJLAST);
+    if(lastprj.isValid())
+        cManager->OpenProject(lastprj.toString());
 }
 
 

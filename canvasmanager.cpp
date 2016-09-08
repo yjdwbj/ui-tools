@@ -59,9 +59,9 @@ CanvasManager::CanvasManager(MainWindow *w):
 
 
 
-   // mWindow->addWidgetToToolBar(confPrj);
+    // mWindow->addWidgetToToolBar(confPrj);
     mWindow->addWidgetToToolBar(Q_NULLPTR);
-  //  mWindow->addWidgetToToolBar(cb);
+    //  mWindow->addWidgetToToolBar(cb);
     mWindow->centralWidget()->setLayout(stack);
     // 按屏幕的大小比例调整.
 
@@ -92,7 +92,7 @@ CanvasManager::CanvasManager(MainWindow *w):
     //将定时器超时信号与槽(功能函数)联系起来
 
     connect( autoSaveTimer,&QTimer::timeout,[=](){
-            saveProject("autosave.json");
+        saveProject("autosave.json");
     } );
 
     connect(openPrj,SIGNAL(clicked(bool)),SLOT(onOpenProject()));
@@ -110,12 +110,12 @@ CanvasManager::CanvasManager(MainWindow *w):
         QLabel *label = new QLabel(aboutbtn);
         QVBoxLayout *vbox = new QVBoxLayout();
         //vbox->setContentsMargins(0,0,0,0);
-       // vbox->setMargin(0);
+        // vbox->setMargin(0);
         vbox->setSpacing(0);
         aboutdlg->setLayout(vbox);
         vbox->addWidget(label);
         QString txt = QString("<b><img src=':/icon/icons/QtBareMetal.png'></b>"\
-                    "<b><p>版本:</p><p> %1 </p></b>").arg(VERSION);
+                              "<b><p>版本:</p><p> %1 </p></b>").arg(VERSION);
         label->setText(txt);
         aboutdlg->exec();
         aboutdlg->deleteLater();
@@ -167,7 +167,7 @@ ScenesScreen * CanvasManager::createNewCanvas()
 
 
     // 这里不能改变它的对像名,用一个动态属
-//    // Scenes->setObjectName(QString("Page_%1").arg(QString::number(ssList.size()-1)));
+    //    // Scenes->setObjectName(QString("Page_%1").arg(QString::number(ssList.size()-1)));
     Scenes->setProperty(DKEY_TXT,QString("页面_%1").arg(QString::number(mCanvasList.size())));
     Scenes->setToolTip(Scenes->property(DKEY_TXT).toString());
     mCanvasList.append(Scenes);
@@ -175,7 +175,7 @@ ScenesScreen * CanvasManager::createNewCanvas()
     mWindow->lDock->setEnabled(true);
     stack->addWidget(Scenes);
     stack->setCurrentWidget(Scenes);
-   // stack->setGeometry(stackRect);
+    // stack->setGeometry(stackRect);
     // 清理treeWidget 的行
     mWindow->tree->deleteAllitem();
     return Scenes;
@@ -196,8 +196,8 @@ int CanvasManager::activeIndex()
 void CanvasManager::setActiveSS(int index)
 {
 
-//    qDebug() << "centralWidget pos" << mWindow->centralWidget()->geometry()
-//             << " this pos " << stack->geometry();
+    //    qDebug() << "centralWidget pos" << mWindow->centralWidget()->geometry()
+    //             << " this pos " << stack->geometry();
     if(index == -1) return;
     if(index < mCanvasList.size())
     {
@@ -208,11 +208,11 @@ void CanvasManager::setActiveSS(int index)
         ScenesScreen *Scenes = (ScenesScreen*)(stack->currentWidget());
         // 把当前页的布局重新添加到treeWidget上
         foreach (QWidget *w, Scenes->LayerList) {
-           // QString key = w->property(DKEY_LOCALSEQ).toString();
+            // QString key = w->property(DKEY_LOCALSEQ).toString();
             mWindow->tree->addItemToRoot(w);
             ((BaseForm*)w)->addChildrenToTree();
         }
-      //  stack->setGeometry(stackRect);
+        //  stack->setGeometry(stackRect);
     }
 
 }
@@ -247,7 +247,7 @@ void CanvasManager::onDelCurrentScenesScreen()
     msgBox.setButtonText(QMessageBox::Cancel,"取消");
     msgBox.setDefaultButton(QMessageBox::Cancel);
     int ret = msgBox.exec();
-  //  qDebug() << " QMessageBox result " << ret;
+    //  qDebug() << " QMessageBox result " << ret;
     if(ret == QMessageBox::Yes)
     {
 
@@ -294,11 +294,46 @@ void CanvasManager::onCreateNewProject()
     {
 
         onCreateNewScenesScreen();
-         autoSaveTimer->start(60000);
+        autoSaveTimer->start(60000);
     }
 
 }
 
+
+void CanvasManager::OpenProject(QString file)
+{
+    QFile PrjFile(file);
+    if (PrjFile.open(QFile::ReadOnly|QIODevice::Text)) {
+        QByteArray qba = PrjFile.readAll();
+        QTextStream in(&PrjFile);
+        QString str;
+        int ans = 0;
+        in >> str >> ans;
+        QJsonParseError json_error;
+        QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
+
+        if(json_error.error == QJsonParseError::NoError)
+        {
+            if(qd.isObject())
+            {
+                QJsonObject  qdobj = qd.object();
+                mProjectName = qdobj[NAME].toString();
+                mWindow->setWindowTitle( VERSION + mProjectName);
+                foreach (QJsonValue val,qdobj[MLANG].toArray() ) {
+                    mPrjSelectlang.append(val.toString());
+                }
+                readProjectJson(qdobj[PAGES].toArray());
+                setActiveSS(qdobj[ACTPAGE].toInt());
+                mPrjIsChanged=true;
+                mIsOpenProject = true;
+            }
+        }else{
+            // qDebug() << " read Json file error";
+            qDebug() << json_error.errorString();
+        }
+
+    }
+}
 
 void CanvasManager::onOpenProject()
 {
@@ -329,37 +364,7 @@ void CanvasManager::onOpenProject()
 
     if(!pfile.isEmpty())
     {
-        QFile PrjFile(pfile);
-        if (PrjFile.open(QFile::ReadOnly|QIODevice::Text)) {
-            QByteArray qba = PrjFile.readAll();
-            QTextStream in(&PrjFile);
-            QString str;
-            int ans = 0;
-            in >> str >> ans;
-            QJsonParseError json_error;
-            QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
-
-            if(json_error.error == QJsonParseError::NoError)
-            {
-                if(qd.isObject())
-                {
-                    QJsonObject  qdobj = qd.object();
-                    mProjectName = qdobj[NAME].toString();
-                    mWindow->setWindowTitle( VERSION + mProjectName);
-                    foreach (QJsonValue val,qdobj[MLANG].toArray() ) {
-                        mPrjSelectlang.append(val.toString());
-                    }
-                    readProjectJson(qdobj[PAGES].toArray());
-                    setActiveSS(qdobj[ACTPAGE].toInt());
-                    mPrjIsChanged=true;
-                    mIsOpenProject = true;
-                }
-            }else{
-                // qDebug() << " read Json file error";
-                qDebug() << json_error.errorString();
-            }
-
-        }
+        OpenProject(pfile);
         autoSaveTimer->start(60000);
     }
 }
@@ -368,11 +373,11 @@ void CanvasManager::onOpenProject()
 void CanvasManager::closeCurrentProject()
 {
     foreach (QWidget *w, mCanvasList) {
-       deleteCurrentPage();
+        deleteCurrentPage();
     }
     mWindow->ComCtrl->ProMap.clear();
     mIsOpenProject = false;
-     autoSaveTimer->stop();
+    autoSaveTimer->stop();
 }
 
 void CanvasManager::onCreateNewScenesScreen()
@@ -387,11 +392,11 @@ void CanvasManager::onCreateNewScenesScreen()
 
 void CanvasManager::onConfProject()
 {
-  ConfigProject cp(mWindow);
-  cp.exec();
- // int n = cp.result();
-  if(cp.result())  // accpet 就保存语言.
-     mPrjSelectlang = cp.getSelectLang();
+    ConfigProject cp(mWindow);
+    cp.exec();
+    // int n = cp.result();
+    if(cp.result())  // accpet 就保存语言.
+        mPrjSelectlang = cp.getSelectLang();
 
 }
 
@@ -399,30 +404,30 @@ void CanvasManager::onConfProject()
 void CanvasManager::saveProject(QString fname)
 {
     QFile saveFile(fname);
-   if (!saveFile.open(QIODevice::WriteOnly)) {
-       qWarning("Couldn't open save file.");
+    if (!saveFile.open(QIODevice::WriteOnly)) {
+        qWarning("Couldn't open save file.");
 
-   }
+    }
 
-   QJsonArray CanvasArray;
-  // QJsonObject root;
-   foreach (QWidget *w, mCanvasList) {
-      CanvasArray.append(((ScenesScreen*)w)->writeToJson());
-   }
-   QJsonObject obj ;
-   obj[NAME] = mProjectName;
-   obj[ACTPAGE] = stack->currentIndex();
-   obj[PAGES] = CanvasArray;
-   obj[WTYPE] = "project";
-   QJsonArray lang;
-   foreach (QString v ,mPrjSelectlang) {
-       QJsonValue val = v;
-       lang.append(val);
-   }
-   obj[MLANG] = lang;
-   QJsonDocument jsonDoc(obj);
-   saveFile.write(jsonDoc.toJson());
-   mIsOpenProject = false;
+    QJsonArray CanvasArray;
+    // QJsonObject root;
+    foreach (QWidget *w, mCanvasList) {
+        CanvasArray.append(((ScenesScreen*)w)->writeToJson());
+    }
+    QJsonObject obj ;
+    obj[NAME] = mProjectName;
+    obj[ACTPAGE] = stack->currentIndex();
+    obj[PAGES] = CanvasArray;
+    obj[WTYPE] = "project";
+    QJsonArray lang;
+    foreach (QString v ,mPrjSelectlang) {
+        QJsonValue val = v;
+        lang.append(val);
+    }
+    obj[MLANG] = lang;
+    QJsonDocument jsonDoc(obj);
+    saveFile.write(jsonDoc.toJson());
+    mIsOpenProject = false;
 }
 
 void CanvasManager::onSaveAsProject()
@@ -473,26 +478,26 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
     bool readflag = false;
     foreach (QJsonValue val, array) {
         readflag = true;
-       // QVariantMap  qjm = val.toObject().toVariantMap();
+        // QVariantMap  qjm = val.toObject().toVariantMap();
         // 创建一个页面.
         switch (val.type()) {
         case QJsonValue::Object:
         {
-                int w,h;
-                QJsonObject valobj = val.toObject();
-                foreach (QJsonValue pval, valobj[PROPERTY].toArray()) {
-                    QJsonObject pobj = pval.toObject();
-                    if(pobj.contains(KEY_RECT))
-                    {
-                        w = pobj[KEY_RECT].toObject()[WIDTH].toString().toInt();
-                        h = pobj[KEY_RECT].toObject()[HEIGHT].toString().toInt();
-                        break;
-                    }
+            int w,h;
+            QJsonObject valobj = val.toObject();
+            foreach (QJsonValue pval, valobj[PROPERTY].toArray()) {
+                QJsonObject pobj = pval.toObject();
+                if(pobj.contains(KEY_RECT))
+                {
+                    w = pobj[KEY_RECT].toObject()[WIDTH].toString().toInt();
+                    h = pobj[KEY_RECT].toObject()[HEIGHT].toString().toInt();
+                    break;
                 }
-                setDefaultPageSize(QSize(w,h));
-                ScenesScreen *Scenes = createNewCanvas();
-                // 递归读取它的页面.
-                Scenes->readLayer(valobj[LAYER].toArray());
+            }
+            setDefaultPageSize(QSize(w,h));
+            ScenesScreen *Scenes = createNewCanvas();
+            // 递归读取它的页面.
+            Scenes->readLayer(valobj[LAYER].toArray());
         }
             break;
         default:

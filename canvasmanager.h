@@ -29,6 +29,7 @@ public:
     void closeCurrentProject();
 
     void deleteCurrentPage();
+    void OpenProject(QString file);
     void readProjectJson(const QJsonArray &array);
 
     QSize getDefaultPageSize() { return mPageSize;}

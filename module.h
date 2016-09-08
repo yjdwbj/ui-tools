@@ -62,6 +62,17 @@ public:
 
 
 
+class BaseScrollArea: public QScrollArea
+{
+    Q_OBJECT
+public:
+    BaseScrollArea(QWidget *parent=0);
+private:
+    void paintEvent(QPaintEvent *);
+};
+
+
+
 // 图层与布局的基础控件.
 class BaseForm: public FormResizer,public Compoent
 {
@@ -79,6 +90,9 @@ public:
     MainWindow *mWindow;
 
     QPoint mOffset;
+    QRect mOldRect;
+    QPoint mOldPos;
+    QSize mOldSize;
     QList<QWidget*> childlist;
     QWidget *parentControl;
 
@@ -101,6 +115,7 @@ public:
     void updateStyleSheets() ;
     void removeChild(QWidget *w);
     void initJsonValue();
+    QWidget* getPairWidgetFromPLayout(QWidget *sender);
 
     void moveNewPos(QPoint pos);
     void moveNewPos(int x,int y);
@@ -133,7 +148,7 @@ public slots:
     void onColorButtonClicked();
     void onBorderChangedValue(int v);
     void onBackgroundImageDialog();
-    void onSelectedBackgroundImage(QListWidgetItem *item);
+  //  void onSelectedBackgroundImage(QListWidgetItem *item);
 
     virtual void onDeleteMe() =0;
    // void onPictureDialog();
@@ -187,7 +202,7 @@ public:
 
 
 
-    QScrollArea *mainScroll;
+    BaseScrollArea *mainScroll;
     QWidget *mainWidget;
     QAction *menuAddRow;
     QAction *menuAddCol;
@@ -230,7 +245,7 @@ public:
     void readFromJson(const QJsonValue &valobj);
     void updateAllItemsSize();
    // void addChildrenToTree();
-    QScrollArea *mainScroll;
+    BaseScrollArea *mainScroll;
    // ContainerScroll *mainScroll;
     QWidget *mainWidget;
      QBoxLayout *listLayout;

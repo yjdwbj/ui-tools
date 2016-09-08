@@ -86,6 +86,11 @@ void SizeHandleRect::mouseMoveEvent(QMouseEvent *e)
     // areas, it will now snap to it.
    // qDebug() << " try to move a control point" << e;
     m_curPos = m_resizable->mapFromGlobal(e->globalPos());
+//    qDebug() << " resizable name " <<
+//                m_resizable->objectName()
+//             << m_resizable->metaObject()->className()
+//             << " this pos " << m_resizable->pos();
+    m_resizable->setProperty(DKEY_OLDPOS,m_resizable->pos());
     QSize delta = QSize(m_curPos.x() - m_startPos.x(), m_curPos.y() -  m_startPos.y());
     switch (m_dir) {
     case Right:

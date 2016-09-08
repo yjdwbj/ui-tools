@@ -380,7 +380,8 @@ void PropertyTab::onTabChanged(int index){
         QJsonValue val =  structarry.at(index);
         QColor color = QColor(bfobj->getJsonValue(val.toArray(),
                                                                    BAKCOLOR).toString());
-        bfobj->mbkColor = color.name();
+        if(color.isValid())
+            bfobj->mbkColor = color.name(QColor::HexArgb);
         QString img =  bfobj->getJsonValue(val.toArray(),BAKIMAGE).toString();
        // QString imgdir = ((BaseForm *)mOwerObj)->mWindow->cManager->mProjectImageDir;
         if(!img.isEmpty())
@@ -388,9 +389,11 @@ void PropertyTab::onTabChanged(int index){
 
         bfobj->mBorder =
                 bfobj->getRectFromStruct(val.toArray(),BORDER);
+
         color = QColor(bfobj->getJsonValue(val.toArray(),
                                                GRAYCOLOR).toString());
-        bfobj->mBorderColor = color.name();
+        if(color.isValid())
+             bfobj->mBorderColor = color.name(QColor::HexArgb);
         bfobj->setGeometry(bfobj->getRectFromStruct(val.toArray(),KEY_RECT));
         bfobj->updateStyleSheets();
    // });
@@ -711,6 +714,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                 // 这里通过它的JSON组数的位置去找它.
                 wid = cb;
                 QPushButton *btn = new QPushButton(caption,this);
+                btn->setProperty(DKEY_JSONIDX,i);
                 btn->setObjectName(uname);
                 btn->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
                 btn->setProperty(DKEY_ARRIDX,this->property(DKEY_ARRIDX));
@@ -804,8 +808,8 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                                         s.section(SECTION_CHAR,0,0));
                         }
                         cb->setCurrentText(curstr);
-                        ((BaseForm*)p)->changeJsonValue(btn,uname,qa);
-                        btn->setProperty(DKEY_CBLIST,qa);
+                        ((BaseForm*)p)->changeJsonValue(btn,uname,qa.toVariantList());
+                        btn->setProperty(DKEY_CBLIST,qa.toVariantList());
                         cb->setProperty(DKEY_CBLIST,imglist);
                     });
 

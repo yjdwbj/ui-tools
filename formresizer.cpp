@@ -130,7 +130,10 @@ void FormResizer::resizeEvent(QResizeEvent *event)
     if (debugFormResizer)
         qDebug() << ">FormResizer::resizeEvent" <<  event->size();
     if(property(DKEY_INTOCONTAINER).toBool())
+    {
         return;
+    }
+
     updateGeometry();
     QWidget::resizeEvent(event);
     if (debugFormResizer)
