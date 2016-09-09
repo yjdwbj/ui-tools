@@ -115,9 +115,11 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv,bool createflag)
     {
         oldrect.setWidth(200);
         oldrect.setHeight(200);
+        oldrect.setX(0);
+        oldrect.setY(0);
     }
 
-    NewLayer *nlayer = new NewLayer(json[CAPTION].toString(), oldrect.size() /* + MARGIN_SIZE*/,this);
+    NewLayer *nlayer = new NewLayer(json[CAPTION].toString(), oldrect/* + MARGIN_SIZE*/,this);
     nlayer->mCreateFlag = createflag;
     nlayer->setProperty(DKEY_JSONSTR,qv);
     nlayer->setProperty(DKEY_TYPE, json[WTYPE].toString());
@@ -157,8 +159,6 @@ void ScenesScreen::readLayer(const QJsonArray &array)
     }
 
 }
-
-
 
 void ScenesScreen::setSelectObject(FormResizer *obj)
 {
@@ -252,9 +252,6 @@ void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
 
     }
 
-
-
-
 }
 
 
@@ -284,7 +281,6 @@ void ScenesScreen::pasteItem(QWidget *w)
             {
                 NewLayer *layer = (NewLayer *)bf;
                 layer->readLayoutFromJson(mWindow->mCopyItem,true);
-
             }else{
                 NewLayout* bflayout = (NewLayout*)(bf->parentWidget());
                 bflayout->readFromJson(mWindow->mCopyItem,true);

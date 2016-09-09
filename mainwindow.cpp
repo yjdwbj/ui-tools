@@ -362,7 +362,7 @@ void MainWindow::readExcelFile(char *xlsfile)
                     break;
                 }
             }
-            collist <<  s;
+            collist <<  s.trimmed();
 
             cvsfile.write(s.toUtf8().data());
         }

@@ -37,7 +37,7 @@ void BaseDialog::UpdateStyle()
     qDebug() << " basedialog stylesheet " << styleSheet();
 }
 
-ImageFileDialog::ImageFileDialog(QVariantList old, QString imgpath, QWidget *parent)
+ImageFileDialog::ImageFileDialog(const QVariantList &old, QString imgpath, QWidget *parent)
     :QDialog(parent),
 //      sellist(new CustomListWidget()),
 //      flistview(new CustomListWidget()),
@@ -418,8 +418,10 @@ void ImageFileDialog::onDelSelectedItems()
         selectedMap.remove(selstr);
 
         delete sellist->takeItem(sellist->row(item));
+        statusBar->setText(QString::number(sellist->count()));
     }
    // updateListWidget();
+
     sellist->clearSelection();
 }
 

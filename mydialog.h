@@ -36,7 +36,7 @@ class ImageFileDialog: public QDialog
 {
     Q_OBJECT
 public:
-    explicit ImageFileDialog(QVariantList old, QString imgpath,  QWidget *parent = 0);
+    explicit ImageFileDialog(const QVariantList &old, QString imgpath,  QWidget *parent = 0);
     ~ImageFileDialog();
 
     //const selectedMap getSelectedMap() const { return selMap;}

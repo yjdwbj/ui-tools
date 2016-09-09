@@ -115,6 +115,8 @@ public:
     void updateStyleSheets() ;
     void removeChild(QWidget *w);
     void initJsonValue();
+
+    QJsonObject ContainerWriteToJson(QWidget *w);
     QWidget* getPairWidgetFromPLayout(QWidget *sender);
 
     void moveNewPos(QPoint pos);
@@ -245,7 +247,7 @@ public:
     void readFromJson(const QJsonValue &valobj);
     void updateAllItemsSize();
    // void addChildrenToTree();
-    BaseScrollArea *mainScroll;
+    QScrollArea *mainScroll;
    // ContainerScroll *mainScroll;
     QWidget *mainWidget;
      QBoxLayout *listLayout;
@@ -285,7 +287,7 @@ class NewLayout :public BaseForm
     friend class CompoentControls;
     Q_OBJECT
 public:
-    explicit NewLayout(QString caption,QSize nsize,MainWindow *w, QWidget *parent=0);
+    explicit NewLayout(QString caption, QRect rect, MainWindow *w, QWidget *parent=0);
 //    NewLayout (const QJsonObject &json,QWidget *parent=0);
     NewLayout (int width,int height,QWidget *parent=0);
 
@@ -324,7 +326,7 @@ class NewLayer : public BaseForm
 {
     Q_OBJECT
 public:
-    explicit NewLayer(QString caption, QSize nsize, QWidget *parent=0);
+    explicit NewLayer(QString caption, QRect rect, QWidget *parent=0);
     void readLayoutFromJson(const QJsonValue &qv, bool flag);
 
     QJsonObject  writeToJson() ;

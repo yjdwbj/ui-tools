@@ -10,7 +10,7 @@
 #include <QThread>
 
 //static int pwidth = 20;
-#define DBGPRINT 1
+#define DBGPRINT 0
 
 
 Border::Border(QWidget *parent)
@@ -453,6 +453,9 @@ void PropertyTab::handleCSSProperty(TabHandle  handle)
     {
         structarry.removeAt(index);
         this->removeTab(index);
+        structobj[STRUCT] = structarry;
+        parry[pindex] = structobj;
+        ((BaseForm *)mOwerObj)->mOwerJson[PROPERTY] = parry;
     }
         break;
     default:
@@ -728,16 +731,17 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                 QJsonArray cbarray = object[LIST].toArray();
                 btn->setProperty(DKEY_CBLIST,cbarray);
                 QStringList lst ;
+                BaseForm* baseform =   ((BaseForm*)p);
                 if(!uname.compare(PIC_TEXT))
                 {
 
-                    foreach(QJsonValue v,cbarray) lst << ((BaseForm*)p)->mWindow->mItemMap.value(v.toString());
+                    foreach(QJsonValue v,cbarray) lst << baseform->mWindow->mItemMap.value(v.toString());
                     QString defstr = object[DEFAULT].toString().toLower();
                     cb->addItems(lst);
-                    cb->setCurrentText(((BaseForm*)p)->mWindow->mItemMap.value(defstr));
+                    cb->setCurrentText(baseform->mWindow->mItemMap.value(defstr));
                     QObject::connect(btn,&QPushButton::clicked,[=](){
                         QJsonArray cblist =btn->property(DKEY_CBLIST).toJsonArray();
-                        I18nLanguage lang(cblist.toVariantList(),((BaseForm*)p)->mWindow);
+                        I18nLanguage lang(cblist.toVariantList(),baseform->mWindow);
                         lang.exec();
 
                         QStringList nlst = lang.getSelectedItems();
@@ -746,14 +750,16 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                         cb->addItems(nlst);
                         cb->setCurrentText(curstr);
                         QStringList klist ;
-                        foreach(QString v,nlst) klist << ((BaseForm*)p)->mWindow->mItemMap.key(v);
-                        ((BaseForm*)p)->changeJsonValue(btn,uname,klist);
+                        foreach(QString v,nlst) klist << baseform->mWindow->mItemMap.key(v);
+                        baseform->changeJsonValue(btn,uname,klist);
                         btn->setProperty(DKEY_CBLIST,QJsonArray::fromStringList(klist));
+                        baseform->updateStyleSheets();
+
                     });
 
                     QObject::connect(cb,&QComboBox::currentTextChanged,[=](QString txt){
-                        ((BaseForm*)p)->changeJsonValue(btn,uname,
-                                                        ((BaseForm*)p)->mWindow->mItemMap.key(txt));
+                       baseform->changeJsonValue(btn,uname,
+                                               baseform->mWindow->mItemMap.key(txt));
                     });
                     continue;
 
@@ -782,8 +788,8 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                     QObject::connect(btn,&QPushButton::clicked,[=](){
                         QJsonArray cblist =btn->property(DKEY_CBLIST).toJsonArray();
                         ImageFileDialog ifd(cblist.toVariantList(),
-                                            ((BaseForm*)p)->mWindow->cManager->mProjectImageDir,
-                                            ((BaseForm*)p)->mWindow);
+                                            baseform->mWindow->cManager->mProjectImageDir,
+                                            baseform->mWindow);
                         ifd.exec();
                         QVariantList imglist = ifd.getSelectedList();
                         QJsonArray qa;
@@ -798,7 +804,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                             QString substr;
                             if(lastsection.indexOf(BACKSLASH) == 0)
                             {
-                                substr = s.section(SECTION_CHAR,1,1).mid(((BaseForm*)p)->mWindow->mRootPathLen);
+                                substr = s.section(SECTION_CHAR,1,1).mid(baseform->mWindow->mRootPathLen);
                             }else
                             {
                                 substr = s.section(SECTION_CHAR,1,1);
@@ -808,9 +814,10 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                                         s.section(SECTION_CHAR,0,0));
                         }
                         cb->setCurrentText(curstr);
-                        ((BaseForm*)p)->changeJsonValue(btn,uname,qa.toVariantList());
+                        baseform->changeJsonValue(btn,uname,qa.toVariantList());
                         btn->setProperty(DKEY_CBLIST,qa.toVariantList());
                         cb->setProperty(DKEY_CBLIST,imglist);
+                        baseform->updateStyleSheets();
                     });
 
                     QObject::connect(cb,&QComboBox::currentTextChanged,[=](QString txt){
@@ -822,8 +829,8 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                             if(!k.compare(txt))
                             {
                                 QString fpath = s.section(SECTION_CHAR,1,1);
-                                ((BaseForm*)p)->changeJsonValue(btn,uname,
-                                                                fpath.mid(((BaseForm*)p)->mWindow->mRootPathLen)); // 修改JSON里的值
+                                baseform->changeJsonValue(btn,uname,
+                                fpath.mid(baseform->mWindow->mRootPathLen)); // 修改JSON里的值
                                 break;
                             }
                         }
@@ -910,6 +917,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
             {
                 QHBoxLayout *hb = new QHBoxLayout;
                  hb->setObjectName(uname);
+                 hb->setSpacing(0);
 
                 QPushButton *bkimage = new QPushButton(caption,this);
                 bkimage->setObjectName(uname);
@@ -930,9 +938,11 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                 wid = bkimage;
                 connect(bkimage,SIGNAL(clicked(bool)),p,SLOT(onBackgroundImageDialog()));
             }
-            else if(object.contains(BAKCOLOR))
+            else if(object.contains(BAKCOLOR) ||
+                    object.contains(COLOR))
             {
                 QHBoxLayout *hb = new QHBoxLayout;
+                hb->setSpacing(0);
                 hb->setObjectName(uname);
                 QPushButton *bkcolor = new QPushButton(caption,this);
                 bkcolor->setObjectName(uname);

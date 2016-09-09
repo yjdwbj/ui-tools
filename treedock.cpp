@@ -171,6 +171,9 @@ void TreeDock::onCustomContextMenu(const QPoint &point)
                 menu->addAction(&hideit);
                 connect(&hideit,SIGNAL(triggered(bool)),SLOT(onSwapShowHideObject(bool)));
             }
+            menu->addSeparator();
+
+
             menu->exec(treeWidget->viewport()->mapToGlobal(point));
             delete menu;
        }

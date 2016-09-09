@@ -35,11 +35,6 @@ CanvasManager::CanvasManager(MainWindow *w):
     saveas->setEnabled(false);
     confPrj->setEnabled(false);
 
-
-
-
-
-
     QComboBox *cb = new QComboBox();
 
     QPushButton *openPrj = new QPushButton("打开工程");
@@ -489,8 +484,8 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
                 QJsonObject pobj = pval.toObject();
                 if(pobj.contains(KEY_RECT))
                 {
-                    w = pobj[KEY_RECT].toObject()[WIDTH].toString().toInt();
-                    h = pobj[KEY_RECT].toObject()[HEIGHT].toString().toInt();
+                    w = pobj[KEY_RECT].toObject()[WIDTH].toInt();
+                    h = pobj[KEY_RECT].toObject()[HEIGHT].toInt();
                     break;
                 }
             }
