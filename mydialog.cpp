@@ -1240,6 +1240,7 @@ FileEdit::FileEdit(QString txt, QWidget *parent)
         });
 
 
+
         bd->setLayout(vb);
 //        bd->UpdateStyle();
         bd->exec();

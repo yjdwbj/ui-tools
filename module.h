@@ -115,6 +115,7 @@ public:
     void updateStyleSheets() ;
     void removeChild(QWidget *w);
     void initJsonValue();
+    void createContextMenu(QWidget *parent, QPoint pos);
 
     QJsonObject ContainerWriteToJson(QWidget *w);
     QWidget* getPairWidgetFromPLayout(QWidget *sender);
@@ -131,6 +132,7 @@ public:
                                QWidget *parent, bool isCreate);
 
     QJsonValue mPropertyJson;
+
 
     ObjType mType;
 

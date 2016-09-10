@@ -676,92 +676,183 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
 
     }else if(event->button() == Qt::RightButton)
     {
-        QString clsname = metaObject()->className();
-        QMenu *contextMenu = new QMenu(this);
-        QAction delme(QIcon(":/icon/icons/removesubmitfield.png")  ,
-                      QString("删除当前-%1").arg(this->property(DKEY_TXT).toString()),this);
-        connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
-        contextMenu->addAction(&delme);
-        contextMenu->addSeparator();
-         QAction saveTemp(QIcon(":/icon/icons/build.png"),"保存成控件",this);
-        if(!CN_NEWLAYOUT.compare(clsname))
+
+        createContextMenu(this,mapToGlobal(event->pos()));
+//        QString clsname = metaObject()->className();
+//        QAction delme(QIcon(":/icon/icons/removesubmitfield.png")  ,
+//                      QString("删除当前-%1").arg(this->property(DKEY_TXT).toString()),this);
+//        connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
+//        contextMenu->addAction(&delme);
+//        contextMenu->addSeparator();
+//         QAction saveTemp(QIcon(":/icon/icons/build.png"),"保存成控件",this);
+//        if(!CN_NEWLAYOUT.compare(clsname))
+//        {
+//            contextMenu->addAction(&saveTemp);
+//            connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
+//        }
+//        QAction hideobj(QIcon(":/icon/icons/eye_closed@2x.png"),"隐藏",this);
+//        if(!CN_NEWFRAME.compare(clsname))
+//        {
+
+//        }else
+//        {
+//            connect(&hideobj,SIGNAL(triggered(bool)),SLOT(onSwapViewObject(bool)));
+//            contextMenu->addAction(&hideobj);
+//        }
+
+//        contextMenu->addSeparator();
+//        QAction copy(QIcon(":/icon/icons/editcopy.png"),"复制",this);
+//        connect(&copy,&QAction::triggered,[=](){
+//           mWindow->mCopyItem = QJsonValue(writeToJson());
+//        });
+
+//        QAction paste(QIcon(":/icon/icons/editpaste.png"),"粘贴",this);
+//        connect(&paste,&QAction::triggered,[=](){
+//           mWindow->cManager->activeSS()->pasteItem(this);
+//        });
+
+//        paste.setEnabled(!mWindow->mCopyItem.isNull());
+//        contextMenu->addAction(&copy);
+//        contextMenu->addAction(&paste);
+//        contextMenu->addSeparator();
+//       // QWidget *parentWidget = this->parentWidget();
+//       // QString pobjname = parentWidget->objectName();
+//        bool inContainer = property(DKEY_INTOCONTAINER).toBool();
+
+//        if(inContainer)
+//        {
+//            clsname = ((NewLayout*)this)->container->metaObject()->className();
+//            if( !clsname.compare(CN_NEWLIST))
+//            {
+//                NewList*  nl =(NewList*)(((NewLayout*)this)->container);
+//                contextMenu->addAction(nl->menuAddLine);
+//                contextMenu->addAction(nl->menuSetHeight);
+//                contextMenu->addAction(nl->menuSetSpace);
+//            }else if(!clsname.compare(CN_NEWGRID))
+//            {
+//                NewGrid*   ng = (NewGrid*)(((NewLayout*)this)->container);
+//                contextMenu->addAction(ng->menuAddRow);
+//                contextMenu->addAction(ng->menuAddCol);
+//                contextMenu->addAction(ng->menuSpace);
+//                contextMenu->addAction(ng->menuSize);
+//                contextMenu->addAction(ng->menuV);
+//                contextMenu->addAction(ng->menuH);
+//            }
+
+
+//        }else if(!clsname.compare(CN_NEWGRID))
+//        {
+//            NewGrid *ng = (NewGrid*)this;
+//            contextMenu->addAction(ng->menuAddRow);
+//            contextMenu->addAction(ng->menuAddCol);
+//            contextMenu->addAction(ng->menuSpace);
+//            contextMenu->addAction(ng->menuSize);
+//            contextMenu->addAction(ng->menuV);
+//            contextMenu->addAction(ng->menuH);
+
+//        }else if(!clsname.compare(CN_NEWLIST))
+//        {
+//            NewList*  nl =(NewList*)this;
+//            contextMenu->addAction(nl->menuAddLine);
+//            contextMenu->addAction(nl->menuSetHeight);
+//            contextMenu->addAction(nl->menuSetSpace);
+//        }
+
+//        contextMenu->exec(mapToGlobal(event->pos()));
+//        contextMenu->deleteLater();
+    }
+}
+
+
+void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
+{
+
+    QMenu *contextMenu = new QMenu(parent);
+    QString clsname = metaObject()->className();
+    QAction delme(QIcon(":/icon/icons/removesubmitfield.png")  ,
+                  QString("删除当前-%1").arg(this->property(DKEY_TXT).toString()),this);
+    connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
+    contextMenu->addAction(&delme);
+    contextMenu->addSeparator();
+     QAction saveTemp(QIcon(":/icon/icons/build.png"),"保存成控件",this);
+    if(!CN_NEWLAYOUT.compare(clsname))
+    {
+        contextMenu->addAction(&saveTemp);
+        connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
+    }
+    QAction hideobj(QIcon(":/icon/icons/eye_closed@2x.png"),"隐藏",this);
+    if(!CN_NEWFRAME.compare(clsname))
+    {
+
+    }else
+    {
+        connect(&hideobj,SIGNAL(triggered(bool)),SLOT(onSwapViewObject(bool)));
+        contextMenu->addAction(&hideobj);
+    }
+
+    contextMenu->addSeparator();
+    QAction copy(QIcon(":/icon/icons/editcopy.png"),"复制",this);
+    connect(&copy,&QAction::triggered,[=](){
+       mWindow->mCopyItem = QJsonValue(writeToJson());
+    });
+
+    QAction paste(QIcon(":/icon/icons/editpaste.png"),"粘贴",this);
+    connect(&paste,&QAction::triggered,[=](){
+       mWindow->cManager->activeSS()->pasteItem(this);
+    });
+
+    paste.setEnabled(!mWindow->mCopyItem.isNull());
+    contextMenu->addAction(&copy);
+    contextMenu->addAction(&paste);
+    contextMenu->addSeparator();
+   // QWidget *parentWidget = this->parentWidget();
+   // QString pobjname = parentWidget->objectName();
+    bool inContainer = property(DKEY_INTOCONTAINER).toBool();
+
+    if(inContainer)
+    {
+        clsname = ((NewLayout*)this)->container->metaObject()->className();
+        if( !clsname.compare(CN_NEWLIST))
         {
-            contextMenu->addAction(&saveTemp);
-            connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
-        }
-        QAction hideobj(QIcon(":/icon/icons/eye_closed@2x.png"),"隐藏",this);
-        if(!CN_NEWFRAME.compare(clsname))
-        {
-
-        }else
-        {
-            connect(&hideobj,SIGNAL(triggered(bool)),SLOT(onSwapViewObject(bool)));
-            contextMenu->addAction(&hideobj);
-        }
-
-        contextMenu->addSeparator();
-        QAction copy(QIcon(":/icon/icons/editcopy.png"),"复制",this);
-        connect(&copy,&QAction::triggered,[=](){
-           mWindow->mCopyItem = QJsonValue(writeToJson());
-        });
-
-        QAction paste(QIcon(":/icon/icons/editpaste.png"),"粘贴",this);
-        connect(&paste,&QAction::triggered,[=](){
-           mWindow->cManager->activeSS()->pasteItem(this);
-        });
-
-        paste.setEnabled(!mWindow->mCopyItem.isNull());
-        contextMenu->addAction(&copy);
-        contextMenu->addAction(&paste);
-        contextMenu->addSeparator();
-       // QWidget *parentWidget = this->parentWidget();
-       // QString pobjname = parentWidget->objectName();
-        bool inContainer = property(DKEY_INTOCONTAINER).toBool();
-
-        if(inContainer)
-        {
-            clsname = ((NewLayout*)this)->container->metaObject()->className();
-            if( !clsname.compare(CN_NEWLIST))
-            {
-                NewList*  nl =(NewList*)(((NewLayout*)this)->container);
-                contextMenu->addAction(nl->menuAddLine);
-                contextMenu->addAction(nl->menuSetHeight);
-                contextMenu->addAction(nl->menuSetSpace);
-            }else if(!clsname.compare(CN_NEWGRID))
-            {
-                NewGrid*   ng = (NewGrid*)(((NewLayout*)this)->container);
-                contextMenu->addAction(ng->menuAddRow);
-                contextMenu->addAction(ng->menuAddCol);
-                contextMenu->addAction(ng->menuSpace);
-                contextMenu->addAction(ng->menuSize);
-                contextMenu->addAction(ng->menuV);
-                contextMenu->addAction(ng->menuH);
-            }
-
-
+            NewList*  nl =(NewList*)(((NewLayout*)this)->container);
+            contextMenu->addAction(nl->menuAddLine);
+            contextMenu->addAction(nl->menuSetHeight);
+            contextMenu->addAction(nl->menuSetSpace);
         }else if(!clsname.compare(CN_NEWGRID))
         {
-            NewGrid *ng = (NewGrid*)this;
+            NewGrid*   ng = (NewGrid*)(((NewLayout*)this)->container);
             contextMenu->addAction(ng->menuAddRow);
             contextMenu->addAction(ng->menuAddCol);
             contextMenu->addAction(ng->menuSpace);
             contextMenu->addAction(ng->menuSize);
             contextMenu->addAction(ng->menuV);
             contextMenu->addAction(ng->menuH);
-
-        }else if(!clsname.compare(CN_NEWLIST))
-        {
-            NewList*  nl =(NewList*)this;
-            contextMenu->addAction(nl->menuAddLine);
-            contextMenu->addAction(nl->menuSetHeight);
-            contextMenu->addAction(nl->menuSetSpace);
         }
 
-        contextMenu->exec(mapToGlobal(event->pos()));
-        contextMenu->deleteLater();
+
+    }else if(!clsname.compare(CN_NEWGRID))
+    {
+        NewGrid *ng = (NewGrid*)this;
+        contextMenu->addAction(ng->menuAddRow);
+        contextMenu->addAction(ng->menuAddCol);
+        contextMenu->addAction(ng->menuSpace);
+        contextMenu->addAction(ng->menuSize);
+        contextMenu->addAction(ng->menuV);
+        contextMenu->addAction(ng->menuH);
+
+    }else if(!clsname.compare(CN_NEWLIST))
+    {
+        NewList*  nl =(NewList*)this;
+        contextMenu->addAction(nl->menuAddLine);
+        contextMenu->addAction(nl->menuSetHeight);
+        contextMenu->addAction(nl->menuSetSpace);
     }
 
+   // contextMenu->exec(mapToGlobal(pos));
+    contextMenu->exec(pos);
+    contextMenu->deleteLater();
 }
+
 
 void BaseForm::onSwapViewObject(bool b)
 {

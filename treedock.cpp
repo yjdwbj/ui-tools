@@ -149,34 +149,37 @@ void TreeDock::onCustomContextMenu(const QPoint &point)
         //qDebug() << " item is " << item->text(0) << " pos " << point;
        // contextMenu->exec(treeWidget->mapToGlobal(point));
 
+        QWidget *w = mWindow->ComCtrl->ProMap[item->text(0)];
+        ((BaseForm*)w)->createContextMenu(treeWidget,
+                                          treeWidget->viewport()->mapToGlobal(point));
 //       if(!item->parent()) // 顶级
-       if(!item->text(1).compare(CN_NEWLAYOUT) ||
-               !item->text(1).compare(CN_NEWLAYER))
-       {
+//       if(!item->text(1).compare(CN_NEWLAYOUT) ||
+//               !item->text(1).compare(CN_NEWLAYER))
+//       {
 
-            QWidget *w = mWindow->ComCtrl->ProMap[item->text(0)];
-            QMenu *menu = new QMenu(treeWidget);
-            QAction hideit("隐藏",treeWidget);
-          //  hideit.setMenu(menu);
-            QAction viewit("显示",treeWidget);
-         //   viewit.setMenu(menu);
-            if(w->isHidden())
-            {
-                viewit.setIcon(QIcon(SHOW_ICON));
-                connect(&viewit,SIGNAL(triggered(bool)),SLOT(onSwapShowHideObject(bool)));
-                menu->addAction(&viewit);
-            }else
-            {
-                hideit.setIcon(QIcon(HIDE_ICON));
-                menu->addAction(&hideit);
-                connect(&hideit,SIGNAL(triggered(bool)),SLOT(onSwapShowHideObject(bool)));
-            }
-            menu->addSeparator();
+//            QWidget *w = mWindow->ComCtrl->ProMap[item->text(0)];
+//            QMenu *menu = new QMenu(treeWidget);
+//            QAction hideit("隐藏",treeWidget);
+//          //  hideit.setMenu(menu);
+//            QAction viewit("显示",treeWidget);
+//         //   viewit.setMenu(menu);
+//            if(w->isHidden())
+//            {
+//                viewit.setIcon(QIcon(SHOW_ICON));
+//                connect(&viewit,SIGNAL(triggered(bool)),SLOT(onSwapShowHideObject(bool)));
+//                menu->addAction(&viewit);
+//            }else
+//            {
+//                hideit.setIcon(QIcon(HIDE_ICON));
+//                menu->addAction(&hideit);
+//                connect(&hideit,SIGNAL(triggered(bool)),SLOT(onSwapShowHideObject(bool)));
+//            }
+//            menu->addSeparator();
 
 
-            menu->exec(treeWidget->viewport()->mapToGlobal(point));
-            delete menu;
-       }
+//            menu->exec(treeWidget->viewport()->mapToGlobal(point));
+//            delete menu;
+//       }
     }
 }
 
