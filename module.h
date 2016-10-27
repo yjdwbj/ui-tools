@@ -55,6 +55,8 @@ public:
 
      QRect getRectFromJson(const QJsonObject &json) const;
 
+     QString getEnameFromJson(const QJsonArray &arr);
+
    // QJsonObject dynValues;
      QJsonObject mOwerJson;
 };
@@ -174,7 +176,7 @@ class NewFrame :public BaseForm
     Q_OBJECT
 public:
 
-    NewFrame(QString caption,QWidget *parent=0);
+    NewFrame(QJsonObject json,QWidget *parent=0);
 
     void addMainWindow(QObject *mw);
     QJsonObject  writeToJson();
@@ -289,7 +291,7 @@ class NewLayout :public BaseForm
     friend class CompoentControls;
     Q_OBJECT
 public:
-    explicit NewLayout(QString caption, QRect rect, MainWindow *w, QWidget *parent=0);
+    explicit NewLayout(QJsonObject json, QRect rect, MainWindow *w, QWidget *parent=0);
 //    NewLayout (const QJsonObject &json,QWidget *parent=0);
     NewLayout (int width,int height,QWidget *parent=0);
 
@@ -328,7 +330,7 @@ class NewLayer : public BaseForm
 {
     Q_OBJECT
 public:
-    explicit NewLayer(QString caption, QRect rect, QWidget *parent=0);
+    explicit NewLayer(const QJsonObject json, QRect rect, QWidget *parent=0);
     void readLayoutFromJson(const QJsonValue &qv, bool flag);
 
     QJsonObject  writeToJson() ;

@@ -21,6 +21,7 @@
 #include <QFont>
 #include <QTextEdit>
 #include <QBitmap>
+#include <QDateTime>
 
 #include "core_def.h"
 #include "scenesscreen.h"
@@ -357,6 +358,20 @@ QVariant Compoent::getJsonValue(const QJsonValue &val, QString key)
                 return obj[str].toVariant();
         }
     }
+}
+
+QString Compoent::getEnameFromJson(const QJsonArray &arr)
+{
+    foreach (QJsonValue val, arr)
+    {
+        if(val.isObject())
+        {
+            QJsonObject obj = val.toObject();
+            if(obj.contains("ename"))
+                return obj["ename"].toString();
+        }
+    }
+    return "";
 }
 
 QVariant Compoent::getJsonValue(const QJsonArray &parr,QString key)
@@ -1662,7 +1677,7 @@ NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,
     QRect oldrect = Compoent::getRectFromStruct(valobj[PROPERTY].toArray(),KEY_RECT);
     // QVariant variant = valobj.value(PROPERTY).toVariant();
     QString caption = valobj[CAPTION].toString();
-    NewLayout *newlayout = new NewLayout(caption,oldrect,mWindow,parent);
+    NewLayout *newlayout = new NewLayout(valobj,oldrect,mWindow,parent);
     newlayout->mCreateFlag = isCreate;
     newlayout->setProperty(DKEY_TYPE, valobj[WTYPE].toString());
     newlayout->mOwerJson = qv.toObject();
@@ -1731,7 +1746,7 @@ QJsonObject BaseForm::ContainerWriteToJson(QWidget *w)
 
 
 
-NewFrame::NewFrame(QString caption, QWidget *parent)
+NewFrame::NewFrame(QJsonObject json, QWidget *parent)
   //  :FormResizer(parent),Compoent()
     :BaseForm(parent)
 {
@@ -1742,14 +1757,22 @@ NewFrame::NewFrame(QString caption, QWidget *parent)
     setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
     setFocusPolicy(Qt::ClickFocus);
 
-    QString uname = QString("%1_%2").arg(caption,
-                                         QString::number(mWindow->ComCtrl->ProMap.size()));
-    mUniqueStr = uname;
+    QString ename = getEnameFromJson(json[PROPERTY].toArray());
+    if(ename.isEmpty())
+    {
+        QString uname = QString("%1_%2").arg(json[CAPTION].toString(),
+                                             QString::number(mWindow->ComCtrl->ProMap.size()));
+
+        mUniqueStr = mWindow->ComCtrl->getSequence(uname);
+    }else
+    {
+        mUniqueStr = ename;
+    }
     //setProperty(DKEY_LOCALSEQ,uname);
-    setObjectName(uname);
+    setObjectName(mUniqueStr);
   //  mbkColor = "#4285F4";
   //  updateStyleSheets();
-    setToolTip(uname);
+    setToolTip(mUniqueStr);
 }
 
 void NewFrame::clearOtherObjectStyleSheet()
@@ -1823,19 +1846,25 @@ NewGrid::NewGrid(const QJsonValue &qv,
     gridLayout->setContentsMargins(0,0,0,0);
     gridLayout->setSizeConstraint(QLayout::SetFixedSize);
 
-    int n = mWindow->ComCtrl->ProMap.size();
-    QString str = QString("%1_%2").arg(caption,QString::number(n));
-    mUniqueStr = str;
-   // setProperty(DKEY_LOCALSEQ,str);
+    QString ename =getEnameFromJson(obj[PROPERTY].toArray());
+    if (ename.isEmpty())
+    {
+        int n = mWindow->ComCtrl->ProMap.size();
+        QString str = QString("%1_%2").arg(caption,QString::number(n));
+        mUniqueStr = mWindow->ComCtrl->getSequence(str);
+    }else{
+        mUniqueStr = ename;
+    }
+    // setProperty(DKEY_LOCALSEQ,str);
     setProperty(DKEY_TXT,caption);
-    setObjectName(str);
-    mainScroll->setObjectName(str);
-    mainWidget->setObjectName(str);  // 用来识别布局是否在列表控件下面.
+    setObjectName(mUniqueStr);
+    mainScroll->setObjectName(mUniqueStr);
+    mainWidget->setObjectName(mUniqueStr);  // 用来识别布局是否在列表控件下面.
     mainWidget->setMaximumSize(999,999);
     mainWidget->setContentsMargins(0,0,0,0);
    // mainWidget->setStyleSheet("background-color: #A9A9A9;");
 
-    setToolTip(str);
+    setToolTip(mUniqueStr);
     QRect oldrect = getRectFromStruct(obj[PROPERTY].toArray(),KEY_RECT);
     gridLayout->setGeometry(oldrect);
     setGeometry(oldrect);
@@ -2160,16 +2189,22 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
     listLayout->setContentsMargins(0,0,0,0);
     listLayout->setSizeConstraint(QLayout::SetFixedSize);
 
-    int n = mWindow->ComCtrl->ProMap.size();
-    QString str = QString("%1_%2").arg(caption,QString::number(n));
-    mUniqueStr = str;
+    QString ename = getEnameFromJson(obj[PROPERTY].toArray());
+    if(ename.isEmpty())
+    {
+        int n = mWindow->ComCtrl->ProMap.size();
+        QString str = QString("%1_%2").arg(caption,QString::number(n));
+        mUniqueStr = mWindow->ComCtrl->getSequence(str);
+    }else{
+        mUniqueStr = ename;
+    }
   //  setProperty(DKEY_LOCALSEQ,str);
     setProperty(DKEY_TXT,caption);
-    setObjectName(str);
-    mainWidget->setObjectName(str);
-    mainScroll->setObjectName(str);
+    setObjectName(mUniqueStr);
+    mainWidget->setObjectName(mUniqueStr);
+    mainScroll->setObjectName(mUniqueStr);
     mainWidget->setMaximumSize(999,999);
-    setToolTip(str);
+    setToolTip(mUniqueStr);
     resize(size);
     QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonRelease,
                                          QCursor::pos(),
@@ -2403,7 +2438,7 @@ void NewList::readFromJson(const QJsonValue &qv)
 }
 
 
-NewLayout::NewLayout(QString caption, QRect rect,
+NewLayout::NewLayout(QJsonObject json, QRect rect,
                      MainWindow *w, QWidget *parent):
    BaseForm(parent)
 {
@@ -2422,14 +2457,21 @@ NewLayout::NewLayout(QString caption, QRect rect,
     setGeometry(rect);
     update();
 
-    QString uname = QString("%1_%2").arg(caption,
-                                         QString::number(mWindow->ComCtrl->ProMap.size()));
-   // setProperty(DKEY_LOCALSEQ,uname );
-    mUniqueStr = uname ;
-    setProperty(DKEY_TXT,caption);
-    setObjectName(uname);
-   // updateStyleSheets();
-    setToolTip(uname);
+    QString ename = getEnameFromJson(json[PROPERTY].toArray());
+    if (ename.isEmpty())
+    {
+
+        QString uname = QString("%1_%2").arg(json[CAPTION].toString(),
+                                             QString::number(mWindow->ComCtrl->ProMap.size()));
+        // setProperty(DKEY_LOCALSEQ,uname );
+        mUniqueStr = mWindow->ComCtrl->getSequence(uname);
+    }else{
+        mUniqueStr = ename;
+    }
+    setProperty(DKEY_TXT,json);
+    setObjectName(mUniqueStr);
+    // updateStyleSheets();
+    setToolTip(mUniqueStr);
 }
 
 
@@ -2817,7 +2859,7 @@ QWidget* NewLayout::createObjectFromJson(const QJsonValue &qv)
 {
     QJsonObject json = qv.toObject();
     QString caption = json[CAPTION].toString();
-    NewFrame *newFrame = new NewFrame(caption,m_frame);
+    NewFrame *newFrame = new NewFrame(json,m_frame);
    // newFrame->setProperty(DKEY_JSONSTR,qv);
     newFrame->mOwerJson = qv.toObject();
     newFrame->setProperty(DKEY_TYPE,json[WTYPE].toString());
@@ -2839,7 +2881,7 @@ QWidget* NewLayout::createObjectFromJson(const QJsonValue &qv)
 }
 
 
-NewLayer::NewLayer(QString caption, QRect rect, QWidget *parent)
+NewLayer::NewLayer(const QJsonObject json, QRect rect, QWidget *parent)
     :BaseForm(parent)
 {
     mType = TYPELAYER;
@@ -2849,13 +2891,20 @@ NewLayer::NewLayer(QString caption, QRect rect, QWidget *parent)
 
     setFocusPolicy(Qt::ClickFocus);
     show();
-    QString key =QString("%1_%2").arg(caption,QString::number( mWindow->ComCtrl->ProMap.size()));
-    mUniqueStr = key;
+    QString ename = getEnameFromJson(json[PROPERTY].toArray());
+    if (ename.isEmpty())
+    {
+        QString key =QString("%1_%2").arg(json[CAPTION].toString(),QString::number(mWindow->ComCtrl->ProMap.size()));
+        mUniqueStr = mWindow->ComCtrl->getSequence(key);
+    }
+    else{
+        mUniqueStr = ename;
+    }
     //setProperty(DKEY_LOCALSEQ,key);
-    setProperty(DKEY_TXT,caption);
-    setObjectName(key);
+    setProperty(DKEY_TXT,json);
+    setObjectName(mUniqueStr);
    // updateStyleSheets();
-    setToolTip(key);
+    setToolTip(mUniqueStr);
 }
 
 

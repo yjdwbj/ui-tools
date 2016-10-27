@@ -119,7 +119,7 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv,bool createflag)
         oldrect.setY(0);
     }
 
-    NewLayer *nlayer = new NewLayer(json[CAPTION].toString(), oldrect/* + MARGIN_SIZE*/,this);
+    NewLayer *nlayer = new NewLayer(json, oldrect/* + MARGIN_SIZE*/,this);
     nlayer->mCreateFlag = createflag;
     nlayer->setProperty(DKEY_JSONSTR,qv);
     nlayer->setProperty(DKEY_TYPE, json[WTYPE].toString());

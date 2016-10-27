@@ -161,8 +161,10 @@ class CompoentControls : public QGroupBox
 public:
     explicit CompoentControls(QWidget *parent = 0);
     void ReadJsonWidgets();
+    QString getSequence(const QString &key);
      int mCWidgetCount; // 自定义控件的个数.
      QMap<QString,QWidget*> ProMap; // 新生成的控件.
+     int mSequence;
      QVariant mVariantLayout;
 
 private:

@@ -1067,6 +1067,7 @@ CompoentControls::CompoentControls(QWidget *parent)
       mainLayout(new QVBoxLayout()),
       mainWidget(new QWidget()),
       mCWidgetCount(0),
+      mSequence(0),
       mWindow((MainWindow*)parent)
 {
 
@@ -1097,6 +1098,19 @@ CompoentControls::CompoentControls(QWidget *parent)
 
 }
 
+QString CompoentControls::getSequence(const QString &key)
+{
+    QString t = key.section('_',0,0);
+    int n = key.section('_',1,1).toInt();
+    QString tkey = key;
+    while(ProMap.contains(tkey))
+    {
+        tkey = QString("%1_%2").arg(t,
+                                    QString::number(++n));
+    }
+    return tkey;
+
+}
 
 void CompoentControls::ReadJsonWidgets()
 {
