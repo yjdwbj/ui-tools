@@ -367,8 +367,8 @@ QString Compoent::getEnameFromJson(const QJsonArray &arr)
         if(val.isObject())
         {
             QJsonObject obj = val.toObject();
-            if(obj.contains("ename"))
-                return obj["ename"].toString();
+            if(obj.contains(ENAME))
+                return obj[ENAME].toString();
         }
     }
     return "";
@@ -1076,8 +1076,28 @@ void BaseForm::onNumberChanged(int num)
 void BaseForm::onTextChanged(QString str)
 {
     QLineEdit *txt = (QLineEdit *)(QObject::sender());
+    QJsonObject obj = QJsonValue::fromVariant(txt->property(DKEY_JSONSTR)).toObject();
 
-    changeJsonValue(txt,txt->objectName(),str);
+
+
+    if(obj.contains(ENAME))
+    {
+         QString old = obj[ENAME].toString();
+        if (!old.compare(str))
+            return;
+        mWindow->ComCtrl->mEnameSeq.removeOne(old);
+        QString nstr = mWindow->ComCtrl->getEnameSeq(str);
+
+        mWindow->ComCtrl->mEnameSeq.append(nstr);
+        changeJsonValue(txt,txt->objectName(),nstr);
+
+    }else{
+
+        changeJsonValue(txt,txt->objectName(),str);
+
+    }
+
+
   //  dynValues[txt->objectName()] = str;
 }
 
@@ -1426,6 +1446,7 @@ void BaseForm::DeleteMe()
         ((BaseForm*)w)->DeleteMe();
     }
 
+    mWindow->ComCtrl->mEnameSeq.removeOne(getEnameFromJson(mOwerJson[PROPERTY].toArray()));
     mWindow->tree->setMyParentNode();  //选中它的父控件.
     mWindow->tree->deleteItem(this);
     mWindow->ComCtrl->ProMap.remove(mUniqueStr);
@@ -1676,7 +1697,7 @@ NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,
     QJsonObject  valobj = qv.toObject();
     QRect oldrect = Compoent::getRectFromStruct(valobj[PROPERTY].toArray(),KEY_RECT);
     // QVariant variant = valobj.value(PROPERTY).toVariant();
-    QString caption = valobj[CAPTION].toString();
+
     NewLayout *newlayout = new NewLayout(valobj,oldrect,mWindow,parent);
     newlayout->mCreateFlag = isCreate;
     newlayout->setProperty(DKEY_TYPE, valobj[WTYPE].toString());
@@ -1757,17 +1778,11 @@ NewFrame::NewFrame(QJsonObject json, QWidget *parent)
     setSizePolicy(QSizePolicy::Preferred,QSizePolicy::Preferred);
     setFocusPolicy(Qt::ClickFocus);
 
-    QString ename = getEnameFromJson(json[PROPERTY].toArray());
-    if(ename.isEmpty())
-    {
-        QString uname = QString("%1_%2").arg(json[CAPTION].toString(),
-                                             QString::number(mWindow->ComCtrl->ProMap.size()));
+    QString uname = QString("%1_%2").arg(json[CAPTION].toString(),
+                                         QString::number(mWindow->ComCtrl->ProMap.size()));
 
-        mUniqueStr = mWindow->ComCtrl->getSequence(uname);
-    }else
-    {
-        mUniqueStr = ename;
-    }
+    mUniqueStr = mWindow->ComCtrl->getSequence(uname);
+//    setProperty(DKEY_TXT,json[CAPTION].toString());
     //setProperty(DKEY_LOCALSEQ,uname);
     setObjectName(mUniqueStr);
   //  mbkColor = "#4285F4";
@@ -1846,15 +1861,9 @@ NewGrid::NewGrid(const QJsonValue &qv,
     gridLayout->setContentsMargins(0,0,0,0);
     gridLayout->setSizeConstraint(QLayout::SetFixedSize);
 
-    QString ename =getEnameFromJson(obj[PROPERTY].toArray());
-    if (ename.isEmpty())
-    {
-        int n = mWindow->ComCtrl->ProMap.size();
-        QString str = QString("%1_%2").arg(caption,QString::number(n));
-        mUniqueStr = mWindow->ComCtrl->getSequence(str);
-    }else{
-        mUniqueStr = ename;
-    }
+    int n = mWindow->ComCtrl->ProMap.size();
+    QString str = QString("%1_%2").arg(caption,QString::number(n));
+    mUniqueStr = mWindow->ComCtrl->getSequence(str);
     // setProperty(DKEY_LOCALSEQ,str);
     setProperty(DKEY_TXT,caption);
     setObjectName(mUniqueStr);
@@ -2189,15 +2198,11 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
     listLayout->setContentsMargins(0,0,0,0);
     listLayout->setSizeConstraint(QLayout::SetFixedSize);
 
-    QString ename = getEnameFromJson(obj[PROPERTY].toArray());
-    if(ename.isEmpty())
-    {
-        int n = mWindow->ComCtrl->ProMap.size();
-        QString str = QString("%1_%2").arg(caption,QString::number(n));
-        mUniqueStr = mWindow->ComCtrl->getSequence(str);
-    }else{
-        mUniqueStr = ename;
-    }
+
+    int n = mWindow->ComCtrl->ProMap.size();
+    QString str = QString("%1_%2").arg(caption,QString::number(n));
+    mUniqueStr = mWindow->ComCtrl->getSequence(str);
+
   //  setProperty(DKEY_LOCALSEQ,str);
     setProperty(DKEY_TXT,caption);
     setObjectName(mUniqueStr);
@@ -2457,18 +2462,11 @@ NewLayout::NewLayout(QJsonObject json, QRect rect,
     setGeometry(rect);
     update();
 
-    QString ename = getEnameFromJson(json[PROPERTY].toArray());
-    if (ename.isEmpty())
-    {
-
-        QString uname = QString("%1_%2").arg(json[CAPTION].toString(),
-                                             QString::number(mWindow->ComCtrl->ProMap.size()));
-        // setProperty(DKEY_LOCALSEQ,uname );
-        mUniqueStr = mWindow->ComCtrl->getSequence(uname);
-    }else{
-        mUniqueStr = ename;
-    }
-    setProperty(DKEY_TXT,json);
+    QString uname = QString("%1_%2").arg(json[CAPTION].toString(),
+                                         QString::number(mWindow->ComCtrl->ProMap.size()));
+    // setProperty(DKEY_LOCALSEQ,uname );
+    mUniqueStr = mWindow->ComCtrl->getSequence(uname);
+    setProperty(DKEY_TXT,json[CAPTION].toString());
     setObjectName(mUniqueStr);
     // updateStyleSheets();
     setToolTip(mUniqueStr);
@@ -2891,17 +2889,10 @@ NewLayer::NewLayer(const QJsonObject json, QRect rect, QWidget *parent)
 
     setFocusPolicy(Qt::ClickFocus);
     show();
-    QString ename = getEnameFromJson(json[PROPERTY].toArray());
-    if (ename.isEmpty())
-    {
-        QString key =QString("%1_%2").arg(json[CAPTION].toString(),QString::number(mWindow->ComCtrl->ProMap.size()));
-        mUniqueStr = mWindow->ComCtrl->getSequence(key);
-    }
-    else{
-        mUniqueStr = ename;
-    }
+    QString key =QString("%1_%2").arg(json[CAPTION].toString(),QString::number(mWindow->ComCtrl->ProMap.size()));
+    mUniqueStr = mWindow->ComCtrl->getSequence(key);
     //setProperty(DKEY_LOCALSEQ,key);
-    setProperty(DKEY_TXT,json);
+    setProperty(DKEY_TXT,json[CAPTION].toString());
     setObjectName(mUniqueStr);
    // updateStyleSheets();
     setToolTip(mUniqueStr);

@@ -903,10 +903,18 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
              //   nameEdt->setInputMask("nnnnnnnn;"); // or NNNNNNNN;_
                 nameEdt->setCursorPosition(0);
 
-                QString txt = p->metaObject()->className()+ tr("_") + ((BaseForm*)p)->mUniqueStr.section('_',1,1);
 
-                nameEdt->setText(txt);
-                ((BaseForm*)p)->changeJsonValue(i,txt);
+                QString ename = item.toObject()[ENAME].toString();
+                if(ename.isEmpty())
+                {
+                    ename = p->metaObject()->className()+ tr("_") + ((BaseForm*)p)->mUniqueStr.section('_',1,1);
+                    ename =  ((BaseForm*)p)->mWindow->ComCtrl->getEnameSeq(ename);
+//                    ((BaseForm*)p)->mWindow->ComCtrl->mEnameSeq.append(ename);
+                     ((BaseForm*)p)->changeJsonValue(i,ename);
+                }
+                nameEdt->setText(ename);
+                ((BaseForm*)p)->mWindow->ComCtrl->mEnameSeq.append(ename);
+
                 mainLayout->addWidget(nameEdt);
                 connect(nameEdt,SIGNAL(textChanged(QString)),
                         p,SLOT(onTextChanged(QString)));
@@ -1111,6 +1119,33 @@ QString CompoentControls::getSequence(const QString &key)
     return tkey;
 
 }
+QString CompoentControls::getEnameSeq(const QString &key)
+{
+    if(key.contains('_'))
+    {
+        QString t = key.section('_',0,0);
+        int n = key.section('_',1,1).toInt();
+        QString tkey = key;
+        while(mEnameSeq.contains(tkey) )
+        {
+            tkey = QString("%1_%2").arg(t,
+                                        QString::number(++n));
+        }
+        return tkey;
+    }else{
+        int n = 0;
+        QString tkey  = key;
+        QString t = key;
+        while(mEnameSeq.contains(tkey) )
+        {
+            tkey = QString("%1_%2").arg(t,
+                                        QString::number(++n));
+        }
+        return tkey;
+    }
+
+}
+
 
 void CompoentControls::ReadJsonWidgets()
 {
