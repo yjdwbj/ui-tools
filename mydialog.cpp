@@ -337,11 +337,6 @@ void ImageFileDialog::appendSelectedItem(QModelIndex index)
 //    QListWidgetItem *item = flistview->takeItem(index.row());
 //    delete item;
     hRows[s] = index;
-   // selMap[s] = fileModel->fileInfo(index).absoluteFilePath();
-    /* 这里不能使用MAP , QComobox 需要排序 */
-   // selstrList.append(QString("%1:%2").arg(s,fileModel->fileInfo(index).absoluteFilePath()));
-   // 这里的每一条数据必需是下面格式:　　文件名:文件名的绝对完全路径
-   // selstrList.append(QString("%1|%2").arg(s,extMap[s].toString()));
     statusBar->setText(QString::number(sellist->count()));
 }
 

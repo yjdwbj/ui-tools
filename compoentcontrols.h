@@ -162,10 +162,11 @@ public:
     explicit CompoentControls(QWidget *parent = 0);
     void ReadJsonWidgets();
     QString getSequence(const QString &key);
-    QString getEnameSeq(const QString &key);
+    QString getEnameSeq(const QString &key, QWidget *obj);
      int mCWidgetCount; // 自定义控件的个数.
      QMap<QString,QWidget*> ProMap; // 新生成的控件.
-     QStringList  mEnameSeq;
+     QMap<QString,QWidget*> mSeqEnameMap; // 对应到小机里的唯一名称.
+//     QStringList  mEnameSeq;
      int mSequence;
      QVariant mVariantLayout;
 

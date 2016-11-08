@@ -693,89 +693,51 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
     {
 
         createContextMenu(this,mapToGlobal(event->pos()));
-//        QString clsname = metaObject()->className();
-//        QAction delme(QIcon(":/icon/icons/removesubmitfield.png")  ,
-//                      QString("删除当前-%1").arg(this->property(DKEY_TXT).toString()),this);
-//        connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
-//        contextMenu->addAction(&delme);
-//        contextMenu->addSeparator();
-//         QAction saveTemp(QIcon(":/icon/icons/build.png"),"保存成控件",this);
-//        if(!CN_NEWLAYOUT.compare(clsname))
-//        {
-//            contextMenu->addAction(&saveTemp);
-//            connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
-//        }
-//        QAction hideobj(QIcon(":/icon/icons/eye_closed@2x.png"),"隐藏",this);
-//        if(!CN_NEWFRAME.compare(clsname))
-//        {
 
-//        }else
-//        {
-//            connect(&hideobj,SIGNAL(triggered(bool)),SLOT(onSwapViewObject(bool)));
-//            contextMenu->addAction(&hideobj);
-//        }
-
-//        contextMenu->addSeparator();
-//        QAction copy(QIcon(":/icon/icons/editcopy.png"),"复制",this);
-//        connect(&copy,&QAction::triggered,[=](){
-//           mWindow->mCopyItem = QJsonValue(writeToJson());
-//        });
-
-//        QAction paste(QIcon(":/icon/icons/editpaste.png"),"粘贴",this);
-//        connect(&paste,&QAction::triggered,[=](){
-//           mWindow->cManager->activeSS()->pasteItem(this);
-//        });
-
-//        paste.setEnabled(!mWindow->mCopyItem.isNull());
-//        contextMenu->addAction(&copy);
-//        contextMenu->addAction(&paste);
-//        contextMenu->addSeparator();
-//       // QWidget *parentWidget = this->parentWidget();
-//       // QString pobjname = parentWidget->objectName();
-//        bool inContainer = property(DKEY_INTOCONTAINER).toBool();
-
-//        if(inContainer)
-//        {
-//            clsname = ((NewLayout*)this)->container->metaObject()->className();
-//            if( !clsname.compare(CN_NEWLIST))
-//            {
-//                NewList*  nl =(NewList*)(((NewLayout*)this)->container);
-//                contextMenu->addAction(nl->menuAddLine);
-//                contextMenu->addAction(nl->menuSetHeight);
-//                contextMenu->addAction(nl->menuSetSpace);
-//            }else if(!clsname.compare(CN_NEWGRID))
-//            {
-//                NewGrid*   ng = (NewGrid*)(((NewLayout*)this)->container);
-//                contextMenu->addAction(ng->menuAddRow);
-//                contextMenu->addAction(ng->menuAddCol);
-//                contextMenu->addAction(ng->menuSpace);
-//                contextMenu->addAction(ng->menuSize);
-//                contextMenu->addAction(ng->menuV);
-//                contextMenu->addAction(ng->menuH);
-//            }
-
-
-//        }else if(!clsname.compare(CN_NEWGRID))
-//        {
-//            NewGrid *ng = (NewGrid*)this;
-//            contextMenu->addAction(ng->menuAddRow);
-//            contextMenu->addAction(ng->menuAddCol);
-//            contextMenu->addAction(ng->menuSpace);
-//            contextMenu->addAction(ng->menuSize);
-//            contextMenu->addAction(ng->menuV);
-//            contextMenu->addAction(ng->menuH);
-
-//        }else if(!clsname.compare(CN_NEWLIST))
-//        {
-//            NewList*  nl =(NewList*)this;
-//            contextMenu->addAction(nl->menuAddLine);
-//            contextMenu->addAction(nl->menuSetHeight);
-//            contextMenu->addAction(nl->menuSetSpace);
-//        }
-
-//        contextMenu->exec(mapToGlobal(event->pos()));
-//        contextMenu->deleteLater();
     }
+}
+
+
+void BaseForm::SwapLayerOrder(SwapType st)
+{
+    QWidget *p =  this->parentWidget();
+    qDebug() << "this meta class name " << this->metaObject()->className();
+    QList<QWidget*> *mlist;
+    if(!CN_SSNAME.compare(p->metaObject()->className()))
+    {
+        mlist = &((ScenesScreen*)p)->childlist;
+    }else
+    {
+        mlist = &((BaseForm*)p->parentWidget())->childlist;
+    }
+        qDebug() << " parent widget objectname " << p->objectName() << p->metaObject()->className();
+        if(mlist->size())
+        {
+          qDebug() << " mlist " << mlist->size();
+          int index = mlist->indexOf(this);
+          qDebug() << " this index is " << index;
+
+          mlist->removeAt(index);
+
+
+        switch (st) {
+        case UpOne:
+            mlist->insert(index+1,this);
+            break;
+        case DownOne:
+            mlist->insert(index-1,this);
+            break;
+        case Lower:
+            mlist->insert(0,this);
+            break;
+        case Raise:
+            mlist->insert(mlist->count(),this);
+            break;
+        default:
+            break;
+        }
+       }
+
 }
 
 
@@ -816,10 +778,170 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
        mWindow->cManager->activeSS()->pasteItem(this);
     });
 
+    QWidget *pwid = this->parentWidget();
+
+    QTreeWidget *treeWidget = mWindow->tree->treeWidget;
+
+
+
+
+    QAction downone("移下一层",this);
+    connect(&downone,&QAction::triggered,[=](){
+
+
+        QWidget *last = this;
+
+        foreach( QObject *o,pwid->children())
+        {
+           // qDebug() << " object order " << o->objectName();
+            if(o == this)
+            {
+                if(o == last)
+                    break;
+                else
+                {
+                    this->stackUnder(last);
+                    int myindex = 0;
+
+                    QTreeWidgetItem *item = treeWidget->currentItem();
+                    int row = mWindow->tree->treeWidget->currentIndex().row();
+                    if(item && row > 0)
+                    {
+                        QTreeWidgetItem* parent = item->parent();
+                        if(!parent)
+                        {
+
+                           myindex = treeWidget->indexOfTopLevelItem(item);
+                           QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(myindex);
+                            treeWidget->insertTopLevelItem(myindex-1,ntop);
+                        }else{
+                            myindex = parent->indexOfChild(item);
+                            QTreeWidgetItem *child = parent->takeChild(myindex);
+                            parent->insertChild(myindex-1,child);
+                        }
+                    }
+                    SwapLayerOrder(DownOne);
+                    break;
+                }
+
+            }
+            last=(QWidget*)o;
+        }
+
+
+    });
+
+
+    QAction upone("移上一层",this);
+    connect(&upone,&QAction::triggered,[=](){
+
+        int n= 0;
+        foreach( QObject *o,pwid->children())
+        {
+          //  qDebug() << " object order " << o->objectName();
+            if(o == this)
+            {
+                n = 1;
+            }else if(n)
+            {
+                ((QWidget*)o)->stackUnder(this);
+
+                QTreeWidgetItem *item =  treeWidget->currentItem();
+                int myindex = 0;
+                if(item)
+                {
+                    QTreeWidgetItem* parent = item->parent();
+                    if(!parent)
+                    {
+                        myindex = treeWidget->indexOfTopLevelItem(item);
+                        QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(myindex);
+                         treeWidget->insertTopLevelItem(myindex+1,ntop);
+                    }else{
+                    myindex = parent->indexOfChild(item);
+                    QTreeWidgetItem *child = parent->takeChild(myindex);
+                    parent->insertChild(myindex+1,child);
+
+                    }
+                }
+
+                SwapLayerOrder(UpOne);
+
+                break;
+            }
+        }
+
+
+    });
+
+
+
+    QAction widlower("移到底层",this);
+    connect(&widlower,&QAction::triggered,[=](){
+
+        this->lower();
+
+        QTreeWidgetItem *item =  treeWidget->currentItem();
+        if(item)
+        {
+            QTreeWidgetItem* parent = item->parent();
+            if(!parent)
+            {
+                int num = treeWidget->indexOfTopLevelItem(item);
+                QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(num);
+                 treeWidget->insertTopLevelItem(0,ntop);
+            }else{
+            int index = parent->indexOfChild(item);
+            QTreeWidgetItem *child = parent->takeChild(index);
+            parent->insertChild(0,child);
+            }
+        }
+         SwapLayerOrder(Lower);
+
+    });
+
+    QAction widraise("移到顶层",this);
+    connect(&widraise,&QAction::triggered,[=](){
+        this->raise();
+        QTreeWidgetItem *item =  treeWidget->currentItem();
+        if(item)
+        {
+            QTreeWidgetItem* parent = item->parent();
+            if(!parent)
+            {
+                int num = treeWidget->indexOfTopLevelItem(item);
+                QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(num);
+                 treeWidget->insertTopLevelItem(treeWidget->topLevelItemCount(),ntop);
+            }else{
+            int index = parent->indexOfChild(item);
+            QTreeWidgetItem *child = parent->takeChild(index);
+            parent->insertChild(parent->childCount(),child);
+            }
+
+            SwapLayerOrder(Raise);
+        }
+    });
+
+//    QAction widunder("under",this);
+//    connect(&widunder,&QAction::triggered,[=](){
+//        this->stackUnder();
+//    });
+
     paste.setEnabled(!mWindow->mCopyItem.isNull());
     contextMenu->addAction(&copy);
     contextMenu->addAction(&paste);
     contextMenu->addSeparator();
+
+    upone.setEnabled(pwid->children().last() != this);
+    widraise.setEnabled(pwid->children().last() != this);
+
+    downone.setEnabled(pwid->children().first() != this);
+    widlower.setEnabled(pwid->children().first() != this);
+
+    contextMenu->addAction(&downone);
+    contextMenu->addAction(&widlower);
+    contextMenu->addAction(&upone);
+    contextMenu->addAction(&widraise);
+
    // QWidget *parentWidget = this->parentWidget();
    // QString pobjname = parentWidget->objectName();
     bool inContainer = property(DKEY_INTOCONTAINER).toBool();
@@ -1085,10 +1207,10 @@ void BaseForm::onTextChanged(QString str)
          QString old = obj[ENAME].toString();
         if (!old.compare(str))
             return;
-        mWindow->ComCtrl->mEnameSeq.removeOne(old);
-        QString nstr = mWindow->ComCtrl->getEnameSeq(str);
+//        mWindow->ComCtrl->mEnameSeq.removeOne(old);
+        QString nstr = mWindow->ComCtrl->getEnameSeq(str,this);
 
-        mWindow->ComCtrl->mEnameSeq.append(nstr);
+//        mWindow->ComCtrl->mEnameSeq.append(nstr);
         changeJsonValue(txt,txt->objectName(),nstr);
 
     }else{
@@ -1446,7 +1568,7 @@ void BaseForm::DeleteMe()
         ((BaseForm*)w)->DeleteMe();
     }
 
-    mWindow->ComCtrl->mEnameSeq.removeOne(getEnameFromJson(mOwerJson[PROPERTY].toArray()));
+//    mWindow->ComCtrl->mEnameSeq.removeOne(getEnameFromJson(mOwerJson[PROPERTY].toArray()));
     mWindow->tree->setMyParentNode();  //选中它的父控件.
     mWindow->tree->deleteItem(this);
     mWindow->ComCtrl->ProMap.remove(mUniqueStr);
@@ -2945,6 +3067,12 @@ QJsonObject  NewLayer::writeToJson()
 {
     QJsonArray layoutarr;
     QJsonObject json = mOwerJson;
+    foreach(QObject *qo, this->m_frame->children())
+    {
+        qDebug() << " object name " << qo->objectName()
+                 <<" meta class name " << qo->metaObject()->className();
+    }
+
     foreach (QWidget *w, childlist) {
         layoutarr.append(((NewLayout*)w)->writeToJson());
     }

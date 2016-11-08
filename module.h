@@ -88,6 +88,14 @@ public:
         TYPEGRID = 0x4,
         Object = 0x5
     };
+
+    enum SwapType {
+        UpOne = 0x0,
+        DownOne = 0x1,
+        Lower = 0x3,
+        Raise = 0x4
+    };
+
     explicit BaseForm(QWidget *parent=0);
     MainWindow *mWindow;
 
@@ -118,6 +126,7 @@ public:
     void removeChild(QWidget *w);
     void initJsonValue();
     void createContextMenu(QWidget *parent, QPoint pos);
+    void SwapLayerOrder(SwapType st);
 
     QJsonObject ContainerWriteToJson(QWidget *w);
     QWidget* getPairWidgetFromPLayout(QWidget *sender);

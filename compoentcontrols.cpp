@@ -795,24 +795,34 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                         QJsonArray qa;
                         QString curstr = cb->currentText();
                         cb->clear();
-
+                        QFile fd("imagelist.txt");
+                        fd.open(QIODevice::WriteOnly|QIODevice::Text);
                         foreach (QVariant v, imglist) {
                             QString s = v.toString();
                             // example for s   "alarm_du.bmp|/home/yjdwbj/build-ut-tools-Desktop_Qt_5_6_0_GCC_64bit-Debug/images/string/alarm_du.bmp
                             // example for s   ""m104.bmp|config/images/string/m104.bmp"
                             QString lastsection = s.section(SECTION_CHAR,1,1);
+
+                            fd.write(v.toString().toLocal8Bit().data());
                             QString substr;
                             if(lastsection.indexOf(BACKSLASH) == 0)
                             {
+                                fd.write(QString("baskslash equal zero").toLocal8Bit().data());
                                 substr = s.section(SECTION_CHAR,1,1).mid(baseform->mWindow->mRootPathLen);
                             }else
                             {
-                                substr = s.section(SECTION_CHAR,1,1);
+                                fd.write(QString("baskslash equal zero else").toLocal8Bit().data());
+                                // 添加截取它的相对路径
+                                substr = s.section(SECTION_CHAR,1,1).mid(baseform->mWindow->mRootPathLen);
                             }
+                            fd.write("\n");
                             qa.append(substr);
+                            fd.write(substr.toLocal8Bit().data());
+                            fd.write("\n");
                             cb->addItem(QIcon(s.section(SECTION_CHAR,1,1)),
                                         s.section(SECTION_CHAR,0,0));
                         }
+                        fd.close();;
                         cb->setCurrentText(curstr);
                         baseform->changeJsonValue(btn,uname,qa.toVariantList());
                         btn->setProperty(DKEY_CBLIST,qa.toVariantList());
@@ -904,16 +914,19 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                 nameEdt->setCursorPosition(0);
 
 
-                QString ename = item.toObject()[ENAME].toString();
+//                QString ename = item.toObject()[ENAME].toString();
+                QString ename = ((BaseForm*)p)->mWindow->ComCtrl->mSeqEnameMap.key(p);
                 if(ename.isEmpty())
                 {
                     ename = p->metaObject()->className()+ tr("_") + ((BaseForm*)p)->mUniqueStr.section('_',1,1);
-                    ename =  ((BaseForm*)p)->mWindow->ComCtrl->getEnameSeq(ename);
-//                    ((BaseForm*)p)->mWindow->ComCtrl->mEnameSeq.append(ename);
-                     ((BaseForm*)p)->changeJsonValue(i,ename);
                 }
+                ename =  ((BaseForm*)p)->mWindow->ComCtrl->getEnameSeq(ename,p);
+//                    ((BaseForm*)p)->mWindow->ComCtrl->mEnameSeq.append(ename);
+                ((BaseForm*)p)->changeJsonValue(i,ename);
+
+
                 nameEdt->setText(ename);
-                ((BaseForm*)p)->mWindow->ComCtrl->mEnameSeq.append(ename);
+//                ((BaseForm*)p)->mWindow->ComCtrl->mEnameSeq.append(ename);
 
                 mainLayout->addWidget(nameEdt);
                 connect(nameEdt,SIGNAL(textChanged(QString)),
@@ -1119,28 +1132,42 @@ QString CompoentControls::getSequence(const QString &key)
     return tkey;
 
 }
-QString CompoentControls::getEnameSeq(const QString &key)
+QString CompoentControls::getEnameSeq(const QString &key,QWidget* obj)
 {
     if(key.contains('_'))
     {
+
+
         QString t = key.section('_',0,0);
         int n = key.section('_',1,1).toInt();
         QString tkey = key;
-        while(mEnameSeq.contains(tkey) )
+        while(mSeqEnameMap.contains(tkey) )
         {
-            tkey = QString("%1_%2").arg(t,
+
+            QWidget *exist = mSeqEnameMap.value(tkey);
+            if(exist == obj)
+               break;
+            else
+                tkey = QString("%1_%2").arg(t,
                                         QString::number(++n));
         }
+        if(n) mSeqEnameMap[tkey] = obj;
         return tkey;
     }else{
         int n = 0;
         QString tkey  = key;
         QString t = key;
-        while(mEnameSeq.contains(tkey) )
+        while(mSeqEnameMap.contains(tkey) )
         {
-            tkey = QString("%1_%2").arg(t,
+            QWidget *exist = mSeqEnameMap.value(tkey);
+            if(exist == obj)
+                break;
+            else
+                tkey = QString("%1_%2").arg(t,
                                         QString::number(++n));
         }
+        if(n)
+            mSeqEnameMap[tkey] = obj;
         return tkey;
     }
 

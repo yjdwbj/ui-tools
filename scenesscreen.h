@@ -44,7 +44,7 @@ public:
     void delAllObjects();
 
     //QWidgetList LayoutList;
-    QWidgetList LayerList;
+    QList<QWidget*> childlist;
     MainWindow* mWindow;
 
     //QString mCopyItem;

@@ -202,7 +202,7 @@ void CanvasManager::setActiveSS(int index)
         mWindow->tree->deleteAllitem();
         ScenesScreen *Scenes = (ScenesScreen*)(stack->currentWidget());
         // 把当前页的布局重新添加到treeWidget上
-        foreach (QWidget *w, Scenes->LayerList) {
+        foreach (QWidget *w, Scenes->childlist) {
             // QString key = w->property(DKEY_LOCALSEQ).toString();
             mWindow->tree->addItemToRoot(w);
             ((BaseForm*)w)->addChildrenToTree();

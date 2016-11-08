@@ -123,8 +123,8 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv,bool createflag)
     nlayer->mCreateFlag = createflag;
     nlayer->setProperty(DKEY_JSONSTR,qv);
     nlayer->setProperty(DKEY_TYPE, json[WTYPE].toString());
-    LayerList.append(nlayer);
-    //mActiveLaySeq = LayerList.size() - 1;
+    childlist.append(nlayer);
+    //mActiveLaySeq = childlist.size() - 1;
     nlayer->mOwerJson = qv.toObject();
  //   nlayer->initJsonValue();
 
@@ -179,7 +179,7 @@ void ScenesScreen::setSelectObject(FormResizer *obj)
 
 void ScenesScreen::delAllObjects()
 {
-    foreach (QWidget *w, LayerList) {
+    foreach (QWidget *w, childlist) {
         // 这里递归删每一个新建的控件
       //  QString cname = w->metaObject()->className();
         if(((BaseForm*)w)->mType == BaseForm::TYPELAYOUT)
@@ -315,7 +315,10 @@ void ScenesScreen::pasteItem(QWidget *w)
 QJsonObject  ScenesScreen::writeToJson()
 {
     QJsonArray layoutarr;
-    foreach (QWidget *w, LayerList) {
+
+
+
+    foreach (QWidget *w, childlist) {
         layoutarr.append(((NewLayer*)w)->writeToJson());
     }
 

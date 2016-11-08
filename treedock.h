@@ -38,7 +38,7 @@ public:
 
 
 
-    QTreeWidgetItem *getRoot()const { return root;}
+//    QTreeWidgetItem *getRoot()const { return root;}
 
     void setSelectTreeItem(QWidget *);
 
@@ -59,7 +59,6 @@ private:
 
   //  CompoentControls *comC;
    // PropertyBox *pb;
-    QTreeWidgetItem *root;
     QMenu *contextMenu ;
 
 };

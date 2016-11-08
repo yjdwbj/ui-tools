@@ -18,88 +18,87 @@ TreeDock::TreeDock(QWidget *parent)
 {
     QString style = "QTreeView {\
             show-decoration-selected: 1;\
-}\
-\
-QTreeView::item {\
-border: 1px solid #d9d9d9;\
-    border-top-color: transparent;\
-    border-bottom-color: transparent;\
-}\
-\
-QTreeView::item:hover {\
-                    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);\
-border: 1px solid #bfcde4;\
-}\
-\
-QTreeView::item:selected {\
-                    border: 1px solid #567dbc;\
-}\
-\
-QTreeView::item:selected:active{\
-                    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6ea1f1, stop: 1 #567dbc);\
-}\
-\
-QTreeView::item:selected:!active {\
-                    background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6b9be8, stop: 1 #577fbf);\
-}\
-QTreeView {\
-    alternate-background-color: yellow;\
-}\
-QTreeView::branch {\
-background: palette(base);\
-}\
-\
-QTreeView::branch:has-siblings:!adjoins-item {\
-                      background: cyan;\
-}\
-\
-QTreeView::branch:has-siblings:adjoins-item {\
-                      background: red;\
-}\
-\
-QTreeView::branch:!has-children:!has-siblings:adjoins-item {\
-                       background: blue;\
-}\
-\
-QTreeView::branch:closed:has-children:has-siblings {\
-                      background: pink;\
-}\
-\
-QTreeView::branch:has-children:!has-siblings:closed {\
-                      background: gray;\
-}\
-\
-QTreeView::branch:open:has-children:has-siblings {\
-                      background: magenta;\
-}\
-\
-QTreeView::branch:open:has-children:!has-siblings {\
-                      background: green;\
-}\
-";
+        }\
+        \
+        QTreeView::item {\
+        border: 1px solid #d9d9d9;\
+            border-top-color: transparent;\
+            border-bottom-color: transparent;\
+        }\
+        \
+        QTreeView::item:hover {\
+                            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #e7effd, stop: 1 #cbdaf1);\
+        border: 1px solid #bfcde4;\
+        }\
+        \
+        QTreeView::item:selected {\
+                            border: 1px solid #567dbc;\
+        }\
+        \
+        QTreeView::item:selected:active{\
+                            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6ea1f1, stop: 1 #567dbc);\
+        }\
+        \
+        QTreeView::item:selected:!active {\
+                            background: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 #6b9be8, stop: 1 #577fbf);\
+        }\
+        QTreeView {\
+            alternate-background-color: yellow;\
+        }\
+        QTreeView::branch {\
+        background: palette(base);\
+        }\
+        \
+        QTreeView::branch:has-siblings:!adjoins-item {\
+                              background: cyan;\
+        }\
+        \
+        QTreeView::branch:has-siblings:adjoins-item {\
+                              background: red;\
+        }\
+        \
+        QTreeView::branch:!has-children:!has-siblings:adjoins-item {\
+                               background: blue;\
+        }\
+        \
+        QTreeView::branch:closed:has-children:has-siblings {\
+                              background: pink;\
+        }\
+        \
+        QTreeView::branch:has-children:!has-siblings:closed {\
+                              background: gray;\
+        }\
+        \
+        QTreeView::branch:open:has-children:has-siblings {\
+                              background: magenta;\
+        }\
+        \
+        QTreeView::branch:open:has-children:!has-siblings {\
+                              background: green;\
+        }\
+        ";
 
-//QTreeWidget *tree = new QTreeWidget();
-treeWidget->setColumnCount(2);
+        this->setWidget(treeWidget);
+        //QTreeWidget *tree = new QTreeWidget();
+        treeWidget->setColumnCount(2);
 
-treeWidget->setHeaderLabels(HeadCol.split(","));
-setStyleSheet("background-color: #C0DCC0;");
-connect(treeWidget,SIGNAL(itemClicked(QTreeWidgetItem*,int)),
-        SLOT(onItemPressed(QTreeWidgetItem*,int)));
-//root = new QTreeWidgetItem(treeWidget);
-//root->setText(0,"根结点");
-//root->setText(1,"画布");
+        treeWidget->setHeaderLabels(HeadCol.split(","));
+        setStyleSheet("background-color: #C0DCC0;");
+        connect(treeWidget,SIGNAL(itemClicked(QTreeWidgetItem*,int)),
+                SLOT(onItemPressed(QTreeWidgetItem*,int)));
 
-this->setWidget(treeWidget);
 
-setFixedWidth(200);
-//treeWidget->setFixedHeight(mWindow->size().height()-80);
-treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
-//treeWidget->header()->setStretchLastSection(false);
-treeWidget->header()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
-//setFeatures(QDockWidget::DockWidgetVerticalTitleBar);
+        setFixedWidth(200);
+        //treeWidget->setFixedHeight(mWindow->size().height()-80);
+        treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
+        //treeWidget->header()->setStretchLastSection(false);
+        treeWidget->header()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
+        //setFeatures(QDockWidget::DockWidgetVerticalTitleBar);
 
-connect(treeWidget,SIGNAL(customContextMenuRequested(QPoint)),
-        SLOT(onCustomContextMenu(QPoint)));
+        connect(treeWidget,SIGNAL(customContextMenuRequested(QPoint)),
+                SLOT(onCustomContextMenu(QPoint)));
+
+
 
 
 }
@@ -152,34 +151,6 @@ void TreeDock::onCustomContextMenu(const QPoint &point)
         QWidget *w = mWindow->ComCtrl->ProMap[item->text(0)];
         ((BaseForm*)w)->createContextMenu(treeWidget,
                                           treeWidget->viewport()->mapToGlobal(point));
-//       if(!item->parent()) // 顶级
-//       if(!item->text(1).compare(CN_NEWLAYOUT) ||
-//               !item->text(1).compare(CN_NEWLAYER))
-//       {
-
-//            QWidget *w = mWindow->ComCtrl->ProMap[item->text(0)];
-//            QMenu *menu = new QMenu(treeWidget);
-//            QAction hideit("隐藏",treeWidget);
-//          //  hideit.setMenu(menu);
-//            QAction viewit("显示",treeWidget);
-//         //   viewit.setMenu(menu);
-//            if(w->isHidden())
-//            {
-//                viewit.setIcon(QIcon(SHOW_ICON));
-//                connect(&viewit,SIGNAL(triggered(bool)),SLOT(onSwapShowHideObject(bool)));
-//                menu->addAction(&viewit);
-//            }else
-//            {
-//                hideit.setIcon(QIcon(HIDE_ICON));
-//                menu->addAction(&hideit);
-//                connect(&hideit,SIGNAL(triggered(bool)),SLOT(onSwapShowHideObject(bool)));
-//            }
-//            menu->addSeparator();
-
-
-//            menu->exec(treeWidget->viewport()->mapToGlobal(point));
-//            delete menu;
-//       }
     }
 }
 
@@ -262,21 +233,29 @@ void TreeDock::addChildObject(QString root, QString node, QString property)
 
 void TreeDock::addItemToRoot(QString node, QString property)
 {
+
+
+
      QTreeWidgetItem *nroot = new QTreeWidgetItem(treeWidget,QStringList() << node << property);
      nroot->setIcon(0,QIcon(SHOW_ICON));
      treeWidget->setCurrentItem(nroot);
+
 }
 
 void TreeDock::addItemToRoot(QWidget *obj)
 {
 
     QString key = /*ww->property(DKEY_LOCALSEQ).toString()*/((BaseForm*)obj)->mUniqueStr;;
-
+//    treeWidget->setCurrentItem(root);
      QTreeWidgetItem *nroot = new QTreeWidgetItem(treeWidget,
                           QStringList()  << key << obj->metaObject()->className());
      nroot->setIcon(0,QIcon(SHOW_ICON));
 
      treeWidget->setCurrentItem(nroot);
+
+//     QTreeWidgetItem * testnode = new QTreeWidgetItem(treeWidget,
+//                                                      QStringList() << "处理" << "bb");
+//     treeWidget->setCurrentItem(testnode);
      mWindow->ComCtrl->ProMap[key] = obj;
 }
 
@@ -322,7 +301,7 @@ void TreeDock::deleteItem(QWidget *obj)
            }else
            {
                // 这里是顶层了.
-               mWindow->cManager->activeSS()->LayerList.removeOne(obj);
+               mWindow->cManager->activeSS()->childlist.removeOne(obj);
            }
 
            treeWidget->removeItemWidget(qwi,0);
