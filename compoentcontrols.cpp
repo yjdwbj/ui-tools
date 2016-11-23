@@ -913,8 +913,6 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
              //   nameEdt->setInputMask("nnnnnnnn;"); // or NNNNNNNN;_
                 nameEdt->setCursorPosition(0);
 
-
-//                QString ename = item.toObject()[ENAME].toString();
                 QString ename = ((BaseForm*)p)->mWindow->ComCtrl->mSeqEnameMap.key(p);
                 if(ename.isEmpty())
                 {
@@ -1134,9 +1132,29 @@ QString CompoentControls::getSequence(const QString &key)
 }
 QString CompoentControls::getEnameSeq(const QString &key,QWidget* obj)
 {
+
+    auto a_lambda_func = [this](const QString &k,QWidget *o) {
+
+        QString tmp = mSeqEnameMap.key(o);
+        if(!tmp.isEmpty())
+        {
+            // 找到这个对像已经有一个名字,
+           if(tmp.compare(k))
+           {
+               mSeqEnameMap.remove(tmp);
+               mSeqEnameMap[k] = o;
+           }
+        }
+        else{
+            mSeqEnameMap[k] = o;
+        }
+    };
+
+
+
+
     if(key.contains('_'))
     {
-
 
         QString t = key.section('_',0,0);
         int n = key.section('_',1,1).toInt();
@@ -1146,12 +1164,17 @@ QString CompoentControls::getEnameSeq(const QString &key,QWidget* obj)
 
             QWidget *exist = mSeqEnameMap.value(tkey);
             if(exist == obj)
+            {
+                 mSeqEnameMap[tkey] = obj;
                break;
+            }
             else
                 tkey = QString("%1_%2").arg(t,
                                         QString::number(++n));
         }
-        if(n) mSeqEnameMap[tkey] = obj;
+
+        a_lambda_func(tkey,obj);
+
         return tkey;
     }else{
         int n = 0;
@@ -1160,14 +1183,16 @@ QString CompoentControls::getEnameSeq(const QString &key,QWidget* obj)
         while(mSeqEnameMap.contains(tkey) )
         {
             QWidget *exist = mSeqEnameMap.value(tkey);
-            if(exist == obj)
+            if(exist == obj){
+                mSeqEnameMap[tkey] = obj;
                 break;
+            }
             else
                 tkey = QString("%1_%2").arg(t,
                                         QString::number(++n));
         }
-        if(n)
-            mSeqEnameMap[tkey] = obj;
+
+        a_lambda_func(tkey,obj);
         return tkey;
     }
 

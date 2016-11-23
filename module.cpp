@@ -1545,9 +1545,23 @@ void BaseForm::removeChild(QWidget *w)
     childlist.removeOne(w);
 }
 
+
+void BaseForm::initialEname()
+{
+    QString ename = getEnameFromJson(this->mOwerJson[PROPERTY].toArray());
+    if(!ename.isEmpty())
+    {
+        mWindow->ComCtrl->mSeqEnameMap[ename] = this;
+    }else{
+
+    }
+}
+
 void BaseForm::onSelectMe()
 {
     mWindow->cManager->activeSS()->setSelectObject(this);
+
+
 
     mWindow->propertyWidget->createPropertyBox(this);
    // posWidget->setConnectNewQWidget(this);
@@ -1572,6 +1586,7 @@ void BaseForm::DeleteMe()
     mWindow->tree->setMyParentNode();  //选中它的父控件.
     mWindow->tree->deleteItem(this);
     mWindow->ComCtrl->ProMap.remove(mUniqueStr);
+    mWindow->ComCtrl->mSeqEnameMap.remove(mWindow->ComCtrl->mSeqEnameMap.key(this));
     mWindow->propertyWidget->delPropertyBox();
     // 它是否是列表控件的一员.
     deleteLater();
@@ -1824,7 +1839,10 @@ NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,
     newlayout->mCreateFlag = isCreate;
     newlayout->setProperty(DKEY_TYPE, valobj[WTYPE].toString());
     newlayout->mOwerJson = qv.toObject();
+    newlayout->initialEname();
     mWindow->tree->addObjectToCurrentItem(mUniqueStr,newlayout);
+
+
     newlayout->onSelectMe();
     newlayout->updateStyleSheets();
     newlayout->show();
@@ -2834,6 +2852,7 @@ void NewLayout::readFromJson(const QJsonValue &qv,bool flag)
       NewList *nlist = new NewList(qv,QSize(10,10),m_frame);
       nlist->mCreateFlag = flag;
       nlist->mOwerJson = qv.toObject();
+      nlist->initialEname();
       mWindow->tree->addObjectToCurrentItem(mUniqueStr,nlist);
       childlist.append(nlist);
       nlist->onSelectMe();
@@ -2865,6 +2884,7 @@ void NewLayout::readFromJson(const QJsonValue &qv,bool flag)
                                         Qt::IgnoreAspectRatio);
          }
          ngrid->mCreateFlag = flag;
+         ngrid->initialEname();
          mWindow->tree->addObjectToCurrentItem(mUniqueStr,ngrid);
          childlist.append(ngrid);
          if(flag)
@@ -2982,6 +3002,7 @@ QWidget* NewLayout::createObjectFromJson(const QJsonValue &qv)
     NewFrame *newFrame = new NewFrame(json,m_frame);
    // newFrame->setProperty(DKEY_JSONSTR,qv);
     newFrame->mOwerJson = qv.toObject();
+    newFrame->initialEname();
     newFrame->setProperty(DKEY_TYPE,json[WTYPE].toString());
     newFrame->setProperty(DKEY_TXT,caption);
     childlist.append(newFrame);

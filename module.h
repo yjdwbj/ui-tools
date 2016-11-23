@@ -117,7 +117,7 @@ public:
 
     QString mUniqueStr;
 
-
+    void initialEname();
     void onSelectMe();
     virtual void DeleteMe();
     void HideMe();

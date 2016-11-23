@@ -257,6 +257,7 @@ void TreeDock::addItemToRoot(QWidget *obj)
 //                                                      QStringList() << "处理" << "bb");
 //     treeWidget->setCurrentItem(testnode);
      mWindow->ComCtrl->ProMap[key] = obj;
+
 }
 
 void TreeDock::addObjectToCurrentItem(QString root,QWidget *obj)

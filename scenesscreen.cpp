@@ -126,6 +126,7 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv,bool createflag)
     childlist.append(nlayer);
     //mActiveLaySeq = childlist.size() - 1;
     nlayer->mOwerJson = qv.toObject();
+    nlayer->initialEname();
  //   nlayer->initJsonValue();
 
     nlayer->onSelectMe();
