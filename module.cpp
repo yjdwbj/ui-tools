@@ -680,7 +680,7 @@ void BaseForm::mouseMoveEvent(QMouseEvent *event)
 
 void BaseForm::mousePressEvent(QMouseEvent *event)
 {
-    qDebug() << " my name " << this->objectName() << "class " << metaObject()->className();
+//    qDebug() << " my name " << this->objectName() << "class " << metaObject()->className();
     onSelectMe();
     if (event->button() == Qt::LeftButton)
     {
@@ -757,14 +757,27 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
         contextMenu->addAction(&saveTemp);
         connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
     }
-    QAction hideobj(QIcon(":/icon/icons/eye_closed@2x.png"),"隐藏",this);
+
     if(!CN_NEWFRAME.compare(clsname))
     {
 
     }else
     {
-        connect(&hideobj,SIGNAL(triggered(bool)),SLOT(onSwapViewObject(bool)));
-        contextMenu->addAction(&hideobj);
+
+        QAction *qaobj = new QAction(this);
+        if(isHidden())
+        {
+            qaobj->setIcon(QIcon(SHOW_ICON));
+            qaobj->setIconText("显示");
+        }else{
+            qaobj->setIcon(QIcon(HIDE_ICON));
+            qaobj->setIconText("隐藏");
+        }
+//        QAction hideobj(QIcon(HIDE_ICON),"隐藏",this);
+
+
+        connect(qaobj,SIGNAL(triggered(bool)),SLOT(onSwapViewObject(bool)));
+        contextMenu->addAction(qaobj);
     }
 
     contextMenu->addSeparator();
@@ -1392,7 +1405,7 @@ void BaseForm::updateStyleSheets()
         setStyleSheet(QString("BaseForm#%1 { %2 }").arg(this->objectName(),str));
     }
 
-    qDebug() << " base form stylesheet " << this->styleSheet();
+//    qDebug() << " base form stylesheet " << this->styleSheet();
     update();
     repaint();
 
@@ -1647,6 +1660,9 @@ void BaseForm::onClearJsonValue()
          mbkImage = "";
     }else if(!objname.compare(BORDER))
     {
+       Border *border= btn->parentWidget()->parentWidget()->findChild<Border *>();
+       if(border)
+           border->resetValues();
         mBorderColor = "";
     }
     updateStyleSheets();
@@ -1855,6 +1871,7 @@ void BaseForm::addChildrenToTree()
 {
     foreach (QWidget *w, childlist) {
         mWindow->tree->addObjectToCurrentItem(mUniqueStr,w);
+        if(!w->isHidden())
         ((BaseForm*)w)->addChildrenToTree();
     }
 }
@@ -2336,7 +2353,7 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
     listLayout->setMargin(0);
 
     listLayout->setContentsMargins(0,0,0,0);
-    listLayout->setSizeConstraint(QLayout::SetFixedSize);
+    listLayout->setSizeConstraint(QLayout::SetMinAndMaxSize);
 
 
     int n = mWindow->ComCtrl->ProMap.size();
@@ -2362,6 +2379,7 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
 
 void NewList::updateAllItemsSize()
 {
+
     foreach (QWidget *w, childlist) {
         ((NewLayout*)w)->setMaximumSize(this->size());
         // ((NewLayout*)w)->setFixedSize(this->size());
@@ -2377,6 +2395,10 @@ void NewList::updateAllItemsSize()
                             KEY_RECT,
                             QString("%1:%2").arg(WIDTH,
                                                  QString::number(itemHeight)));
+            ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
+                            KEY_RECT,
+                            QString("%1:%2").arg(HEIGHT,
+                                                 QString::number(this->height())));
         }
 
         else
@@ -2391,9 +2413,14 @@ void NewList::updateAllItemsSize()
                             KEY_RECT,
                             QString("%1:%2").arg(HEIGHT,
                                                  QString::number(itemHeight)));
+            ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
+                            KEY_RECT,
+                            QString("%1:%2").arg(WIDTH,
+                                                 QString::number(this->width())));
         }
 
     }
+
     onSelectMe();
 }
 
@@ -2414,15 +2441,9 @@ void NewList::onAddManyLine()
 {
          QString txt =((QAction*)(QObject::sender()))->text();
          int num = tinySpinBoxDialog(txt,1,1,99);
-//        QString one = "#CCFFCC";
-//        QString two = "#99FFCC";
         for(int i = 0; i < num;i++)
         {
             NewLayout *n =   AddOneLine(QJsonValue::fromVariant(mWindow->ComCtrl->mVariantLayout));
-          //  n->mbkColor = i % 2 ? one : two;
-            //n->changeJsonValue(BAKCOLOR,QColor(n->mbkColor));
-
-          //  n->updateStyleSheets();
         }
         if(num) updateAllItemsSize();
 }
@@ -2436,6 +2457,7 @@ NewLayout * NewList::AddOneLine(QJsonValue value)
     newlayout->onSelectMe();
     childlist.append(newlayout);
     newlayout->container = this;
+//    qDebug() << "list add before count" << listLayout->count();
     listLayout->addWidget(newlayout);
    return newlayout;
 }
@@ -3088,11 +3110,11 @@ QJsonObject  NewLayer::writeToJson()
 {
     QJsonArray layoutarr;
     QJsonObject json = mOwerJson;
-    foreach(QObject *qo, this->m_frame->children())
-    {
-        qDebug() << " object name " << qo->objectName()
-                 <<" meta class name " << qo->metaObject()->className();
-    }
+//    foreach(QObject *qo, this->m_frame->children())
+//    {
+//        qDebug() << " object name " << qo->objectName()
+//                 <<" meta class name " << qo->metaObject()->className();
+//    }
 
     foreach (QWidget *w, childlist) {
         layoutarr.append(((NewLayout*)w)->writeToJson());

@@ -204,8 +204,12 @@ void CanvasManager::setActiveSS(int index)
         // 把当前页的布局重新添加到treeWidget上
         foreach (QWidget *w, Scenes->childlist) {
             // QString key = w->property(DKEY_LOCALSEQ).toString();
+
             mWindow->tree->addItemToRoot(w);
+            if(!w->isHidden())
             ((BaseForm*)w)->addChildrenToTree();
+
+
         }
         //  stack->setGeometry(stackRect);
     }

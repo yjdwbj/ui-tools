@@ -114,6 +114,16 @@ void Border::setConnectNewQWidget(QWidget *com)
 }
 
 
+void Border::resetValues()
+{
+
+    Left->setValue(0);
+    Top->setValue(0);
+    Bottom->setValue(0);
+    Right->setValue(0);
+}
+
+
 Position::Position(QWidget *parent)
     :QGroupBox(parent),
       Xpos(new QSpinBox(this)),
@@ -365,7 +375,6 @@ PropertyTab::PropertyTab(QWidget *parent)
 void PropertyTab::onTabChanged(int index){
         // 更改tab 项,刷新界面里的控件.
         //int index = currentIndex();
-        int jsonidx = currentWidget()->property(DKEY_JSONIDX).toInt();
         int pindex = currentWidget()->property(DKEY_PARRIDX).toInt();
         BaseForm *bfobj = ((BaseForm *)mOwerObj);
 
@@ -375,8 +384,10 @@ void PropertyTab::onTabChanged(int index){
 
         QString objname= QString("%1_%2").arg(bfobj->mUniqueStr,
                                           QString::number(index));
-
-        bfobj->posWidget = findChild<Position*>(objname);
+        if(!bfobj->property(DKEY_INTOCONTAINER).toBool())
+        {
+            bfobj->posWidget = findChild<Position*>(objname);
+        }
         QJsonValue val =  structarry.at(index);
         QColor color = QColor(bfobj->getJsonValue(val.toArray(),
                                                                    BAKCOLOR).toString());
@@ -394,7 +405,21 @@ void PropertyTab::onTabChanged(int index){
                                                GRAYCOLOR).toString());
         if(color.isValid())
              bfobj->mBorderColor = color.name(QColor::HexArgb);
-        bfobj->setGeometry(bfobj->getRectFromStruct(val.toArray(),KEY_RECT));
+
+//        QRect oldrect = bfobj->geometry();
+
+
+        if(!bfobj->property(DKEY_INTOCONTAINER).toBool())
+        {
+            //如果对像不在列表下,每一TAB属性里的位置坐标可以改变.
+//            qDebug() << tabrect << oldrect;
+            QRect tabrect = bfobj->getRectFromStruct(val.toArray(),KEY_RECT);
+            bfobj->setGeometry(tabrect);
+        }
+
+        qDebug() << " selected css tab postsion" << bfobj->geometry()
+                << " json position" << bfobj->getRectFromStruct(val.toArray(),KEY_RECT);
+
         bfobj->updateStyleSheets();
    // });
 }
@@ -408,6 +433,7 @@ void PropertyTab::handleCSSProperty(TabHandle  handle)
     QJsonArray structarry = structobj[STRUCT].toArray();
     QJsonValue val =  structarry.at(index);
 
+    qDebug() << " object rect " << mOwerObj->geometry();
     switch (handle) {
     case Append:
     {
@@ -420,6 +446,10 @@ void PropertyTab::handleCSSProperty(TabHandle  handle)
         structarry.append(val);
         structobj[STRUCT] = structarry;
         parry[pindex] = structobj;
+
+        qDebug() << "add tab,json rect"  << ((BaseForm *)mOwerObj)->getRectFromStruct(parry,KEY_RECT)
+
+                  << "object rect " <<  mOwerObj->geometry();
 
         ((BaseForm *)mOwerObj)->mOwerJson[PROPERTY] = parry;
         cp->parseJsonToWidget(mOwerObj,val.toArray());
@@ -573,22 +603,6 @@ void ComProperty::createPropertyBox(QWidget *p)
     if(mainLayout)
     {
 
-//         while(mainLayout->count()!=0)
-//         {
-//            QLayoutItem *child =  mainLayout->takeAt(0);
-//             QWidget *w = child->widget();
-//            if(w!=0)
-//            {
-//               if(!w->objectName().compare(STRUCT))
-//               {
-//                   w->setParent(0);
-//                   ((PropertyTab*)w)->clearLayout();
-//                   delete w;
-
-//               }else
-//                   delete w;
-//            }
-//         }
         removeWidFromLayout(mainLayout);
         ((BaseForm*)p)->posWidget = 0;
         if(oldobject)
@@ -881,6 +895,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                 QPushButton *btn = new QPushButton(caption,this);
 
                 btn->setObjectName(uname);
+//                b->setObjectName(uname);
 
                 QHBoxLayout *hb = new QHBoxLayout;
                  hb->setObjectName(uname);

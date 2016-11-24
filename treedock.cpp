@@ -169,6 +169,8 @@ void TreeDock::onSwapShowHideObject(bool)
             item->child(i)->setHidden(!ww->isHidden());
         }
         ww->setHidden(!ww->isHidden());
+        if(!ww->isHidden())
+            ((BaseForm*)ww)->addChildrenToTree();
        // ww->update();
         swapIconForItem(text);
     }
@@ -210,7 +212,7 @@ void TreeDock::onItemPressed(QTreeWidgetItem *item,int col)
    // if (root  == item)
     //    return;
 
-    qDebug() << " clicked tree : " << item->text(0);
+//    qDebug() << " clicked tree : " << item->text(0);
     if(mWindow->ComCtrl->ProMap.contains(item->text(0)))
     {
         ((FormResizer*)mWindow->ComCtrl->ProMap[item->text(0)])->onSelectMe();
@@ -249,13 +251,11 @@ void TreeDock::addItemToRoot(QWidget *obj)
 //    treeWidget->setCurrentItem(root);
      QTreeWidgetItem *nroot = new QTreeWidgetItem(treeWidget,
                           QStringList()  << key << obj->metaObject()->className());
-     nroot->setIcon(0,QIcon(SHOW_ICON));
+     nroot->setIcon(0,obj->isHidden() ? QIcon(HIDE_ICON) : QIcon(SHOW_ICON));
+     nroot->setExpanded(obj->isHidden());
 
      treeWidget->setCurrentItem(nroot);
 
-//     QTreeWidgetItem * testnode = new QTreeWidgetItem(treeWidget,
-//                                                      QStringList() << "处理" << "bb");
-//     treeWidget->setCurrentItem(testnode);
      mWindow->ComCtrl->ProMap[key] = obj;
 
 }
@@ -275,7 +275,8 @@ void TreeDock::addObjectToCurrentItem(QString root,QWidget *obj)
 
         if(!CN_NEWLAYOUT.compare(clsname))
         {
-            nqwi->setIcon(0,QIcon(SHOW_ICON));
+            nqwi->setIcon(0,obj->isHidden() ? QIcon(HIDE_ICON) : QIcon(SHOW_ICON));
+//            nqwi->setExpanded(obj->isHidden());
         }
         mWindow->ComCtrl->ProMap[key] = obj;
         treeWidget->blockSignals(true);
