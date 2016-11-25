@@ -1905,7 +1905,8 @@ QJsonObject BaseForm::ContainerWriteToJson(QWidget *w)
                        QJsonObject cobj = cssarray.at(num).toObject();
                        if(cobj.contains(KEY_RECT))
                        {
-                           cssarray.replace(num,rectobj);
+                           cobj[KEY_RECT]= rectobj;
+                           cssarray.replace(num,cobj);
                            structArray.replace(snum,cssarray);
                            break;
                        }

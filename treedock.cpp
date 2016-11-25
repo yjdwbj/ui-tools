@@ -165,7 +165,7 @@ void TreeDock::onSwapShowHideObject(bool)
         QString text = item->text(0);
         QWidget *ww = mWindow->ComCtrl->ProMap[text];
         //qDebug() << " item " << text << " is hide " << ww->isHidden();
-        item->setExpanded(ww->isHidden());
+//        item->setExpanded(ww->isHidden());
         for(int i = 0; i < item->childCount();i++)
         {
             item->child(i)->setHidden(!ww->isHidden());
