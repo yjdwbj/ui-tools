@@ -140,7 +140,7 @@ public:
     virtual QJsonObject writeToJson() = 0;
 
     NewLayout *CreateNewLayout(const QJsonValue &qv,
-                               QWidget *parent, bool isCreate);
+                               QWidget *parent, bool isCreate, bool incontainer);
 
     QJsonValue mPropertyJson;
 

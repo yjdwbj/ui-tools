@@ -19,6 +19,7 @@ PageView::PageView(MainWindow *mw)
     setStyleSheet("QListWidget{background-color: #C0DCC0;}");
     setWidget(mImgList);
 
+
     connect(mImgList,SIGNAL(itemPressed(QListWidgetItem*)),SLOT(onClickedItem(QListWidgetItem*)));
     //connect(mImgList,SIGNAL(itemDoubleClicked(QListWidgetItem*)),SLOT(onClickedItem(QListWidgetItem*)));
     show();
@@ -74,6 +75,11 @@ void PageView::onClickedItem(QListWidgetItem *item)
 
 }
 
+void PageView::PressItem(int index)
+{
+   QListWidgetItem *item =  mImgList->item(index);
+   emit mImgList->itemPressed(item);
+}
 
 void PageView::onItemChanged(QListWidgetItem *it)
 {

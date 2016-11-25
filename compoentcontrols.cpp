@@ -384,10 +384,10 @@ void PropertyTab::onTabChanged(int index){
 
         QString objname= QString("%1_%2").arg(bfobj->mUniqueStr,
                                           QString::number(index));
-        if(!bfobj->property(DKEY_INTOCONTAINER).toBool())
-        {
+//        if(!bfobj->property(DKEY_INTOCONTAINER).toBool())
+//        {
             bfobj->posWidget = findChild<Position*>(objname);
-        }
+//        }
         QJsonValue val =  structarry.at(index);
         QColor color = QColor(bfobj->getJsonValue(val.toArray(),
                                                                    BAKCOLOR).toString());
@@ -433,7 +433,13 @@ void PropertyTab::handleCSSProperty(TabHandle  handle)
     QJsonArray structarry = structobj[STRUCT].toArray();
     QJsonValue val =  structarry.at(index);
 
-    qDebug() << " object rect " << mOwerObj->geometry();
+
+//    val =   ((BaseForm *)mOwerObj)->changeJsonValue(val.toArray(),KEY_RECT,
+//                                                    QString("%1:%2").arg(LX,QString::number(mOwerObj->x())));
+//    val =    ((BaseForm *)mOwerObj)->changeJsonValue(val.toArray(),KEY_RECT,
+//                                                     QString("%1:%2").arg(LY,QString::number(mOwerObj->y())));
+
+//    qDebug() << " object rect " << mOwerObj->geometry();
     switch (handle) {
     case Append:
     {

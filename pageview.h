@@ -20,6 +20,7 @@ public:
     void delPage(int index);
     void InsertPage(int index, QPixmap &p);
     void InsertPage(int index, QPixmap &p,QString txt);
+    void PressItem(int index);
 
     MainWindow* mWindow;
 

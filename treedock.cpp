@@ -12,6 +12,8 @@
 
 static QString HeadCol = "结点,属性";
 
+class PageView;
+
 TreeDock::TreeDock(QWidget *parent)
     :QDockWidget(parent),
       mWindow((MainWindow*)parent), treeWidget(new QTreeWidget())
@@ -167,10 +169,12 @@ void TreeDock::onSwapShowHideObject(bool)
         for(int i = 0; i < item->childCount();i++)
         {
             item->child(i)->setHidden(!ww->isHidden());
+
         }
         ww->setHidden(!ww->isHidden());
         if(!ww->isHidden())
-            ((BaseForm*)ww)->addChildrenToTree();
+            mWindow->pageView->PressItem(mWindow->cManager->activeIndex());
+//            ((BaseForm*)ww)->addChildrenToTree();
        // ww->update();
         swapIconForItem(text);
     }

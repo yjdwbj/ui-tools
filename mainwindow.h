@@ -27,6 +27,7 @@
 #include <QPainter>
 #include <QSettings>
 #include "treedock.h"
+#include "pageview.h"
 
 #include "busyindicator.h"
 

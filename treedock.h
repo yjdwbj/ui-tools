@@ -13,6 +13,7 @@
 
 class MainWindow;
 //class PropertyBox;
+
 class CompoentControls;
 class CanvasManager;
 class ScenesScreen;

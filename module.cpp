@@ -1573,9 +1573,6 @@ void BaseForm::initialEname()
 void BaseForm::onSelectMe()
 {
     mWindow->cManager->activeSS()->setSelectObject(this);
-
-
-
     mWindow->propertyWidget->createPropertyBox(this);
    // posWidget->setConnectNewQWidget(this);
     if(!property(DKEY_INTOCONTAINER).toBool())
@@ -1844,7 +1841,7 @@ void BaseForm::wheelEvent(QWheelEvent *event)
 }
 
 NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,
-                                     QWidget *parent,bool isCreate)
+                                     QWidget *parent,bool isCreate,bool incontainer)
 {
 
     QJsonObject  valobj = qv.toObject();
@@ -1852,6 +1849,8 @@ NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,
     // QVariant variant = valobj.value(PROPERTY).toVariant();
 
     NewLayout *newlayout = new NewLayout(valobj,oldrect,mWindow,parent);
+    if(incontainer)
+    newlayout->setProperty(DKEY_INTOCONTAINER,incontainer);
     newlayout->mCreateFlag = isCreate;
     newlayout->setProperty(DKEY_TYPE, valobj[WTYPE].toString());
     newlayout->mOwerJson = qv.toObject();
@@ -1889,25 +1888,31 @@ QJsonObject BaseForm::ContainerWriteToJson(QWidget *w)
        NewLayout *layout =  (NewLayout*)w;
        QJsonArray parray = layout->mOwerJson[PROPERTY].toArray();
 
+
        for(int n = 0; n < parray.count() ; n++)
        {
            QJsonObject obj = parray.at(n).toObject();
            if(obj.contains(STRUCT))
            {
+               // 容器的里的对像的每一个的CSS属性要改成一样的.测试之后再确定
+               QJsonObject rectobj=  getRectJson(layout)[KEY_RECT].toObject();
                QJsonArray structArray = obj[STRUCT].toArray();
-               QJsonArray cssarray = structArray.at(0).toArray();
-               for( int num =0;num < cssarray.count();num++)
+               for(int snum = 0; snum < structArray.count();snum++)
                {
-                   QJsonObject cobj = cssarray.at(num).toObject();
-                   if(cobj.contains(KEY_RECT))
+                   QJsonArray cssarray = structArray.at(snum).toArray();
+                   for( int num =0;num < cssarray.count();num++)
                    {
-                        cobj[KEY_RECT] = getRectJson(layout)[KEY_RECT].toObject();
-                        cssarray.replace(num,cobj);
-                        break;
-                   }
+                       QJsonObject cobj = cssarray.at(num).toObject();
+                       if(cobj.contains(KEY_RECT))
+                       {
+                           cssarray.replace(num,rectobj);
+                           structArray.replace(snum,cssarray);
+                           break;
+                       }
 
+                   }
                }
-              structArray.replace(0,cssarray);
+
               obj[STRUCT] = structArray;
               parray[n] = obj;
               break;
@@ -1919,6 +1924,7 @@ QJsonObject BaseForm::ContainerWriteToJson(QWidget *w)
 
     }
     outjson = ((NewFrame*)w)->writeToJson();
+//     outjson = ((NewLayout*)w)->writeToJson();
     return outjson;
 }
 
@@ -2103,9 +2109,9 @@ void NewGrid::initRowsCols(int row,int col,const QJsonValue &value)
 //    QString nnn = "#98F5FF";
 //    QString tt = "#FF7F50";
     onSelectMe();
-    NewLayout *nl = CreateNewLayout(value,mainWidget,mCreateFlag);
+    NewLayout *nl = CreateNewLayout(value,mainWidget,mCreateFlag,true);
     nl->container = this;
-    nl->setProperty(DKEY_INTOCONTAINER,true);
+
     childlist.append(nl);
     // 自已的行列坐标.
     nl->setProperty(DKEY_ROW,row);
@@ -2383,6 +2389,9 @@ void NewList::updateAllItemsSize()
     foreach (QWidget *w, childlist) {
         ((NewLayout*)w)->setMaximumSize(this->size());
         // ((NewLayout*)w)->setFixedSize(this->size());
+        //        QRect rect= Compoent::getRectFromStruct(((BaseForm*)w)->mOwerJson[PROPERTY].toArray(),KEY_RECT);
+
+        //        qDebug() << " list layout rect " << rect;
         if(sliderOrientation == Qt::Horizontal)
         {
             if(itemHeight == w->width() &&
@@ -2391,14 +2400,21 @@ void NewList::updateAllItemsSize()
             ((BaseForm*)w)->onSelectMe();
             w->setFixedWidth(itemHeight);
             w->setFixedHeight(this->height());
-            ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
-                            KEY_RECT,
-                            QString("%1:%2").arg(WIDTH,
-                                                 QString::number(itemHeight)));
-            ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
-                            KEY_RECT,
-                            QString("%1:%2").arg(HEIGHT,
-                                                 QString::number(this->height())));
+            if(((BaseForm*)w)->posWidget)
+            {
+                ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
+                                                KEY_RECT,
+                                                QString("%1:%2").arg(WIDTH,
+                                                                     QString::number(itemHeight)));
+                ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
+                                                KEY_RECT,
+                                                QString("%1:%2").arg(HEIGHT,
+                                                                     QString::number(this->height())));
+                //            ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
+                //                            KEY_RECT,
+                //                            QString("%1:%2").arg(LX,
+                //                                                 QString::number(rect.x())));
+            }
         }
 
         else
@@ -2409,14 +2425,22 @@ void NewList::updateAllItemsSize()
             ((BaseForm*)w)->onSelectMe();
             w->setFixedHeight(itemHeight);
             w->setFixedWidth(this->width());
-            ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
-                            KEY_RECT,
-                            QString("%1:%2").arg(HEIGHT,
-                                                 QString::number(itemHeight)));
-            ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
-                            KEY_RECT,
-                            QString("%1:%2").arg(WIDTH,
-                                                 QString::number(this->width())));
+            if(((BaseForm*)w)->posWidget)
+            {
+                ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
+                                                KEY_RECT,
+                                                QString("%1:%2").arg(HEIGHT,
+                                                                     QString::number(itemHeight)));
+                ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
+                                                KEY_RECT,
+                                                QString("%1:%2").arg(WIDTH,
+                                                                     QString::number(this->width())));
+                //            ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
+                //                            KEY_RECT,
+                //                            QString("%1:%2").arg(LY,
+                //                                                 QString::number(rect.y())));
+
+            }
         }
 
     }
@@ -2451,9 +2475,9 @@ void NewList::onAddManyLine()
 NewLayout * NewList::AddOneLine(QJsonValue value)
 {
     onSelectMe();
-    NewLayout *newlayout = CreateNewLayout(value,mainWidget,mCreateFlag);
+    NewLayout *newlayout = CreateNewLayout(value,mainWidget,mCreateFlag,true);
     onSelectMe();
-    newlayout->setProperty(DKEY_INTOCONTAINER,true);
+//    newlayout->setProperty(DKEY_INTOCONTAINER,true);
     newlayout->onSelectMe();
     childlist.append(newlayout);
     newlayout->container = this;
@@ -2863,7 +2887,7 @@ void NewLayout::readFromJson(const QJsonValue &qv,bool flag)
     if(!clsName.compare(CN_NEWLAYOUT)/* || !clsName.compare(CN_LAYOUT)*/)
     {
 
-        NewLayout *newlayout = CreateNewLayout(qv,m_frame,flag);
+        NewLayout *newlayout = CreateNewLayout(qv,m_frame,flag,false);
         childlist.append(newlayout);
         // 这里一定是Layout 嵌套了.
         foreach (QJsonValue item, valobj[LAYOUT].toArray()) {
@@ -3074,7 +3098,7 @@ void NewLayer::readLayoutFromJson(const QJsonValue &qv,bool flag)
    QString clsName = valobj[CLASS].toString();
    if(!clsName.compare(CN_NEWLAYOUT) /*|| !clsName.compare(CN_LAYOUT)*/)
    {
-        NewLayout *newlayout = CreateNewLayout(qv,m_frame,flag);
+        NewLayout *newlayout = CreateNewLayout(qv,m_frame,flag,false);
        // 这里一定是Layout 嵌套了.
         childlist.append(newlayout);
        foreach (QJsonValue item, valobj[LAYOUT].toArray()) {
