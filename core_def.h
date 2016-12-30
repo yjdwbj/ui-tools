@@ -30,6 +30,7 @@ static QString IMAGE = "image";
 static QString NAME = "-name";
 static QString WIDGET ="widget";
 static QString BORDER="border";
+static QString ACTION="action";
 static QString CLASS = "-class";
 static QString LAYOUT ="layout";
 static QString LAYER = "layer";

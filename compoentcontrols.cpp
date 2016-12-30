@@ -1006,7 +1006,11 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
 
                 connect(bkcolor,SIGNAL(clicked(bool)),p,SLOT(onColorButtonClicked()));
                 wid = bkcolor;     
-            }else{
+            } else if(object.contains(ACTION))
+            {
+
+            }
+            else{
                 //下面是通JSON值类型来区分来创建不同类型的控件.
                 if(object[DEFAULT].isString())
                 {
@@ -1074,7 +1078,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
         }
         if(!wid)
             continue;
-       // wid->setFixedWidth(this->width()-15);
+
         wid->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
         wid->setProperty(DKEY_ARRIDX,this->property(DKEY_ARRIDX));
         wid->setProperty(DKEY_OWERJSON,this->metaObject()->className());
