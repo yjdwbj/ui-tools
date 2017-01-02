@@ -1008,6 +1008,13 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                 wid = bkcolor;     
             } else if(object.contains(ACTION))
             {
+                // 这个按钮控件不作初始化了.
+                QPushButton *actBtn = new QPushButton(object[CAPTION].toString(),this);
+                qDebug() << " handle action is " << object[CAPTION].toString();
+                actBtn->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
+                actBtn->setProperty(DKEY_ARRIDX,i);
+                mainLayout->addWidget(actBtn);
+                connect(actBtn,SIGNAL(clicked(bool)),p,SLOT(onActionDialog()));
 
             }
             else{

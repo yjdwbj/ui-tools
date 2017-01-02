@@ -44,5 +44,12 @@
         <file>icons/mode_help@2x.png</file>
         <file>icons/undo.png</file>
         <file>icons/empty.png</file>
+        <file>icons/act_add.png</file>
+        <file>icons/act_del.png</file>
+        <file>icons/act_down.png</file>
+        <file>icons/act_downbottom.png</file>
+        <file>icons/act_insert.png</file>
+        <file>icons/act_up.png</file>
+        <file>icons/act_uptop.png</file>
     </qresource>
 </RCC>

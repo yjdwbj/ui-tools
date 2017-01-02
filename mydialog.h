@@ -15,6 +15,8 @@
 #include <QLineEdit>
 #include <QToolButton>
 #include <QTreeWidgetItem>
+#include <QTableWidget>
+#include <QTableWidgetItem>
 
 
 class MainWindow;
@@ -290,6 +292,25 @@ private:
 };
 
 
+class ActionList: public QDialog
+{
+    Q_OBJECT
+public:
+    explicit ActionList(const QJsonArray &arry, QWidget *parent=0);
+
+    QTableWidget *mTable;
+    MainWindow *mWindow;
+
+
+public slots:
+    void onCustomContextMenu(const QPoint &pos);
+
+private:
+//    QWidgetList mActList;
+    QStringList mActList;
+    QMap<int,QStringList> mEnumMap;
+
+};
 
 
 

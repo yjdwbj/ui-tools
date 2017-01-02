@@ -163,6 +163,7 @@ public slots:
     void onColorButtonClicked();
     void onBorderChangedValue(int v);
     void onBackgroundImageDialog();
+    void onActionDialog();
   //  void onSelectedBackgroundImage(QListWidgetItem *item);
 
     virtual void onDeleteMe() =0;

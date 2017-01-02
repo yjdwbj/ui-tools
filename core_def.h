@@ -59,6 +59,8 @@ static QString GRAYCOLOR = "gray-color";
 static QString STRUCT = "struct";
 static QString BAKIMAGE = "background-image";
 static QString BAKCOLOR = "background-color";
+static QString VALUES = "values";
+static QString OBJECT = "object";
 
 static QString WTYPE = "-type";
 static QString PLUGIN = "plugin";

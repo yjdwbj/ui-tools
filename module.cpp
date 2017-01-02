@@ -1666,6 +1666,25 @@ void BaseForm::onClearJsonValue()
 
 }
 
+void BaseForm::onActionDialog()
+{
+    QWidget *w  = (QWidget*)(QObject::sender());
+//    qDebug() << w->property(DKEY_JSONSTR);
+    QJsonObject val = w->property(DKEY_JSONSTR).toJsonValue().toObject();
+//    qDebug() << "action is Array " << val << val[ACTION].type();
+    if(!val[ACTION].isArray())
+    {
+        QMessageBox::warning(this,"格式错误",((QPushButton*)w)->text() + "格式错误,必须是数组类型");
+        return;
+    }
+    ActionList *actlist = new ActionList(val[ACTION].toArray(),this);
+    actlist->mWindow = this->mWindow;
+    actlist->setFixedSize(this->mWindow->size() * 0.5);
+    actlist->exec();
+
+
+}
+
 void BaseForm::onBackgroundImageDialog()
 {
     QWidget *w  = (QWidget*)(QObject::sender());

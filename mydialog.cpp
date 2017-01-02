@@ -17,6 +17,7 @@
 #include <QFileDialog>
 #include <QStyleFactory>
 #include <QThread>
+#include <QLineEdit>
 
 
 const static char DnditemData[] = "application/x-dnditemdata";
@@ -1248,4 +1249,205 @@ FileEdit::FileEdit(QString txt, QWidget *parent)
 
 
 
+ActionList::ActionList(const QJsonArray &arry, QWidget *parent)
+    :QDialog(parent)
+{
+
+    int asize = arry.size();
+    qDebug() << "Action list " << arry << " size " << asize;
+    QStringList headers;
+
+    for(int i = 0 ;i < asize;i++)
+    {
+        QJsonObject qobj = arry.at(i).toObject();
+        if(!qobj.contains(VALUES))
+        {
+            headers.append(qobj[CAPTION].toString());
+            if(qobj.contains(ENUM))
+            {
+//                QComboBox *cbox = new QComboBox();
+                QStringList t;
+                QVariantList qvlist = qobj[ENUM].toArray().toVariantList();
+                for(QVariantList::const_iterator it = qvlist.begin();
+                    it != qvlist.end();++it)
+                {
+//                    cbox->addItem((*it).toMap().firstKey());
+                    t << (*it).toMap().firstKey();
+                }
+                mEnumMap[i] = t;
+                mActList.append(ENUM);
+//                mActList.append(cbox);
+            }else if(qobj.contains(OBJECT)){
+//               QComboBox *cbox = new QComboBox();
+               mActList.append(OBJECT);
+            }else{
+//                QLineEdit *edt = new QLineEdit();
+                mActList.append(TEXT);
+            }
+
+        }
+    }
+    //mTable->setHorizontalHeaderLabels(QStringList() << "事件"<< "动作" << "对像"<<"说明");
+    mTable = new QTableWidget(0,headers.size(),this);
+    mTable->setHorizontalHeaderLabels(headers);
+    mTable->resizeColumnsToContents();
+    QHeaderView *header = mTable->horizontalHeader();
+    header->setResizeContentsPrecision(1);
+    header->setSectionResizeMode(QHeaderView::Stretch);
+    mTable->setContextMenuPolicy(Qt::CustomContextMenu);
+//    mTable->verticalHeader()->setVisible(false);
+    connect(mTable,SIGNAL(customContextMenuRequested(const QPoint&)),SLOT(onCustomContextMenu(const QPoint&)));
+
+
+    QVBoxLayout *mainLayout = new QVBoxLayout(this);
+    this->setLayout(mainLayout);
+    mainLayout->addWidget(mTable);
+//    mTable->insertRow(1);
+//    QTableWidgetItem *ni = new QTableWidgetItem();
+
+//    QComboBox *cbx = new QComboBox(mTable);
+//    mTable->setCellWidget(0,0,(QWidget*)cbx);
+
+}
+
+void ActionList::onCustomContextMenu(const QPoint &pos)
+{
+    QObject *sender = QObject::sender();
+    bool isTable = !QString::compare(sender->metaObject()->className(),"QTableWidget");
+//    qDebug() << " sender class is " << sender->metaObject()->className()
+//             << " pos " << pos << " mapToGlobal " << mapToGlobal(pos)
+//             << " map to parent is " << mapToParent(pos);
+
+
+    QMenu *contextMenu = new QMenu((QWidget*)(QObject::sender()));
+    QAction  addline(QIcon(":/icon/icons/act_add.png")  ,
+                     QString("添加行"),this);
+    auto a_lambda_func = [this](int line) {
+
+        for(int i = 0 ;i < mTable->columnCount();i++)
+        {
+            if(!QString::compare(mActList.at(i),ENUM))
+            {
+                QComboBox *cbox = new QComboBox(mTable);
+                cbox->setContextMenuPolicy(Qt::CustomContextMenu);
+                connect(cbox,SIGNAL(customContextMenuRequested(const QPoint&)),
+                        SLOT(onCustomContextMenu(const QPoint&)));
+                if(mEnumMap.contains(i))
+                {
+                    cbox->addItems(mEnumMap[i]);
+                }
+                mTable->setCellWidget(line,i,cbox);
+            }else if(!QString::compare(mActList.at(i),OBJECT))
+            {
+                QComboBox *cbox = new QComboBox(mTable);
+                cbox->setContextMenuPolicy(Qt::CustomContextMenu);
+                connect(cbox,SIGNAL(customContextMenuRequested(const QPoint&)),
+                        SLOT(onCustomContextMenu(const QPoint&)));
+
+                cbox->addItems(mWindow->ComCtrl->mSeqEnameMap.keys());
+                mTable->setCellWidget(line,i,cbox);
+            }else{
+                QLineEdit *edit = new QLineEdit(mTable);
+                mTable->setCellWidget(line,i,edit);
+            }
+
+        }
+    };
+
+    if(isTable)
+    {
+
+        contextMenu->addAction(&addline);
+        QObject::connect(&addline,
+                         &QAction::triggered,[=](){
+
+//            qDebug() << "mActList count " << mActList.count();
+            int count = mTable->rowCount();
+            mTable->insertRow(mTable->rowCount());
+            a_lambda_func(count);
+
+        });
+        contextMenu->exec(mapToGlobal(pos));
+    }else{
+        QPoint subpos(((QWidget*)sender)->pos());
+        mTable->setCurrentIndex(mTable->indexAt(subpos));
+        int line = mTable->currentRow();
+
+
+        QAction  delline(QIcon(":/icon/icons/act_del.png")  ,
+                         QString("删除当前行"),this);
+        QObject::connect(&delline,
+                         &QAction::triggered,[=](){
+            qDebug() << " will remove line "  << line;
+            for(int i = 0 ;i < mTable->columnCount();i++)
+            {
+                QWidget *w = mTable->cellWidget(line,i);
+                QObject::disconnect(w);
+                mTable->removeCellWidget(line,i);
+                w->deleteLater();
+            }
+             mTable->removeRow(line);
+
+
+        });
+
+
+        QAction insert(QIcon(":/icon/icons/act_insert.png")  ,
+                       QString("插入行"),this);
+        QObject::connect(&insert,
+                         &QAction::triggered,[=](){
+            mTable->insertRow(line);
+            a_lambda_func(line);
+
+        });
+
+        contextMenu->addActions(QList<QAction*>() << &addline << &delline << &insert);
+
+
+
+        contextMenu->addSeparator();
+        if(mTable->rowCount() > 1)
+        {
+            qDebug() << " pos in line  " << line << " Table row count " << mTable->rowCount();
+            QAction  up(QIcon(":/icon/icons/act_up.png")  ,
+                        QString("上移一行"),this);
+            QObject::connect(&up,
+                             &QAction::triggered,[=](){
+                int dstline = line -1;
+                for(int i = 0; i < mTable->columnCount();i++ )
+                {
+                    QTableWidgetItem *items = mTable->takeItem(line,i);
+                    QTableWidgetItem *itemd = mTable->takeItem(dstline,i);
+                    mTable->setItem(line,i,itemd);
+                    mTable->setItem(dstline,i,items);
+                }
+
+            });
+            QAction  uptop(QIcon(":/icon/icons/act_uptop.png")  ,
+                           QString("移到顶部"),this);
+            QAction down(QIcon(":/icon/icons/act_down.png")  ,
+                         QString("下移一行"),this);
+            QAction downbottom(QIcon(":/icon/icons/act_downbottom.png")  ,
+                               QString("移到底部"),this);
+
+            if(line == 0)
+            {
+               contextMenu->addActions(QList<QAction*>() << &down <<  &downbottom) ;
+            }else if(line == mTable->rowCount())
+            {
+                contextMenu->addActions(QList<QAction*>() << &up  << &uptop);
+            }else{
+                contextMenu->addActions(QList<QAction*>() << &up  << &down << &uptop <<  &downbottom);
+            }
+        }
+
+
+        //先把sender的控件的pos映射到全局,再加上在sender里的pos
+        contextMenu->exec(mapToGlobal(subpos)+pos);
+    }
+
+    contextMenu->deleteLater();
+
+
+}
 
