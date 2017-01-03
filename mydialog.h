@@ -292,11 +292,12 @@ private:
 };
 
 
-class ActionList: public QDialog
+
+class ActionList: public BaseDialog
 {
     Q_OBJECT
 public:
-    explicit ActionList(const QJsonArray &arry, QWidget *parent=0);
+    explicit ActionList( QWidget *parent=0);
 
     QTableWidget *mTable;
     MainWindow *mWindow;
@@ -307,8 +308,16 @@ public slots:
 
 private:
 //    QWidgetList mActList;
+//    static const char mWidType[]  = "ViewWidgetType";
+
     QStringList mActList;
     QMap<int,QStringList> mEnumMap;
+    QMap<int,QString> mTypeMap; // 控件类型名,etc. object,envent
+    QVariantList mDefaultVals;   //控件默认值,defaults
+
+    QList<QVariantMap> mDataList; //控件的数据,{values: [{....},{....}]}
+
+    void addNewRow(int line,const QVariantList &defvals);
 
 };
 

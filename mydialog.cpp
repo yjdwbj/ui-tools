@@ -1,4 +1,5 @@
 #include "mydialog.h"
+#include "module.h"
 #include "ui_dialog.h"
 #include "ui_language.h"
 #include "ui_confproject.h"
@@ -18,6 +19,7 @@
 #include <QStyleFactory>
 #include <QThread>
 #include <QLineEdit>
+
 
 
 const static char DnditemData[] = "application/x-dnditemdata";
@@ -1249,12 +1251,17 @@ FileEdit::FileEdit(QString txt, QWidget *parent)
 
 
 
-ActionList::ActionList(const QJsonArray &arry, QWidget *parent)
-    :QDialog(parent)
-{
 
+class BaseForm;
+
+ActionList::ActionList(QWidget *parent)
+    :BaseDialog(parent),
+     mWindow(((BaseForm*)parent)->mWindow)
+{
+    // 这里只支持两种类型的控件,QComboBox,QLineEdit
+
+    QJsonArray arry = ((BaseForm*)parent)->getActionListJson();
     int asize = arry.size();
-    qDebug() << "Action list " << arry << " size " << asize;
     QStringList headers;
 
     for(int i = 0 ;i < asize;i++)
@@ -1265,123 +1272,233 @@ ActionList::ActionList(const QJsonArray &arry, QWidget *parent)
             headers.append(qobj[CAPTION].toString());
             if(qobj.contains(ENUM))
             {
-//                QComboBox *cbox = new QComboBox();
                 QStringList t;
                 QVariantList qvlist = qobj[ENUM].toArray().toVariantList();
                 for(QVariantList::const_iterator it = qvlist.begin();
                     it != qvlist.end();++it)
                 {
-//                    cbox->addItem((*it).toMap().firstKey());
+
                     t << (*it).toMap().firstKey();
                 }
                 mEnumMap[i] = t;
                 mActList.append(ENUM);
-//                mActList.append(cbox);
             }else if(qobj.contains(OBJECT)){
-//               QComboBox *cbox = new QComboBox();
                mActList.append(OBJECT);
             }else{
-//                QLineEdit *edt = new QLineEdit();
                 mActList.append(TEXT);
             }
-
+            mTypeMap[i] = qobj[NAME].toString();
+            mDefaultVals.append(qobj[DEFAULT].toString());
+        }else{
+             qDebug() << " values is " << qobj[VALUES].toArray();
+            QJsonArray arr =  qobj[VALUES].toArray();
+            int asize = arr.size();
+            for(int i = 0 ; i < asize;i++)
+            {
+               mDataList.append(arr.at(i).toObject().toVariantMap());
+            }
         }
     }
-    //mTable->setHorizontalHeaderLabels(QStringList() << "事件"<< "动作" << "对像"<<"说明");
+
+    qDebug() << " mActList " << mActList << "length " << mActList.length();
     mTable = new QTableWidget(0,headers.size(),this);
     mTable->setHorizontalHeaderLabels(headers);
+    mTable->setDragDropMode(QAbstractItemView::DragDrop);
     mTable->resizeColumnsToContents();
     QHeaderView *header = mTable->horizontalHeader();
     header->setResizeContentsPrecision(1);
     header->setSectionResizeMode(QHeaderView::Stretch);
     mTable->setContextMenuPolicy(Qt::CustomContextMenu);
-//    mTable->verticalHeader()->setVisible(false);
-    connect(mTable,SIGNAL(customContextMenuRequested(const QPoint&)),SLOT(onCustomContextMenu(const QPoint&)));
-
+    connect(mTable,SIGNAL(customContextMenuRequested(const QPoint&)),
+            SLOT(onCustomContextMenu(const QPoint&)));
 
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     this->setLayout(mainLayout);
     mainLayout->addWidget(mTable);
-//    mTable->insertRow(1);
-//    QTableWidgetItem *ni = new QTableWidgetItem();
 
-//    QComboBox *cbx = new QComboBox(mTable);
-//    mTable->setCellWidget(0,0,(QWidget*)cbx);
+    QDialogButtonBox *dbb = new QDialogButtonBox(QDialogButtonBox::Ok,
+                                                 Qt::Horizontal,
+                                                 this);
+    dbb->button(QDialogButtonBox::Ok)->setText("确定");
 
+   QObject::connect(dbb,
+                    &QDialogButtonBox::accepted,[=](){
+
+       // 把数据写到它的json里.
+       qDebug() << " will save to json";
+       QJsonArray jarry ;
+       for(int i = 0; i< mTable->rowCount();i++)
+       {
+            QVariantMap vmap ;
+            for(int j = 0;j < mTable->columnCount();j++)
+            {
+                QWidget *w =  mTable->cellWidget(i,j);
+                QString key = w->objectName();
+                if(!QString::compare(w->metaObject()->className(),"QComboBox"))
+                {
+                    vmap[key] = ((QComboBox*)w)->currentText();
+                }else{
+                    vmap[key] = ((QLineEdit*)w)->text();
+                }
+
+            }
+//            mDataList.append(vmap);
+            jarry.append(QJsonObject::fromVariantMap(vmap));
+       }
+
+       BaseForm *bf = (BaseForm*)parent;
+       QJsonArray qa =    bf->mOwerJson[PROPERTY].toArray();
+       for(int i =0;i<qa.size();i++)
+       {
+           QJsonObject qo =  qa.at(i).toObject();
+           if(qo.contains(ACTION))
+           {
+               QJsonArray actarry  =    qo[ACTION].toArray();
+               for(int n = 0 ; n < actarry.size();n++)
+               {
+                   QJsonObject actobj = actarry.at(n).toObject();
+                   if(actobj.contains(VALUES))
+                   {
+                       actobj[VALUES] = jarry;
+                       actarry.replace(n,actobj);
+                       break;
+                   }
+               }
+               qo[ACTION] = actarry;
+               qa.replace(i,qo);
+               break;
+           }
+       }
+       bf->mOwerJson[PROPERTY] = qa;
+
+
+
+       this->accept();
+
+   });
+
+
+   mainLayout->addWidget(dbb);
+   // 读取原有的数据
+   for(int i = 0 ; i < mDataList.size();i++)
+   {
+       mTable->insertRow(mTable->rowCount());
+       addNewRow(i,mDefaultVals);
+
+        QVariantMap vmap =    mDataList.at(i)  ;
+        for(int n = 0 ; n < vmap.size();n++)
+        {
+           QWidget *w =  mTable->cellWidget(i,n);
+           if(!QString::compare(w->metaObject()->className(),"QComboBox"))
+           {
+                QString objstr = vmap[mTypeMap[n]].toString();
+                if(!QString::compare(OBJECT,w->objectName()))
+                {
+                    QStringList slit = mWindow->ComCtrl->mSeqEnameMap.keys();
+
+                    if(slit.indexOf(objstr) < 0)
+                    {
+
+                        QMessageBox::warning(0,tr("警告"),objstr + " 不存在,或者已经被删除,或者已经被重命名.");
+                        ((QComboBox*)w)->setCurrentText("");
+                    }else{
+                        ((QComboBox*)w)->setCurrentText(objstr);
+                    }
+                }else{
+                     ((QComboBox*)w)->setCurrentText(objstr);
+                }
+
+           }else{
+               ((QLineEdit*)w)->setText(vmap[mTypeMap[n]].toString());
+           }
+        }
+   }
+   mDataList.clear();
+
+}
+
+void ActionList::addNewRow(int line,const QVariantList &defvals)
+{
+      // 用-name来区别分对像.
+    for(int i = 0 ;i < mTable->columnCount();i++)
+    {
+
+        if(!QString::compare(mActList.at(i),ENUM))
+        {
+            QComboBox *cbox = new QComboBox(mTable);
+            cbox->setContextMenuPolicy(Qt::CustomContextMenu);
+            connect(cbox,SIGNAL(customContextMenuRequested(const QPoint&)),
+                    SLOT(onCustomContextMenu(const QPoint&)));
+            if(mEnumMap.contains(i))
+            {
+                cbox->addItems(mEnumMap[i]);
+            }
+            cbox->setCurrentText(defvals[i].toString());
+
+            mTable->setCellWidget(line,i,cbox);
+            cbox->setObjectName(mTypeMap[i]);
+//            cbox->setProperty(mWidType,ENUM);
+        }else if(!QString::compare(mActList.at(i),OBJECT))
+        {
+            QComboBox *cbox = new QComboBox(mTable);
+            cbox->setContextMenuPolicy(Qt::CustomContextMenu);
+            connect(cbox,SIGNAL(customContextMenuRequested(const QPoint&)),
+                    SLOT(onCustomContextMenu(const QPoint&)));
+
+            cbox->addItems(mWindow->ComCtrl->mSeqEnameMap.keys());
+            cbox->addItem("");
+            cbox->setCurrentText(defvals[i].toString());
+            mTable->setCellWidget(line,i,cbox);
+            cbox->setObjectName(mTypeMap[i]);
+//            cbox->setProperty(mWidType,ENUM);
+        }else{
+            QLineEdit *edit = new QLineEdit(mTable);
+            mTable->setCellWidget(line,i,edit);
+            edit->setText(defvals[i].toString());
+            edit->setObjectName(mTypeMap[i]);
+//            cbox->setProperty(mWidType,TEXT);
+        }
+
+
+
+    }
 }
 
 void ActionList::onCustomContextMenu(const QPoint &pos)
 {
     QObject *sender = QObject::sender();
     bool isTable = !QString::compare(sender->metaObject()->className(),"QTableWidget");
-//    qDebug() << " sender class is " << sender->metaObject()->className()
-//             << " pos " << pos << " mapToGlobal " << mapToGlobal(pos)
-//             << " map to parent is " << mapToParent(pos);
-
-
-    QMenu *contextMenu = new QMenu((QWidget*)(QObject::sender()));
+    QMenu contextMenu((QWidget*)(QObject::sender()));
     QAction  addline(QIcon(":/icon/icons/act_add.png")  ,
                      QString("添加行"),this);
-    auto a_lambda_func = [this](int line) {
+    QObject::connect(&addline,
+                     &QAction::triggered,[=](){
+        int count = mTable->rowCount();
+        mTable->insertRow(mTable->rowCount());
+        addNewRow(count,mDefaultVals);
 
-        for(int i = 0 ;i < mTable->columnCount();i++)
-        {
-            if(!QString::compare(mActList.at(i),ENUM))
-            {
-                QComboBox *cbox = new QComboBox(mTable);
-                cbox->setContextMenuPolicy(Qt::CustomContextMenu);
-                connect(cbox,SIGNAL(customContextMenuRequested(const QPoint&)),
-                        SLOT(onCustomContextMenu(const QPoint&)));
-                if(mEnumMap.contains(i))
-                {
-                    cbox->addItems(mEnumMap[i]);
-                }
-                mTable->setCellWidget(line,i,cbox);
-            }else if(!QString::compare(mActList.at(i),OBJECT))
-            {
-                QComboBox *cbox = new QComboBox(mTable);
-                cbox->setContextMenuPolicy(Qt::CustomContextMenu);
-                connect(cbox,SIGNAL(customContextMenuRequested(const QPoint&)),
-                        SLOT(onCustomContextMenu(const QPoint&)));
-
-                cbox->addItems(mWindow->ComCtrl->mSeqEnameMap.keys());
-                mTable->setCellWidget(line,i,cbox);
-            }else{
-                QLineEdit *edit = new QLineEdit(mTable);
-                mTable->setCellWidget(line,i,edit);
-            }
-
-        }
-    };
+    });
 
     if(isTable)
     {
 
-        contextMenu->addAction(&addline);
-        QObject::connect(&addline,
-                         &QAction::triggered,[=](){
+        contextMenu.addAction(&addline);
 
-//            qDebug() << "mActList count " << mActList.count();
-            int count = mTable->rowCount();
-            mTable->insertRow(mTable->rowCount());
-            a_lambda_func(count);
-
-        });
-        contextMenu->exec(mapToGlobal(pos));
+        contextMenu.exec(mapToGlobal(pos));
     }else{
         QPoint subpos(((QWidget*)sender)->pos());
         mTable->setCurrentIndex(mTable->indexAt(subpos));
         int line = mTable->currentRow();
-
-
         QAction  delline(QIcon(":/icon/icons/act_del.png")  ,
                          QString("删除当前行"),this);
         QObject::connect(&delline,
                          &QAction::triggered,[=](){
-            qDebug() << " will remove line "  << line;
+//            qDebug() << " will remove line "  << line;
+
             for(int i = 0 ;i < mTable->columnCount();i++)
             {
                 QWidget *w = mTable->cellWidget(line,i);
+
                 QObject::disconnect(w);
                 mTable->removeCellWidget(line,i);
                 w->deleteLater();
@@ -1397,56 +1514,100 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
         QObject::connect(&insert,
                          &QAction::triggered,[=](){
             mTable->insertRow(line);
-            a_lambda_func(line);
+            addNewRow(line,mDefaultVals);
 
         });
 
-        contextMenu->addActions(QList<QAction*>() << &addline << &delline << &insert);
+        contextMenu.addActions(QList<QAction*>() << &addline << &delline << &insert);
 
 
-
-        contextMenu->addSeparator();
+        contextMenu.addSeparator();
         if(mTable->rowCount() > 1)
         {
-            qDebug() << " pos in line  " << line << " Table row count " << mTable->rowCount();
+
+            auto sawp_lambda_func = [this](int src,int dst) {
+
+
+                QVariantList oldvals;
+                for(int i  = 0 ; i < mTable->columnCount();i++)
+                {
+                    QWidget *w = mTable->cellWidget(src,i);
+
+
+                    if(!QString::compare(w->metaObject()->className(),"QComboBox"))
+                    {
+                        oldvals.append(((QComboBox*)w)->currentText());
+                    }else{
+                        oldvals.append(((QLineEdit*)w)->text());
+                    }
+                    QObject::disconnect(w);
+                    mTable->removeCellWidget(src,i);
+                    w->deleteLater();
+
+                }
+                // 这里只能用删除加插入的方法来调整行序.
+                mTable->removeRow(src);
+                qDebug() << " insert row " << dst;
+                mTable->insertRow(dst);
+                addNewRow(dst,oldvals);
+
+
+            };
+
+
+            //            qDebug() << " pos in line  " << line << " Table row count " << mTable->rowCount();
             QAction  up(QIcon(":/icon/icons/act_up.png")  ,
                         QString("上移一行"),this);
             QObject::connect(&up,
                              &QAction::triggered,[=](){
-                int dstline = line -1;
-                for(int i = 0; i < mTable->columnCount();i++ )
-                {
-                    QTableWidgetItem *items = mTable->takeItem(line,i);
-                    QTableWidgetItem *itemd = mTable->takeItem(dstline,i);
-                    mTable->setItem(line,i,itemd);
-                    mTable->setItem(dstline,i,items);
-                }
-
+//                    qDebug() << "current item " << mTable->currentItem();
+                    sawp_lambda_func(line,line-1);
             });
             QAction  uptop(QIcon(":/icon/icons/act_uptop.png")  ,
                            QString("移到顶部"),this);
+            QObject::connect(&uptop,
+                             &QAction::triggered,[=](){
+                    sawp_lambda_func(line,0);
+            });
+
+
             QAction down(QIcon(":/icon/icons/act_down.png")  ,
                          QString("下移一行"),this);
+            QObject::connect(&down,
+                             &QAction::triggered,[=](){
+                    sawp_lambda_func(line,line+1);
+            });
             QAction downbottom(QIcon(":/icon/icons/act_downbottom.png")  ,
                                QString("移到底部"),this);
+            QObject::connect(&downbottom,
+                             &QAction::triggered,[=](){
+                    sawp_lambda_func(line,mTable->rowCount()-1);
+            });
 
             if(line == 0)
             {
-               contextMenu->addActions(QList<QAction*>() << &down <<  &downbottom) ;
-            }else if(line == mTable->rowCount())
+                contextMenu.addActions(QList<QAction*>() << &down <<  &downbottom) ;
+            }else if(line+1 == mTable->rowCount())
             {
-                contextMenu->addActions(QList<QAction*>() << &up  << &uptop);
+                contextMenu.addActions(QList<QAction*>() << &up  << &uptop);
             }else{
-                contextMenu->addActions(QList<QAction*>() << &up  << &down << &uptop <<  &downbottom);
+                contextMenu.addActions(QList<QAction*>() << &up  << &down << &uptop <<  &downbottom);
             }
+
+            //先把sender的控件的pos映射到全局,再加上在sender里的pos
+            // up,uptop,down,downbottom 只在当前作用域内有效.
+            contextMenu.exec(mapToGlobal(subpos)+pos);
+        }else
+        {
+            //先把sender的控件的pos映射到全局,再加上在sender里的pos
+            contextMenu.exec(mapToGlobal(subpos)+pos);
         }
 
 
-        //先把sender的控件的pos映射到全局,再加上在sender里的pos
-        contextMenu->exec(mapToGlobal(subpos)+pos);
+
     }
 
-    contextMenu->deleteLater();
+//    contextMenu->deleteLater();
 
 
 }

@@ -51,6 +51,7 @@ public:
     static QJsonObject getValueFromProperty(const QJsonArray &arr,const QString &key);
     static QVariant getJsonValue(const QJsonValue &val, QString key);
     static QRect getRectFromStruct(const QJsonArray &arr, QString key) ;
+    QJsonArray getActionListJson();
 
 
      QRect getRectFromJson(const QJsonObject &json) const;
@@ -142,7 +143,7 @@ public:
     NewLayout *CreateNewLayout(const QJsonValue &qv,
                                QWidget *parent, bool isCreate, bool incontainer);
 
-    QJsonValue mPropertyJson;
+//    QJsonValue mPropertyJson;
 
 
     ObjType mType;
