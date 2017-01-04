@@ -1889,10 +1889,10 @@ NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,
     newlayout->initialEname();
     mWindow->tree->addObjectToCurrentItem(mUniqueStr,newlayout);
 
-
+//    newlayout->show();
     newlayout->onSelectMe();
     newlayout->updateStyleSheets();
-    newlayout->show();
+//    newlayout->show();
     return newlayout;
 }
 
@@ -2431,6 +2431,8 @@ void NewList::updateAllItemsSize()
                     w->height() == this->height())
                 break;
             ((BaseForm*)w)->onSelectMe();
+
+
             w->setFixedWidth(itemHeight);
             w->setFixedHeight(this->height());
             if(((BaseForm*)w)->posWidget)
@@ -2456,6 +2458,7 @@ void NewList::updateAllItemsSize()
                     w->width() == this->width())
                 break;
             ((BaseForm*)w)->onSelectMe();
+
             w->setFixedHeight(itemHeight);
             w->setFixedWidth(this->width());
             if(((BaseForm*)w)->posWidget)
@@ -2508,6 +2511,7 @@ void NewList::onAddManyLine()
 NewLayout * NewList::AddOneLine(QJsonValue value)
 {
     onSelectMe();
+
     NewLayout *newlayout = CreateNewLayout(value,mainWidget,mCreateFlag,true);
     onSelectMe();
 //    newlayout->setProperty(DKEY_INTOCONTAINER,true);
@@ -2935,12 +2939,15 @@ void NewLayout::readFromJson(const QJsonValue &qv,bool flag)
       mWindow->tree->addObjectToCurrentItem(mUniqueStr,nlist);
       childlist.append(nlist);
       nlist->onSelectMe();
+
       foreach (QJsonValue item, valobj[LISTWIDGET].toArray()) {
           nlist->readFromJson(item);
       }
 
       nlist->updateAllItemsSize();
       nlist->updateStyleSheets();
+      nlist->update();
+
     }else if(!clsName.compare(CN_NEWGRID))
     {
         NewGrid *ngrid;

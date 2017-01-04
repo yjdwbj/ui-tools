@@ -21,6 +21,7 @@ public:
     void InsertPage(int index, QPixmap &p);
     void InsertPage(int index, QPixmap &p,QString txt);
     void PressItem(int index);
+    void ReloadListView();
 
     MainWindow* mWindow;
 

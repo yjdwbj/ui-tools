@@ -692,7 +692,6 @@ void ImageListView::updateListImages(QString path)
             pic = mWindow->mImgMap[fpath] = QPixmap(fpath);
         }
         imglist->addItem(new QListWidgetItem(pic,shortname));
-        qApp->processEvents();
     }
     imglist->setProperty(DKEY_IMGMAP,imgMap);
 }
@@ -1300,7 +1299,7 @@ ActionList::ActionList(QWidget *parent)
         }
     }
 
-    qDebug() << " mActList " << mActList << "length " << mActList.length();
+//    qDebug() << " mActList " << mActList << "length " << mActList.length();
     mTable = new QTableWidget(0,headers.size(),this);
     mTable->setHorizontalHeaderLabels(headers);
     mTable->setDragDropMode(QAbstractItemView::DragDrop);
@@ -1325,7 +1324,7 @@ ActionList::ActionList(QWidget *parent)
                     &QDialogButtonBox::accepted,[=](){
 
        // 把数据写到它的json里.
-       qDebug() << " will save to json";
+//       qDebug() << " will save to json";
        QJsonArray jarry ;
        for(int i = 0; i< mTable->rowCount();i++)
        {
@@ -1547,7 +1546,7 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
                 }
                 // 这里只能用删除加插入的方法来调整行序.
                 mTable->removeRow(src);
-                qDebug() << " insert row " << dst;
+//                qDebug() << " insert row " << dst;
                 mTable->insertRow(dst);
                 addNewRow(dst,oldvals);
 

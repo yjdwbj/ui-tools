@@ -59,7 +59,8 @@ void PageView::InsertPage(int index, QPixmap &p, QString txt)
     mImgList->insertItem(index,twi);
     mImgList->clearSelection();
     mImgList->setCurrentItem(twi,QItemSelectionModel::ClearAndSelect);
-    mImgList->setItemSelected(twi,true);
+//    mImgList->setItemSelected(twi,true);
+//    onClickedItem(twi);
 
 }
 
@@ -73,6 +74,14 @@ void PageView::onClickedItem(QListWidgetItem *item)
     mImgList->setCurrentItem(item,QItemSelectionModel::ClearAndSelect);
     mImgList->setItemSelected(item,true);
 
+}
+
+void PageView::ReloadListView()
+{
+   for(int i = 0 ; i < mImgList->count();i++)
+   {
+       emit onClickedItem(mImgList->item(i));
+   }
 }
 
 void PageView::PressItem(int index)

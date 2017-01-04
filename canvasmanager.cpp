@@ -12,6 +12,7 @@
 #include <QTimer>
 #include <QFileDialog>
 #include <QTextBrowser>
+#include <functional>
 
 
 CanvasManager::CanvasManager(MainWindow *w):
@@ -130,6 +131,17 @@ void CanvasManager::screenshot()
         QWidget *wd = stack->currentWidget();
         if(wd)
         {
+// 匿名函数测试对像的子对像.
+//            std::function<void(QWidget*)> test_func =  [&](QWidget* obj){
+//                foreach( QObject *t, obj->children())
+//                {
+//                    qDebug() << " class name " << t->metaObject()->className()
+//                             << " widget name  "  << ((QWidget*)t)->objectName();
+//                    test_func((QWidget*)t);
+//                }
+//            };
+//            test_func(stack->currentWidget());
+
             QPixmap pixmap(stack->currentWidget()->size());
             stack->currentWidget()->render(&pixmap,QPoint(),QRegion(stack->currentWidget()->rect()));
             QVariant vp = stack->currentWidget()->property(DKEY_SHOT);
@@ -141,6 +153,7 @@ void CanvasManager::screenshot()
                 //pixmap.save("test.png");　//　这里如果有需要可以保存成文件.
                 stack->currentWidget()->setProperty(DKEY_SHOT,true);
             }else{
+
                 int index = stack->currentIndex();
                 mWindow->pageView->delPage(index); // 删除当前的,更新每新的.
                 mWindow->pageView->InsertPage(index,pixmap,stack->currentWidget()->property(DKEY_TXT).toString());
@@ -196,7 +209,7 @@ void CanvasManager::setActiveSS(int index)
     if(index == -1) return;
     if(index < mCanvasList.size())
     {
-        screenshot();
+
         stack->setCurrentIndex(index);
         // 清理treeWidget 的行
         mWindow->tree->deleteAllitem();
@@ -211,6 +224,8 @@ void CanvasManager::setActiveSS(int index)
 
 
         }
+
+        screenshot();
         //  stack->setGeometry(stackRect);
     }
 
@@ -331,6 +346,7 @@ void CanvasManager::OpenProject(QString file)
             qDebug() << json_error.errorString();
         }
 
+
     }
 }
 
@@ -365,6 +381,7 @@ void CanvasManager::onOpenProject()
     {
         OpenProject(pfile);
         autoSaveTimer->start(60000);
+//        screenshot();
     }
 }
 

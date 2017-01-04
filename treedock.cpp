@@ -285,6 +285,7 @@ void TreeDock::addObjectToCurrentItem(QString root,QWidget *obj)
         mWindow->ComCtrl->ProMap[key] = obj;
         treeWidget->blockSignals(true);
         treeWidget->setCurrentItem(nqwi);
+        ((BaseForm*)obj)->onSelectMe();
         treeWidget->blockSignals(false);
     }
 }
