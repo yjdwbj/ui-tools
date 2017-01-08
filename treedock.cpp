@@ -195,7 +195,7 @@ void TreeDock::setMyParentNode()
             QWidget *w = mWindow->ComCtrl->ProMap[item->text(0)];
             QApplication::postEvent(w,event);
         }
-        else if(!CN_NEWLAYER.compare(citem->text(1)))
+        else if(citem->text(1).compare(CN_NEWLAYER))
         {
             QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(CN_NEWLAYER,
                                                                     Qt::MatchFixedString | Qt::MatchRecursive,1);
@@ -277,7 +277,7 @@ void TreeDock::addObjectToCurrentItem(QString root,QWidget *obj)
         QTreeWidgetItem *nqwi =  new QTreeWidgetItem(qwilist.first(),
                                                      QStringList() << key << clsname);
 
-        if(!CN_NEWLAYOUT.compare(clsname))
+        if(obj->inherits(CN_NEWLAYOUT))
         {
             nqwi->setIcon(0,obj->isHidden() ? QIcon(HIDE_ICON) : QIcon(SHOW_ICON));
 //            nqwi->setExpanded(obj->isHidden());

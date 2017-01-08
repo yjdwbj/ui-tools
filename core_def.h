@@ -127,16 +127,25 @@ static const char DKEY_ROW[] = "gridrow";
 static const char DKEY_COL[] = "gridcol";
 
 /* Class Name */
-static const QString CN_NEWLAYOUT = "NewLayout";
-static const QString CN_NEWFRAME = "NewFrame";
-static const QString CN_NEWLABEL = "NewLabel";
-static const QString CN_NEWLAYER = "NewLayer";
-static const QString CN_NEWLIST = "NewList";
-static const QString CN_NEWGRID = "NewGrid";
-static const QString CN_NEWPAGE = "NewPage";
+//static const QString CN_NEWLAYOUT = "NewLayout";
+//static const QString CN_NEWFRAME = "NewFrame";
+//static const QString CN_NEWLABEL = "NewLabel";
+//static const QString CN_NEWLAYER = "NewLayer";
+//static const QString CN_NEWLIST = "NewList";
+//static const QString CN_NEWGRID = "NewGrid";
+//static const QString CN_NEWPAGE = "NewPage";
+
+static const char CN_NEWLAYOUT[] = "NewLayout";
+static const char CN_NEWFRAME[] = "NewFrame";
+static const char CN_NEWLABEL[] = "NewLabel";
+static const char CN_NEWLAYER[] = "NewLayer";
+static const char CN_NEWLIST[] = "NewList";
+static const char CN_NEWGRID[] = "NewGrid";
+static const char CN_NEWPAGE[] = "NewPage";
+
 //static const QString CN_LAYER = "Layer";
 //static const QString CN_LAYOUT = "Layout";
-static const QString CN_SSNAME = "ScenesScreen";
+static const char CN_SSNAME[] = "ScenesScreen";
 
 /*  ini format */
 static const QString INI_PRJSIZE = "Project/Size";

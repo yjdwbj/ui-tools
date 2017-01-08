@@ -436,16 +436,16 @@ void Compoent::onBindValue(QWidget *w)
 
      // 是否是第一个TAB;
     // bool isFirst = !w->property(DKEY_ARRIDX).toInt();
-     QString n = w->metaObject()->className();
+//     QString n = w->metaObject()->className();
      QString uname = w->objectName();
-     if(!n.compare("QLineEdit"))
+     if(w->inherits("QLineEdit"))
      {
          QLineEdit *txt = (QLineEdit *)w;
 
          QString jstr = getJsonValue(item, uname).toString();
          if(!jstr.isEmpty())
          txt->setText(jstr);
-     }else if(!n.compare("QComboBox"))
+     }else if(w->inherits("QComboBox"))
      {
          QComboBox *cb = (QComboBox *)w;
          if(!uname.compare(PIC_TEXT)) return;
@@ -473,12 +473,12 @@ void Compoent::onBindValue(QWidget *w)
             cb->setCurrentText(getJsonValue(item,uname).toString());
          }
 
-     }else if(!n.compare("QSpinBox"))
+     }else if(w->inherits("QSpinBox"))
      {
          QSpinBox *sp = (QSpinBox *)w;
          sp->setValue(getJsonValue(item,uname).toDouble());
      }
-     else if(!n.compare("QPushButton"))
+     else if(w->inherits("QPushButton"))
      {
          QColor c;
          if(!uname.compare(BAKCOLOR) ||
@@ -717,14 +717,14 @@ void BaseForm::SwapLayerOrder(SwapType st)
     QWidget *p =  this->parentWidget();
     qDebug() << "this meta class name " << this->metaObject()->className();
     QList<QWidget*> *mlist;
-    if(!CN_SSNAME.compare(p->metaObject()->className()))
+    if(p->inherits(CN_SSNAME))
     {
         mlist = &((ScenesScreen*)p)->childlist;
     }else
     {
         mlist = &((BaseForm*)p->parentWidget())->childlist;
     }
-        qDebug() << " parent widget objectname " << p->objectName() << p->metaObject()->className();
+//        qDebug() << " parent widget objectname " << p->objectName() << p->metaObject()->className();
         if(mlist->size())
         {
           qDebug() << " mlist " << mlist->size();
@@ -759,20 +759,20 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
 {
 
     QMenu *contextMenu = new QMenu(parent);
-    QString clsname = metaObject()->className();
+//    QString clsname = metaObject()->className();
     QAction delme(QIcon(":/icon/icons/removesubmitfield.png")  ,
                   QString("删除当前-%1").arg(this->property(DKEY_TXT).toString()),this);
     connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
     contextMenu->addAction(&delme);
     contextMenu->addSeparator();
      QAction saveTemp(QIcon(":/icon/icons/build.png"),"保存成控件",this);
-    if(!CN_NEWLAYOUT.compare(clsname))
+    if(inherits(CN_NEWLAYOUT))
     {
         contextMenu->addAction(&saveTemp);
         connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
     }
 
-    if(!CN_NEWFRAME.compare(clsname))
+    if(inherits(CN_NEWFRAME))
     {
 
     }else
@@ -975,14 +975,15 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
 
     if(inContainer)
     {
-        clsname = ((NewLayout*)this)->container->metaObject()->className();
-        if( !clsname.compare(CN_NEWLIST))
+//        clsname = ((NewLayout*)this)->container->metaObject()->className();
+        QWidget *container = ((NewLayout*)this)->container;
+        if(container->inherits(CN_NEWLIST))
         {
             NewList*  nl =(NewList*)(((NewLayout*)this)->container);
             contextMenu->addAction(nl->menuAddLine);
             contextMenu->addAction(nl->menuSetHeight);
             contextMenu->addAction(nl->menuSetSpace);
-        }else if(!clsname.compare(CN_NEWGRID))
+        }else if(container->inherits(CN_NEWGRID))
         {
             NewGrid*   ng = (NewGrid*)(((NewLayout*)this)->container);
             contextMenu->addAction(ng->menuAddRow);
@@ -994,7 +995,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
         }
 
 
-    }else if(!clsname.compare(CN_NEWGRID))
+    }else if(inherits(CN_NEWGRID))
     {
         NewGrid *ng = (NewGrid*)this;
         contextMenu->addAction(ng->menuAddRow);
@@ -1004,7 +1005,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
         contextMenu->addAction(ng->menuV);
         contextMenu->addAction(ng->menuH);
 
-    }else if(!clsname.compare(CN_NEWLIST))
+    }else if(inherits(CN_NEWLIST))
     {
         NewList*  nl =(NewList*)this;
         contextMenu->addAction(nl->menuAddLine);
@@ -1212,14 +1213,6 @@ void BaseForm::onNumberChanged(int num)
 
     QSpinBox *sp = (QSpinBox *)(QObject::sender());
     changeJsonValue(sp,sp->objectName(),num);
-//    if(!sp->objectName().compare(ALPHA))
-//    {
-//        QColor c(this->mbkColor);
-//        c.setAlpha(num);
-//        mbkColor = c.name(QColor::HexArgb);
-//        this->updateStyleSheets();
-//      //  changeJsonValue(sp,BAKCOLOR,mbkColor);
-//    }
 }
 
 void BaseForm::onTextChanged(QString str)
@@ -1399,14 +1392,14 @@ void BaseForm::updateStyleSheets()
 
     QString clsname = metaObject()->className();
 
-    if(!clsname.compare(CN_NEWGRID))
+    if(inherits(CN_NEWGRID))
     {
         ((NewGrid*)this)->mainScroll->setStyleSheet(QString("BaseScrollArea#%1 { %2 }").arg(
                                                         this->objectName(),
                                                         str));
 
     }
-    else if(!clsname.compare(CN_NEWLIST))
+    else if(inherits(CN_NEWLIST))
     {
         //       ((NewList*)this)->mainScroll->setStyleSheet(QString("%1#%2 { %3 }").arg(clsname,
         //                                                 this->objectName(),
@@ -1913,9 +1906,9 @@ QJsonObject BaseForm::ContainerWriteToJson(QWidget *w)
 {
     QJsonObject outjson =  QJsonValue::fromVariant(w->property(DKEY_JSONSTR)).toObject();
     outjson[NAME] = w->objectName();
-    QString clsname = w->metaObject()->className();
+//    QString clsname = w->metaObject()->className();
 
-    if(!clsname.compare(CN_NEWLAYOUT))
+    if(w->inherits(CN_NEWLAYOUT))
     {
        NewLayout *layout =  (NewLayout*)w;
        QJsonArray parray = layout->mOwerJson[PROPERTY].toArray();
@@ -2586,8 +2579,8 @@ void NewList::wheelEvent(QWheelEvent *event)
 
 bool NewList::eventFilter(QObject *obj, QEvent *event)
 {
-    if(!CN_NEWLAYOUT.compare(obj->metaObject()->className()) &&
-            event->type() == QEvent::Wheel)
+
+    if(obj->inherits(CN_NEWLAYOUT) && event->type() == QEvent::Wheel)
     {
 
        // wheelEvent(&evt);
@@ -2705,7 +2698,7 @@ void NewLayout::DeleteMe()
     if(property(DKEY_INTOCONTAINER).toBool())
     {
 
-        if(!CN_NEWLIST.compare(metaObject()->className()))
+        if(this->inherits(CN_NEWLIST))
             ((NewList*)container)->childlist.removeOne(this);
         else{
            ((NewGrid*)container)->childlist.removeOne(this);
@@ -2862,8 +2855,9 @@ void NewLayout::clearOtherSelectHandler()
         if (wid == this)
             continue;
 
-        if(!CN_NEWFRAME.compare(wid->metaObject()->className())
-            || !CN_NEWLAYOUT.compare(wid->metaObject()->className()))
+//        if(!CN_NEWFRAME.compare(wid->metaObject()->className())
+//            || !CN_NEWLAYOUT.compare(wid->metaObject()->className()))
+        if(wid->inherits(CN_NEWFRAME) || wid->inherits(CN_NEWLAYOUT))
         {
             ((FormResizer*)wid)->setState(SelectionHandleOff);
         }
@@ -2881,8 +2875,9 @@ void NewLayout::deleteObject(QWidget *w)
 {
     int i = childlist.indexOf((BaseForm*)w);
     childlist.removeAt(i);
-    QString clsname = w->metaObject()->className();
-    if(!clsname.compare(CN_NEWLAYOUT))
+//    QString clsname = w->metaObject()->className();
+//    if(!clsname.compare(CN_NEWLAYOUT))
+    if(w->inherits(CN_NEWLAYOUT))
     {
         ((NewLayout*)w)->DeleteMe();
     }else {
@@ -2901,7 +2896,7 @@ QJsonObject NewLayout::writeToJson()
        // outjson[NAME] = w->objectName();
        // qDebug() << " childlist  " << w->metaObject()->className();
         // 这里只有两种对像类型,NewLayout , NewFrame;
-        QString clsname = w->metaObject()->className();
+//        QString clsname = w->metaObject()->className();
         outjson = ((BaseForm*)w)->writeToJson();
         layoutarr.append(outjson);
     }

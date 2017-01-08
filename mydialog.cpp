@@ -1333,7 +1333,8 @@ ActionList::ActionList(QWidget *parent)
             {
                 QWidget *w =  mTable->cellWidget(i,j);
                 QString key = w->objectName();
-                if(!QString::compare(w->metaObject()->className(),"QComboBox"))
+//                if(!QString::compare(w->metaObject()->className(),"QComboBox"))
+                if(w->inherits("QComboBox"))
                 {
                     vmap[key] = ((QComboBox*)w)->currentText();
                 }else{
@@ -1388,7 +1389,8 @@ ActionList::ActionList(QWidget *parent)
         for(int n = 0 ; n < vmap.size();n++)
         {
            QWidget *w =  mTable->cellWidget(i,n);
-           if(!QString::compare(w->metaObject()->className(),"QComboBox"))
+//           if(!QString::compare(w->metaObject()->className(),"QComboBox"))
+           if(w->inherits("QComboBox"))
            {
                 QString objstr = vmap[mTypeMap[n]].toString();
                 if(!QString::compare(OBJECT,w->objectName()))
@@ -1466,7 +1468,8 @@ void ActionList::addNewRow(int line,const QVariantList &defvals)
 void ActionList::onCustomContextMenu(const QPoint &pos)
 {
     QObject *sender = QObject::sender();
-    bool isTable = !QString::compare(sender->metaObject()->className(),"QTableWidget");
+//    bool isTable = !QString::compare(sender->metaObject()->className(),"QTableWidget");
+    bool isTable = sender->inherits("QTableWidget");
     QMenu contextMenu((QWidget*)(QObject::sender()));
     QAction  addline(QIcon(":/icon/icons/act_add.png")  ,
                      QString("添加行"),this);
@@ -1533,7 +1536,8 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
                     QWidget *w = mTable->cellWidget(src,i);
 
 
-                    if(!QString::compare(w->metaObject()->className(),"QComboBox"))
+//                    if(!QString::compare(w->metaObject()->className(),"QComboBox"))
+                    if(w->inherits("QComboBox"))
                     {
                         oldvals.append(((QComboBox*)w)->currentText());
                     }else{

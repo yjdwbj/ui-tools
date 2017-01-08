@@ -1473,7 +1473,7 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
         fdebug.write(QJsonDocument(jobj).toJson());
 #endif
         QString clsname = jobj[CLASS].toString();
-        if(!CN_NEWLAYOUT.compare(clsname) /*||!CN_LAYOUT.compare(clsname)*/)
+        if(!clsname.compare(CN_NEWLAYOUT) /*||!CN_LAYOUT.compare(clsname)*/)
         {
             mVariantLayout = qjv.toVariant();
         }
@@ -1532,7 +1532,7 @@ void CompoentControls::onCreateCompoentToCanvas()
     }
 
     QString clsname = wid->metaObject()->className();
-    if(!clsname.compare(CN_NEWLAYER) /*|| !clsname.compare(CN_LAYER)*/)
+    if(wid->inherits(CN_NEWLAYER) /*|| !clsname.compare(CN_LAYER)*/)
     {
         QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
         return;
@@ -1541,9 +1541,9 @@ void CompoentControls::onCreateCompoentToCanvas()
     QPushButton *btn = (QPushButton*)(QObject::sender());
     QJsonValue val =QJsonValue::fromVariant(btn->property(DKEY_JSONSTR));
    // QString clsname = wid->metaObject()->className();
-    if(!clsname.compare(CN_NEWFRAME)
-            || !clsname.compare(CN_NEWLIST)
-            || !clsname.compare(CN_NEWGRID))
+    if(wid->inherits(CN_NEWFRAME)
+            || wid->inherits(CN_NEWLIST)
+            || wid->inherits(CN_NEWGRID))
     {
         ((NewLayout*)wid->parentWidget()->parentWidget())->readFromJson(val,true);
     }
@@ -1579,15 +1579,15 @@ void CompoentControls::onCreateNewLayout()
         oldrect.setHeight(200);
     }
 
-    if(!CN_NEWLAYOUT.compare(clsname))
+    if(w->inherits(CN_NEWLAYOUT))
     {
         // 这里是在布局上面创建布局,嵌套.
         ((NewLayout*)w)->readFromJson(value,true);
     }
-    else if(!CN_NEWLAYER.compare(clsname)/* || !CN_LAYER.compare(clsname)*/)
+    else if(w->inherits(CN_NEWLAYER)/* || !CN_LAYER.compare(clsname)*/)
     {
        ((NewLayer*)w)->readLayoutFromJson(value,true);
-    }else if(!CN_NEWFRAME.compare(clsname) || !CN_NEWLIST.compare(clsname))
+    }else if(w->inherits(CN_NEWFRAME) || w->inherits(CN_NEWLIST))
     {
         //在当前控件的父控件上添加布局.
         ((NewLayout*)w->parentWidget()->parentWidget())->readFromJson(value,true);

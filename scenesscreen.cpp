@@ -184,7 +184,6 @@ void ScenesScreen::delAllObjects()
         // 这里递归删每一个新建的控件
       //  QString cname = w->metaObject()->className();
         if(((BaseForm*)w)->mType == BaseForm::TYPELAYOUT)
-     //   if(!CN_NEWLAYOUT.compare(cname))
         {
             ((NewLayout*)w)->DeleteMe();
         }
@@ -301,7 +300,7 @@ void ScenesScreen::pasteItem(QWidget *w)
                 NewLayout* bflayout = (NewLayout*)bf;
                 bflayout->readFromJson(mWindow->mCopyItem,true);
             }
-        }else if(!cls.compare(this->metaObject()->className()))
+        }else if(this->inherits(cls.toLocal8Bit().data()))
         {
             QJsonObject ssobj = mWindow->mCopyItem.toObject();
 
