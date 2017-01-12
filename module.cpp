@@ -37,7 +37,7 @@ static   QStringList KeyList = QStringList() << DEFAULT << ENAME
 
 
 QJsonValue Compoent::changeJsonValue(const QJsonArray &arg,QString key,
-                               const QVariant &val)
+                                     const QVariant &val)
 {
     QJsonArray parr = arg;
     int asize = parr.size();
@@ -67,7 +67,7 @@ QJsonValue Compoent::changeJsonValue(const QJsonArray &arg,QString key,
                          << WIDTH << HEIGHT) {
                     if(!str.compare(section1))
                     {
-                         QJsonObject rect = obj[KEY_RECT].toObject();
+                        QJsonObject rect = obj[KEY_RECT].toObject();
                         rect[section1] = num;
                         obj[KEY_RECT] = rect;
                         break;
@@ -130,13 +130,13 @@ QJsonValue Compoent::changeJsonValue(const QJsonArray &arg,QString key,
 
 void Compoent::changeJsonValue(int idex, const QVariant &val)
 {
-   QJsonArray parr =  mOwerJson[PROPERTY].toArray();
+    QJsonArray parr =  mOwerJson[PROPERTY].toArray();
     mOwerJson[PROPERTY] = changeJsonValue(parr,idex,val);
 }
 
 void Compoent::changeJsonValue(QString key, const QVariant &val)
 {
-   QJsonArray parr =  mOwerJson[PROPERTY].toArray();
+    QJsonArray parr =  mOwerJson[PROPERTY].toArray();
     mOwerJson[PROPERTY] = changeJsonValue(parr,key,val);
 }
 
@@ -148,7 +148,7 @@ QJsonArray Compoent::getActionListJson()
         QJsonObject qo = parr.at(i).toObject();
         if(qo.contains(ACTION))
         {
-           return qo[ACTION].toArray();
+            return qo[ACTION].toArray();
         }
     }
     return QJsonArray();
@@ -186,7 +186,7 @@ QJsonValue Compoent::changeJsonValue(const QJsonArray &json,int index, const QVa
         obj[COLOR] = QJsonValue::fromVariant(val);
     }
     else if(!wtype.compare(UID)){
-            obj[ENAME] = QJsonValue::fromVariant(val);
+        obj[ENAME] = QJsonValue::fromVariant(val);
     }else if(!wtype.compare(BAKIMAGE))
     {
         obj[BAKIMAGE] = QJsonValue::fromVariant(val);
@@ -253,19 +253,19 @@ QJsonValue Compoent::changeJsonValue(const QJsonArray &json,int index, const QVa
 void Compoent::changeJsonValue(QWidget *w,QString key, const QVariant &val)
 {
     QVariant sval(val);
-  //  qDebug() << "QWidget name " << key << val;
+    //  qDebug() << "QWidget name " << key << val;
     QString owercls = w->property(DKEY_OWERJSON).toString();
-     int jsonindex = w->property(DKEY_JSONIDX).toInt();
+    int jsonindex = w->property(DKEY_JSONIDX).toInt();
 
-     int index = w->property(DKEY_PARRIDX).toInt();
-     QJsonArray parray = mOwerJson[PROPERTY].toArray();
-     QJsonObject pobj = parray.at(index).toObject();
+    int index = w->property(DKEY_PARRIDX).toInt();
+    QJsonArray parray = mOwerJson[PROPERTY].toArray();
+    QJsonObject pobj = parray.at(index).toObject();
 
     if(!owercls.compare("ComProperty"))
     {
         // 默就解析到 JSON PROPERTY 里的属性,不递归到CSS属性里去.
-       // changeJsonValue(jsonindex,sval);
-      parray = changeJsonValue(parray,jsonindex,sval).toArray();
+        // changeJsonValue(jsonindex,sval);
+        parray = changeJsonValue(parray,jsonindex,sval).toArray();
 
 
     }else if(!owercls.compare("CssProperty"))
@@ -278,23 +278,7 @@ void Compoent::changeJsonValue(QWidget *w,QString key, const QVariant &val)
 
         QJsonArray cssArray = structarray.at(cssindex).toArray();
 
-//        if(!key.compare(ALPHA)){
-//            for(int n = 0; n<cssArray.size();n++)
-//            {
-//               QJsonObject o =  cssArray.at(n).toObject();
-//               if(o.contains(BAKCOLOR))
-//               {
-//                  QString s = o[BAKCOLOR].toString();
-//                  QColor c = QColor(s);
-//                  int alpha = sval.toInt();
-//                  c.setAlpha(alpha);
-//                  sval = c.name(QColor::HexArgb);
-//                  cssArray = changeJsonValue(cssArray,n,sval).toArray();
-//                  sval = alpha;
-//                  break;
-//               }
-//            }
-//        }
+
         structarray[cssindex] = changeJsonValue(cssArray,jsonindex,sval);
         //structarray[cssindex] = changeJsonValue(cssArray,key,val);
         pobj[STRUCT] = structarray;
@@ -316,12 +300,12 @@ QJsonArray Compoent::updateRBJsonValue(const QJsonArray &arr, QWidget *w)
         QJsonValue item = projson.at(i);
         if(item.isArray())
         {
-             projson.replace(i,updateRBJsonValue(item.toArray(),w));
-             return projson;
+            projson.replace(i,updateRBJsonValue(item.toArray(),w));
+            return projson;
             continue;
         }
 
-//        QJsonObject ov = projson.at(i).toObject();
+        //        QJsonObject ov = projson.at(i).toObject();
         QJsonObject ov = item.toObject();
 
         if(ov.contains(STRUCT))
@@ -340,8 +324,8 @@ QJsonArray Compoent::updateRBJsonValue(const QJsonArray &arr, QWidget *w)
 
         }else if(ov.contains(UID))
         {
-          //  ov[UID] = w->property(DKEY_UID).toString();
-             ov[UID] = w->property(DKEY_UID).toInt();
+            //  ov[UID] = w->property(DKEY_UID).toString();
+            ov[UID] = w->property(DKEY_UID).toInt();
         }
         else if(ov.contains(BORDER))
         {
@@ -350,7 +334,7 @@ QJsonArray Compoent::updateRBJsonValue(const QJsonArray &arr, QWidget *w)
         projson[i] = ov;
 
     }
-     return projson;
+    return projson;
 }
 
 
@@ -390,7 +374,7 @@ QString Compoent::getEnameFromJson(const QJsonArray &arr)
 
 QVariant Compoent::getJsonValue(const QJsonArray &parr,QString key)
 {
-   // for(int i = 0;i < asize;i++)
+    // for(int i = 0;i < asize;i++)
     QVariant ret;
     foreach (QJsonValue val, parr)
     {
@@ -427,122 +411,122 @@ QVariant Compoent::getJsonValue(QString key) const
 
 void Compoent::onBindValue(QWidget *w)
 {
- //   qDebug() << " dyn size " << dynValues.size();
-     // 通过关键字来设置控件的默认值.
+    //   qDebug() << " dyn size " << dynValues.size();
+    // 通过关键字来设置控件的默认值.
     if(!w)
         return;
-     BaseForm *myself = (BaseForm*)this;
-     QJsonValue  item = QJsonValue::fromVariant(w->property(DKEY_JSONSTR));
+    BaseForm *myself = (BaseForm*)this;
+    QJsonValue  item = QJsonValue::fromVariant(w->property(DKEY_JSONSTR));
 
-     // 是否是第一个TAB;
+    // 是否是第一个TAB;
     // bool isFirst = !w->property(DKEY_ARRIDX).toInt();
-//     QString n = w->metaObject()->className();
-     QString uname = w->objectName();
-     if(w->inherits("QLineEdit"))
-     {
-         QLineEdit *txt = (QLineEdit *)w;
+    //     QString n = w->metaObject()->className();
+    QString uname = w->objectName();
+    if(w->inherits("QLineEdit"))
+    {
+        QLineEdit *txt = (QLineEdit *)w;
 
-         QString jstr = getJsonValue(item, uname).toString();
-         if(!jstr.isEmpty())
-         txt->setText(jstr);
-     }else if(w->inherits("QComboBox"))
-     {
-         QComboBox *cb = (QComboBox *)w;
-         if(!uname.compare(PIC_TEXT)) return;
-         QVariant nlv =  cb->property(DKEY_IMAGELST);
-         if(nlv.isValid() )
-         {
-             // 处理图片列表与它的默认值.
-             cb->clear();
-             QVariantList nlist = nlv.toList();
-             QString defimg = cb->property(DKEY_IMGIDX).toString();
-             for(QVariantList::const_iterator it = nlist.begin();
-                     it != nlist.end();++it)
-             {
-                 // example for key  is  "config/images/string/alarm_pol.bmp"
-                 QString key = (*it).toString();
-                 //QString key = (*it).toString().replace('\\',QDir::separator());
+        QString jstr = getJsonValue(item, uname).toString();
+        if(!jstr.isEmpty())
+            txt->setText(jstr);
+    }else if(w->inherits("QComboBox"))
+    {
+        QComboBox *cb = (QComboBox *)w;
+        if(!uname.compare(PIC_TEXT)) return;
+        QVariant nlv =  cb->property(DKEY_IMAGELST);
+        if(nlv.isValid() )
+        {
+            // 处理图片列表与它的默认值.
+            cb->clear();
+            QVariantList nlist = nlv.toList();
+            QString defimg = cb->property(DKEY_IMGIDX).toString();
+            for(QVariantList::const_iterator it = nlist.begin();
+                it != nlist.end();++it)
+            {
+                // example for key  is  "config/images/string/alarm_pol.bmp"
+                QString key = (*it).toString();
+                //QString key = (*it).toString().replace('\\',QDir::separator());
 
-                 cb->addItem(QIcon(key.section(SECTION_CHAR,1,1)),key.section(SECTION_CHAR,0,0));
-             }
-             cb->setCurrentText(defimg);
-             cb->setProperty(DKEY_IMGIDX,defimg);
-           }
-            else
-         {
+                cb->addItem(QIcon(key.section(SECTION_CHAR,1,1)),key.section(SECTION_CHAR,0,0));
+            }
+            cb->setCurrentText(defimg);
+            cb->setProperty(DKEY_IMGIDX,defimg);
+        }
+        else
+        {
             cb->setCurrentText(getJsonValue(item,uname).toString());
-         }
+        }
 
-     }else if(w->inherits("QSpinBox"))
-     {
-         QSpinBox *sp = (QSpinBox *)w;
-         sp->setValue(getJsonValue(item,uname).toDouble());
-     }
-     else if(w->inherits("QPushButton"))
-     {
-         QColor c;
-         if(!uname.compare(BAKCOLOR) ||
-                 !uname.compare(COLOR))
-         {
-             QString cname = getJsonValue(item,uname).toString();
-             c = QColor(cname) ;
-             // if(isFirst)
-             if(c.isValid())
-             {
+    }else if(w->inherits("QSpinBox"))
+    {
+        QSpinBox *sp = (QSpinBox *)w;
+        sp->setValue(getJsonValue(item,uname).toDouble());
+    }
+    else if(w->inherits("QPushButton"))
+    {
+        QColor c;
+        if(!uname.compare(BAKCOLOR) ||
+                !uname.compare(COLOR))
+        {
+            QString cname = getJsonValue(item,uname).toString();
+            c = QColor(cname) ;
+            // if(isFirst)
+            if(c.isValid())
+            {
 
-                 if(item.toObject().contains(BAKCOLOR))
-                     myself->mbkColor =c.name(QColor::HexArgb);
-             }
-             else
-                 myself->getPairWidgetFromPLayout(w)->setEnabled(false);
-         }
-         else if(!uname.compare(BORDER))
-         {
-             //unsigned int n = getJsonValue(BORDER).toUInt();
-             //灰度转成ＲＧＢ
-             // QColor c(n & 0xfff00000,n &0xfff00,n & 0xff);
-             //QColor c = QColor::fromRgb(n);
-             // 这里暂时有RGB颜色测试
-             c = QColor(getJsonValue(item,GRAYCOLOR).toString());
-             // if(isFirst)
-             if(c.isValid())
-                 myself->mBorderColor = c.name(QColor::HexArgb);
-             else
-                 myself->getPairWidgetFromPLayout(w)->setEnabled(false);
+                if(item.toObject().contains(BAKCOLOR))
+                    myself->mbkColor =c.name(QColor::HexArgb);
+            }
+            else
+                myself->getPairWidgetFromPLayout(w)->setEnabled(false);
+        }
+        else if(!uname.compare(BORDER))
+        {
+            //unsigned int n = getJsonValue(BORDER).toUInt();
+            //灰度转成ＲＧＢ
+            // QColor c(n & 0xfff00000,n &0xfff00,n & 0xff);
+            //QColor c = QColor::fromRgb(n);
+            // 这里暂时有RGB颜色测试
+            c = QColor(getJsonValue(item,GRAYCOLOR).toString());
+            // if(isFirst)
+            if(c.isValid())
+                myself->mBorderColor = c.name(QColor::HexArgb);
+            else
+                myself->getPairWidgetFromPLayout(w)->setEnabled(false);
 
-         }else if(!uname.compare(BAKIMAGE))
-         {
-             QPixmap p(12,12);
-             QString img = getJsonValue(item,BAKIMAGE).toString();
-             if(!img.isEmpty())
-             {
+        }else if(!uname.compare(BAKIMAGE))
+        {
+            QPixmap p(12,12);
+            QString img = getJsonValue(item,BAKIMAGE).toString();
+            if(!img.isEmpty())
+            {
 
-                 img = QDir::currentPath() + BACKSLASH + img;
-                 p.load(img);
-                 ((QPushButton*)w)->setIcon(p);
-                 // if(isFirst)
-                 myself->mbkImage = img;
-             } else
-                 myself->getPairWidgetFromPLayout(w)->setEnabled(false);
-             return;
-         }else if(!uname.compare(PIC_TEXT))
-         {
+                img = QDir::currentPath() + BACKSLASH + img;
+                p.load(img);
+                ((QPushButton*)w)->setIcon(p);
+                // if(isFirst)
+                myself->mbkImage = img;
+            } else
+                myself->getPairWidgetFromPLayout(w)->setEnabled(false);
+            return;
+        }else if(!uname.compare(PIC_TEXT))
+        {
 
 
-             return;
-         }
-         //if(isFirst)
-         //    myself->updateStyleSheets();
-         if(c.isValid())
-         {
-             QPixmap p(12,12);
-             p.fill(c);
-             ((QPushButton*)w)->setIcon(p);
-         }
+            return;
+        }
+        //if(isFirst)
+        //    myself->updateStyleSheets();
+        if(c.isValid())
+        {
+            QPixmap p(12,12);
+            p.fill(c);
+            ((QPushButton*)w)->setIcon(p);
+        }
 
-         ((QPushButton*)w)->setProperty(DKEY_COLOR,c.name(QColor::HexArgb));
-     }
- }
+        ((QPushButton*)w)->setProperty(DKEY_COLOR,c.name(QColor::HexArgb));
+    }
+}
 
 
 QJsonObject Compoent::getRectJson(QWidget *w)
@@ -641,35 +625,31 @@ BaseForm::BaseForm(QWidget *parent)
 
 void BaseForm::mouseMoveEvent(QMouseEvent *event)
 {
-//    QString clsname = parentWidget()->parentWidget()->metaObject()->className();
-//   //  qDebug() << " parent class name " <<  clsname;
-//     // 这里主要防止它在列表的拖动事件.
-//    QString thisname = metaObject()->className();
-//    if(thisname.compare(CN_NEWLAYER))
-//        if(CN_NEWLAYOUT.compare(clsname) &&
-//                CN_NEWLAYER.compare(clsname) ) return;
+    //    QString clsname = parentWidget()->parentWidget()->metaObject()->className();
+    //   //  qDebug() << " parent class name " <<  clsname;
+    //     // 这里主要防止它在列表的拖动事件.
+    //    QString thisname = metaObject()->className();
+    //    if(thisname.compare(CN_NEWLAYER))
+    //        if(CN_NEWLAYOUT.compare(clsname) &&
+    //                CN_NEWLAYER.compare(clsname) ) return;
     if (event->buttons() & Qt::LeftButton)
     {
         if(property(DKEY_INTOCONTAINER).toBool())
         {
 
-//            QMouseEvent *mev = new QMouseEvent(QMouseEvent::MouseMove,event->pos(),
-//                              Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
-//            ((NewLayout*)this)->onSelectMe();
-//            QApplication::postEvent(((NewLayout*)this)->container,mev);
             BaseForm* container = ((BaseForm*)((NewLayout*)this)->container);
             container->onSelectMe();
             container->move(container->pos() + (event->pos() -mOffset ));
-           // nl->posWidget->updatePosition(container);
+            // nl->posWidget->updatePosition(container);
             container->changeJsonValue( container->posWidget,
-                            KEY_RECT,
-                            QString("%1:%2").arg(LX,
-                            QString::number(container->x())));
+                                        KEY_RECT,
+                                        QString("%1:%2").arg(LX,
+                                                             QString::number(container->x())));
             container->changeJsonValue( container->posWidget,
-                            KEY_RECT,
-                            QString("%1:%2").arg(LY,
-                            QString::number(container->y())));
-           // container->onSelectMe();
+                                        KEY_RECT,
+                                        QString("%1:%2").arg(LY,
+                                                             QString::number(container->y())));
+            // container->onSelectMe();
             event->accept();
         }else{
             move(this->pos() + (event->pos() - mOffset));
@@ -678,11 +658,11 @@ void BaseForm::mouseMoveEvent(QMouseEvent *event)
             changeJsonValue(posWidget,
                             KEY_RECT,
                             QString("%1:%2").arg(LX,
-                            QString::number(this->x())));
+                                                 QString::number(this->x())));
             changeJsonValue(posWidget,
                             KEY_RECT,
                             QString("%1:%2").arg(LY,
-                            QString::number(this->y())));
+                                                 QString::number(this->y())));
         }
 
 
@@ -694,7 +674,7 @@ void BaseForm::mouseMoveEvent(QMouseEvent *event)
 
 void BaseForm::mousePressEvent(QMouseEvent *event)
 {
-//    qDebug() << " my name " << this->objectName() << "class " << metaObject()->className();
+    //    qDebug() << " my name " << this->objectName() << "class " << metaObject()->className();
     onSelectMe();
     if (event->button() == Qt::LeftButton)
     {
@@ -724,14 +704,14 @@ void BaseForm::SwapLayerOrder(SwapType st)
     {
         mlist = &((BaseForm*)p->parentWidget())->childlist;
     }
-//        qDebug() << " parent widget objectname " << p->objectName() << p->metaObject()->className();
-        if(mlist->size())
-        {
-          qDebug() << " mlist " << mlist->size();
-          int index = mlist->indexOf(this);
-          qDebug() << " this index is " << index;
+    //        qDebug() << " parent widget objectname " << p->objectName() << p->metaObject()->className();
+    if(mlist->size())
+    {
+        qDebug() << " mlist " << mlist->size();
+        int index = mlist->indexOf(this);
+        qDebug() << " this index is " << index;
 
-          mlist->removeAt(index);
+        mlist->removeAt(index);
 
 
         switch (st) {
@@ -750,7 +730,7 @@ void BaseForm::SwapLayerOrder(SwapType st)
         default:
             break;
         }
-       }
+    }
 
 }
 
@@ -759,13 +739,13 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
 {
 
     QMenu *contextMenu = new QMenu(parent);
-//    QString clsname = metaObject()->className();
+    //    QString clsname = metaObject()->className();
     QAction delme(QIcon(":/icon/icons/removesubmitfield.png")  ,
                   QString("删除当前-%1").arg(this->property(DKEY_TXT).toString()),this);
     connect(&delme,SIGNAL(triggered(bool)),SLOT(onDeleteMe()));
     contextMenu->addAction(&delme);
     contextMenu->addSeparator();
-     QAction saveTemp(QIcon(":/icon/icons/build.png"),"保存成控件",this);
+    QAction saveTemp(QIcon(":/icon/icons/build.png"),"保存成控件",this);
     if(inherits(CN_NEWLAYOUT))
     {
         contextMenu->addAction(&saveTemp);
@@ -787,7 +767,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
             qaobj->setIcon(QIcon(HIDE_ICON));
             qaobj->setIconText("隐藏");
         }
-//        QAction hideobj(QIcon(HIDE_ICON),"隐藏",this);
+        //        QAction hideobj(QIcon(HIDE_ICON),"隐藏",this);
 
 
         connect(qaobj,SIGNAL(triggered(bool)),SLOT(onSwapViewObject(bool)));
@@ -797,12 +777,12 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
     contextMenu->addSeparator();
     QAction copy(QIcon(":/icon/icons/editcopy.png"),"复制",this);
     connect(&copy,&QAction::triggered,[=](){
-       mWindow->mCopyItem = QJsonValue(writeToJson());
+        mWindow->mCopyItem = QJsonValue(writeToJson());
     });
 
     QAction paste(QIcon(":/icon/icons/editpaste.png"),"粘贴",this);
     connect(&paste,&QAction::triggered,[=](){
-       mWindow->cManager->activeSS()->pasteItem(this);
+        mWindow->cManager->activeSS()->pasteItem(this);
     });
 
     QWidget *pwid = this->parentWidget();
@@ -820,7 +800,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
 
         foreach( QObject *o,pwid->children())
         {
-           // qDebug() << " object order " << o->objectName();
+            // qDebug() << " object order " << o->objectName();
             if(o == this)
             {
                 if(o == last)
@@ -838,8 +818,8 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
                         if(!parent)
                         {
 
-                           myindex = treeWidget->indexOfTopLevelItem(item);
-                           QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(myindex);
+                            myindex = treeWidget->indexOfTopLevelItem(item);
+                            QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(myindex);
                             treeWidget->insertTopLevelItem(myindex-1,ntop);
                         }else{
                             myindex = parent->indexOfChild(item);
@@ -865,7 +845,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
         int n= 0;
         foreach( QObject *o,pwid->children())
         {
-          //  qDebug() << " object order " << o->objectName();
+            //  qDebug() << " object order " << o->objectName();
             if(o == this)
             {
                 n = 1;
@@ -882,11 +862,11 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
                     {
                         myindex = treeWidget->indexOfTopLevelItem(item);
                         QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(myindex);
-                         treeWidget->insertTopLevelItem(myindex+1,ntop);
+                        treeWidget->insertTopLevelItem(myindex+1,ntop);
                     }else{
-                    myindex = parent->indexOfChild(item);
-                    QTreeWidgetItem *child = parent->takeChild(myindex);
-                    parent->insertChild(myindex+1,child);
+                        myindex = parent->indexOfChild(item);
+                        QTreeWidgetItem *child = parent->takeChild(myindex);
+                        parent->insertChild(myindex+1,child);
 
                     }
                 }
@@ -915,14 +895,14 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
             {
                 int num = treeWidget->indexOfTopLevelItem(item);
                 QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(num);
-                 treeWidget->insertTopLevelItem(0,ntop);
+                treeWidget->insertTopLevelItem(0,ntop);
             }else{
-            int index = parent->indexOfChild(item);
-            QTreeWidgetItem *child = parent->takeChild(index);
-            parent->insertChild(0,child);
+                int index = parent->indexOfChild(item);
+                QTreeWidgetItem *child = parent->takeChild(index);
+                parent->insertChild(0,child);
             }
         }
-         SwapLayerOrder(Lower);
+        SwapLayerOrder(Lower);
 
     });
 
@@ -937,21 +917,16 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
             {
                 int num = treeWidget->indexOfTopLevelItem(item);
                 QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(num);
-                 treeWidget->insertTopLevelItem(treeWidget->topLevelItemCount(),ntop);
+                treeWidget->insertTopLevelItem(treeWidget->topLevelItemCount(),ntop);
             }else{
-            int index = parent->indexOfChild(item);
-            QTreeWidgetItem *child = parent->takeChild(index);
-            parent->insertChild(parent->childCount(),child);
+                int index = parent->indexOfChild(item);
+                QTreeWidgetItem *child = parent->takeChild(index);
+                parent->insertChild(parent->childCount(),child);
             }
 
             SwapLayerOrder(Raise);
         }
     });
-
-//    QAction widunder("under",this);
-//    connect(&widunder,&QAction::triggered,[=](){
-//        this->stackUnder();
-//    });
 
     paste.setEnabled(!mWindow->mCopyItem.isNull());
     contextMenu->addAction(&copy);
@@ -969,13 +944,10 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
     contextMenu->addAction(&upone);
     contextMenu->addAction(&widraise);
 
-   // QWidget *parentWidget = this->parentWidget();
-   // QString pobjname = parentWidget->objectName();
     bool inContainer = property(DKEY_INTOCONTAINER).toBool();
 
     if(inContainer)
     {
-//        clsname = ((NewLayout*)this)->container->metaObject()->className();
         QWidget *container = ((NewLayout*)this)->container;
         if(container->inherits(CN_NEWLIST))
         {
@@ -1013,7 +985,6 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
         contextMenu->addAction(nl->menuSetSpace);
     }
 
-   // contextMenu->exec(mapToGlobal(pos));
     contextMenu->exec(pos);
     contextMenu->deleteLater();
 }
@@ -1032,8 +1003,8 @@ void BaseForm::mouseReleaseEvent(QMouseEvent *event)
     QPoint pos = this->pos();
     moveNewPos(pos);
     // 这里只能在释放鼠标时改变左边的控件值
-//    qDebug() << " object size " << this->size()
-//             << " object pos " << this->pos();
+    //    qDebug() << " object size " << this->size()
+    //             << " object pos " << this->pos();
     if(!property(DKEY_INTOCONTAINER).toBool())
     {
         if(posWidget)
@@ -1105,7 +1076,7 @@ void BaseForm::moveNewPos(QPoint pos)
         if(this->y() < 0 )
         {
             pos.setY(0 /*-MARGIN_SIZE.width() /2*/);
-      //      this->move(pos);
+            //      this->move(pos);
         }
 
         if(this->y() > ms.height())
@@ -1115,7 +1086,7 @@ void BaseForm::moveNewPos(QPoint pos)
         }else if((this->y() + this->height()) > ms.height())
         {
             pos.setY(ms.height() - this->height());
-           //  this->move(pos);
+            //  this->move(pos);
         }
     }
 
@@ -1129,7 +1100,7 @@ void BaseForm::moveNewPos(QPoint pos)
         this->posWidget->blockSignals(false);
     }
 
-   // }
+    // }
 }
 
 
@@ -1138,61 +1109,51 @@ void BaseForm::onXYWHChangedValue(int v)
     /* 绑定坐标控件的更新 */
 
     QWidget *sender =(QWidget *)(QObject::sender());
-   // bool isFirst = !sender->property(DKEY_ARRIDX).toInt();
+    // bool isFirst = !sender->property(DKEY_ARRIDX).toInt();
     QPoint pos = this->pos();
     if(!sender->objectName().compare(X))
     {
 
-       // if(isFirst) {
+        pos.setX(v);
 
-            pos.setX(v);
-          //  this->move(pos);
+        moveNewPos(pos);
 
-            moveNewPos(pos);
-        //}
         changeJsonValue(sender,
                         KEY_RECT,
                         QString("%1:%2").arg(LX,QString::number(v)));
 
     }else if(!sender->objectName().compare(Y))
     {
-       // if(isFirst) {
-          //  QPoint pos = this->pos();
-            pos.setY(v);
-            //this->move(pos );
-            moveNewPos(pos);
-     //}
+
+        pos.setY(v);
+
+        moveNewPos(pos);
+
         changeJsonValue(sender,
                         KEY_RECT,
                         QString("%1:%2").arg(LY,QString::number(v)));
 
     }else if(!sender->objectName().compare(W))
     {
-        //if(isFirst) {
-//            if((this->pos().x() + v )> this->parentWidget()->size().width())
-//                return;
-            this->setProperty(DKEY_OLDPOS,pos);
-            QSize n(this->size());
-            n.setWidth(v);
-            this->resize(n);
-            moveNewPos(pos);
-         //   this->resize(n);
-    //}
+
+        this->setProperty(DKEY_OLDPOS,pos);
+        QSize n(this->size());
+        n.setWidth(v);
+        this->resize(n);
+        moveNewPos(pos);
+
         changeJsonValue(sender,
                         KEY_RECT,
                         QString("%1:%2").arg(WIDTH,QString::number(v)));
     }else if(!sender->objectName().compare(H))
     {
-        //if(isFirst) {
-//            if((this->pos().y() + v )> this->parentWidget()->size().height())
-//                return;
-            this->setProperty(DKEY_OLDPOS,pos);
-            QSize n(this->size());
-            n.setHeight(v);
-            this->resize(n);
-            moveNewPos(pos);
-           // this->resize(n);
-    //}
+
+        this->setProperty(DKEY_OLDPOS,pos);
+        QSize n(this->size());
+        n.setHeight(v);
+        this->resize(n);
+        moveNewPos(pos);
+
         changeJsonValue(sender,
                         KEY_RECT,
                         QString("%1:%2").arg(HEIGHT,QString::number(v)));
@@ -1202,7 +1163,7 @@ void BaseForm::onXYWHChangedValue(int v)
             this->mType == TYPEGRID)
     {
         QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonRelease,QCursor::pos(),
-                          Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
+                                             Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
         QApplication::postEvent(this,event);
     }
 
@@ -1224,13 +1185,13 @@ void BaseForm::onTextChanged(QString str)
 
     if(obj.contains(ENAME))
     {
-         QString old = obj[ENAME].toString();
+        QString old = obj[ENAME].toString();
         if (!old.compare(str))
             return;
-//        mWindow->ComCtrl->mEnameSeq.removeOne(old);
+        //        mWindow->ComCtrl->mEnameSeq.removeOne(old);
         QString nstr = mWindow->ComCtrl->getEnameSeq(str,this);
 
-//        mWindow->ComCtrl->mEnameSeq.append(nstr);
+        //        mWindow->ComCtrl->mEnameSeq.append(nstr);
         changeJsonValue(txt,txt->objectName(),nstr);
 
     }else{
@@ -1240,7 +1201,7 @@ void BaseForm::onTextChanged(QString str)
     }
 
 
-  //  dynValues[txt->objectName()] = str;
+    //  dynValues[txt->objectName()] = str;
 }
 
 
@@ -1260,28 +1221,28 @@ void BaseForm::onBorderChangedValue(int v)
 {
     QWidget *w = (QWidget*)QObject::sender();
     QString name = w->objectName();
-     changeJsonValue(w,BORDER,
-               QString("%1:%2").arg(name,QString::number(v)));
-//     if(!w->property(DKEY_ARRIDX).toInt())  // 只有第一全CSS属性可以与界面互动.
-//     {
-         if(!name.compare(LEFT))
-         {
-             mBorder.setLeft(v);
-         }else if(!name.compare(TOP))
-         {
+    changeJsonValue(w,BORDER,
+                    QString("%1:%2").arg(name,QString::number(v)));
+    //     if(!w->property(DKEY_ARRIDX).toInt())  // 只有第一全CSS属性可以与界面互动.
+    //     {
+    if(!name.compare(LEFT))
+    {
+        mBorder.setLeft(v);
+    }else if(!name.compare(TOP))
+    {
 
-             mBorder.setTop(v);
-         }else if(!name.compare(RIGHT))
-         {
+        mBorder.setTop(v);
+    }else if(!name.compare(RIGHT))
+    {
 
-             mBorder.setRight(v);
-         }else if(!name.compare(BOTTOM))
-         {
+        mBorder.setRight(v);
+    }else if(!name.compare(BOTTOM))
+    {
 
-             mBorder.setBottom(v);
-         }
-         updateStyleSheets();
-   //  }
+        mBorder.setBottom(v);
+    }
+    updateStyleSheets();
+    //  }
     this->blockSignals(true);
 }
 
@@ -1412,7 +1373,7 @@ void BaseForm::updateStyleSheets()
         setStyleSheet(QString("BaseForm#%1 { %2 }").arg(this->objectName(),str));
     }
 
-//    qDebug() << " base form stylesheet " << this->styleSheet();
+    //    qDebug() << " base form stylesheet " << this->styleSheet();
     update();
     repaint();
 
@@ -1423,18 +1384,6 @@ void BaseForm::paintEvent(QPaintEvent *ev)
     QStyleOption option;
     option.init(this);
     QPainter painter(this);
-
-//    if(mBorderColor.isEmpty())
-//    {
-//       if(mbkColor.isEmpty())
-//        painter.setPen(QColor(0,0,0,0));
-//       else{
-//            QColor c(mbkColor);
-//            c.setAlpha(0);
-//           painter.setPen(c);
-//       }
-//    }
-
 
     style()->drawPrimitive(QStyle::PE_Widget,
                            &option, &painter, this);
@@ -1453,7 +1402,7 @@ void BaseScrollArea::paintEvent(QPaintEvent *ev)
     option.init(this);
     QPainter painter(this);
 
-   //  painter.setPen(QColor(0,0,0,0));
+    //  painter.setPen(QColor(0,0,0,0));
 
     style()->drawPrimitive(QStyle::PE_Widget,
                            &option, &painter, this);
@@ -1472,14 +1421,12 @@ void BaseForm::resizeEvent(QResizeEvent *event)
 
 void BaseForm::onEnumItemChanged(QString txt)
 {
-   QComboBox *cb =(QComboBox *)(QObject::sender());
- //  qDebug() << " Frame enum value changed " << txt << cb->currentText();
- //  dynValues[cb->objectName()] = txt;
-   if(!cb->objectName().compare(PIC_TEXT))
-   {
-       changeJsonValue(cb,cb->objectName(),mWindow->mOrderlist[cb->currentIndex()]);
-   }else
-       changeJsonValue(cb,cb->objectName(),txt);
+    QComboBox *cb =(QComboBox *)(QObject::sender());
+    if(!cb->objectName().compare(PIC_TEXT))
+    {
+        changeJsonValue(cb,cb->objectName(),mWindow->mOrderlist[cb->currentIndex()]);
+    }else
+        changeJsonValue(cb,cb->objectName(),txt);
 }
 
 void BaseForm::onColorButtonClicked()
@@ -1508,26 +1455,6 @@ void BaseForm::onColorButtonClicked()
                 !objname.compare(COLOR))
         {
 
-            // 这下面一砣代码是因为,RGB 与Alpha 值是分开设置,同时又要把ALPHA同步到RGBA
-            //             int index = btn->property(DKEY_PARRIDX).toInt();
-            //             QJsonArray parray = mOwerJson[PROPERTY].toArray();
-            //             QJsonObject pobj = parray.at(index).toObject();
-            //             QJsonArray structarray = pobj[STRUCT].toArray();
-            //             int  cssindex = btn->property(DKEY_ARRIDX).toInt();
-
-            //             QJsonArray cssArray = structarray.at(cssindex).toArray();
-
-            //             for(int n = 0; n<cssArray.size();n++)
-            //             {
-            //                QJsonObject o =  cssArray.at(n).toObject();
-            //                if(!o[NAME].toString().compare(ALPHA))
-            //                {
-            //                   int alpha = o[DEFAULT].toInt();
-            //                   c.setAlpha(alpha);
-            //                   break;
-            //                }
-            //             }
-
             QString curcolor= c.name(QColor::HexArgb);
             if(!objname.compare(BAKCOLOR))
                 mbkColor = curcolor;
@@ -1542,16 +1469,12 @@ void BaseForm::onColorButtonClicked()
 
             changeJsonValue(btn,BORDER,
                             QString("%1:%2").arg( GRAYCOLOR,c.name(QColor::HexArgb)));
-            // QString::number(c.value())));
-            //  QString::number(qGray(c.rgb()))));
-            //if(isFirst)
+
             mBorderColor = c.name(QColor::HexArgb);
-            //  changeJsonValue(btn,BORDER,c);
+
         }
-        //  if(isFirst)
+
         updateStyleSheets();
-
-
         QPushButton *cbtn = (QPushButton*)(getPairWidgetFromPLayout(btn));
         cbtn->setEnabled(true);
 
@@ -1581,7 +1504,7 @@ void BaseForm::onSelectMe()
 {
     mWindow->cManager->activeSS()->setSelectObject(this);
     mWindow->propertyWidget->createPropertyBox(this);
-   // posWidget->setConnectNewQWidget(this);
+    // posWidget->setConnectNewQWidget(this);
     if(!property(DKEY_INTOCONTAINER).toBool())
     {
         posWidget->updatePosition(this);
@@ -1599,7 +1522,6 @@ void BaseForm::DeleteMe()
         ((BaseForm*)w)->DeleteMe();
     }
 
-//    mWindow->ComCtrl->mEnameSeq.removeOne(getEnameFromJson(mOwerJson[PROPERTY].toArray()));
     mWindow->tree->setMyParentNode();  //选中它的父控件.
     mWindow->tree->deleteItem(this);
     mWindow->ComCtrl->ProMap.remove(mUniqueStr);
@@ -1661,12 +1583,12 @@ void BaseForm::onClearJsonValue()
         mbkColor = "";
     }else if(!objname.compare(BAKIMAGE))
     {
-         mbkImage = "";
+        mbkImage = "";
     }else if(!objname.compare(BORDER))
     {
-       Border *border= btn->parentWidget()->parentWidget()->findChild<Border *>();
-       if(border)
-           border->resetValues();
+        Border *border= btn->parentWidget()->parentWidget()->findChild<Border *>();
+        if(border)
+            border->resetValues();
         mBorderColor = "";
     }
     updateStyleSheets();
@@ -1700,9 +1622,6 @@ void BaseForm::onBackgroundImageDialog()
 
     ImageListView *imgview = new ImageListView(imgdir,this->mWindow);
 
-//    LoadImgTask *imgload = new LoadImgTask(this);
-//    imgload->setAutoDelete(true);
-//    QThreadPool::globalInstance()->start(imgload);
     // 把一个动态属性传递给另一个事件发送对像,用来确定要修改JSON里的那一段值.
     imgview->imglist->setProperty(DKEY_ARRIDX,w->property(DKEY_ARRIDX));
     imgview->imglist->setProperty(DKEY_PARRIDX,w->property(DKEY_PARRIDX));
@@ -1711,9 +1630,9 @@ void BaseForm::onBackgroundImageDialog()
 
 
     QObject::connect(imgview->imglist,&QListWidget::itemDoubleClicked,
-            [=](QListWidgetItem *item){
+                     [=](QListWidgetItem *item){
 
-       // QWidget *sender = imgview->imglist;
+        // QWidget *sender = imgview->imglist;
         QVariantMap vmap =  imgview->imglist->property(DKEY_IMGMAP).toMap();
         if(!vmap.isEmpty())
         {
@@ -1742,20 +1661,20 @@ void BaseForm::onBackgroundImageDialog()
 void BaseForm::onListImageChanged(QString img)
 {
 
-   QWidget *w = (QWidget*)(QObject::sender());
-   QString objname =w->objectName();
-   QVariantList imglist = this->property(DKEY_IMAGELST).toList();
-   foreach (QVariant v, imglist) {
-       QString s = v.toString();
-       QString k = s.section(SECTION_CHAR,0,0);
-       if(!k.compare(img))
-       {
-           QString fpath = s.section(SECTION_CHAR,1,1);
+    QWidget *w = (QWidget*)(QObject::sender());
+    QString objname =w->objectName();
+    QVariantList imglist = this->property(DKEY_IMAGELST).toList();
+    foreach (QVariant v, imglist) {
+        QString s = v.toString();
+        QString k = s.section(SECTION_CHAR,0,0);
+        if(!k.compare(img))
+        {
+            QString fpath = s.section(SECTION_CHAR,1,1);
 
-           changeJsonValue(w,objname,fpath.mid(mWindow->mRootPathLen)); // 修改JSON里的值
-           break;
-       }
-   }
+            changeJsonValue(w,objname,fpath.mid(mWindow->mRootPathLen)); // 修改JSON里的值
+            break;
+        }
+    }
 
 }
 
@@ -1784,16 +1703,16 @@ int  BaseForm::tinySpinBoxDialog(QString  str,int val ,int min ,int max)
                                                  Qt::Horizontal,
                                                  nWindow);
     dbb->button(QDialogButtonBox::Ok)->setText("确定");
-   dbb->button(QDialogButtonBox::Cancel)->setText("取消");
-   connect(dbb,SIGNAL(accepted()),nWindow,SLOT(accept()));
-   connect(dbb,SIGNAL(rejected()),nWindow,SLOT(reject()));
-   vb->addWidget(dbb);
+    dbb->button(QDialogButtonBox::Cancel)->setText("取消");
+    connect(dbb,SIGNAL(accepted()),nWindow,SLOT(accept()));
+    connect(dbb,SIGNAL(rejected()),nWindow,SLOT(reject()));
+    vb->addWidget(dbb);
     nWindow->setLayout(vb);
     nWindow->exec();
 
     int ret = nWindow->result();
     if(ret)
-         num = spinbox->value();
+        num = spinbox->value();
 
     nWindow->deleteLater();
 
@@ -1862,7 +1781,7 @@ QSize  BaseForm::ChangeSizeDialog(QSize size)
 
 void BaseForm::wheelEvent(QWheelEvent *event)
 {
-   event->ignore();
+    event->ignore();
 }
 
 NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,
@@ -1875,17 +1794,17 @@ NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,
 
     NewLayout *newlayout = new NewLayout(valobj,oldrect,mWindow,parent);
     if(incontainer)
-    newlayout->setProperty(DKEY_INTOCONTAINER,incontainer);
+        newlayout->setProperty(DKEY_INTOCONTAINER,incontainer);
     newlayout->mCreateFlag = isCreate;
     newlayout->setProperty(DKEY_TYPE, valobj[WTYPE].toString());
     newlayout->mOwerJson = qv.toObject();
     newlayout->initialEname();
     mWindow->tree->addObjectToCurrentItem(mUniqueStr,newlayout);
 
-//    newlayout->show();
+    //    newlayout->show();
     newlayout->onSelectMe();
     newlayout->updateStyleSheets();
-//    newlayout->show();
+    //    newlayout->show();
     return newlayout;
 }
 
@@ -1896,7 +1815,7 @@ void BaseForm::addChildrenToTree()
     foreach (QWidget *w, childlist) {
         mWindow->tree->addObjectToCurrentItem(mUniqueStr,w);
         if(!w->isHidden())
-        ((BaseForm*)w)->addChildrenToTree();
+            ((BaseForm*)w)->addChildrenToTree();
     }
 }
 
@@ -1906,58 +1825,58 @@ QJsonObject BaseForm::ContainerWriteToJson(QWidget *w)
 {
     QJsonObject outjson =  QJsonValue::fromVariant(w->property(DKEY_JSONSTR)).toObject();
     outjson[NAME] = w->objectName();
-//    QString clsname = w->metaObject()->className();
+    //    QString clsname = w->metaObject()->className();
 
     if(w->inherits(CN_NEWLAYOUT))
     {
-       NewLayout *layout =  (NewLayout*)w;
-       QJsonArray parray = layout->mOwerJson[PROPERTY].toArray();
+        NewLayout *layout =  (NewLayout*)w;
+        QJsonArray parray = layout->mOwerJson[PROPERTY].toArray();
 
 
-       for(int n = 0; n < parray.count() ; n++)
-       {
-           QJsonObject obj = parray.at(n).toObject();
-           if(obj.contains(STRUCT))
-           {
-               // 容器的里的对像的每一个的CSS属性要改成一样的.测试之后再确定
-               QJsonObject rectobj=  getRectJson(layout)[KEY_RECT].toObject();
-               QJsonArray structArray = obj[STRUCT].toArray();
-               for(int snum = 0; snum < structArray.count();snum++)
-               {
-                   QJsonArray cssarray = structArray.at(snum).toArray();
-                   for( int num =0;num < cssarray.count();num++)
-                   {
-                       QJsonObject cobj = cssarray.at(num).toObject();
-                       if(cobj.contains(KEY_RECT))
-                       {
-                           cobj[KEY_RECT]= rectobj;
-                           cssarray.replace(num,cobj);
-                           structArray.replace(snum,cssarray);
-                           break;
-                       }
+        for(int n = 0; n < parray.count() ; n++)
+        {
+            QJsonObject obj = parray.at(n).toObject();
+            if(obj.contains(STRUCT))
+            {
+                // 容器的里的对像的每一个的CSS属性要改成一样的.测试之后再确定
+                QJsonObject rectobj=  getRectJson(layout)[KEY_RECT].toObject();
+                QJsonArray structArray = obj[STRUCT].toArray();
+                for(int snum = 0; snum < structArray.count();snum++)
+                {
+                    QJsonArray cssarray = structArray.at(snum).toArray();
+                    for( int num =0;num < cssarray.count();num++)
+                    {
+                        QJsonObject cobj = cssarray.at(num).toObject();
+                        if(cobj.contains(KEY_RECT))
+                        {
+                            cobj[KEY_RECT]= rectobj;
+                            cssarray.replace(num,cobj);
+                            structArray.replace(snum,cssarray);
+                            break;
+                        }
 
-                   }
-               }
+                    }
+                }
 
-              obj[STRUCT] = structArray;
-              parray[n] = obj;
-              break;
-           }
+                obj[STRUCT] = structArray;
+                parray[n] = obj;
+                break;
+            }
 
-       }
+        }
 
-       layout->mOwerJson[PROPERTY] = parray;
+        layout->mOwerJson[PROPERTY] = parray;
 
     }
     outjson = ((NewFrame*)w)->writeToJson();
-//     outjson = ((NewLayout*)w)->writeToJson();
+    //     outjson = ((NewLayout*)w)->writeToJson();
     return outjson;
 }
 
 
 
 NewFrame::NewFrame(QJsonObject json, QWidget *parent)
-  //  :FormResizer(parent),Compoent()
+//  :FormResizer(parent),Compoent()
     :BaseForm(parent)
 {
 
@@ -1971,11 +1890,11 @@ NewFrame::NewFrame(QJsonObject json, QWidget *parent)
                                          QString::number(mWindow->ComCtrl->ProMap.size()));
 
     mUniqueStr = mWindow->ComCtrl->getSequence(uname);
-//    setProperty(DKEY_TXT,json[CAPTION].toString());
+    //    setProperty(DKEY_TXT,json[CAPTION].toString());
     //setProperty(DKEY_LOCALSEQ,uname);
     setObjectName(mUniqueStr);
-  //  mbkColor = "#4285F4";
-  //  updateStyleSheets();
+    //  mbkColor = "#4285F4";
+    //  updateStyleSheets();
     setToolTip(mUniqueStr);
 }
 
@@ -1985,7 +1904,7 @@ void NewFrame::clearOtherObjectStyleSheet()
     QList<NewFrame*> nflist =  this->parentWidget()->findChildren<NewFrame*>();
     foreach(NewFrame *x,nflist)
     {
-           x->setStyleSheet("");
+        x->setStyleSheet("");
     }
 }
 
@@ -2011,7 +1930,7 @@ void NewFrame::readFromJson(const QJsonValue &qv)
 QJsonObject NewFrame::writeToJson()
 {
     QJsonObject json =  mOwerJson;
-   // QJsonArray projson;// 属性
+    // QJsonArray projson;// 属性
     json[NAME] = objectName();
     json[PROPERTY] = mOwerJson[PROPERTY];
     json[CAPTION] = this->property(DKEY_TXT).toString();
@@ -2021,13 +1940,13 @@ QJsonObject NewFrame::writeToJson()
 
 
 NewGrid::NewGrid(const QJsonValue &qv,
-                  const QList<int> *arglist, QWidget *parent)
+                 const QList<int> *arglist, QWidget *parent)
     :BaseForm(parent),
-     mainWidget(new QWidget()),
-     sliderOrientation(Qt::Vertical),
-     rows(arglist->at(0)),
-     mainScroll(new BaseScrollArea(m_frame)),
-     cols(arglist->at(1)),itemSize(arglist->at(2),arglist->at(3))
+      mainWidget(new QWidget()),
+      sliderOrientation(Qt::Vertical),
+      rows(arglist->at(0)),
+      mainScroll(new BaseScrollArea(m_frame)),
+      cols(arglist->at(1)),itemSize(arglist->at(2),arglist->at(3))
 {
     mType=TYPEGRID;
     mWindow = ((NewLayout*)parent->parentWidget())->mWindow;
@@ -2038,10 +1957,10 @@ NewGrid::NewGrid(const QJsonValue &qv,
     mainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainScroll->setAlignment(Qt::AlignCenter);
-   // mainScroll->setWidgetResizable(true);
+    // mainScroll->setWidgetResizable(true);
 
 
-  //  mainScroll->setStyleSheet("background-color: #A9A9A9;");
+    //  mainScroll->setStyleSheet("background-color: #A9A9A9;");
     mainScroll->setWidget(mainWidget);
     mainScroll->setContentsMargins(0,0,0,0);
 
@@ -2060,7 +1979,7 @@ NewGrid::NewGrid(const QJsonValue &qv,
     mainWidget->setObjectName(mUniqueStr);  // 用来识别布局是否在列表控件下面.
     mainWidget->setMaximumSize(999,999);
     mainWidget->setContentsMargins(0,0,0,0);
-   // mainWidget->setStyleSheet("background-color: #A9A9A9;");
+
 
     setToolTip(mUniqueStr);
     QRect oldrect = getRectFromStruct(obj[PROPERTY].toArray(),KEY_RECT);
@@ -2069,12 +1988,7 @@ NewGrid::NewGrid(const QJsonValue &qv,
     resize(oldrect.size());
     mainWidget->resize(oldrect.size());
     show();
-   // repaint();
 
-   // mbkColor = "#FFE4C4";
-   // updateStyleSheets();
-
-   //setProperty(DKEY_JSONSTR,qv );
     mOwerJson = qv.toObject();
 
     menuAddRow =  new QAction(QIcon(":/icon/icons/addtab.png"),"添加行",this);
@@ -2111,9 +2025,9 @@ NewGrid::NewGrid(const QJsonValue &qv,
         sliderOrientation = a == menuV ? Qt::Vertical : Qt::Horizontal;
     });
 
-     QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonRelease,QCursor::pos(),
-                       Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
-     QApplication::postEvent(this,event);
+    QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonRelease,QCursor::pos(),
+                                         Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
+    QApplication::postEvent(this,event);
 }
 
 
@@ -2130,10 +2044,7 @@ void NewGrid::addRowsCols()
 
 void NewGrid::initRowsCols(int row,int col,const QJsonValue &value)
 {
-//    QString odd = "#CDC0B0";
-//    QString nodd = "#EED5B7";
-//    QString nnn = "#98F5FF";
-//    QString tt = "#FF7F50";
+
     onSelectMe();
     NewLayout *nl = CreateNewLayout(value,mainWidget,mCreateFlag,true);
     nl->container = this;
@@ -2142,24 +2053,6 @@ void NewGrid::initRowsCols(int row,int col,const QJsonValue &value)
     // 自已的行列坐标.
     nl->setProperty(DKEY_ROW,row);
     nl->setProperty(DKEY_COL,col);
-//    if(mCreateFlag) // 第一次创建有四个不同的色隔开.
-//    {
-//        if(col % 2)
-//        {
-//            if(row % 2)
-//                nl->mbkColor = tt;
-//            else
-//                nl->mbkColor = odd;
-//        }
-//        else{
-//            if(row % 2)
-//                nl->mbkColor = nnn;
-//            else
-//                nl->mbkColor = nodd;
-//        }
-//        nl->changeJsonValue(BAKCOLOR,QColor(nl->mbkColor));
-//      //  nl->updateStyleSheets();
-//    }
     gridLayout->addWidget(nl,row,col);
 
 }
@@ -2206,13 +2099,13 @@ void NewGrid::updateAllItemsSize()
         ((NewLayout*)w)->setFixedSize(itemSize);
         ((BaseForm*)w)->onSelectMe();
         ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
-                        KEY_RECT,
-                        QString("%1:%2").arg(WIDTH,
-                                             QString::number(itemSize.width())));
+                                        KEY_RECT,
+                                        QString("%1:%2").arg(WIDTH,
+                                                             QString::number(itemSize.width())));
         ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
-                        KEY_RECT,
-                        QString("%1:%2").arg(HEIGHT,
-                                             QString::number(itemSize.height())));
+                                        KEY_RECT,
+                                        QString("%1:%2").arg(HEIGHT,
+                                                             QString::number(itemSize.height())));
 
     }
     onSelectMe();
@@ -2250,9 +2143,9 @@ void NewGrid::onDeleteMe()
 void NewGrid::mouseReleaseEvent(QMouseEvent *event)
 {
 
-     mainScroll->resize(this->size());
-     mainWidget->resize(this->size());
-     BaseForm::mouseReleaseEvent(event);
+    mainScroll->resize(this->size());
+    mainWidget->resize(this->size());
+    BaseForm::mouseReleaseEvent(event);
 
 }
 
@@ -2264,14 +2157,14 @@ void NewGrid::wheelEvent(QWheelEvent *event)
         if(event->orientation() != Qt::Horizontal)
         {
             QWheelEvent  *evt = new QWheelEvent(event->pos(),event->globalPos(),
-                             event->delta(),
-                             event->buttons(),
-                             event->modifiers(),Qt::Horizontal);
-          //  QApplication::sendEvent(mainScroll->horizontalScrollBar(),&evt);
+                                                event->delta(),
+                                                event->buttons(),
+                                                event->modifiers(),Qt::Horizontal);
+            //  QApplication::sendEvent(mainScroll->horizontalScrollBar(),&evt);
             QApplication::postEvent(mainScroll->horizontalScrollBar(),evt);
         }
 
-       // wheelEvent(&evt);
+        // wheelEvent(&evt);
     }
 
 }
@@ -2303,7 +2196,7 @@ QJsonObject NewGrid::writeToJson()
 
         // 这里只有两种对像类型,NewLayout , NewFrame;
 
-       // outjson = ((BaseForm*)w)->writeToJson();
+        // outjson = ((BaseForm*)w)->writeToJson();
         QJsonObject outjson = ContainerWriteToJson(w);
         outjson[JCOL] = w->property(DKEY_COL).toInt();
         outjson[JROW] = w->property(DKEY_ROW).toInt();
@@ -2316,7 +2209,7 @@ QJsonObject NewGrid::writeToJson()
     json[GROWS] = rows;
     json[WIDTH] = itemSize.width();
     json[HEIGHT] = itemSize.height();
-     json[PROPERTY] = mOwerJson[PROPERTY];
+    json[PROPERTY] = mOwerJson[PROPERTY];
     return json;
 }
 
@@ -2326,7 +2219,7 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
 
     sliderOrientation(Qt::Vertical),
     mainScroll(new QScrollArea(m_frame)),
- //   mainScroll(new ContainerScroll(m_frame)),
+    //   mainScroll(new ContainerScroll(m_frame)),
     mainWidget(new QWidget())
 
 {
@@ -2336,7 +2229,7 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
     QString caption = obj[CAPTION].toString();
 
     QString Orientation = obj[QRIENTATION].toString();
-   // itemHeight = this->height() * 0.3;
+    // itemHeight = this->height() * 0.3;
     mWindow = ((NewLayout*)parent->parentWidget())->mWindow;
     //setFocusPolicy(Qt::ClickFocus);
 
@@ -2392,7 +2285,7 @@ NewList::NewList(QJsonValue json, const QSize size, QWidget *parent):
     QString str = QString("%1_%2").arg(caption,QString::number(n));
     mUniqueStr = mWindow->ComCtrl->getSequence(str);
 
-  //  setProperty(DKEY_LOCALSEQ,str);
+    //  setProperty(DKEY_LOCALSEQ,str);
     setProperty(DKEY_TXT,caption);
     setObjectName(mUniqueStr);
     mainWidget->setObjectName(mUniqueStr);
@@ -2438,10 +2331,7 @@ void NewList::updateAllItemsSize()
                                                 KEY_RECT,
                                                 QString("%1:%2").arg(HEIGHT,
                                                                      QString::number(this->height())));
-                //            ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
-                //                            KEY_RECT,
-                //                            QString("%1:%2").arg(LX,
-                //                                                 QString::number(rect.x())));
+
             }
         }
 
@@ -2464,10 +2354,6 @@ void NewList::updateAllItemsSize()
                                                 KEY_RECT,
                                                 QString("%1:%2").arg(WIDTH,
                                                                      QString::number(this->width())));
-                //            ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
-                //                            KEY_RECT,
-                //                            QString("%1:%2").arg(LY,
-                //                                                 QString::number(rect.y())));
 
             }
         }
@@ -2492,13 +2378,13 @@ void NewList::onSetFixedHeight()
 
 void NewList::onAddManyLine()
 {
-         QString txt =((QAction*)(QObject::sender()))->text();
-         int num = tinySpinBoxDialog(txt,1,1,99);
-        for(int i = 0; i < num;i++)
-        {
-            NewLayout *n =   AddOneLine(QJsonValue::fromVariant(mWindow->ComCtrl->mVariantLayout));
-        }
-        if(num) updateAllItemsSize();
+    QString txt =((QAction*)(QObject::sender()))->text();
+    int num = tinySpinBoxDialog(txt,1,1,99);
+    for(int i = 0; i < num;i++)
+    {
+        NewLayout *n =   AddOneLine(QJsonValue::fromVariant(mWindow->ComCtrl->mVariantLayout));
+    }
+    if(num) updateAllItemsSize();
 }
 
 NewLayout * NewList::AddOneLine(QJsonValue value)
@@ -2507,13 +2393,13 @@ NewLayout * NewList::AddOneLine(QJsonValue value)
 
     NewLayout *newlayout = CreateNewLayout(value,mainWidget,mCreateFlag,true);
     onSelectMe();
-//    newlayout->setProperty(DKEY_INTOCONTAINER,true);
+
     newlayout->onSelectMe();
     childlist.append(newlayout);
     newlayout->container = this;
-//    qDebug() << "list add before count" << listLayout->count();
+
     listLayout->addWidget(newlayout);
-   return newlayout;
+    return newlayout;
 }
 
 
@@ -2549,7 +2435,7 @@ void NewList::mouseReleaseEvent(QMouseEvent *event)
     BaseForm::mouseReleaseEvent(event);
     // 把　QScrollArea　的大小调成与父控件一样大.
     mainScroll->resize(this->size());
-  //  qDebug() << "release event " << event;
+    //  qDebug() << "release event " << event;
     updateAllItemsSize();
 
 }
@@ -2564,16 +2450,16 @@ void NewList::wheelEvent(QWheelEvent *event)
         if(event->orientation() != Qt::Horizontal)
         {
             QWheelEvent  *evt = new QWheelEvent(event->pos(),event->globalPos(),
-                             event->delta(),
-                             event->buttons(),
-                             event->modifiers(),Qt::Horizontal);
-          //  QApplication::sendEvent(mainScroll->horizontalScrollBar(),&evt);
+                                                event->delta(),
+                                                event->buttons(),
+                                                event->modifiers(),Qt::Horizontal);
+
             QApplication::postEvent(mainScroll->horizontalScrollBar(),evt);
         }
 
-       // wheelEvent(&evt);
+
     }
-  //  event->accept();;
+
 }
 
 
@@ -2583,7 +2469,7 @@ bool NewList::eventFilter(QObject *obj, QEvent *event)
     if(obj->inherits(CN_NEWLAYOUT) && event->type() == QEvent::Wheel)
     {
 
-       // wheelEvent(&evt);
+        // wheelEvent(&evt);
         QWheelEvent* w = static_cast<QWheelEvent*>(event);
 
         if(sliderOrientation == Qt::Horizontal)
@@ -2600,8 +2486,7 @@ bool NewList::eventFilter(QObject *obj, QEvent *event)
             QWheelEvent  evt(w->pos(),w->globalPos(),this->width()/4,
                              w->buttons(),
                              w->modifiers(),Qt::Vertical);
-//            qDebug() << " pos " << w->pos() << "gpos " << w->globalPos()
-//                     << w->orientation() << w->buttons() << w->delta();
+
             obj->removeEventFilter(this);
             QApplication::sendEvent(mainScroll,&evt);
             obj->installEventFilter(this);
@@ -2617,22 +2502,20 @@ bool NewList::eventFilter(QObject *obj, QEvent *event)
 QJsonObject NewList::writeToJson()
 {
     QJsonArray layoutarr;
-  //  QJsonObject json = QJsonValue::fromVariant(property(DKEY_JSONSTR)).toObject();
+    //  QJsonObject json = QJsonValue::fromVariant(property(DKEY_JSONSTR)).toObject();
     QJsonObject json = mOwerJson;
 
     foreach (QWidget *w, childlist) {
 
-       // qDebug() << " childlist  " << w->metaObject()->className();
-        // 这里只有两种对像类型,NewLayout , NewFrame;    
+        // qDebug() << " childlist  " << w->metaObject()->className();
+        // 这里只有两种对像类型,NewLayout , NewFrame;
         layoutarr.append(ContainerWriteToJson(w));
     }
     // 这一句必需要在这个偱环后面.
     json[LISTWIDGET] = layoutarr;
     json[ITEMSPACE] = listLayout->spacing();
     json[ITEMSIZE] = itemHeight;
-  //  QJsonArray projson = dynValues[DKEY_DYN].toArray();
-   // json[PROPERTY] = updateRBJsonValue(json[PROPERTY].toArray(),this);;
-     json[PROPERTY] = mOwerJson[PROPERTY];
+    json[PROPERTY] = mOwerJson[PROPERTY];
     return json;
 }
 
@@ -2648,7 +2531,7 @@ void NewList::readFromJson(const QJsonValue &qv)
 
         NewLayout *nl = AddOneLine(valobj);
 
-       // nl->setGeometry(oldrect);
+        // nl->setGeometry(oldrect);
         // 这里一定是Layout 嵌套了.
         foreach (QJsonValue item, valobj[LAYOUT].toArray()) {
             nl->readFromJson(item,this->mCreateFlag);
@@ -2661,14 +2544,14 @@ void NewList::readFromJson(const QJsonValue &qv)
 
 NewLayout::NewLayout(QJsonObject json, QRect rect,
                      MainWindow *w, QWidget *parent):
-   BaseForm(parent)
+    BaseForm(parent)
 {
     mType = TYPELAYOUT;
     this->mWindow = w;
 
 
-//    qDebug() << "this layout size " << size()
-//             <<" parent size " << parent->size();
+    //    qDebug() << "this layout size " << size()
+    //             <<" parent size " << parent->size();
     if(parent)
         setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
 
@@ -2701,7 +2584,7 @@ void NewLayout::DeleteMe()
         if(this->inherits(CN_NEWLIST))
             ((NewList*)container)->childlist.removeOne(this);
         else{
-           ((NewGrid*)container)->childlist.removeOne(this);
+            ((NewGrid*)container)->childlist.removeOne(this);
         }
     }
     this->BaseForm::DeleteMe();
@@ -2714,8 +2597,8 @@ void NewLayout::onDeleteMe()
 {
     //这里不能绕过它的父控件.
     //delMySelf();
-   // mWindow->cManager->activeSS()->delSelectedLayout();
-        //删除布局控件
+    // mWindow->cManager->activeSS()->delSelectedLayout();
+    //删除布局控件
     QMessageBox msgBox;
     msgBox.setWindowTitle("删除提示");
     msgBox.setText("你真的要删除当前布局吗?删除之后不可以撤消,请选择<删除>删除.");
@@ -2761,10 +2644,10 @@ void NewLayout::onBeComeTemplateWidget()
                                                      Qt::Horizontal,
                                                      nWindow);
         dbb->button(QDialogButtonBox::Ok)->setText("确定");
-       dbb->button(QDialogButtonBox::Cancel)->setText("取消");
-       connect(dbb,SIGNAL(accepted()),nWindow,SLOT(accept()));
-       connect(dbb,SIGNAL(rejected()),nWindow,SLOT(reject()));
-       vb->addWidget(dbb);
+        dbb->button(QDialogButtonBox::Cancel)->setText("取消");
+        connect(dbb,SIGNAL(accepted()),nWindow,SLOT(accept()));
+        connect(dbb,SIGNAL(rejected()),nWindow,SLOT(reject()));
+        vb->addWidget(dbb);
         nWindow->setLayout(vb);
         nWindow->exec();
 
@@ -2792,7 +2675,7 @@ void NewLayout::onBeComeTemplateWidget()
     QPixmap pixmap(iconsize);
     render(&pixmap,QPoint(),QRegion(rect()));
     pixmap.scaled(size() * 0.3).save(fpath+".png");
- //   pixmap.save(fpath + ".png");
+    //   pixmap.save(fpath + ".png");
 
     QJsonObject json ;
 
@@ -2842,7 +2725,7 @@ void NewLayout::clearOtherObjectStyleSheet()
     QList<NewFrame*> nflist =  m_frame->findChildren<NewFrame*>();
     foreach(NewFrame *x,nflist)
     {
-           x->setStyleSheet("");
+        x->setStyleSheet("");
     }
 }
 
@@ -2854,9 +2737,6 @@ void NewLayout::clearOtherSelectHandler()
 
         if (wid == this)
             continue;
-
-//        if(!CN_NEWFRAME.compare(wid->metaObject()->className())
-//            || !CN_NEWLAYOUT.compare(wid->metaObject()->className()))
         if(wid->inherits(CN_NEWFRAME) || wid->inherits(CN_NEWLAYOUT))
         {
             ((FormResizer*)wid)->setState(SelectionHandleOff);
@@ -2868,15 +2748,13 @@ void NewLayout::deleteObject(int index)
 {
     QWidget *w = childlist.at(index);
     childlist.removeAt(index);
-     ((NewFrame*)w)->DeleteMe();
+    ((NewFrame*)w)->DeleteMe();
 }
 
 void NewLayout::deleteObject(QWidget *w)
 {
     int i = childlist.indexOf((BaseForm*)w);
     childlist.removeAt(i);
-//    QString clsname = w->metaObject()->className();
-//    if(!clsname.compare(CN_NEWLAYOUT))
     if(w->inherits(CN_NEWLAYOUT))
     {
         ((NewLayout*)w)->DeleteMe();
@@ -2893,10 +2771,8 @@ QJsonObject NewLayout::writeToJson()
     QJsonObject json = mOwerJson;
     foreach (QWidget *w, childlist) {
         QJsonObject outjson = QJsonValue::fromVariant( w->property(DKEY_JSONSTR)).toObject();
-       // outjson[NAME] = w->objectName();
-       // qDebug() << " childlist  " << w->metaObject()->className();
         // 这里只有两种对像类型,NewLayout , NewFrame;
-//        QString clsname = w->metaObject()->className();
+        //        QString clsname = w->metaObject()->className();
         outjson = ((BaseForm*)w)->writeToJson();
         layoutarr.append(outjson);
     }
@@ -2927,60 +2803,60 @@ void NewLayout::readFromJson(const QJsonValue &qv,bool flag)
         }
     }else if(!clsName.compare(CN_NEWLIST))
     {
-      NewList *nlist = new NewList(qv,QSize(10,10),m_frame);
-      nlist->mCreateFlag = flag;
-      nlist->mOwerJson = qv.toObject();
-      nlist->initialEname();
-      mWindow->tree->addObjectToCurrentItem(mUniqueStr,nlist);
-      childlist.append(nlist);
-      nlist->onSelectMe();
+        NewList *nlist = new NewList(qv,QSize(10,10),m_frame);
+        nlist->mCreateFlag = flag;
+        nlist->mOwerJson = qv.toObject();
+        nlist->initialEname();
+        mWindow->tree->addObjectToCurrentItem(mUniqueStr,nlist);
+        childlist.append(nlist);
+        nlist->onSelectMe();
 
-      foreach (QJsonValue item, valobj[LISTWIDGET].toArray()) {
-          nlist->readFromJson(item);
-      }
+        foreach (QJsonValue item, valobj[LISTWIDGET].toArray()) {
+            nlist->readFromJson(item);
+        }
 
-      nlist->updateAllItemsSize();
-      nlist->updateStyleSheets();
-      nlist->update();
+        nlist->updateAllItemsSize();
+        nlist->updateStyleSheets();
+        nlist->update();
 
     }else if(!clsName.compare(CN_NEWGRID))
     {
         NewGrid *ngrid;
-         if(flag)
-         {
+        if(flag)
+        {
             QList<int> arglist =   rowcoldialog();
             ngrid = new NewGrid(qv,&arglist,
-                                      m_frame);
-         }else{
+                                m_frame);
+        }else{
             QList<int> arglist ;
             arglist << 0 << 0 << 0 <<0;
             ngrid = new NewGrid(qv,&arglist,
-                                      m_frame);
+                                m_frame);
             int cols = valobj[GCOLS].toInt();
             int rows = valobj[GROWS].toInt();
             ngrid->rows = rows;
             ngrid->cols = cols;
             ngrid->itemSize.scale(QSize(valobj[WIDTH].toInt(),
                                         valobj[HEIGHT].toInt()),
-                                        Qt::IgnoreAspectRatio);
-         }
-         ngrid->mCreateFlag = flag;
-         ngrid->initialEname();
-         mWindow->tree->addObjectToCurrentItem(mUniqueStr,ngrid);
-         childlist.append(ngrid);
-         if(flag)
+                                  Qt::IgnoreAspectRatio);
+        }
+        ngrid->mCreateFlag = flag;
+        ngrid->initialEname();
+        mWindow->tree->addObjectToCurrentItem(mUniqueStr,ngrid);
+        childlist.append(ngrid);
+        if(flag)
             ngrid->addRowsCols();
-         else{
-             foreach (QJsonValue item, valobj[LISTWIDGET].toArray()) {
-                 ngrid->readFromJson(item);
-             }
-             ngrid->updateAllItemsSize();
-         }
-         ngrid->onSelectMe();
-         ngrid->updateStyleSheets();
+        else{
+            foreach (QJsonValue item, valobj[LISTWIDGET].toArray()) {
+                ngrid->readFromJson(item);
+            }
+            ngrid->updateAllItemsSize();
+        }
+        ngrid->onSelectMe();
+        ngrid->updateStyleSheets();
     }
     else if(!clsName.compare(CN_NEWFRAME)
-             /*|| !clsName.compare(QFRAME)*/)
+            /*|| !clsName.compare(QFRAME)*/)
     {
         this->createObjectFromJson(qv);
     }
@@ -3073,7 +2949,7 @@ QList<int> NewLayout::rowcoldialog()
             break;
         }
     }
-   return arglist;
+    return arglist;
 }
 
 QWidget* NewLayout::createObjectFromJson(const QJsonValue &qv)
@@ -3081,7 +2957,7 @@ QWidget* NewLayout::createObjectFromJson(const QJsonValue &qv)
     QJsonObject json = qv.toObject();
     QString caption = json[CAPTION].toString();
     NewFrame *newFrame = new NewFrame(json,m_frame);
-   // newFrame->setProperty(DKEY_JSONSTR,qv);
+    // newFrame->setProperty(DKEY_JSONSTR,qv);
     newFrame->mOwerJson = qv.toObject();
     newFrame->initialEname();
     newFrame->setProperty(DKEY_TYPE,json[WTYPE].toString());
@@ -3091,7 +2967,7 @@ QWidget* NewLayout::createObjectFromJson(const QJsonValue &qv)
     QJsonObject obj = getValueFromProperty(json[PROPERTY].toArray(),BAKIMAGE);
     if(!obj.isEmpty() && obj.contains(BAKIMAGE))
     {
-       // QPixmap p;
+        // QPixmap p;
         QString path = obj[BAKIMAGE].toString();
         newFrame->mbkImage = path;
         newFrame->updateStyleSheets();
@@ -3118,7 +2994,7 @@ NewLayer::NewLayer(const QJsonObject json, QRect rect, QWidget *parent)
     //setProperty(DKEY_LOCALSEQ,key);
     setProperty(DKEY_TXT,json[CAPTION].toString());
     setObjectName(mUniqueStr);
-   // updateStyleSheets();
+    // updateStyleSheets();
     setToolTip(mUniqueStr);
 }
 
@@ -3127,20 +3003,20 @@ NewLayer::NewLayer(const QJsonObject json, QRect rect, QWidget *parent)
 void NewLayer::readLayoutFromJson(const QJsonValue &qv,bool flag)
 {
 
-   QJsonObject  valobj = qv.toObject();
-   // QRect oldrect = Compoent::getRectFromStruct(valobj[PROPERTY].toArray(),KEY_RECT);
-   // 下面这种粗暴的取值方式是一定含有:　　"-class": "Classname" 的条目.
-   QString clsName = valobj[CLASS].toString();
-   if(!clsName.compare(CN_NEWLAYOUT) /*|| !clsName.compare(CN_LAYOUT)*/)
-   {
+    QJsonObject  valobj = qv.toObject();
+    // QRect oldrect = Compoent::getRectFromStruct(valobj[PROPERTY].toArray(),KEY_RECT);
+    // 下面这种粗暴的取值方式是一定含有:　　"-class": "Classname" 的条目.
+    QString clsName = valobj[CLASS].toString();
+    if(!clsName.compare(CN_NEWLAYOUT) /*|| !clsName.compare(CN_LAYOUT)*/)
+    {
         NewLayout *newlayout = CreateNewLayout(qv,m_frame,flag,false);
-       // 这里一定是Layout 嵌套了.
+        // 这里一定是Layout 嵌套了.
         childlist.append(newlayout);
-       foreach (QJsonValue item, valobj[LAYOUT].toArray()) {
-           //这里只有读取工程与读取自定义控件才会到这里,要做区分.
-           newlayout->readFromJson(item,flag);
-       }
-   }
+        foreach (QJsonValue item, valobj[LAYOUT].toArray()) {
+            //这里只有读取工程与读取自定义控件才会到这里,要做区分.
+            newlayout->readFromJson(item,flag);
+        }
+    }
 
 }
 
@@ -3169,12 +3045,6 @@ QJsonObject  NewLayer::writeToJson()
 {
     QJsonArray layoutarr;
     QJsonObject json = mOwerJson;
-//    foreach(QObject *qo, this->m_frame->children())
-//    {
-//        qDebug() << " object name " << qo->objectName()
-//                 <<" meta class name " << qo->metaObject()->className();
-//    }
-
     foreach (QWidget *w, childlist) {
         layoutarr.append(((NewLayout*)w)->writeToJson());
     }

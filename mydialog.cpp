@@ -7,9 +7,6 @@
 #include <QMessageBox>
 #include "mainwindow.h"
 #include "canvasmanager.h"
-//#include <QQmlApplicationEngine>
-//#include <QQmlContext>
-//#include <QQuickView>
 #include <QDrag>
 #include <QMimeData>
 #include <QDataStream>
@@ -30,7 +27,7 @@ BaseDialog::BaseDialog(QWidget *parent):
 {
     setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     setModal(true);
-   // setStyleSheet( QString("BaseDialog#%1 {background-color: #FFFFBF;}").arg(objectName()));
+    // setStyleSheet( QString("BaseDialog#%1 {background-color: #FFFFBF;}").arg(objectName()));
 }
 
 
@@ -42,12 +39,10 @@ void BaseDialog::UpdateStyle()
 
 ImageFileDialog::ImageFileDialog(const QVariantList &old, QString imgpath, QWidget *parent)
     :QDialog(parent),
-//      sellist(new CustomListWidget()),
-//      flistview(new CustomListWidget()),
       sellist(new QListWidget()),
       flistview(new QListWidget()),
       treefile(new QTreeView()),
-   //   selstrList(old),
+      //   selstrList(old),
       statusBar(new QLabel(this)),
       okbtn(new QPushButton("确定",this))
 {
@@ -56,8 +51,8 @@ ImageFileDialog::ImageFileDialog(const QVariantList &old, QString imgpath, QWidg
     setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
     setModal(true);
     treefile->header()->setHidden(true);
-     flistview->setProperty(DKEY_EXTMAP,extMap);
-     /* 填弃上一次的数据 */
+    flistview->setProperty(DKEY_EXTMAP,extMap);
+    /* 填弃上一次的数据 */
     dirModel = new QFileSystemModel(this);
     fileModel = new QFileSystemModel(this);
     this->setFixedSize(1000,600);
@@ -67,13 +62,9 @@ ImageFileDialog::ImageFileDialog(const QVariantList &old, QString imgpath, QWidg
     flistview->setSelectionMode(QAbstractItemView::ExtendedSelection);
     flistview->setAlternatingRowColors(true);
 
-  //  flistview->setViewMode(QListWidget::IconMode);
-  //  sellist->setViewMode(QListWidget::IconMode);
     flistview->setIconSize(QSize(80,60));
     sellist->setIconSize(QSize(80,60));
-    // flistview->setIconSize(QSize(200,180));
-    //  dirModel->setReadOnly(true);
-    //  fileModel->setReadOnly(true);
+
 
     QMap<QString,QString> navigator;
     navigator[UP] = ":/icon/icons/buildstepmoveup@2x.png";
@@ -145,11 +136,7 @@ ImageFileDialog::ImageFileDialog(const QVariantList &old, QString imgpath, QWidg
     fileModel->setRootPath(imgpath);
     fileModel->setNameFilters(filters);
     fileModel->setFilter(QDir::Files);
-//    flistview->setModel(fileModel);
-//    flistview->setRootIndex(fileModel->index(imgpath));
 
-//    connect(sellist,SIGNAL(doubleClicked(QModelIndex)),
-//            SLOT(onSelListViewDoubleClicked(QModelIndex)));
     connect(sellist,&QListWidget::clicked,
             [=](QModelIndex index){
         sellist->clearSelection();
@@ -202,7 +189,7 @@ ImageFileDialog::ImageFileDialog(const QVariantList &old, QString imgpath, QWidg
 
     updateListImages(imgpath);
     this->setModal(true);
-//    UpdateStyle();
+    //    UpdateStyle();
     connect(okbtn,SIGNAL(clicked(bool)),SLOT(accept()));
 
 }
@@ -210,7 +197,7 @@ ImageFileDialog::ImageFileDialog(const QVariantList &old, QString imgpath, QWidg
 
 void ImageFileDialog::updateListImages(QString path)
 {
-  //  imgMap.clear();
+    //  imgMap.clear();
     flistview->clear();
     extMap.clear();
     QDirIterator it(path,filters, QDir::Files /*,QDirIterator::Subdirectories*/);
@@ -223,27 +210,27 @@ void ImageFileDialog::updateListImages(QString path)
         bool isFind = false;
         for(int i =0; i < sellist->count();i++)
         {
-           QListWidgetItem *item = sellist->item(i);
-           if(!item->text().compare(basename))
-           {
-               // 这里有相同文件名了,所以在待选列表不再添加它,这里没有处理不同目录下的同名文件.都视为同名.
-               isFind = true;
-               break;
-           }
+            QListWidgetItem *item = sellist->item(i);
+            if(!item->text().compare(basename))
+            {
+                // 这里有相同文件名了,所以在待选列表不再添加它,这里没有处理不同目录下的同名文件.都视为同名.
+                isFind = true;
+                break;
+            }
         }
 
 
-       // flistview->addItem(new QListWidgetItem(QPixmap(fpath),fpath.mid(idx)));
+        // flistview->addItem(new QListWidgetItem(QPixmap(fpath),fpath.mid(idx)));
         QPixmap pic =  mWindow->mImgMap[fpath];
         if(pic.isNull())
         {
-           pic = mWindow->mImgMap[fpath] = QPixmap(fpath);
+            pic = mWindow->mImgMap[fpath] = QPixmap(fpath);
 
         }
         flistview->addItem(new QListWidgetItem(pic,basename));
         if(isFind)
             flistview->setRowHidden(flistview->count()-1,true);
-     //   qApp->processEvents();
+        //   qApp->processEvents();
     }
 
 }
@@ -255,25 +242,23 @@ void ImageFileDialog::onListViewDoubleClicked(QModelIndex index)
 }
 void ImageFileDialog::updateListWidget()
 {
-//    QWidget *first;
-//    QWidget *last;
     for(int i = 0; i < sellist->count();i++)
     {
         QListWidgetItem *item = sellist->item(i);
-         QWidget *w =  sellist->itemWidget(item);
-         w->setProperty(DKEY_ROW,i);
-         if(i == 0)
-         {
-           // first = w;
+        QWidget *w =  sellist->itemWidget(item);
+        w->setProperty(DKEY_ROW,i);
+        if(i == 0)
+        {
+            // first = w;
             w->findChild<QPushButton*>("up")->setEnabled(false);
-         }else if(i == sellist->count() -1){
-             //last = w;
-             w->findChild<QPushButton*>("down")->setEnabled(false);
-         }else
-         {
-             w->findChild<QPushButton*>("up")->setEnabled(true);
-             w->findChild<QPushButton*>("down")->setEnabled(true);
-         }
+        }else if(i == sellist->count() -1){
+            //last = w;
+            w->findChild<QPushButton*>("down")->setEnabled(false);
+        }else
+        {
+            w->findChild<QPushButton*>("up")->setEnabled(true);
+            w->findChild<QPushButton*>("down")->setEnabled(true);
+        }
 
     }
 
@@ -289,7 +274,7 @@ QWidget* ImageFileDialog::createUpAndDownButton(int row)
     up->setObjectName(tr("up"));
     QPixmap uppix(":/icon/icons/arrowup.png");
     // 隐除PNG图片中的白色像素.
-     QBitmap umask= uppix.createMaskFromColor(QColor(255,255,255),Qt::MaskInColor);
+    QBitmap umask= uppix.createMaskFromColor(QColor(255,255,255),Qt::MaskInColor);
     uppix.setMask(umask);
     up->setIcon(uppix);
 
@@ -337,8 +322,8 @@ void ImageFileDialog::appendSelectedItem(QModelIndex index)
     sellist->addItem(nitem);
     selectedMap[s] = extMap[s].toString();
     flistview->setRowHidden(index.row(),true);
-//    QListWidgetItem *item = flistview->takeItem(index.row());
-//    delete item;
+    //    QListWidgetItem *item = flistview->takeItem(index.row());
+    //    delete item;
     hRows[s] = index;
     statusBar->setText(QString::number(sellist->count()));
 }
@@ -359,24 +344,24 @@ QVariantList ImageFileDialog::getSelectedList()
 void ImageFileDialog::onUp()
 {
     QPushButton *btn = (QPushButton*)(QObject::sender());
-//    int row = btn->property(DKEY_ROW).toInt();
+    //    int row = btn->property(DKEY_ROW).toInt();
     int row = sellist->currentRow();
 
 
-     QListWidgetItem *item =  sellist->takeItem(row);
-     sellist->insertItem(row -1,item);
-     sellist->setCurrentItem(item);
-     btn->setEnabled(row -1 == 0 ? false : true);
+    QListWidgetItem *item =  sellist->takeItem(row);
+    sellist->insertItem(row -1,item);
+    sellist->setCurrentItem(item);
+    btn->setEnabled(row -1 == 0 ? false : true);
 }
 
 void ImageFileDialog::onDown()
 {
     QPushButton *btn = (QPushButton*)(QObject::sender());
     int row = sellist->currentRow();
-     QListWidgetItem *item =  sellist->takeItem(row);
-     sellist->insertItem(row +1,item);
-     sellist->setCurrentItem(item);
-     btn->setEnabled(row + 1 == sellist->count() -1 ? false : true);
+    QListWidgetItem *item =  sellist->takeItem(row);
+    sellist->insertItem(row +1,item);
+    sellist->setCurrentItem(item);
+    btn->setEnabled(row + 1 == sellist->count() -1 ? false : true);
 }
 
 void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
@@ -387,7 +372,7 @@ void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
     //sellist->setRowHidden(index.row(),true);
     delete sellist->takeItem(index.row());
     foreach(QListWidgetItem *fitem,flistview->findItems(selstr,
-                                              Qt::MatchExactly))
+                                                        Qt::MatchExactly))
     {
         flistview->setRowHidden(flistview->row(fitem),false);
         break;
@@ -395,9 +380,9 @@ void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
     selectedMap.remove(selstr);
     /* 从列表删除 */
 
-   statusBar->setText(QString::number(sellist->count()));
-   sellist->clearSelection();
-//   statusBar->repaint();
+    statusBar->setText(QString::number(sellist->count()));
+    sellist->clearSelection();
+    //   statusBar->repaint();
 }
 
 void ImageFileDialog::onDelSelectedItems()
@@ -407,7 +392,7 @@ void ImageFileDialog::onDelSelectedItems()
     {
         QString selstr = item->text();
         foreach(QListWidgetItem *fitem,flistview->findItems(selstr,
-                                                  Qt::MatchExactly))
+                                                            Qt::MatchExactly))
         {
             flistview->setRowHidden(flistview->row(fitem),false);
             break;
@@ -418,7 +403,7 @@ void ImageFileDialog::onDelSelectedItems()
         delete sellist->takeItem(sellist->row(item));
         statusBar->setText(QString::number(sellist->count()));
     }
-   // updateListWidget();
+    // updateListWidget();
 
     sellist->clearSelection();
 }
@@ -456,16 +441,16 @@ void ImageFileDialog::onTreeViewClicked(QModelIndex index)
 
 ProjectDialog::ProjectDialog(QWidget *parent)
     :QDialog(parent),
-    //:QDialog(parent),
-    ui(new Ui::ProjectDialog),
-    defaultXLS(QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH + "行车记录仪.xls")
+      //:QDialog(parent),
+      ui(new Ui::ProjectDialog),
+      defaultXLS(QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH + "行车记录仪.xls")
 {
     ui->setupUi(this);
     setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
     setModal(true);
 
     setObjectName(this->metaObject()->className());
-//    this->UpdateStyle();
+    //    this->UpdateStyle();
     //setStyleSheet( QString("ProjectDialog#%1 {background-color: #FFFFBF;}").arg(metaObject()->className()));
 
     mWindow = (MainWindow*)(parent);
@@ -484,7 +469,7 @@ ProjectDialog::ProjectDialog(QWidget *parent)
     CheckLangFile(defaultXLS);
 
     QVariant sizeVar =  mWindow->mGlobalSet->value(INI_PRJSIZE);
-     int w,h;
+    int w,h;
     if(sizeVar.isValid())
     {
         QString prjsize = sizeVar.toString();
@@ -531,21 +516,21 @@ void ProjectDialog::on_pushButton_clicked()
 {
 
 
-   QFileInfo definfo(defaultXLS);
-   QString xlsfile = QFileDialog::getOpenFileName(Q_NULLPTR,
-                                                  tr("打开多国语言文件"),
-                                                  definfo.absolutePath(),
-                                                  //tr("xls files (*.xls);;CSV UTF-8 (*.csv)"));
+    QFileInfo definfo(defaultXLS);
+    QString xlsfile = QFileDialog::getOpenFileName(Q_NULLPTR,
+                                                   tr("打开多国语言文件"),
+                                                   definfo.absolutePath(),
+                                                   //tr("xls files (*.xls);;CSV UTF-8 (*.csv)"));
                                                    tr("xls files , CSV UTF-8 file (*.xls *.csv )"));
-//                                                  Q_NULLPTR,
-//                                                  QFileDialog::ExistingFile
-//                                                  );
-   if(!xlsfile.isEmpty() || CheckLangFile(xlsfile))
-   {
-      mWindow->mGlobalSet->setValue(INI_PRJMLANG, xlsfile.toUtf8().mid(mWindow->mRootPathLen) );
-      ui->view_lang->setText(xlsfile);
+    //                                                  Q_NULLPTR,
+    //                                                  QFileDialog::ExistingFile
+    //                                                  );
+    if(!xlsfile.isEmpty() || CheckLangFile(xlsfile))
+    {
+        mWindow->mGlobalSet->setValue(INI_PRJMLANG, xlsfile.toUtf8().mid(mWindow->mRootPathLen) );
+        ui->view_lang->setText(xlsfile);
 
-   }
+    }
 
 }
 
@@ -561,28 +546,28 @@ QSize ProjectDialog::getDefaultSize()
 
 void ProjectDialog::closeEvent(QCloseEvent *)
 {
-   // qDebug() << " close result is " << this->result();
+    // qDebug() << " close result is " << this->result();
 }
 
 void ProjectDialog::onAccepted()
 {
 
-     //  qDebug() << " trigger accepted event ";
-       if(ui->spinBox->value() == 0 ||
-               ui->spinBox_2->value() == 0)
-       {
-           QMessageBox::warning(this,"提示","宽高不能设置为零.");
-       }
+    //  qDebug() << " trigger accepted event ";
+    if(ui->spinBox->value() == 0 ||
+            ui->spinBox_2->value() == 0)
+    {
+        QMessageBox::warning(this,"提示","宽高不能设置为零.");
+    }
 
 
-       mWindow->cManager->setDefaultPageSize(QSize(ui->spinBox->value(),ui->spinBox_2->value()));
-       mWindow->mGlobalSet->setValue(INI_PRJSIZE,
-                                   QString("%1*%2").arg(QString::number(ui->spinBox->value()),
+    mWindow->cManager->setDefaultPageSize(QSize(ui->spinBox->value(),ui->spinBox_2->value()));
+    mWindow->mGlobalSet->setValue(INI_PRJSIZE,
+                                  QString("%1*%2").arg(QString::number(ui->spinBox->value()),
                                                        QString::number(ui->spinBox_2->value())));
 
 
-       mWindow->setWindowTitle(VERSION + ui->prjname->text());
-       mWindow->cManager->mProjectName = ui->prjname->text();
+    mWindow->setWindowTitle(VERSION + ui->prjname->text());
+    mWindow->cManager->mProjectName = ui->prjname->text();
 }
 
 void ProjectDialog::onRejected()
@@ -603,10 +588,10 @@ void ProjectDialog::onSpinBoxVChanged(int v)
 
 ImageListView::ImageListView(QString path, QWidget *parent)
     :QDialog(parent),
-     fileModel(new QFileSystemModel),
-     treeModel(new QFileSystemModel),
-     treefile(new QTreeView()),
-     imglist(new QListWidget)
+      fileModel(new QFileSystemModel),
+      treeModel(new QFileSystemModel),
+      treefile(new QTreeView()),
+      imglist(new QListWidget)
 {
     mWindow = (MainWindow*)parent;
     //setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
@@ -646,10 +631,6 @@ ImageListView::ImageListView(QString path, QWidget *parent)
     fileModel->setRootPath(path);
     fileModel->setNameFilters(filters);
     fileModel->setFilter(QDir::Files);
-    //    imglist->setModel(fileModel);
-    //    imglist->setRootIndex(fileModel->index(path));
-
-
 
     imglist->setSelectionMode(QAbstractItemView::SingleSelection);
     imglist->setViewMode(QListWidget::IconMode);
@@ -664,8 +645,6 @@ ImageListView::ImageListView(QString path, QWidget *parent)
 
     treefile->setFixedWidth(160);
     connect(treefile,SIGNAL(clicked(QModelIndex)),SLOT(onTreeViewClicked(QModelIndex)));
-    //    connect(imglist,SIGNAL(itemDoubleClicked(QListWidgetItem*)),
-    //            parent,SLOT(onSelectedBackgroundImage(QListWidgetItem*)));
 
     updateListImages(path);
 }
@@ -675,13 +654,13 @@ void ImageListView::updateListImages(QString path)
     imgMap.clear();
     imglist->clear();
 
-     QDirIterator it(path,filters, QDir::Files
-                     /*, QDirIterator::Subdirectories*/);
+    QDirIterator it(path,filters, QDir::Files
+                    /*, QDirIterator::Subdirectories*/);
     while (it.hasNext())
     {
         QString fpath = it.next().toUtf8();
-//        bool b = fpath.contains('/');
-//        int idx = fpath.lastIndexOf(b ? '/' : '\\')+1;
+        //        bool b = fpath.contains('/');
+        //        int idx = fpath.lastIndexOf(b ? '/' : '\\')+1;
         int idx = fpath.lastIndexOf(BACKSLASH)+1;
         QString shortname = fpath.mid(idx);
         imgMap[shortname] = fpath;
@@ -699,8 +678,6 @@ void ImageListView::updateListImages(QString path)
 void ImageListView::onTreeViewClicked(QModelIndex index)
 {
     QString mPath = treeModel->fileInfo(index).absoluteFilePath();
-  //  qDebug() << " DirModel AbsoluteFile Path " << mPath;
-   // imglist->setRootIndex(fileModel->setRootPath(mPath));
     updateListImages(mPath);
 
     // dirModel->fetchMore(index);
@@ -723,8 +700,8 @@ MenuItemDialog::MenuItemDialog( QString old, QWidget *parent)
         QListWidgetItem* item = new QListWidgetItem(listWidget);
         QRadioButton *rb = new QRadioButton(mWindow->mItemMap[key]);
         connect(rb,&QRadioButton::toggled,[=](bool f){
-           if(f)
-               text = rb->text();
+            if(f)
+                text = rb->text();
         });
 
         listWidget->setItemWidget(item,rb);
@@ -735,9 +712,9 @@ MenuItemDialog::MenuItemDialog( QString old, QWidget *parent)
 
     connect(listWidget,&QListWidget::itemPressed,this,
             [=](QListWidgetItem *item)
-            {
-             listWidget->clearSelection();
-             text = mWindow->mOrderlist[listWidget->row(item)]; });
+    {
+        listWidget->clearSelection();
+        text = mWindow->mOrderlist[listWidget->row(item)]; });
 
     QVBoxLayout *layout= new QVBoxLayout();
     layout->addWidget(listWidget);
@@ -777,7 +754,7 @@ I18nLanguage::I18nLanguage(QVariantList oldvar, QWidget *parent):
 
     connect(ui->btn_ok,SIGNAL(clicked(bool)),SLOT(accept()));
     setModal(true);
-//    UpdateStyle();
+    //    UpdateStyle();
 }
 
 QStringList I18nLanguage::getSelectedItems()
@@ -794,7 +771,7 @@ QStringList I18nLanguage::getSelectedItems()
 
 void I18nLanguage::on_item_selectall_clicked()
 {
- //   ui->itemWidget->selectAll();
+    //   ui->itemWidget->selectAll();
     for(int i = 0;i < ui->itemWidget->count();i++)
     {
         QListWidgetItem *item = ui->itemWidget->item(i);
@@ -820,7 +797,7 @@ void I18nLanguage::on_item_re_clicked()
     {
         QListWidgetItem *item = ui->itemWidget->item(i);
         item->setCheckState(item->checkState() == Qt::Checked ? Qt::Unchecked : Qt::Checked);
-       // item->setSelected(!item->isSelected());
+        // item->setSelected(!item->isSelected());
     }
 }
 
@@ -842,7 +819,7 @@ ConfigProject::ConfigProject(QWidget *parent):
 
     CheckLangFile(defaultXLS);
 
-     ui->view_lang->setText(defaultXLS);
+    ui->view_lang->setText(defaultXLS);
 
 
     QVariant qv = mWindow->mGlobalSet->value(INI_PRJMLANG);
@@ -850,11 +827,11 @@ ConfigProject::ConfigProject(QWidget *parent):
     {
 
         QString oldfile = qv.toString();
-         defaultXLS = oldfile;
-         if(CheckLangFile(oldfile))
-         {
-             ui->view_lang->setText(oldfile);
-         }
+        defaultXLS = oldfile;
+        if(CheckLangFile(oldfile))
+        {
+            ui->view_lang->setText(oldfile);
+        }
     }
 
 
@@ -870,10 +847,10 @@ void ConfigProject::updateListWidget()
 {
 
     int count =  ui->langWidget->count();
-//    ui->langWidget->selectAll();
-//    qDeleteAll(ui->langWidget->selectedItems());
+    //    ui->langWidget->selectAll();
+    //    qDeleteAll(ui->langWidget->selectedItems());
     for (int i =0 ; i < count;i++ ) {
-       delete ui->langWidget->takeItem(i);
+        delete ui->langWidget->takeItem(i);
     }
     ui->langWidget->clear();
     QStringList tlist = mWindow->cManager->mPrjSelectlang;
@@ -881,12 +858,12 @@ void ConfigProject::updateListWidget()
         QListWidgetItem* item = new QListWidgetItem(v,ui->langWidget);
         item->setFlags(item->flags() | Qt::ItemIsUserCheckable |
                        Qt::ItemIsEditable| Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-      //  item->setCheckState(Qt::Unchecked); // AND initialize check state
+        //  item->setCheckState(Qt::Unchecked); // AND initialize check state
         bool b = false;
         foreach (QString o,tlist ) {
             if(!v.compare(o))
             {
-               // item->setCheckState(Qt::Checked);
+                // item->setCheckState(Qt::Checked);
                 b = true;
                 tlist.removeOne(o);
                 break;
@@ -925,16 +902,16 @@ void ConfigProject::on_openfile_clicked()
                                                    tr("打开多国语言文件"),
                                                    definfo.absolutePath(),
                                                    tr("xls files , CSV UTF-8 file (*.xls *.csv )"));
- //                                                  Q_NULLPTR,
- //                                                  QFileDialog::ExistingFile
- //                                                  );
+    //                                                  Q_NULLPTR,
+    //                                                  QFileDialog::ExistingFile
+    //                                                  );
     if(!xlsfile.isEmpty() || CheckLangFile(xlsfile))
     {
 
-           mWindow->mGlobalSet->setValue(INI_PRJMLANG,xlsfile.toUtf8().mid(mWindow->mRootPathLen));
-           ui->view_lang->setText(xlsfile);
-           mWindow->readMultiLanguage(xlsfile);
-           updateListWidget();
+        mWindow->mGlobalSet->setValue(INI_PRJMLANG,xlsfile.toUtf8().mid(mWindow->mRootPathLen));
+        ui->view_lang->setText(xlsfile);
+        mWindow->readMultiLanguage(xlsfile);
+        updateListWidget();
     }
 }
 
@@ -962,7 +939,7 @@ void ConfigProject::on_lang_re_clicked()
     {
         QListWidgetItem *item = ui->langWidget->item(i);
         item->setCheckState(item->checkState() == Qt::Checked ? Qt::Unchecked : Qt::Checked);
-       // item->setSelected(!item->isSelected());
+        // item->setSelected(!item->isSelected());
     }
 }
 
@@ -988,7 +965,7 @@ GlobalSettings::GlobalSettings(QWidget *parent):
     setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
     setModal(true);
     setObjectName(this->metaObject()->className());
-//    this->UpdateStyle();
+    //    this->UpdateStyle();
     mWindow = (MainWindow*)parent;
 
 
@@ -1011,115 +988,115 @@ GlobalSettings::GlobalSettings(QWidget *parent):
 
     FileEdit *imagedir = new FileEdit("图片资源目录:");
     setMap["图片资源目录:"] = imagedir;
-     imagedir->setToolTip("工程中要用到的图片资源目录,默认是 images");
+    imagedir->setToolTip("工程中要用到的图片资源目录,默认是 images");
     // projectdir->setFilter("");
-     imagedir->setFileOrDir(true);
-     IniMap[INI_PRJIMAGEDIR] = imagedir;
-     imagedir->setFilePath(QDir::currentPath());
+    imagedir->setFileOrDir(true);
+    IniMap[INI_PRJIMAGEDIR] = imagedir;
+    imagedir->setFilePath(QDir::currentPath());
 
     FileEdit *projectdir = new FileEdit("工程目录:");
-     setMap["工程目录:"] = projectdir;
-     projectdir->setToolTip("工程保存的目录,默认是程序运行目录.");
-     projectdir->setFileOrDir(true);
-     IniMap[INI_PRJDIR] = projectdir;
-     projectdir->setFilePath(QDir::currentPath());
+    setMap["工程目录:"] = projectdir;
+    projectdir->setToolTip("工程保存的目录,默认是程序运行目录.");
+    projectdir->setFileOrDir(true);
+    IniMap[INI_PRJDIR] = projectdir;
+    projectdir->setFilePath(QDir::currentPath());
 
 
-     FileEdit *comdir = new FileEdit("自定义控件目录:");
-     setMap["自定义控件目录:"] = comdir;
-      comdir->setToolTip("自定义的模版控件目录,默认是widgets目录.");
+    FileEdit *comdir = new FileEdit("自定义控件目录:");
+    setMap["自定义控件目录:"] = comdir;
+    comdir->setToolTip("自定义的模版控件目录,默认是widgets目录.");
     //  projectdir->setFilter("");
-      comdir->setFileOrDir(true);
-      IniMap[INI_PRJCUSTOM] = comdir;
-      comdir->setFilePath(QDir::currentPath()+ BACKSLASH + "widgets") ;
+    comdir->setFileOrDir(true);
+    IniMap[INI_PRJCUSTOM] = comdir;
+    comdir->setFilePath(QDir::currentPath()+ BACKSLASH + "widgets") ;
 
 
 
-      QSpinBox *width = new QSpinBox();
-      width->setFixedWidth(60);
-      width->setMaximum(1000);
-      setMap[W]  = width;
+    QSpinBox *width = new QSpinBox();
+    width->setFixedWidth(60);
+    width->setMaximum(1000);
+    setMap[W]  = width;
 
-      QSpinBox *height = new QSpinBox();
-      height->setFixedWidth(60);
-      height->setMaximum(1000);
-      setMap[H] = height;
+    QSpinBox *height = new QSpinBox();
+    height->setFixedWidth(60);
+    height->setMaximum(1000);
+    setMap[H] = height;
 
-      QMapIterator<QString,QWidget*> iter(setMap);
-      ui->treeWidget->setColumnCount(2);
-      QTreeWidgetItem *headeritem = new QTreeWidgetItem();
-      headeritem->setText(0,"全局配置项");
-      headeritem->setText(1,"内容");
-      ui->treeWidget->setHeaderItem(headeritem);
-      ui->treeWidget->setAlternatingRowColors(true);
-      QTreeWidgetItem *vsize =  new QTreeWidgetItem(QStringList() << "界面尺寸");
-      ui->treeWidget->addTopLevelItem(vsize);
+    QMapIterator<QString,QWidget*> iter(setMap);
+    ui->treeWidget->setColumnCount(2);
+    QTreeWidgetItem *headeritem = new QTreeWidgetItem();
+    headeritem->setText(0,"全局配置项");
+    headeritem->setText(1,"内容");
+    ui->treeWidget->setHeaderItem(headeritem);
+    ui->treeWidget->setAlternatingRowColors(true);
+    QTreeWidgetItem *vsize =  new QTreeWidgetItem(QStringList() << "界面尺寸");
+    ui->treeWidget->addTopLevelItem(vsize);
 
-      QVariant sizeVar =  mWindow->mGlobalSet->value(INI_PRJSIZE);
-       int w,h;
-      if(sizeVar.isValid())
-      {
-          QString prjsize = sizeVar.toString();
-          w = prjsize.section("*",0,0).toInt();
-          h = prjsize.section("*",1,1).toInt();
+    QVariant sizeVar =  mWindow->mGlobalSet->value(INI_PRJSIZE);
+    int w,h;
+    if(sizeVar.isValid())
+    {
+        QString prjsize = sizeVar.toString();
+        w = prjsize.section("*",0,0).toInt();
+        h = prjsize.section("*",1,1).toInt();
 
-      }else{
-          w = 128;
-          h = 128;
-      }
-      width->setValue(w); height->setValue(h);
+    }else{
+        w = 128;
+        h = 128;
+    }
+    width->setValue(w); height->setValue(h);
 
-      while(iter.hasNext())
-      {
-          iter.next();
-          QTreeWidgetItem *t;
-          if(!H.compare(iter.key()))
-          {
-              //ui->treeWidget_2->setItemWidget(t,1,iter.value());
-              t = new QTreeWidgetItem(QStringList() << H);
-              vsize->addChild(t);
+    while(iter.hasNext())
+    {
+        iter.next();
+        QTreeWidgetItem *t;
+        if(!H.compare(iter.key()))
+        {
+            //ui->treeWidget_2->setItemWidget(t,1,iter.value());
+            t = new QTreeWidgetItem(QStringList() << H);
+            vsize->addChild(t);
 
-          }else if(!W.compare(iter.key()))
-          {
-              t = new QTreeWidgetItem(QStringList() << W);
-              vsize->addChild(t);
-          }else{
-              t = new QTreeWidgetItem(ui->treeWidget,QStringList() <<iter.key());
-              t->setToolTip(0,iter.key());
-              t->setToolTip(1,((FileEdit*)iter.value())->filePath());
-          }
-          ui->treeWidget->setItemWidget(t,1,iter.value());
-      }
+        }else if(!W.compare(iter.key()))
+        {
+            t = new QTreeWidgetItem(QStringList() << W);
+            vsize->addChild(t);
+        }else{
+            t = new QTreeWidgetItem(ui->treeWidget,QStringList() <<iter.key());
+            t->setToolTip(0,iter.key());
+            t->setToolTip(1,((FileEdit*)iter.value())->filePath());
+        }
+        ui->treeWidget->setItemWidget(t,1,iter.value());
+    }
 
-     QMapIterator<QString,QWidget*> it(IniMap);
-     while(it.hasNext())
-     {
-         // 更新来自INI文件的值.
-         it.next();
-         QVariant va= mWindow->mGlobalSet->value(it.key());
-         if(va.isValid())
-         {
-             QString pf = va.toString();
-             if(pf.startsWith("."))
-                 pf.remove(0,1).prepend(QDir::currentPath());
-             else{
-                  pf.prepend(QDir::currentPath() +BACKSLASH );
-                  if(!QFileInfo::exists(pf))
-                      pf = QDir::currentPath();
-             }
+    QMapIterator<QString,QWidget*> it(IniMap);
+    while(it.hasNext())
+    {
+        // 更新来自INI文件的值.
+        it.next();
+        QVariant va= mWindow->mGlobalSet->value(it.key());
+        if(va.isValid())
+        {
+            QString pf = va.toString();
+            if(pf.startsWith("."))
+                pf.remove(0,1).prepend(QDir::currentPath());
+            else{
+                pf.prepend(QDir::currentPath() +BACKSLASH );
+                if(!QFileInfo::exists(pf))
+                    pf = QDir::currentPath();
+            }
 
-             ((FileEdit*)it.value())->setFilePath(pf);
-         }
+            ((FileEdit*)it.value())->setFilePath(pf);
+        }
 
-     }
+    }
 
 
-     ui->buttonBox->button(QDialogButtonBox::Ok)->setText("确定");
-     ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("取消");
+    ui->buttonBox->button(QDialogButtonBox::Ok)->setText("确定");
+    ui->buttonBox->button(QDialogButtonBox::Cancel)->setText("取消");
 
     connect(this,SIGNAL(accepted()),SLOT(onAccepted()));
     setModal(true);
-//    UpdateStyle();
+    //    UpdateStyle();
 }
 
 
@@ -1128,7 +1105,7 @@ QTreeWidgetItem* GlobalSettings::getItemByString(QString name)
 
     QList<QTreeWidgetItem*> qwilist =
             ui->treeWidget->findItems(name,Qt::MatchFixedString |
-                                  Qt::MatchRecursive);
+                                      Qt::MatchRecursive);
     QTreeWidgetItem *item = 0;
     if(qwilist.size())
     {
@@ -1140,10 +1117,10 @@ QTreeWidgetItem* GlobalSettings::getItemByString(QString name)
 void GlobalSettings::onAccepted()
 {
     int w,h;
-     QWidget *hwidget = ui->treeWidget->itemWidget(getItemByString(H),1);
-     QWidget *wwidget =  ui->treeWidget->itemWidget(getItemByString(W),1);
-     h = ((QSpinBox*)hwidget)->value();
-     w = ((QSpinBox*)wwidget)->value();
+    QWidget *hwidget = ui->treeWidget->itemWidget(getItemByString(H),1);
+    QWidget *wwidget =  ui->treeWidget->itemWidget(getItemByString(W),1);
+    h = ((QSpinBox*)hwidget)->value();
+    w = ((QSpinBox*)wwidget)->value();
     if(w == 0 ||  h == 0)
     {
         QMessageBox::warning(this,"提示","宽高不能设置为零.");
@@ -1153,8 +1130,8 @@ void GlobalSettings::onAccepted()
 
     mWindow->cManager->setDefaultPageSize(QSize(w,h));
     mWindow->mGlobalSet->setValue(INI_PRJSIZE,
-                                QString("%1*%2").arg(QString::number(w),
-                                                    QString::number(h)));
+                                  QString("%1*%2").arg(QString::number(w),
+                                                       QString::number(h)));
     QMapIterator<QString,QWidget*> it(IniMap);
     while(it.hasNext())
     {
@@ -1178,8 +1155,6 @@ FileEdit::FileEdit(QString txt, QWidget *parent)
     layout->setMargin(0);
     layout->setSpacing(0);
     theLineEdit = new QLabel(this);
-   // theLineEdit->setEnabled(false);
-   // theLineEdit->setStyleSheet("background-color: red;");
     theLineEdit->setSizePolicy(QSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred));
     QToolButton *button = new QToolButton(this);
     button->setObjectName(txt);
@@ -1216,7 +1191,7 @@ FileEdit::FileEdit(QString txt, QWidget *parent)
             dirModel->setFilter(QDir::NoDotDot | QDir::AllDirs);
         }else{
             dirModel->setFilter(QDir::NoDotDot| QDir::Files | QDir::Dirs);
-       }
+        }
 
 
         QVBoxLayout *vb = new QVBoxLayout();
@@ -1239,7 +1214,7 @@ FileEdit::FileEdit(QString txt, QWidget *parent)
 
 
         bd->setLayout(vb);
-//        bd->UpdateStyle();
+        //        bd->UpdateStyle();
         bd->exec();
         bd->deleteLater();
         fileTree->deleteLater();
@@ -1255,7 +1230,7 @@ class BaseForm;
 
 ActionList::ActionList(QWidget *parent)
     :BaseDialog(parent),
-     mWindow(((BaseForm*)parent)->mWindow)
+      mWindow(((BaseForm*)parent)->mWindow)
 {
     // 这里只支持两种类型的控件,QComboBox,QLineEdit
 
@@ -1282,24 +1257,24 @@ ActionList::ActionList(QWidget *parent)
                 mEnumMap[i] = t;
                 mActList.append(ENUM);
             }else if(qobj.contains(OBJECT)){
-               mActList.append(OBJECT);
+                mActList.append(OBJECT);
             }else{
                 mActList.append(TEXT);
             }
             mTypeMap[i] = qobj[NAME].toString();
             mDefaultVals.append(qobj[DEFAULT].toString());
         }else{
-             qDebug() << " values is " << qobj[VALUES].toArray();
+            qDebug() << " values is " << qobj[VALUES].toArray();
             QJsonArray arr =  qobj[VALUES].toArray();
             int asize = arr.size();
             for(int i = 0 ; i < asize;i++)
             {
-               mDataList.append(arr.at(i).toObject().toVariantMap());
+                mDataList.append(arr.at(i).toObject().toVariantMap());
             }
         }
     }
 
-//    qDebug() << " mActList " << mActList << "length " << mActList.length();
+    //    qDebug() << " mActList " << mActList << "length " << mActList.length();
     mTable = new QTableWidget(0,headers.size(),this);
     mTable->setHorizontalHeaderLabels(headers);
     mTable->setDragDropMode(QAbstractItemView::DragDrop);
@@ -1320,20 +1295,20 @@ ActionList::ActionList(QWidget *parent)
                                                  this);
     dbb->button(QDialogButtonBox::Ok)->setText("确定");
 
-   QObject::connect(dbb,
-                    &QDialogButtonBox::accepted,[=](){
+    QObject::connect(dbb,
+                     &QDialogButtonBox::accepted,[=](){
 
-       // 把数据写到它的json里.
-//       qDebug() << " will save to json";
-       QJsonArray jarry ;
-       for(int i = 0; i< mTable->rowCount();i++)
-       {
+        // 把数据写到它的json里.
+        //       qDebug() << " will save to json";
+        QJsonArray jarry ;
+        for(int i = 0; i< mTable->rowCount();i++)
+        {
             QVariantMap vmap ;
             for(int j = 0;j < mTable->columnCount();j++)
             {
                 QWidget *w =  mTable->cellWidget(i,j);
                 QString key = w->objectName();
-//                if(!QString::compare(w->metaObject()->className(),"QComboBox"))
+                //                if(!QString::compare(w->metaObject()->className(),"QComboBox"))
                 if(w->inherits("QComboBox"))
                 {
                     vmap[key] = ((QComboBox*)w)->currentText();
@@ -1342,56 +1317,56 @@ ActionList::ActionList(QWidget *parent)
                 }
 
             }
-//            mDataList.append(vmap);
+            //            mDataList.append(vmap);
             jarry.append(QJsonObject::fromVariantMap(vmap));
-       }
+        }
 
-       BaseForm *bf = (BaseForm*)parent;
-       QJsonArray qa =    bf->mOwerJson[PROPERTY].toArray();
-       for(int i =0;i<qa.size();i++)
-       {
-           QJsonObject qo =  qa.at(i).toObject();
-           if(qo.contains(ACTION))
-           {
-               QJsonArray actarry  =    qo[ACTION].toArray();
-               for(int n = 0 ; n < actarry.size();n++)
-               {
-                   QJsonObject actobj = actarry.at(n).toObject();
-                   if(actobj.contains(VALUES))
-                   {
-                       actobj[VALUES] = jarry;
-                       actarry.replace(n,actobj);
-                       break;
-                   }
-               }
-               qo[ACTION] = actarry;
-               qa.replace(i,qo);
-               break;
-           }
-       }
-       bf->mOwerJson[PROPERTY] = qa;
-
-
-
-       this->accept();
-
-   });
+        BaseForm *bf = (BaseForm*)parent;
+        QJsonArray qa =    bf->mOwerJson[PROPERTY].toArray();
+        for(int i =0;i<qa.size();i++)
+        {
+            QJsonObject qo =  qa.at(i).toObject();
+            if(qo.contains(ACTION))
+            {
+                QJsonArray actarry  =    qo[ACTION].toArray();
+                for(int n = 0 ; n < actarry.size();n++)
+                {
+                    QJsonObject actobj = actarry.at(n).toObject();
+                    if(actobj.contains(VALUES))
+                    {
+                        actobj[VALUES] = jarry;
+                        actarry.replace(n,actobj);
+                        break;
+                    }
+                }
+                qo[ACTION] = actarry;
+                qa.replace(i,qo);
+                break;
+            }
+        }
+        bf->mOwerJson[PROPERTY] = qa;
 
 
-   mainLayout->addWidget(dbb);
-   // 读取原有的数据
-   for(int i = 0 ; i < mDataList.size();i++)
-   {
-       mTable->insertRow(mTable->rowCount());
-       addNewRow(i,mDefaultVals);
+
+        this->accept();
+
+    });
+
+
+    mainLayout->addWidget(dbb);
+    // 读取原有的数据
+    for(int i = 0 ; i < mDataList.size();i++)
+    {
+        mTable->insertRow(mTable->rowCount());
+        addNewRow(i,mDefaultVals);
 
         QVariantMap vmap =    mDataList.at(i)  ;
         for(int n = 0 ; n < vmap.size();n++)
         {
-           QWidget *w =  mTable->cellWidget(i,n);
-//           if(!QString::compare(w->metaObject()->className(),"QComboBox"))
-           if(w->inherits("QComboBox"))
-           {
+            QWidget *w =  mTable->cellWidget(i,n);
+            //           if(!QString::compare(w->metaObject()->className(),"QComboBox"))
+            if(w->inherits("QComboBox"))
+            {
                 QString objstr = vmap[mTypeMap[n]].toString();
                 if(!QString::compare(OBJECT,w->objectName()))
                 {
@@ -1406,21 +1381,21 @@ ActionList::ActionList(QWidget *parent)
                         ((QComboBox*)w)->setCurrentText(objstr);
                     }
                 }else{
-                     ((QComboBox*)w)->setCurrentText(objstr);
+                    ((QComboBox*)w)->setCurrentText(objstr);
                 }
 
-           }else{
-               ((QLineEdit*)w)->setText(vmap[mTypeMap[n]].toString());
-           }
+            }else{
+                ((QLineEdit*)w)->setText(vmap[mTypeMap[n]].toString());
+            }
         }
-   }
-   mDataList.clear();
+    }
+    mDataList.clear();
 
 }
 
 void ActionList::addNewRow(int line,const QVariantList &defvals)
 {
-      // 用-name来区别分对像.
+    // 用-name来区别分对像.
     for(int i = 0 ;i < mTable->columnCount();i++)
     {
 
@@ -1438,7 +1413,7 @@ void ActionList::addNewRow(int line,const QVariantList &defvals)
 
             mTable->setCellWidget(line,i,cbox);
             cbox->setObjectName(mTypeMap[i]);
-//            cbox->setProperty(mWidType,ENUM);
+            //            cbox->setProperty(mWidType,ENUM);
         }else if(!QString::compare(mActList.at(i),OBJECT))
         {
             QComboBox *cbox = new QComboBox(mTable);
@@ -1451,13 +1426,13 @@ void ActionList::addNewRow(int line,const QVariantList &defvals)
             cbox->setCurrentText(defvals[i].toString());
             mTable->setCellWidget(line,i,cbox);
             cbox->setObjectName(mTypeMap[i]);
-//            cbox->setProperty(mWidType,ENUM);
+            //            cbox->setProperty(mWidType,ENUM);
         }else{
             QLineEdit *edit = new QLineEdit(mTable);
             mTable->setCellWidget(line,i,edit);
             edit->setText(defvals[i].toString());
             edit->setObjectName(mTypeMap[i]);
-//            cbox->setProperty(mWidType,TEXT);
+            //            cbox->setProperty(mWidType,TEXT);
         }
 
 
@@ -1468,7 +1443,7 @@ void ActionList::addNewRow(int line,const QVariantList &defvals)
 void ActionList::onCustomContextMenu(const QPoint &pos)
 {
     QObject *sender = QObject::sender();
-//    bool isTable = !QString::compare(sender->metaObject()->className(),"QTableWidget");
+    //    bool isTable = !QString::compare(sender->metaObject()->className(),"QTableWidget");
     bool isTable = sender->inherits("QTableWidget");
     QMenu contextMenu((QWidget*)(QObject::sender()));
     QAction  addline(QIcon(":/icon/icons/act_add.png")  ,
@@ -1495,7 +1470,7 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
                          QString("删除当前行"),this);
         QObject::connect(&delline,
                          &QAction::triggered,[=](){
-//            qDebug() << " will remove line "  << line;
+            //            qDebug() << " will remove line "  << line;
 
             for(int i = 0 ;i < mTable->columnCount();i++)
             {
@@ -1505,7 +1480,7 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
                 mTable->removeCellWidget(line,i);
                 w->deleteLater();
             }
-             mTable->removeRow(line);
+            mTable->removeRow(line);
 
 
         });
@@ -1536,7 +1511,7 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
                     QWidget *w = mTable->cellWidget(src,i);
 
 
-//                    if(!QString::compare(w->metaObject()->className(),"QComboBox"))
+                    //                    if(!QString::compare(w->metaObject()->className(),"QComboBox"))
                     if(w->inherits("QComboBox"))
                     {
                         oldvals.append(((QComboBox*)w)->currentText());
@@ -1550,7 +1525,7 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
                 }
                 // 这里只能用删除加插入的方法来调整行序.
                 mTable->removeRow(src);
-//                qDebug() << " insert row " << dst;
+                //                qDebug() << " insert row " << dst;
                 mTable->insertRow(dst);
                 addNewRow(dst,oldvals);
 
@@ -1563,14 +1538,14 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
                         QString("上移一行"),this);
             QObject::connect(&up,
                              &QAction::triggered,[=](){
-//                    qDebug() << "current item " << mTable->currentItem();
-                    sawp_lambda_func(line,line-1);
+                //                    qDebug() << "current item " << mTable->currentItem();
+                sawp_lambda_func(line,line-1);
             });
             QAction  uptop(QIcon(":/icon/icons/act_uptop.png")  ,
                            QString("移到顶部"),this);
             QObject::connect(&uptop,
                              &QAction::triggered,[=](){
-                    sawp_lambda_func(line,0);
+                sawp_lambda_func(line,0);
             });
 
 
@@ -1578,13 +1553,13 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
                          QString("下移一行"),this);
             QObject::connect(&down,
                              &QAction::triggered,[=](){
-                    sawp_lambda_func(line,line+1);
+                sawp_lambda_func(line,line+1);
             });
             QAction downbottom(QIcon(":/icon/icons/act_downbottom.png")  ,
                                QString("移到底部"),this);
             QObject::connect(&downbottom,
                              &QAction::triggered,[=](){
-                    sawp_lambda_func(line,mTable->rowCount()-1);
+                sawp_lambda_func(line,mTable->rowCount()-1);
             });
 
             if(line == 0)
@@ -1610,7 +1585,7 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
 
     }
 
-//    contextMenu->deleteLater();
+    //    contextMenu->deleteLater();
 
 
 }

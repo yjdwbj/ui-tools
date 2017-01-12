@@ -138,9 +138,6 @@ MainWindow::MainWindow(QWidget *parent) :
     show();
     if(!QFileInfo(mGlobalIniFile).exists())
     {
-//        QString abpath = QFileInfo(mGlobalIniFile).absolutePath();
-//        QDir tdir(abpath);
-//        tdir.mkdir(abpath);
         while (1){
             GlobalSettings gs(this);
             gs.exec();
@@ -447,112 +444,6 @@ void MainWindow::readCSVFile(QString csvfile)
     }
 
 }
-
-//void MainWindow::createCSVFile(QString xlsfile)
-//{
-//    QString sysname = QSysInfo::prettyProductName();
-
-//    QFileInfo info(xlsfile);
-
-
-//    QString outfile = info.absolutePath().replace(SLASH,BACKSLASH)
-//            + BACKSLASH +info.completeBaseName() + ".csv";
-//    if(QFileInfo::exists(outfile))
-//    {
-//        QFile::copy(outfile,outfile+".bak");
-//    }
-
-//    if(sysname.contains("Windows"))
-//    {
-
-//         /* 先用xls2csv.exe */
-//        QString cmd = QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH +  "xls2csv.exe";
-//        /* 先用xls2csv.exe */
-//        QProcess xlsprocess;
-//        xlsprocess.start(cmd,QStringList() << xlsfile);
-//        xlsprocess.waitForFinished();
-//        QTextStream rsyncStdoutStream(xlsprocess.readAllStandardOutput());
-//        bool once = true;
-
-//        QFile csvfile("debug.csv");
-//        csvfile.open(QIODevice::WriteOnly);
-//        QTextStream out(&csvfile);
-//        while(1)
-//        {
-//           QString line =  rsyncStdoutStream.readLine();
-//           if(line.isNull())
-//           {
-//               out << "empty line";
-//                  break;
-//           }
-//            out << line;
-
-//           if(once)
-//           {
-
-//               mLanguageList =   line.split(';');
-//               if(mLanguageList.size())
-//                   mLanguageList.removeAt(0);
-//               once = false;
-//           }else
-//           {
-//               QStringList tmp = line.split(';');
-//               QString key = tmp[0].toLower().trimmed();
-//               mItemMap[key]=tmp[1].trimmed() ;
-//               mOrderlist << key;
-
-//           }
-//          // qDebug() << line;
-//        }
-
-//        csvfile.close();
-//        qApp->processEvents();
-
-
-//    }else
-//    {
-//        // 这里是非微软系统
-//        QString cmd = QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH +"xls2csv";
-
-//        QProcess xlsprocess;
-//        if(!QFileInfo::exists(cmd))
-//        {
-//            qDebug() << "  tools not exists ";
-//            return;
-//        }
-//        xlsprocess.start(cmd,QStringList() << xlsfile);
-//        xlsprocess.waitForFinished();
-//        QTextStream rsyncStdoutStream(xlsprocess.readAllStandardOutput());
-//        //while(!xlsprocess.waitForFinished())
-//        bool once = true;
-
-//        while(1)
-//        {
-//           QString line =  rsyncStdoutStream.readLine();
-//           if(line.isNull())
-//               break;
-
-//           if(once)
-//           {
-//               mLanguageList =   line.split(';');
-//               if(mLanguageList.size())
-//                   mLanguageList.removeAt(0);
-//               once = false;
-//           }else
-//           {
-//               QStringList tmp = line.split(';');
-//               QString key = tmp[0].toLower().trimmed();
-//               mItemMap[key]=tmp[1].trimmed() ;
-//               mOrderlist << key;
-
-//           }
-//          // qDebug() << line;
-//        }
-//        qApp->processEvents();
-//    }
-//}
-
-
 
 void MainWindow::addWidgetToToolBar(QWidget *w)
 {

@@ -39,10 +39,9 @@ SOURCES += main.cpp\
     pageview.cpp \
     mydialog.cpp \
     xls.c \
-    ole.c \
-    getopt.c \
-    endian.c \
     xlstool.c \
+    ole.c \
+    endian.c \
     busyindicator.cpp
 
 HEADERS  += mainwindow.h \

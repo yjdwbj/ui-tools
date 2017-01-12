@@ -52,10 +52,6 @@ CanvasManager::CanvasManager(MainWindow *w):
     mWindow->addWidgetToToolBar(newPage);
     mWindow->addWidgetToToolBar(delPage);
 
-
-
-
-    // mWindow->addWidgetToToolBar(confPrj);
     mWindow->addWidgetToToolBar(Q_NULLPTR);
     //  mWindow->addWidgetToToolBar(cb);
     mWindow->centralWidget()->setLayout(stack);
@@ -131,16 +127,16 @@ void CanvasManager::screenshot()
         QWidget *wd = stack->currentWidget();
         if(wd)
         {
-// 匿名函数测试对像的子对像.
-//            std::function<void(QWidget*)> test_func =  [&](QWidget* obj){
-//                foreach( QObject *t, obj->children())
-//                {
-//                    qDebug() << " class name " << t->metaObject()->className()
-//                             << " widget name  "  << ((QWidget*)t)->objectName();
-//                    test_func((QWidget*)t);
-//                }
-//            };
-//            test_func(stack->currentWidget());
+            // 匿名函数测试对像的子对像.
+            //            std::function<void(QWidget*)> test_func =  [&](QWidget* obj){
+            //                foreach( QObject *t, obj->children())
+            //                {
+            //                    qDebug() << " class name " << t->metaObject()->className()
+            //                             << " widget name  "  << ((QWidget*)t)->objectName();
+            //                    test_func((QWidget*)t);
+            //                }
+            //            };
+            //            test_func(stack->currentWidget());
 
             QPixmap pixmap(stack->currentWidget()->size());
             stack->currentWidget()->render(&pixmap,QPoint(),QRegion(stack->currentWidget()->rect()));
@@ -203,9 +199,6 @@ int CanvasManager::activeIndex()
 
 void CanvasManager::setActiveSS(int index)
 {
-
-    //    qDebug() << "centralWidget pos" << mWindow->centralWidget()->geometry()
-    //             << " this pos " << stack->geometry();
     if(index == -1) return;
     if(index < mCanvasList.size())
     {
@@ -220,7 +213,7 @@ void CanvasManager::setActiveSS(int index)
 
             mWindow->tree->addItemToRoot(w);
             if(!w->isHidden())
-            ((BaseForm*)w)->addChildrenToTree();
+                ((BaseForm*)w)->addChildrenToTree();
 
 
         }
@@ -381,7 +374,7 @@ void CanvasManager::onOpenProject()
     {
         OpenProject(pfile);
         autoSaveTimer->start(60000);
-//        screenshot();
+        //        screenshot();
     }
 }
 

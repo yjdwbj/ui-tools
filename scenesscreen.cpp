@@ -22,63 +22,56 @@ ScenesScreen::ScenesScreen(QSize size, QWidget *parent)
 void ScenesScreen::mousePressEvent(QMouseEvent *event)
 {
     if(event->button() == Qt::RightButton)
-        {
-            QMenu *contextMenu = new QMenu(this);
-            QAction delme(QIcon(":/icon/icons/removesubmitfield.png"),"删除当前页面",this);
-            connect(&delme,&QAction::triggered,[=](){
-                mWindow->cManager->onDelCurrentScenesScreen();
+    {
+        QMenu *contextMenu = new QMenu(this);
+        QAction delme(QIcon(":/icon/icons/removesubmitfield.png"),"删除当前页面",this);
+        connect(&delme,&QAction::triggered,[=](){
+            mWindow->cManager->onDelCurrentScenesScreen();
+        });
+        contextMenu->addAction(&delme);
+        QAction chgcolor(QIcon(":/icon/icons/gradient.png"),"修改背景色",this);
+        // contextMenu->addAction(&chgcolor);
+        connect(&chgcolor,SIGNAL(triggered(bool)),SLOT(onChangedBackgroundColor()));
+        QAction chgimg(QIcon(":/icon/icons/image-icon.png"),"修改背景图片",this);
+        //contextMenu->addAction(&chgimg);
+        connect(&chgimg,&QAction::triggered,[=](){
+            QDialog dig(mWindow);
+            dig.setFixedSize(mWindow->size() * 0.5);
+            dig.setWindowTitle(tr("修改背景"));
+
+            QVBoxLayout *v = new QVBoxLayout();
+            dig.setLayout( v);
+            QListWidget *imglist = new QListWidget();
+            imglist->setSelectionMode(QAbstractItemView::SingleSelection);
+            imglist->setViewMode(QListWidget::IconMode);
+            imglist->setIconSize(QSize(160,140));
+
+            connect(imglist,&QListWidget::itemDoubleClicked,
+                    [=](QListWidgetItem* item){
+                setStyleSheet(QString("background-image: url(%1);").arg(mWindow->bimgPath[item->text()]));
+                update();
             });
-            contextMenu->addAction(&delme);
-            QAction chgcolor(QIcon(":/icon/icons/gradient.png"),"修改背景色",this);
-           // contextMenu->addAction(&chgcolor);
-            connect(&chgcolor,SIGNAL(triggered(bool)),SLOT(onChangedBackgroundColor()));
-            QAction chgimg(QIcon(":/icon/icons/image-icon.png"),"修改背景图片",this);
-            //contextMenu->addAction(&chgimg);
-            connect(&chgimg,&QAction::triggered,[=](){
-                QDialog dig(mWindow);
-                dig.setFixedSize(mWindow->size() * 0.5);
-                dig.setWindowTitle(tr("修改背景"));
+            v->addWidget(imglist);
+            dig.setModal(true);
+            dig.exec();
+        });
 
-                QVBoxLayout *v = new QVBoxLayout();
-                dig.setLayout( v);
-                QListWidget *imglist = new QListWidget();
-                imglist->setSelectionMode(QAbstractItemView::SingleSelection);
-                imglist->setViewMode(QListWidget::IconMode);
-                imglist->setIconSize(QSize(160,140));
+        contextMenu->addSeparator();
+        QAction copy(QIcon(":/icon/icons/editcopy.png"),"复制",this);
+        connect(&copy,&QAction::triggered,[=](){
+            mWindow->mCopyItem = QJsonValue(writeToJson());
+        });
 
-                connect(imglist,&QListWidget::itemDoubleClicked,
-                        [=](QListWidgetItem* item){
-                    setStyleSheet(QString("background-image: url(%1);").arg(mWindow->bimgPath[item->text()]));
-                    update();
-                });
-                v->addWidget(imglist);
-//                QMapIterator<QString,QPixmap> it(mWindow->bakimageMap);
-//                while(it.hasNext())
-//                {
-//                    it.next();
-//                    imglist->addItem(new QListWidgetItem(QIcon(it.value()),it.key()));
-//                }
+        QAction paste(QIcon(":/icon/icons/editpaste.png"),"粘贴",this);
+        connect(&paste,&QAction::triggered,[=](){
+            mWindow->cManager->activeSS()->pasteItem(this);
+        });
+        contextMenu->addAction(&copy);
+        paste.setEnabled(!mWindow->mCopyItem.isNull());
+        contextMenu->addAction(&paste);
 
-                dig.setModal(true);
-                dig.exec();
-            });
-
-            contextMenu->addSeparator();
-            QAction copy(QIcon(":/icon/icons/editcopy.png"),"复制",this);
-            connect(&copy,&QAction::triggered,[=](){
-               mWindow->mCopyItem = QJsonValue(writeToJson());
-            });
-
-            QAction paste(QIcon(":/icon/icons/editpaste.png"),"粘贴",this);
-            connect(&paste,&QAction::triggered,[=](){
-               mWindow->cManager->activeSS()->pasteItem(this);
-            });
-            contextMenu->addAction(&copy);
-            paste.setEnabled(!mWindow->mCopyItem.isNull());
-            contextMenu->addAction(&paste);
-
-            contextMenu->exec(mapToGlobal(event->pos()));
-        }
+        contextMenu->exec(mapToGlobal(event->pos()));
+    }
 }
 
 
@@ -127,7 +120,7 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv,bool createflag)
     //mActiveLaySeq = childlist.size() - 1;
     nlayer->mOwerJson = qv.toObject();
     nlayer->initialEname();
- //   nlayer->initJsonValue();
+    //   nlayer->initJsonValue();
 
     nlayer->onSelectMe();
     nlayer->updateStyleSheets();
@@ -145,12 +138,12 @@ void ScenesScreen::readLayer(const QJsonArray &array)
         switch (val.type()) {
         case QJsonValue::Object:
         {
-             NewLayer *nlayer = createNewLayer(val,false);
-             foreach (QJsonValue layout, val.toObject()[LAYOUT].toArray()) {
-                 //nlayer->readFromJson(layout.toObject());
-                 // 这里一定读取工程和读取自定义控件才会有的,给他一个
-                 nlayer->readLayoutFromJson(layout,nlayer->mCreateFlag);
-             }
+            NewLayer *nlayer = createNewLayer(val,false);
+            foreach (QJsonValue layout, val.toObject()[LAYOUT].toArray()) {
+                //nlayer->readFromJson(layout.toObject());
+                // 这里一定读取工程和读取自定义控件才会有的,给他一个
+                nlayer->readLayoutFromJson(layout,nlayer->mCreateFlag);
+            }
         }
 
             break;
@@ -182,14 +175,14 @@ void ScenesScreen::delAllObjects()
 {
     foreach (QWidget *w, childlist) {
         // 这里递归删每一个新建的控件
-      //  QString cname = w->metaObject()->className();
+        //  QString cname = w->metaObject()->className();
         if(((BaseForm*)w)->mType == BaseForm::TYPELAYOUT)
         {
             ((NewLayout*)w)->DeleteMe();
         }
         else /*if(!CN_NEWFRAME.compare(cname))*/
         {
-             ((BaseForm*)w)->DeleteMe();
+            ((BaseForm*)w)->DeleteMe();
         }
     }
     this->deleteLater();
@@ -324,8 +317,8 @@ QJsonObject  ScenesScreen::writeToJson()
 
 
     QJsonObject json;
-   json[NAME] = metaObject()->className();
-   json[WTYPE] = "page";
+    json[NAME] = metaObject()->className();
+    json[WTYPE] = "page";
 
     QJsonArray projson;
     projson.append(Compoent::getRectJson(this));
@@ -334,6 +327,5 @@ QJsonObject  ScenesScreen::writeToJson()
     json[CLASS] = this->metaObject()->className();
     json[LAYER] = layoutarr;
     return json;
-    //qDebug() << "ScenesScreen array " << layoutarr;
 }
 
