@@ -16,7 +16,6 @@
 #include <QMenu>
 #include <QAction>
 
-//#include "propertybox.h"
 #include "formresizer.h"
 
 
@@ -30,22 +29,22 @@ class NewList;
 class Compoent
 {
 public:
-     Compoent(){}
-     void onBindValue(QWidget *w);
-     static QJsonObject getRectJson(QWidget* w);
-     QJsonObject getBorderJson(QWidget *w);
-     void copyProperty(const QVariant &va);
-     static QVariant getJsonValue(const QJsonArray &arr,QString key);
-     QVariant getJsonValue(QString key) const;
-     QVariant getJsonValue(const QJsonArray &arr, QString key,int index);
-     void changeJsonValue(int idex, const QVariant &val);
-     void changeJsonValue(QString key, const QVariant &val);
-     QJsonValue changeJsonValue( const QJsonArray &json,QString key,
-                                    const QVariant &val);
-     void changeJsonValue(QWidget *w, QString key, const QVariant &val);
-     QJsonValue changeJsonValue(const QJsonArray &json, int index, const QVariant &val);
+    Compoent(){}
+    void onBindValue(QWidget *w);
+    static QJsonObject getRectJson(QWidget* w);
+    QJsonObject getBorderJson(QWidget *w);
+    void copyProperty(const QVariant &va);
+    static QVariant getJsonValue(const QJsonArray &arr,QString key);
+    QVariant getJsonValue(QString key) const;
+    QVariant getJsonValue(const QJsonArray &arr, QString key,int index);
+    void changeJsonValue(int idex, const QVariant &val);
+    void changeJsonValue(QString key, const QVariant &val);
+    QJsonValue changeJsonValue( const QJsonArray &json,QString key,
+                                const QVariant &val);
+    void changeJsonValue(QWidget *w, QString key, const QVariant &val);
+    QJsonValue changeJsonValue(const QJsonArray &json, int index, const QVariant &val);
 
-     QJsonArray updateRBJsonValue(const QJsonArray &json,QWidget *w); // 更新UID,RECT,BORDER三个属性
+    QJsonArray updateRBJsonValue(const QJsonArray &json,QWidget *w); // 更新UID,RECT,BORDER三个属性
 
     void updateJsonArray(QString key,const QJsonArray &arr);
     static QJsonObject getValueFromProperty(const QJsonArray &arr,const QString &key);
@@ -54,12 +53,12 @@ public:
     QJsonArray getActionListJson();
 
 
-     QRect getRectFromJson(const QJsonObject &json) const;
+    QRect getRectFromJson(const QJsonObject &json) const;
 
-     QString getEnameFromJson(const QJsonArray &arr);
+    QString getEnameFromJson(const QJsonArray &arr);
 
-   // QJsonObject dynValues;
-     QJsonObject mOwerJson;
+    // QJsonObject dynValues;
+    QJsonObject mOwerJson;
 };
 
 
@@ -143,7 +142,7 @@ public:
     NewLayout *CreateNewLayout(const QJsonValue &qv,
                                QWidget *parent, bool isCreate, bool incontainer);
 
-//    QJsonValue mPropertyJson;
+    //    QJsonValue mPropertyJson;
 
 
     ObjType mType;
@@ -165,10 +164,10 @@ public slots:
     void onBorderChangedValue(int v);
     void onBackgroundImageDialog();
     void onActionDialog();
-  //  void onSelectedBackgroundImage(QListWidgetItem *item);
+
 
     virtual void onDeleteMe() =0;
-   // void onPictureDialog();
+
     void onListImageChanged(QString);
 
 protected:
@@ -197,7 +196,7 @@ public slots:
     void onDeleteMe();
 protected:
     void clearOtherObjectStyleSheet();
-    //void mouseMoveEvent(QMouseEvent *event);
+
 };
 
 
@@ -214,8 +213,8 @@ public:
 
     void addOneCol();
     void updateAllItemsSize();
-     QJsonObject writeToJson();
-     void readFromJson(const QJsonValue &value);
+    QJsonObject writeToJson();
+    void readFromJson(const QJsonValue &value);
 
 
 
@@ -249,10 +248,8 @@ private:
 protected:
     void mouseReleaseEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent *event);
-//    bool eventFilter(QObject *obj, QEvent *event);
 };
 
-//class NewList :public FormResizer,public Compoent
 class NewList :public BaseForm
 {
     Q_OBJECT
@@ -261,39 +258,35 @@ public:
     QJsonObject writeToJson();
     void readFromJson(const QJsonValue &valobj);
     void updateAllItemsSize();
-   // void addChildrenToTree();
+    // void addChildrenToTree();
     QScrollArea *mainScroll;
-   // ContainerScroll *mainScroll;
+    // ContainerScroll *mainScroll;
     QWidget *mainWidget;
-     QBoxLayout *listLayout;
-     Qt::Orientation  sliderOrientation;
+    QBoxLayout *listLayout;
+    Qt::Orientation  sliderOrientation;
 
 
-     // 菜单项.
-     QAction *menuAddLine;
-     QAction *menuSetHeight;
-     QAction *menuSetSpace;
+    // 菜单项.
+    QAction *menuAddLine;
+    QAction *menuSetHeight;
+    QAction *menuSetSpace;
 
 private:
-      //int tinySpinBoxDialog(QString str, int val, int min, int max);
-      NewLayout *AddOneLine(QJsonValue value);
+    NewLayout *AddOneLine(QJsonValue value);
 
-      int itemHeight; // 垂直是宽随父控件,水平是高随父控件.
+    int itemHeight; // 垂直是宽随父控件,水平是高随父控件.
 
 public slots:
 
-      void onAddManyLine();
-      void onSetFixedHeight();
-      void onDeleteMe();
-     // void onTextChanged(QString str);
+    void onAddManyLine();
+    void onSetFixedHeight();
+    void onDeleteMe();
+
 
 protected:
-    //void mouseMoveEvent(QMouseEvent *event);
-   // void mousePressEvent(QMouseEvent *event);
     void mouseReleaseEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent *);
     bool eventFilter(QObject *obj, QEvent *event);
-   // void updateBorderColor();
 };
 
 class NewLayout :public BaseForm
@@ -303,34 +296,31 @@ class NewLayout :public BaseForm
     Q_OBJECT
 public:
     explicit NewLayout(QJsonObject json, QRect rect, MainWindow *w, QWidget *parent=0);
-//    NewLayout (const QJsonObject &json,QWidget *parent=0);
     NewLayout (int width,int height,QWidget *parent=0);
 
-   // void onSelectMe();
     void DeleteMe();
     void addMainWindow(MainWindow *m) { mWindow = m;}
     void clearOtherSelectHandler();
 
     void deleteObject(int index);
     void deleteObject(QWidget *w);
-    //void delMySelf();
+
 
     void writeToJson(QJsonObject &json);
     QJsonObject writeToJson();
     void readFromJson(const QJsonValue &qv, bool flag);
-    //void addChildrenToTree();
+
 
     void createNewFrameObject(const QJsonObject &json);
     QWidget* createObjectFromJson(const QJsonValue &qv);
 
     QWidget *container; // 特意用来存放的
-  //  QString StyleStr;
+
 private:
     void clearOtherObjectStyleSheet();
     QList<int> rowcoldialog();
 
 public slots:
-   // void onXYWHChangedValue(int v);
     void onDeleteMe();
     void onBeComeTemplateWidget();
 };
@@ -345,7 +335,6 @@ public:
     void readLayoutFromJson(const QJsonValue &qv, bool flag);
 
     QJsonObject  writeToJson() ;
-   // void addChildrenToTree();
 
 public slots:
     void onDeleteMe();

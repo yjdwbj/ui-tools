@@ -20,10 +20,6 @@
 
 
 class MainWindow;
-
-//typedef QMap<QString,QVariant> selectedMap;
-
-
 class BaseDialog : public QDialog
 {
     Q_OBJECT
@@ -33,20 +29,16 @@ public:
 
 };
 
-//class ImageFileDialog: public QDialog
 class ImageFileDialog: public QDialog
 {
     Q_OBJECT
 public:
     explicit ImageFileDialog(const QVariantList &old, QString imgpath,  QWidget *parent = 0);
     ~ImageFileDialog();
-
-    //const selectedMap getSelectedMap() const { return selMap;}
     QVariantList getSelectedList() ;
     void updateListImages(QString path);
-
     void setOldList();
-   // void setSelectedList(QStringList b) const { selstrList = b;}
+
 
 private slots:
     void onTreeViewClicked(QModelIndex index);
@@ -56,9 +48,6 @@ private slots:
     void onAddSelectedItems();
     void onUp();
     void onDown();
- //   void onSelectCurrentItem(QModelIndex index);
-
-
 
 private:
     QWidget *createUpAndDownButton(int row);
@@ -69,8 +58,6 @@ private:
     QFileSystemModel *fileModel;
     QListWidget *flistview;
     QListWidget *sellist;
-//    CustomListWidget *flistview;
-//    CustomListWidget *sellist;
     QTreeView *treefile;
     QPushButton *add;
     QPushButton *up;
@@ -84,11 +71,6 @@ private:
 
     QMap<QString,QModelIndex> hRows;
     QVariantMap extMap,selectedMap;
-    //selectedMap selMap;
-   // QStringList selstrList;
-protected:
-    void dragEnterEvent();
-
 };
 
 
@@ -96,7 +78,7 @@ protected:
 
 
 namespace Ui {
-    class ProjectDialog;
+class ProjectDialog;
 }
 
 class ProjectDialog : public QDialog
@@ -110,11 +92,7 @@ public:
 
 public slots:
     void onAccepted();
-    void onRejected();
-    void onFinished(int result);
-    QSize getDefaultSize();
 
-    void onSpinBoxVChanged(int);
 private:
 
     bool CheckLangFile(QString path);
@@ -122,9 +100,6 @@ private:
     Ui::ProjectDialog  *ui;
     MainWindow *mWindow;
     QString defaultXLS;
-
-protected:
-    void closeEvent(QCloseEvent *);
 
 private slots:
     void on_pushButton_clicked();
@@ -135,13 +110,13 @@ class ImageListView : public QDialog
     Q_OBJECT
 public:
     explicit ImageListView(QString path = QDir::currentPath(),QWidget *parent = 0);
-     QListWidget *imglist;
+    QListWidget *imglist;
 private:
 
     void updateListImages(QString path);
     QFileSystemModel *fileModel;
     QFileSystemModel *treeModel;
-//    QMap<QString,QString> imgMap;
+    //    QMap<QString,QString> imgMap;
     QVariantMap imgMap;
     QTreeView *treefile;
 
@@ -158,7 +133,7 @@ private slots:
 };
 
 namespace Ui {
-    class I18nLanguage;
+class I18nLanguage;
 }
 
 class I18nLanguage: public QDialog
@@ -204,7 +179,7 @@ private:
 };
 
 namespace Ui {
-    class ConfigProject;
+class ConfigProject;
 }
 
 
@@ -230,7 +205,7 @@ private slots:
 private:
 
     void updateListWidget();
-     bool CheckLangFile(QString path);
+    bool CheckLangFile(QString path);
 
 
     MainWindow *mWindow;
@@ -245,7 +220,7 @@ class FileEdit : public QWidget
 public:
     FileEdit(QString txt,QWidget *parent = 0);
     void setFilePath(const QString &filePath) { if (theLineEdit->text() != filePath)
-                                                theLineEdit->setText(filePath); }
+            theLineEdit->setText(filePath); }
     QString filePath() const { return theLineEdit->text(); }
     void setFilter(const QString &filter) { theFilter = filter; }
     QString filter() const { return theFilter; }
@@ -258,7 +233,7 @@ private:
     QLabel *theLineEdit;
     QString theFilter;
 
-   // QTreeView *fileTree;
+    // QTreeView *fileTree;
     bool isDir;
     //QFileSystemModel *dirModel;
 };
@@ -267,7 +242,7 @@ private:
 
 
 namespace Ui {
-    class GlobalSettings;
+class GlobalSettings;
 }
 
 class GlobalSettings: public QDialog
@@ -307,8 +282,8 @@ public slots:
     void onCustomContextMenu(const QPoint &pos);
 
 private:
-//    QWidgetList mActList;
-//    static const char mWidType[]  = "ViewWidgetType";
+    //    QWidgetList mActList;
+    //    static const char mWidType[]  = "ViewWidgetType";
 
     QStringList mActList;
     QMap<int,QStringList> mEnumMap;

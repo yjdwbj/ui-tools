@@ -26,12 +26,12 @@ public:
     MainWindow* mWindow;
 
 public slots:
-  //  void onClickedItem(QModelIndex);
+    //  void onClickedItem(QModelIndex);
     void onClickedItem(QListWidgetItem * );
     void onItemChanged(QListWidgetItem*);
 
 private:
-     QListWidget *mImgList;
+    QListWidget *mImgList;
 };
 
 #endif // PAGEVIEW_H

@@ -27,8 +27,6 @@ public:
     explicit TreeDock(QWidget *parent=Q_NULLPTR);
     void addItemToRoot(QString node,QString property);
     void addItemToRoot(QWidget *obj);
-//    void addCompoentControls(CompoentControls *cc);
-//    void addPropBox(PropertyBox *p);
 
     void addObjectToCurrentItem(QString root, QWidget *obj);
     void addChildObject(QString root,QString node,QString property);
@@ -36,10 +34,6 @@ public:
     void deleteAllitem();
     void deleteItem(QWidget *obj);
     void swapIconForItem(QString txt);
-
-
-
-//    QTreeWidgetItem *getRoot()const { return root;}
 
     void setSelectTreeItem(QWidget *);
 
@@ -57,9 +51,6 @@ public slots:
 
 private:
     MainWindow *mWindow;
-
-  //  CompoentControls *comC;
-   // PropertyBox *pb;
     QMenu *contextMenu ;
 
 };

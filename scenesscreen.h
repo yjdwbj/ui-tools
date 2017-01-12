@@ -30,10 +30,7 @@ public:
     void removeActiveObj() { activeObj = 0;}
     NewLayer *createNewLayer(const QJsonValue &json, bool createflag);
     void addMainWindow(MainWindow* m) { mWindow = m;}
-   // void setActiveIdx(int index) { mActiveIdx = index;}
     void setSelectObject(FormResizer *obj);
-    //void delSelectedLayout();
-   // void delSelectedLayer();
     void readLayer(const QJsonArray &array);
 
     void pasteItem(QWidget *w);
@@ -43,26 +40,20 @@ public:
 
     void delAllObjects();
 
-    //QWidgetList LayoutList;
     QList<QWidget*> childlist;
     MainWindow* mWindow;
-
-    //QString mCopyItem;
-
-
 
 signals:
 
 public slots:
     void onChangedBackgroundColor();
 private:
-   void keyReleaseEvent(QKeyEvent *);
-   int mActiveIdx; //  当前激活的布局.
-  // int mActiveLaySeq;
+    void keyReleaseEvent(QKeyEvent *);
+    int mActiveIdx; //  当前激活的布局.
 
-   QWidget *activeObj;
+    QWidget *activeObj;
 protected:
-   void mousePressEvent(QMouseEvent *);
+    void mousePressEvent(QMouseEvent *);
 
 };
 

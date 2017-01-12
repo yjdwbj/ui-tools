@@ -30,10 +30,8 @@ void ScenesScreen::mousePressEvent(QMouseEvent *event)
         });
         contextMenu->addAction(&delme);
         QAction chgcolor(QIcon(":/icon/icons/gradient.png"),"修改背景色",this);
-        // contextMenu->addAction(&chgcolor);
         connect(&chgcolor,SIGNAL(triggered(bool)),SLOT(onChangedBackgroundColor()));
         QAction chgimg(QIcon(":/icon/icons/image-icon.png"),"修改背景图片",this);
-        //contextMenu->addAction(&chgimg);
         connect(&chgimg,&QAction::triggered,[=](){
             QDialog dig(mWindow);
             dig.setFixedSize(mWindow->size() * 0.5);
@@ -117,11 +115,8 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv,bool createflag)
     nlayer->setProperty(DKEY_JSONSTR,qv);
     nlayer->setProperty(DKEY_TYPE, json[WTYPE].toString());
     childlist.append(nlayer);
-    //mActiveLaySeq = childlist.size() - 1;
     nlayer->mOwerJson = qv.toObject();
     nlayer->initialEname();
-    //   nlayer->initJsonValue();
-
     nlayer->onSelectMe();
     nlayer->updateStyleSheets();
     mWindow->tree->addItemToRoot(nlayer);
@@ -140,7 +135,6 @@ void ScenesScreen::readLayer(const QJsonArray &array)
         {
             NewLayer *nlayer = createNewLayer(val,false);
             foreach (QJsonValue layout, val.toObject()[LAYOUT].toArray()) {
-                //nlayer->readFromJson(layout.toObject());
                 // 这里一定读取工程和读取自定义控件才会有的,给他一个
                 nlayer->readLayoutFromJson(layout,nlayer->mCreateFlag);
             }
@@ -175,12 +169,11 @@ void ScenesScreen::delAllObjects()
 {
     foreach (QWidget *w, childlist) {
         // 这里递归删每一个新建的控件
-        //  QString cname = w->metaObject()->className();
         if(((BaseForm*)w)->mType == BaseForm::TYPELAYOUT)
         {
             ((NewLayout*)w)->DeleteMe();
         }
-        else /*if(!CN_NEWFRAME.compare(cname))*/
+        else
         {
             ((BaseForm*)w)->DeleteMe();
         }
@@ -191,20 +184,14 @@ void ScenesScreen::delAllObjects()
 
 void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
 {
-
-
-    //  qDebug() << " keyevent " << s;
     // 处理一些鼠标事件.
     if(activeObj)
     {
         BaseForm *bf = (BaseForm*)activeObj;
         QPoint mpos = bf->pos();
         switch (s->key()) {
-
         case Qt::Key_Delete:
-
             bf->onDeleteMe();
-            //bf->DeleteMe();
             break;
         case Qt::Key_Up:
             bf->move(mpos.x(),mpos.y()-1);
@@ -229,7 +216,6 @@ void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
         if(s->matches(QKeySequence::Copy))
         {
             mWindow->mCopyItem =  QJsonValue(bf->writeToJson());
-            //    qDebug() << "copy active object" << mWindow->mCopyItem;
         }else if(s->matches(QKeySequence::Paste))
         {
             pasteItem(bf);
@@ -296,26 +282,18 @@ void ScenesScreen::pasteItem(QWidget *w)
         }else if(this->inherits(cls.toLocal8Bit().data()))
         {
             QJsonObject ssobj = mWindow->mCopyItem.toObject();
-
             readLayer(ssobj[LAYER].toArray());
-
         }
-
     }
-
 }
 
 QJsonObject  ScenesScreen::writeToJson()
 {
     QJsonArray layoutarr;
 
-
-
     foreach (QWidget *w, childlist) {
         layoutarr.append(((NewLayer*)w)->writeToJson());
     }
-
-
     QJsonObject json;
     json[NAME] = metaObject()->className();
     json[WTYPE] = "page";

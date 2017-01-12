@@ -32,11 +32,10 @@
 #include "busyindicator.h"
 
 #include <QRunnable>
-//#include "propertybox.h"
+
 
 
 class TreeDock;
-//class PropertyBox;
 class ScenesScreen;
 class CanvasManager;
 class PageView;
@@ -75,17 +74,14 @@ public:
     void HandleObject(QJsonObject qjo);
     void HandleArrayObject(QJsonArray array);
     void setWidget(QObject &oob);
-  //  bool eventFilter(QObject *obj, QEvent *event);
     void addWidgetToToolBar(QWidget *);
 
     void readMultiLanguage(QString file);
 
     QString mGlobalIniFile;
     QStringList bakimageList; // 背景图片列表.
-   // QMap<QString,QPixmap> bakimageMap; // 背景图片
     QMap<QString,QString> bimgPath; // 背景图片的全路径
     ComProperty *propertyWidget;
-    //QGroupBox *imgPropertyWidget;
     ComProperty *imgPropertyWidget;
     Position *posWidget;
     QFrame *mCanvas;
@@ -114,8 +110,8 @@ public:
 
 
 private slots:
-      void onChangeBackgroud();
-      void onDobuleClickedImage(QListWidgetItem *);
+    void onChangeBackgroud();
+    void onDobuleClickedImage(QListWidgetItem *);
 
 protected:
     void keyReleaseEvent(QMouseEvent *);
@@ -132,12 +128,9 @@ private:
     QString PrjJsonPath;
 
     void HandleFrameObject(QJsonObject qjo, QString ParentName);
-   // void readExcelFile(QString xlsfile);
     void readExcelFile(char *xlsfile);
     void createCSVFile(QString xlsfile);
     void readCSVFile(QString csvfile);
-
- //   void closeEvent(QCloseEvent *);
     QWidget *pWin;
 
 
@@ -150,13 +143,11 @@ class LoadImgTask : public QRunnable
 public:
 
     LoadImgTask(QWidget *parent);
-
-
-   void run();
-   void setDone();
+    void run();
+    void setDone();
 private:
-   bool isStop;
-   BusyIndicator *rotate;
+    bool isStop;
+    BusyIndicator *rotate;
 };
 
 #endif // MAINWINDOW_H

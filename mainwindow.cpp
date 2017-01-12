@@ -10,16 +10,10 @@
 #include <QRegion>
 #include <QMessageBox>
 #include <QStandardPaths>
-
 #include <QtConcurrent/QtConcurrent>
-
 #include "mydialog.h"
-
-
 #include "libxls/xls.h"
-
 #include <QSysInfo>
-
 #include <QProcess>
 #include <stdio.h>
 #include <unistd.h>
@@ -27,13 +21,13 @@
 using namespace xls;
 void Backgroud::paintEvent(QPaintEvent *)
 {
-      // 这里必需要得新定义一个类,重写它的paintEvent才能画出它的背景.
-      QPainter p(this);
-      p.drawPixmap(this->rect(),QPixmap(backImage));
+    // 这里必需要得新定义一个类,重写它的paintEvent才能画出它的背景.
+    QPainter p(this);
+    p.drawPixmap(this->rect(),QPixmap(backImage));
 }
 LoadImgTask::LoadImgTask(QWidget *parent)
 {
-   rotate = new BusyIndicator(parent);
+    rotate = new BusyIndicator(parent);
 }
 
 void LoadImgTask::setDone()
@@ -43,8 +37,8 @@ void LoadImgTask::setDone()
 
 void LoadImgTask::run()
 {
-   rotate->exec();
-   rotate->deleteLater();
+    rotate->exec();
+    rotate->deleteLater();
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -56,38 +50,30 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->setupUi(this);
     mRootPathLen = QDir::currentPath().length()+1;
-    //ui->mainToolBar->setAllowedAreas(Qt::TopToolBarArea);
     ui->mainToolBar->setContextMenuPolicy(Qt::PreventContextMenu);
     mGlobalIniFile = mGlobalIniFile.toUtf8();
-   // QString iniFile  =  QStandardPaths::displayName(QStandardPaths::DataLocation) + "/ui-config";
     mGlobalSet= new QSettings(mGlobalIniFile,QSettings::IniFormat);
 
     QApplication::setStyle(QStyleFactory::create("Fusion"));
 
     bk = new Backgroud();
     QString stylestr = "QPushButton::hover{"\
-                        "background: #F48024}"\
-                        "QDialog {background-color: #FFFFBF};";
-                       //"background: #5EBA7D}";
+                       "background: #F48024}"\
+                       "QDialog {background-color: #FFFFBF};";
+    //"background: #5EBA7D}";
 
 
     setStyleSheet(stylestr);
     setCentralWidget(bk);
-   // lDock = ui->dockWidget;
 
     cManager = new CanvasManager(this);
-    // posWidget = new Position(this);
-      posWidget = 0;
-
-    //imgPropertyWidget = new ComProperty("图片属性",this);
-
+    posWidget = 0;
 
     setWindowTitle(VERSION);
 
 
     // 左边属性框
     lDock = new QDockWidget(this);
-   // lDock->setStyleSheet("QWidget{border: 0.5px solid red;}");
     lDock->setEnabled(false);
     lDock->setAllowedAreas( Qt::LeftDockWidgetArea);
     lDock->setFeatures(QDockWidget::NoDockWidgetFeatures);
@@ -105,19 +91,13 @@ MainWindow::MainWindow(QWidget *parent) :
     leftLayout->setSpacing(2);
     leftLayout->setMargin(0);
     leftLayout->setContentsMargins(0,0,0,0);
-
     leftLayout->setObjectName("leftLayout");
-   // leftLayout->setSizeConstraint(QLayout::SetFixedSize);
-
     lDockWidget->setLayout(leftLayout);
 
     ComCtrl = new  CompoentControls(this);
     leftLayout->addWidget(ComCtrl);
 
-   // leftLayout->addWidget(posWidget);
-
-
-     propertyWidget = new ComProperty(this) ;
+    propertyWidget = new ComProperty(this) ;
     leftLayout->addWidget(propertyWidget);
     tree = new TreeDock(this);
     // 左边两个并排的QDockWidget
@@ -129,7 +109,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //　右边的截图页面.
     pageView = new PageView(this);
-   // pageView->setFloating(true);
+    // pageView->setFloating(true);
     pageView->addMainWindow(this);
     pageView->setAllowedAreas( Qt::RightDockWidgetArea);
     pageView->setFeatures(QDockWidget::NoDockWidgetFeatures);
@@ -147,44 +127,44 @@ MainWindow::MainWindow(QWidget *parent) :
         mGlobalSet= new QSettings(mGlobalIniFile,QSettings::IniFormat);
     }
 
-     ComCtrl->ReadJsonWidgets();
-     cManager->mProjectImageDir = mGlobalSet->value(INI_PRJIMAGEDIR).toString();
-     if(!cManager->mProjectImageDir.compare("."))
-     {
-         cManager->mProjectImageDir = QDir::currentPath();
-     }else
-     {
-         cManager->mProjectImageDir.prepend(BACKSLASH);
-         cManager->mProjectImageDir.prepend(QDir::currentPath());
-     }
+    ComCtrl->ReadJsonWidgets();
+    cManager->mProjectImageDir = mGlobalSet->value(INI_PRJIMAGEDIR).toString();
+    if(!cManager->mProjectImageDir.compare("."))
+    {
+        cManager->mProjectImageDir = QDir::currentPath();
+    }else
+    {
+        cManager->mProjectImageDir.prepend(BACKSLASH);
+        cManager->mProjectImageDir.prepend(QDir::currentPath());
+    }
 
     // 缓存一些背景图片.
-     QString dir = QDir::currentPath().replace(SLASH,BACKSLASH) +BACKSLASH +"backgrounds";
-     if(!QFileInfo::exists(dir))
-     {
-         QDir d(dir);
-         d.mkdir(dir);
-     }
-     QDirIterator it(dir, QStringList() << "*.jpg", QDir::Files/*, QDirIterator::Subdirectories*/);
-     while (it.hasNext())
-     {
-         QString fpath = it.next().toUtf8();
-         int idx = fpath.lastIndexOf(BACKSLASH)+1;
-         mImgMap[fpath] = QPixmap(fpath);
-         bakimageList << fpath;
-         bimgPath[fpath.mid(idx)] = fpath;
-     }
+    QString dir = QDir::currentPath().replace(SLASH,BACKSLASH) +BACKSLASH +"backgrounds";
+    if(!QFileInfo::exists(dir))
+    {
+        QDir d(dir);
+        d.mkdir(dir);
+    }
+    QDirIterator it(dir, QStringList() << "*.jpg", QDir::Files/*, QDirIterator::Subdirectories*/);
+    while (it.hasNext())
+    {
+        QString fpath = it.next().toUtf8();
+        int idx = fpath.lastIndexOf(BACKSLASH)+1;
+        mImgMap[fpath] = QPixmap(fpath);
+        bakimageList << fpath;
+        bimgPath[fpath.mid(idx)] = fpath;
+    }
 
     QVariant bkvar = mGlobalSet->value(INI_PRJBAKIMG);
     if(bkvar.isValid())
     {
-       // bk->backImage = bakimageMap[bkvar.toString()];
+        // bk->backImage = bakimageMap[bkvar.toString()];
         bk->backImage = mImgMap[bkvar.toString()];
     }
     else
     {
-               bk->backImage = bakimageList.count() > 0 ? mImgMap[bakimageList.first()] :
-                       QPixmap() ;
+        bk->backImage = bakimageList.count() > 0 ? mImgMap[bakimageList.first()] :
+                QPixmap() ;
     }
 
     this->centralWidget()->update();
@@ -210,22 +190,19 @@ void MainWindow::readMultiLanguage(QString file)
     QFileInfo finfo(file);
     if(finfo.exists())
     {
-       QString ext = finfo.completeSuffix();
-       if(!ext.compare("xls"))
-       {
-           readExcelFile(file.toLocal8Bit().data());
-       }else if(!ext.compare("csv"))
-       {
-           readCSVFile(file);
-       }
+        QString ext = finfo.completeSuffix();
+        if(!ext.compare("xls"))
+        {
+            readExcelFile(file.toLocal8Bit().data());
+        }else if(!ext.compare("csv"))
+        {
+            readCSVFile(file);
+        }
     }
 }
 
 void MainWindow::readExcelFile(char *xlsfile)
 {
-
-   // static char  stringSeparator = 0;
-  //  static char *lineSeparator = "\n";
     static char *fieldSeparator = ";";
     static char *encoding = "UTF-8";
 
@@ -234,7 +211,7 @@ void MainWindow::readExcelFile(char *xlsfile)
     xlsWorkBook* pWB;
     xlsWorkSheet* pWS;
     unsigned int i;
- //   int justList = 0;
+    //   int justList = 0;
     char *sheetName = "";
     int isFirstLine =0;
 
@@ -251,7 +228,7 @@ void MainWindow::readExcelFile(char *xlsfile)
         return ;
     }
 
-   // int n = QString(xlsfile).lastIndexOf(QDir::separator());
+    // int n = QString(xlsfile).lastIndexOf(QDir::separator());
     QFile cvsfile(/*QString(xlsfile).mid(n) + QDir::separator() +*/ "qtread.csv");
     cvsfile.open(QIODevice::WriteOnly|QIODevice::Text);
 
@@ -298,7 +275,7 @@ void MainWindow::readExcelFile(char *xlsfile)
             }
 
             if (!isFirstCol) {
-              //  printf("%s", fieldSeparator);
+                //  printf("%s", fieldSeparator);
                 cvsfile.write(";");
             } else {
                 isFirstCol = 0;
@@ -347,8 +324,7 @@ void MainWindow::readExcelFile(char *xlsfile)
             } else if (cell->str != NULL) {
                 cellstr = tr((char *)(cell->str));
             } else {
-                //  OutputString("");
-                // cvsfile.write("");
+
             }
             QString s = tr((char *)(cell->str));
             for(int i=0;i<s.size();i++)
@@ -378,7 +354,7 @@ void MainWindow::readExcelFile(char *xlsfile)
             mItemMap[collist.first()] = collist.at(1);
             mOrderlist << collist.first();
         }
-         cvsfile.write("\n");
+        cvsfile.write("\n");
 
     }
     mOrderlist.removeFirst();
@@ -419,7 +395,7 @@ void MainWindow::readCSVFile(QString csvfile)
     }
     mLanguageList.clear();
     foreach (QByteArray v, balist) {
-       mLanguageList.append(QString::fromUtf8(v.data()).trimmed());
+        mLanguageList.append(QString::fromUtf8(v.data()).trimmed());
     }
 
     if(mLanguageList.size())
@@ -451,7 +427,7 @@ void MainWindow::addWidgetToToolBar(QWidget *w)
     {
         ui->mainToolBar->addSeparator();
     }else
-    ui->mainToolBar->addWidget(w);
+        ui->mainToolBar->addWidget(w);
 }
 
 
@@ -482,7 +458,7 @@ void MainWindow::onChangeBackgroud()
     dig.setLayout( v);
     QListWidget *imglist = new QListWidget();
     QString tooltip = "<b><p>背景图片目录名是 'backgrounds'　</p>"\
-              "<p>把背景图片放在该目录下就可以显示了,只支持JPG格式</p></b>";
+                      "<p>把背景图片放在该目录下就可以显示了,只支持JPG格式</p></b>";
     v->addWidget(new QLabel(tooltip));
     imglist->setSelectionMode(QAbstractItemView::SingleSelection);
     imglist->setViewMode(QListWidget::IconMode);
@@ -492,7 +468,7 @@ void MainWindow::onChangeBackgroud()
     connect(imglist,SIGNAL(itemClicked(QListWidgetItem*)),SLOT(onDobuleClickedImage(QListWidgetItem*)));
     v->addWidget(imglist);
     foreach (QString path, bakimageList) {
-       // int len = path.lastIndexOf(BACKSLASH)+1;
+        // int len = path.lastIndexOf(BACKSLASH)+1;
         imglist->addItem(new QListWidgetItem(QIcon(mImgMap[path]),
                                              bimgPath.key(path)));
     }
@@ -503,14 +479,11 @@ void MainWindow::onChangeBackgroud()
 
 void MainWindow::onDobuleClickedImage(QListWidgetItem *item)
 {
-    //bk->backImage = bakimageMap[item->text()];
-    // bk->backImage = item->icon();
     bk->backImage = mImgMap[bimgPath.value(item->text())];
     QString imgpath = bimgPath.value(item->text()).toUtf8().mid(mRootPathLen);
     if(imgpath.isEmpty()) imgpath=".";
     mGlobalSet->setValue(INI_PRJBAKIMG,imgpath);
     this->centralWidget()->update();
-    //update();
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)
@@ -520,13 +493,11 @@ void MainWindow::closeEvent(QCloseEvent *e)
         QMessageBox msgBox;
         msgBox.setWindowTitle("打开工程提示");
         msgBox.setText("当前编辑的工程有新的修改没有保存,选请择<保存>进行保存.");
-        // msgBox.setInformativeText("Do you want to save your changes?");
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
         msgBox.setButtonText(QMessageBox::Yes,"保存");
         msgBox.setButtonText(QMessageBox::Cancel,"取消");
         msgBox.setDefaultButton(QMessageBox::Cancel);
         int ret = msgBox.exec();
-        //qDebug() << " QMessageBox result " << ret;
         if(ret == QMessageBox::Yes)
         {
             //　需要保存

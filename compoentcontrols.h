@@ -101,12 +101,6 @@ public:
     explicit BaseProperty(QWidget *parent=0);
     void parseJsonToWidget(QWidget *p, const QJsonArray &array);
      QVBoxLayout* mainLayout;
-//     ~BaseProperty(){
-
-//         removeWidFromLayout(mainLayout);
-//     }
-
-
 };
 
 class CssProperty: public BaseProperty
@@ -130,16 +124,9 @@ public:
     void delPropertyBox();
     void updateImageComboBox(QString key, int index, const QStringList &list);
     QWidget* getPropertyObject(QString key) const { return widgetMap.value(key);}
-   // QVBoxLayout* mainLayout;
-
-    //Position *posWidget;// 只有第一个可以与控件互动.
-
 
 
 private:
-
-    // QGroupBox *CreateXYWHGBox(QWidget *p);
-    // QVBoxLayout* mainLayout;
      QWidget *mainWidget;
      QWidget *oldobject;
      QMap<QString,QWidget*> widgetMap;  // 预备着多个同类型的控件区分.
@@ -166,7 +153,6 @@ public:
      int mCWidgetCount; // 自定义控件的个数.
      QMap<QString,QWidget*> ProMap; // 新生成的控件.
      QMap<QString,QWidget*> mSeqEnameMap; // 对应到小机里的唯一名称.
-//     QStringList  mEnameSeq;
      int mSequence;
      QVariant mVariantLayout;
 
