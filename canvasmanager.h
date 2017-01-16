@@ -3,6 +3,8 @@
 #include "core_def.h"
 #include <QWidget>
 #include <QPushButton>
+#include <QtConcurrent>
+#include <QFuture>
 
 
 class ScenesScreen;
@@ -65,6 +67,7 @@ private slots:
 
 private:
     void screenshot();
+    QFuture<void> mRecordFuture;
 
     void saveProject(QString fname);
     ScenesScreen *currentSS;

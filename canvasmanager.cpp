@@ -13,6 +13,13 @@
 #include <QFileDialog>
 #include <QTextBrowser>
 #include <functional>
+#include <QThreadPool>
+
+extern "C"  {
+int ffmpeg(int argc, char **argv);
+}
+
+
 
 
 CanvasManager::CanvasManager(MainWindow *w):
@@ -40,6 +47,8 @@ CanvasManager::CanvasManager(MainWindow *w):
 
     QPushButton *openPrj = new QPushButton("打开工程");
     QPushButton *globalbtn = new QPushButton("全局设置");
+
+    QPushButton *recordbtn = new QPushButton(QIcon(":/icon/icons/player_play.png"),"录屏");
     QPushButton *aboutbtn = new QPushButton(QIcon(":/icon/icons/mode_help@2x.png"),"关于");
     cb->addItems(QStyleFactory::keys());
 
@@ -51,6 +60,9 @@ CanvasManager::CanvasManager(MainWindow *w):
     mWindow->addWidgetToToolBar(Q_NULLPTR);
     mWindow->addWidgetToToolBar(newPage);
     mWindow->addWidgetToToolBar(delPage);
+    mWindow->addWidgetToToolBar(Q_NULLPTR);
+
+    mWindow->addWidgetToToolBar(recordbtn);
 
     mWindow->addWidgetToToolBar(Q_NULLPTR);
     //  mWindow->addWidgetToToolBar(cb);
@@ -114,6 +126,101 @@ CanvasManager::CanvasManager(MainWindow *w):
     });
 
     //开始运行定时器，定时时间间隔为6000ms
+
+    char  outputvideo[] = "video.avi";
+    char palettepng[] = "palettepng";
+    connect(recordbtn,&QPushButton::clicked,[=]{
+
+
+        if(mRecordFuture.isRunning())
+        {
+            mRecordFuture.cancel();
+            mRecordFuture.waitForFinished();
+
+            recordbtn->setEnabled(false);
+            recordbtn->repaint();
+            QList<QString> tmp;
+            tmp << "ffmpeg" << "-y" << "-i" << outputvideo
+                << "-vf" << "fps=10,palettegen=stats_mode=diff" << palettepng;
+
+            int asize = tmp.size();
+            char **pngargv = new char*[asize];
+            for(int i = 0 ; i < asize;i++)
+            {
+                pngargv[i] = tmp.at(i).toLocal8Bit().data();
+            }
+
+            int argc = sizeof(pngargv)/sizeof(char *);
+            QFuture<void> genpalette =QtConcurrent::run(ffmpeg,argc,pngargv);
+            genpalette.waitForFinished();
+
+
+            QList<QString> t;
+            t     << "ffmpeg" << "-y" << "-i"
+                  << outputvideo << "-i" << palettepng << "-r" << "5"
+                  << "-lavfi" << "paletteuse=dither=floyd_steinberg"
+                  <<"output.gif";
+
+            int s = t.size();
+            char **gifargv = new char*[s];
+            for(int i =0 ; i < s;i++)
+            {
+                gifargv[i] = t[i].toLocal8Bit().data();
+            }
+
+
+
+            QFuture<void> gifpalette = QtConcurrent::run(ffmpeg,s,gifargv);
+
+            gifpalette.waitForFinished();
+            recordbtn->setEnabled(true);
+            recordbtn->setText("录屏");
+            recordbtn->setIcon(QIcon(":/icon/icons/player_play.png"));
+            recordbtn->repaint();
+        }else{
+
+            recordbtn->setText("停止");
+            recordbtn->setIcon(QIcon(":/icon/icons/player_stop.png"));
+            recordbtn->repaint();
+            int x = mWindow->rect().size().width();
+            int y = mWindow->rect().size().height();
+            QString wsize;
+            wsize.sprintf("%dx%d",x,y);
+
+
+#ifdef __WIN32
+            QList<char *> tmp;
+            tmp << "ffmpeg" << "-y" << "-f" << "gdigrab"
+                << "-video_size" << wsize.toLocal8Bit().data() << "-framerate"
+                << "25" << "-i" << "desktop" << "-vcodec" << "huffyuv" << outputvideo;
+#else
+
+            QList<char *> tmp;
+            tmp << "ffmpeg" << "-v" << "error" << "-y" << "-f" << "x11grab" << "-t" << "10"
+                << "-video_size" << wsize.toLocal8Bit().data() << "-framerate"
+                << "25" << "-i" << QString(":0.0").toLocal8Bit().data() << "-vcodec"  << "huffyuv"
+               << "-pix_fmt" << "yuv422p"  << QString(outputvideo).toLocal8Bit().data();
+
+
+#endif
+            int asize = tmp.size();
+            char **argv = new char*[asize];
+            for(int i = 0;i < asize;i++)
+            {
+                argv[i] = tmp[i];
+            }
+
+
+
+
+            mRecordFuture =  QtConcurrent::run(ffmpeg,asize,argv);
+
+
+        }
+
+
+
+    });
 
 
 }
@@ -182,6 +289,7 @@ ScenesScreen * CanvasManager::createNewCanvas()
     // stack->setGeometry(stackRect);
     // 清理treeWidget 的行
     mWindow->tree->deleteAllitem();
+    screenshot();
     return Scenes;
 }
 
