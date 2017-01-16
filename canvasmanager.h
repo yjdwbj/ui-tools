@@ -5,6 +5,7 @@
 #include <QPushButton>
 #include <QtConcurrent>
 #include <QFuture>
+#include <QThread>
 
 
 class ScenesScreen;
@@ -62,12 +63,14 @@ private slots:
     void onDelCurrentScenesScreen();
 
     void onConfProject();
+    void onRecordClick(bool);
 
 
 
 private:
     void screenshot();
     QFuture<void> mRecordFuture;
+    QThread mRecordThread;
 
     void saveProject(QString fname);
     ScenesScreen *currentSS;
