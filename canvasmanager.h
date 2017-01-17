@@ -13,6 +13,17 @@ class MainWindow;
 class QStackedLayout;
 class ProjectDialog;
 
+class FFMPEG_Thread : public QThread
+{
+    Q_OBJECT
+public:
+    FFMPEG_Thread(MainWindow *w);
+    MainWindow *mWindow;
+    void run();
+};
+
+
+
 class CanvasManager : public QObject
 {
     Q_OBJECT

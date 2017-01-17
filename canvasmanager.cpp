@@ -9,17 +9,67 @@
 #include <QString>
 #include <QStyleFactory>
 #include <QComboBox>
-#include <QTimer>
+#include <QTimer>```
 #include <QFileDialog>
 #include <QTextBrowser>
 #include <functional>
 #include <QThreadPool>
+
+static QByteArray outputvideo = "video.avi";
+static QByteArray palettepng = "palette.png";
 
 extern "C"  {
 int ffmpeg(int argc,char **argv);
 }
 
 
+FFMPEG_Thread::FFMPEG_Thread(MainWindow *w)
+    :mWindow(w)
+{
+
+}
+
+
+
+void FFMPEG_Thread::run(){
+
+
+
+    int x = mWindow->rect().size().width();
+    int y = mWindow->rect().size().height();
+    QString wsize;
+    wsize.sprintf("%dx%d",x,y);
+    QString pos;
+    pos.sprintf(":0.0+%d,%d",mWindow->rect().x(),mWindow->rect().y());
+
+
+#ifdef __WIN32
+    QList<QByteArray> tmp;
+    tmp << "ffmpeg" << "-y" << "-f" << "gdigrab"
+        << "-video_size" << wsize.toLatin1().data() << "-framerate"
+        << "25" << "-i" << "desktop" << "-vcodec" << "huffyuv" << outputvideo;
+#else
+
+    QList<QByteArray> tmp;
+    tmp << "ffmpeg"
+//        << "-v" << "error"
+        << "-y" << "-f" << "x11grab"
+           //                << "-t" << "10"
+        << "-video_size" << wsize.toLocal8Bit() << "-framerate"
+        << "25" << "-i" << pos.toLocal8Bit()
+        << "-pix_fmt" << "yuv422p"
+        << "-vcodec"  << "huffyuv" << outputvideo;
+
+#endif
+    int asize = tmp.size();
+    char *argv[tmp.size()] = {0};
+    for(int i = 0;i < asize;i++)
+    {
+
+        argv[i]= tmp[i].data();
+    }
+    ffmpeg(asize,argv);
+}
 
 
 CanvasManager::CanvasManager(MainWindow *w):
@@ -131,120 +181,65 @@ CanvasManager::CanvasManager(MainWindow *w):
 
 }
 
+
+
 void CanvasManager::onRecordClick(bool b)
 {
     QPushButton *recordbtn =  (QPushButton *)(QObject::sender());
-    QByteArray outputvideo = "video.avi";
-    char *palettepng = "palettepng";
-    qDebug() << "thread name " << mRecordThread.objectName() << b;
-    static QThread thread;
 
-        if(thread.isRunning())
-        {
-//            mRecordFuture.cancel();
-            thread.terminate();
-            thread.wait();
-//            mRecordFuture.waitForFinished();
-
-            recordbtn->setEnabled(false);
-            recordbtn->repaint();
-            QList<QString> tmp;
-            tmp << "ffmpeg" << "-y" << "-i" << outputvideo
-                << "-vf" << "fps=10,palettegen=stats_mode=diff" << palettepng;
-
-            int asize = tmp.size();
-            char **pngargv = new char*[asize];
-            for(int i = 0 ; i < asize;i++)
-            {
-                pngargv[i] = tmp.at(i).toLocal8Bit().data();
-            }
-
-            int argc = sizeof(pngargv)/sizeof(char *);
-            QFuture<void> genpalette =QtConcurrent::run(ffmpeg,argc,pngargv);
-            genpalette.waitForFinished();
-
-
-            QList<QString> t;
-            t     << "ffmpeg" << "'-y'" << "'-i'"
-                  << outputvideo << "-i" << palettepng << "-r" << "5"
-                  << "-lavfi" << "paletteuse=dither=floyd_steinberg"
-                  <<"output.gif";
-
-            int s = t.size();
-            char **gifargv = new char*[s];
-            for(int i =0 ; i < s;i++)
-            {
-                gifargv[i] = t[i].toLocal8Bit().data();
-            }
+    static FFMPEG_Thread thread(mWindow);
+    if(thread.isRunning())
+    {
+        thread.terminate();
+        thread.quit();
+        thread.deleteLater();
+        recordbtn->setEnabled(false);
+        recordbtn->repaint();
 
 
 
-            QFuture<void> gifpalette = QtConcurrent::run(ffmpeg,s,gifargv);
 
-            gifpalette.waitForFinished();
-            recordbtn->setEnabled(true);
-            recordbtn->setText("录屏");
-            recordbtn->setIcon(QIcon(":/icon/icons/player_play.png"));
-            recordbtn->repaint();
-        }else{
+        QThread png;
+        connect(&png,&QThread::started,[=]{
+            char *pngargv[] = {"y",
+    //                           "-v","info",
+                               "-y","-i", "video.avi",
+                               "-lavfi","fps=10,palettegen=stats_mode=diff",
+                               "palette.png"};
+            ffmpeg(sizeof(pngargv)/sizeof(char*),pngargv);
+        });
+        png.start();
+        png.wait();
 
-            recordbtn->setText("停止");
-            recordbtn->setIcon(QIcon(":/icon/icons/player_stop.png"));
-            recordbtn->repaint();
-            int x = mWindow->rect().size().width();
-            int y = mWindow->rect().size().height();
-            QString wsize;
-            wsize.sprintf("%dx%d",x,y);
-            QString pos;
-            pos.sprintf(":0.0+%d,%d",mWindow->rect().x(),mWindow->rect().y());
-            qDebug() << wsize << pos;
-
-
-#ifdef __WIN32
-            QList<char *> tmp;
-            tmp << "ffmpeg" << "-y" << "-f" << "gdigrab"
-                << "-video_size" << wsize.toLatin1().data() << "-framerate"
-                << "25" << "-i" << "desktop" << "-vcodec" << "huffyuv" << outputvideo;
-#else
-
-            QList<QByteArray> tmp;
-            tmp << "ffmpeg"
-                << "-v" << "error"
-                << "-y" << "-f" << "x11grab"
-//                << "-t" << "10"
-                << "-video_size" << wsize.toLocal8Bit() << "-framerate"
-                << "25" << "-i" << pos.toLocal8Bit()
-                << "-pix_fmt" << "yuv422p"
-                << "-vcodec"  << "huffyuv" << outputvideo;
-
-
-#endif
-            int asize = tmp.size();
-            char **argv = new char*[asize+1];
-            for(int i = 0;i < asize;i++)
-            {
-                argv[i] = new char[tmp.at(i).size()];
-                strcpy(argv[i], tmp.at(i).data());
-            }
-            argv[asize] = NULL;
+        char *gifargv[] = {"./ffmpeg", "-y","-i",
+                           "video.avi", "-i","palette.png",
+                            "-r","5","-lavfi",
+                            "paletteuse=dither=floyd_steinberg",
+                            "test_c_output.gif"};
 
 
 
-//            mRecordFuture =  QtConcurrent::run(ffmpeg,asize,argv);
+        ffmpeg(sizeof(gifargv)/sizeof(char*),gifargv);
+//        delete []gifargv;
 
-            moveToThread(&thread);
-            thread.setObjectName("ffmpeg");
-            connect(&thread, &QThread::started, [=](){
-                ffmpeg(asize,argv);
-            }); //cant have parameter sorry, when using connect
-            thread.start();
+        recordbtn->setEnabled(true);
+        recordbtn->setText("录屏");
+        recordbtn->setIcon(QIcon(":/icon/icons/player_play.png"));
+        recordbtn->repaint();
+    }else{
 
-            connect(&thread,&QThread::finished,[=](){
-                thread.quit();
-            });
+        recordbtn->setText("停止");
+        recordbtn->setIcon(QIcon(":/icon/icons/player_stop.png"));
+        recordbtn->repaint();
+        int x = mWindow->rect().size().width();
+        int y = mWindow->rect().size().height();
+        QString wsize;
+        wsize.sprintf("%dx%d",x,y);
+        QString pos;
+        pos.sprintf(":0.0+%d,%d",mWindow->rect().x(),mWindow->rect().y());
 
-
-        }
+        thread.start();
+    }
 
 }
 
