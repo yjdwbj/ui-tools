@@ -313,7 +313,7 @@ void CanvasManager::onRecordClick(bool b)
 
             QList<QByteArray> tmp;
             tmp << "ffmpeg"
-                << "-v" << "debug"  << "-y"
+                << "-v" << "quiet"  << "-y"
                 // Video Size 要在-f 的前面.
                 << "-video_size" << wsize.toLocal8Bit()
                 << "-framerate" << "15"
