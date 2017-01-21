@@ -53,5 +53,7 @@
         <file>icons/act_uptop.png</file>
         <file>icons/player_stop.png</file>
         <file>icons/player_play.png</file>
+        <file>icons/Cut.png</file>
+        <file>icons/Screenshot.png</file>
     </qresource>
 </RCC>

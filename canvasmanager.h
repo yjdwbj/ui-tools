@@ -13,16 +13,6 @@ class MainWindow;
 class QStackedLayout;
 class ProjectDialog;
 
-class FFMPEG_Thread : public QThread
-{
-    Q_OBJECT
-public:
-    FFMPEG_Thread(MainWindow *w);
-    MainWindow *mWindow;
-    void run();
-};
-
-
 
 class CanvasManager : public QObject
 {
@@ -80,8 +70,7 @@ private slots:
 
 private:
     void screenshot();
-    QFuture<void> mRecordFuture;
-    QThread mRecordThread;
+    bool mFFmpegRuning;
 
     void saveProject(QString fname);
     ScenesScreen *currentSS;

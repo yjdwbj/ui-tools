@@ -14,62 +14,26 @@
 #include <QTextBrowser>
 #include <functional>
 #include <QThreadPool>
+#include <QTimer>
+#include <QMetaObject>
+#include <QKeyEvent>
+#include <signal.h>
+
+
+
+extern "C"  {
+int ffmpeg(int ,char **);
+int sigterm_handler(int sig);
+//需要把DEBUG打印到文件就用它来设置回调.
+void av_log_set_callback(void (*callback)(void*, int, const char*, va_list));
+}
 
 static QByteArray outputvideo = "video.avi";
 static QByteArray palettepng = "palette.png";
+static QString outputgif = "output.gif";
+static QString screenshootpng = "screenshoot.png";
+static QString gifFileName = outputgif;
 
-extern "C"  {
-int ffmpeg(int argc,char **argv);
-}
-
-
-FFMPEG_Thread::FFMPEG_Thread(MainWindow *w)
-    :mWindow(w)
-{
-
-}
-
-
-
-void FFMPEG_Thread::run(){
-
-
-
-    int x = mWindow->rect().size().width();
-    int y = mWindow->rect().size().height();
-    QString wsize;
-    wsize.sprintf("%dx%d",x,y);
-    QString pos;
-    pos.sprintf(":0.0+%d,%d",mWindow->rect().x(),mWindow->rect().y());
-
-
-#ifdef __WIN32
-    QList<QByteArray> tmp;
-    tmp << "ffmpeg" << "-y" << "-f" << "gdigrab"
-        << "-video_size" << wsize.toLatin1().data() << "-framerate"
-        << "25" << "-i" << "desktop" << "-vcodec" << "huffyuv" << outputvideo;
-#else
-
-    QList<QByteArray> tmp;
-    tmp << "ffmpeg"
-//        << "-v" << "error"
-        << "-y" << "-f" << "x11grab"
-           //                << "-t" << "10"
-        << "-video_size" << wsize.toLocal8Bit() << "-framerate"
-        << "25" << "-i" << pos.toLocal8Bit()
-        << "-pix_fmt" << "yuv422p"
-        << "-vcodec"  << "huffyuv" << outputvideo;
-
-#endif
-    int asize = tmp.size();
-    char *argv[tmp.size()] = {0};
-    for(int i = 0;i < asize;i++)
-    {
-
-        argv[i]= tmp[i].data();
-    }
-    ffmpeg(asize,argv);
-}
 
 
 CanvasManager::CanvasManager(MainWindow *w):
@@ -84,7 +48,8 @@ CanvasManager::CanvasManager(MainWindow *w):
     mProjectWidgetDir(QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH + "widgets"),
     mPrjIsChanged(false),
     mIsOpenProject(false),
-    autoSaveTimer(new QTimer(this))
+    autoSaveTimer(new QTimer(this)),
+    mFFmpegRuning(false)
 {
     // w->ui->centralWidget;
     newPage->setEnabled(false);
@@ -93,12 +58,16 @@ CanvasManager::CanvasManager(MainWindow *w):
     saveas->setEnabled(false);
     confPrj->setEnabled(false);
 
+
     QComboBox *cb = new QComboBox();
 
     QPushButton *openPrj = new QPushButton("打开工程");
     QPushButton *globalbtn = new QPushButton("全局设置");
 
     QPushButton *recordbtn = new QPushButton(QIcon(":/icon/icons/player_play.png"),"录屏");
+    recordbtn->setToolTip("录取当前程序大小的窗口区域,最终保存成GIF图片");
+    QPushButton *sshoot = new QPushButton(QIcon(":/icon/icons/Screenshot.png"),"截屏");
+    sshoot->setToolTip("截取程序的界面,并保存成PNG图片");
     QPushButton *aboutbtn = new QPushButton(QIcon(":/icon/icons/mode_help@2x.png"),"关于");
     cb->addItems(QStyleFactory::keys());
 
@@ -111,7 +80,7 @@ CanvasManager::CanvasManager(MainWindow *w):
     mWindow->addWidgetToToolBar(newPage);
     mWindow->addWidgetToToolBar(delPage);
     mWindow->addWidgetToToolBar(Q_NULLPTR);
-
+    mWindow->addWidgetToToolBar(sshoot);
     mWindow->addWidgetToToolBar(recordbtn);
 
     mWindow->addWidgetToToolBar(Q_NULLPTR);
@@ -143,6 +112,21 @@ CanvasManager::CanvasManager(MainWindow *w):
     mWindow->addWidgetToToolBar(globalbtn);
 
 
+    connect(sshoot,&QPushButton::clicked,[=]{
+
+        QString defstr  = QDir::currentPath() + "/" + QDateTime::currentDateTime().toString("yyyy-MM-dd-HH-mm-") + screenshootpng;
+        QString fileName = QFileDialog::getSaveFileName(mWindow, tr("保存PNG截图"),
+                                                        defstr,
+                                                        tr("Images (*.png)"));
+        if(fileName.isEmpty())
+            return;
+
+
+        QPixmap pixmap(mWindow->size());
+        mWindow->render(&pixmap,QPoint(),QRegion(mWindow->rect()));
+        pixmap.save(fileName);
+    });
+
     //将定时器超时信号与槽(功能函数)联系起来
 
     connect( autoSaveTimer,&QTimer::timeout,[=](){
@@ -169,7 +153,10 @@ CanvasManager::CanvasManager(MainWindow *w):
         aboutdlg->setLayout(vbox);
         vbox->addWidget(label);
         QString txt = QString("<b><img src=':/icon/icons/QtBareMetal.png'></b>"\
-                              "<b><p>版本:</p><p> %1 </p></b>").arg(VERSION);
+                              "<b>"\
+                              "<p>版本:</p><p> %1 </p>"\
+                              "<p>联系作者: yjdwbj@gmail.com</p>"\
+                              "</b>").arg(VERSION);
         label->setText(txt);
         aboutdlg->exec();
         aboutdlg->deleteLater();
@@ -182,67 +169,190 @@ CanvasManager::CanvasManager(MainWindow *w):
 }
 
 
+static void my_logoutput(void* ptr, int level, const char* fmt,va_list vl){
+    FILE *fp = fopen("my_log.txt","a+");
+    if(fp){
+        vfprintf(fp,fmt,vl);
+        fflush(fp);
+        fclose(fp);
+    }
+}
+
+
 
 void CanvasManager::onRecordClick(bool b)
 {
     QPushButton *recordbtn =  (QPushButton *)(QObject::sender());
 
-    static FFMPEG_Thread thread(mWindow);
-    if(thread.isRunning())
+    //    static FFMPEG_Thread thread(mWindow);
+    if(mFFmpegRuning)
     {
-        thread.terminate();
-        thread.quit();
-        thread.deleteLater();
+        mFFmpegRuning = false;
+
+        sigterm_handler(SIGTERM);
+        QThread::msleep(500);
+        if(!QFileInfo(outputvideo).exists())
+        {
+            QMessageBox::warning(mWindow,"提示",
+                                 "没有找视频文件");
+            recordbtn->setText("录屏");
+            recordbtn->setIcon(QIcon(":/icon/icons/player_play.png"));
+            recordbtn->repaint();
+            return;
+        }
+
+
+
         recordbtn->setEnabled(false);
+
+        recordbtn->setText("保存中....");
         recordbtn->repaint();
+        QThread *pngthread = new QThread();
+        //        moveToThread(pngthread);
 
+        QString filters = "fps=10,scale=flags=lanczos";
+//        filters.sprintf("fps=10,scale=flags=lanczos",mWindow->size().width());
 
+        connect(pngthread,&QThread::started,[=]{
+            QList<QByteArray> pngarray ;
+            pngarray << "ffmpeg" << "-y"  << "-i"
+                     << outputvideo << "-vf" << QString(filters+",palettegen=stats_mode=diff").toLocal8Bit()
+                     << palettepng;
 
-
-        QThread png;
-        connect(&png,&QThread::started,[=]{
-            char *pngargv[] = {"y",
-    //                           "-v","info",
-                               "-y","-i", "video.avi",
-                               "-lavfi","fps=10,palettegen=stats_mode=diff",
-                               "palette.png"};
-            ffmpeg(sizeof(pngargv)/sizeof(char*),pngargv);
+            int argc = pngarray.size();
+            char **pngargv = new char*[argc+1]{NULL};
+            for(int i = 0 ; i < argc;i++)
+            {
+                pngargv[i] = pngarray[i].data();
+            }
+            ffmpeg(argc,pngargv);
+            delete pngargv;
+            pngthread->exit();
         });
-        png.start();
-        png.wait();
-
-        char *gifargv[] = {"./ffmpeg", "-y","-i",
-                           "video.avi", "-i","palette.png",
-                            "-r","5","-lavfi",
-                            "paletteuse=dither=floyd_steinberg",
-                            "test_c_output.gif"};
 
 
 
-        ffmpeg(sizeof(gifargv)/sizeof(char*),gifargv);
-//        delete []gifargv;
 
-        recordbtn->setEnabled(true);
-        recordbtn->setText("录屏");
-        recordbtn->setIcon(QIcon(":/icon/icons/player_play.png"));
-        recordbtn->repaint();
+        QThread *gifthread = new QThread();
+
+        connect(gifthread,&QThread::started,[=]{
+            //            qDebug() << "start to gif";
+
+            if(!QFileInfo(outputvideo).exists() ||
+                    !QFileInfo(palettepng).exists())
+            {
+                QMessageBox::warning(mWindow,"提示",
+                                     "没有找视频文件,或者PNG文件.");
+                return;
+            }
+
+            QList<QByteArray> gifarray ;
+            gifarray << "ffmpeg" << "-y"
+                     << "-v" << "quiet"
+                     << "-i" << outputvideo
+                     << "-i" << palettepng
+                     << "-r" << "10"
+                        //                     << "-lavfi" << "fps=10,paletteuse=dither=bayer:bayer_scale=2"
+                        //                     << "-lavfi" << "fps=10 [x]; [x][1:v] paletteuse:dither=sierra2"
+                     << "-lavfi" << QString(filters+"[x];[x][1:v]paletteuse").toLocal8Bit()
+                     << gifFileName.toUtf8();
+
+            int  argc = gifarray.size();
+            char **gifargv = new char*[argc+1]{NULL};
+            for(int i = 0 ; i < argc;i++)
+            {
+                gifargv[i] = gifarray[i].data();
+            }
+            ffmpeg(argc,gifargv);
+            QString rootdir =  QDir::currentPath();
+            QFile::remove( rootdir + "/" + outputvideo);
+            QFile::remove(rootdir + "/" + palettepng);
+            delete gifargv;
+            gifthread->exit();
+        });
+
+        connect(gifthread,&QThread::finished,[=]{
+            recordbtn->setEnabled(true);
+            recordbtn->setText("录屏");
+            recordbtn->setIcon(QIcon(":/icon/icons/player_play.png"));
+//            gifthread->disconnect();
+        });
+        connect(gifthread,SIGNAL(finished()),recordbtn,SLOT(repaint()));
+        QObject::connect(gifthread,SIGNAL(finished()),gifthread,SLOT(deleteLater()));
+        QObject::connect(pngthread,&QThread::finished,gifthread,[=]{
+            gifthread->start();
+//            pngthread->disconnect();
+        });
+
+        connect(pngthread,SIGNAL(finished()),pngthread,SLOT(deleteLater()));
+        pngthread->start();
+
     }else{
+
+        QString defstr  = QDir::currentPath() + "/" + QDateTime::currentDateTime().toString("yyyy-MM-dd-HH-mm-") + outputgif;
+        gifFileName = QFileDialog::getSaveFileName(mWindow, tr("保存GIF"),
+                                                   defstr,
+                                                   tr("Images (*.gif)"));
+        if(gifFileName.isEmpty())
+            return;
 
         recordbtn->setText("停止");
         recordbtn->setIcon(QIcon(":/icon/icons/player_stop.png"));
         recordbtn->repaint();
-        int x = mWindow->rect().size().width();
-        int y = mWindow->rect().size().height();
-        QString wsize;
-        wsize.sprintf("%dx%d",x,y);
-        QString pos;
-        pos.sprintf(":0.0+%d,%d",mWindow->rect().x(),mWindow->rect().y());
 
-        thread.start();
+        int x = mWindow->geometry().width();
+        int y = mWindow->geometry().height();
+        QString wsize;
+        wsize.sprintf("%dx%d",mWindow->width(),mWindow->height());
+        QString pos;
+        pos.sprintf(":0.0+%d,%d",mWindow->geometry().x(),mWindow->geometry().y());
+
+
+        QThread *ft = new QThread();
+        connect(ft,&QThread::started,[=](){
+
+            QList<QByteArray> tmp;
+            tmp << "ffmpeg"
+                << "-v" << "debug"  << "-y"
+                // Video Size 要在-f 的前面.
+                << "-video_size" << wsize.toLocal8Bit()
+                << "-framerate" << "15"
+       #if _WIN32
+                << "-f" << "gdigrab"
+                << "-i" << "desktop"
+                << "-offset_x" << QString("%1").arg(QString::number(mWindow->pos().x())).toLocal8Bit()
+                << "-offset_y"  << QString("%1").arg(QString::number(mWindow->pos().x())).toLocal8Bit()
+       #else
+                << "-f" << "x11grab"
+                << "-i" << pos.toLocal8Bit()
+
+       #endif
+                << "-vcodec" << "huffyuv"
+                << "-pix_fmt" << "yuv422p"
+                << outputvideo;
+
+            char *argv[tmp.size()+1] = {NULL};
+            for(int i =0 ;i < tmp.size() ;i++)
+            {
+                argv[i] = tmp[i].data();
+                qDebug() << tmp[i];
+            }
+            ffmpeg(tmp.size(),argv);
+            ft->exit();
+            QThread::msleep(500);
+            //            delete argv;
+
+        });
+
+        connect(ft,SIGNAL(finished()),ft,SLOT(quit()));
+        connect(ft,SIGNAL(finished()),ft,SLOT(deleteLater()));
+        ft->start();
+        mFFmpegRuning = true;
+
+
     }
 
 }
-
 
 void CanvasManager::screenshot()
 {

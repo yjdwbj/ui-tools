@@ -19,8 +19,8 @@ TEMPLATE = app
 QMAKE_LIBS_OPENGL -= -lGL
 QMAKE_CFLAGS += -std=c99
 
-#QMAKE_CXXFLAGS_RELEASE += -g -O1
-#QMAKE_CFLAGS_RELEASE += -g -O1
+QMAKE_CXXFLAGS_RELEASE += -ggdb -O3
+QMAKE_CFLAGS_RELEASE += -ggdb -O3
 #QMAKE_LFLAGS_RELEASE =
 
 REVISION = $$system(git rev-parse HEAD)
@@ -43,7 +43,7 @@ SOURCES += main.cpp\
     xlstool.c \
     ole.c \
     endian.c \
-    busyindicator.cpp \
+    busyindicator.cpp
 
     getopt.c
 
@@ -67,7 +67,7 @@ HEADERS  += mainwindow.h \
     libxls/brdb.h \
     libxls/brdb.c.h \
     config.h \
-    busyindicator.h \
+    busyindicator.h
 
 FORMS    += mainwindow.ui \
     dialog.ui \
@@ -198,6 +198,7 @@ INCLUDEPATH += $$PWD/.
 DEPENDPATH += $$PWD/.
 
 unix:!macx: PRE_TARGETDEPS += $$PWD/libffmpeg-linux.a
+
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/ -lffmpeg-win -lgdi32  -liconv -lsecur32 -lm -llzma -lz -lpsapi -ladvapi32 -lshell32 -static
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/ -lffmpeg-win -lgdi32  -liconv -lsecur32 -lm -llzma -lz -lpsapi -ladvapi32 -lshell32 -static
