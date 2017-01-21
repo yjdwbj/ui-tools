@@ -299,9 +299,6 @@ void CanvasManager::onRecordClick(bool b)
         recordbtn->setText("停止");
         recordbtn->setIcon(QIcon(":/icon/icons/player_stop.png"));
         recordbtn->repaint();
-
-        int x = mWindow->geometry().width();
-        int y = mWindow->geometry().height();
         QString wsize;
         wsize.sprintf("%dx%d",mWindow->width(),mWindow->height());
         QString pos;
@@ -335,7 +332,6 @@ void CanvasManager::onRecordClick(bool b)
             for(int i =0 ;i < tmp.size() ;i++)
             {
                 argv[i] = tmp[i].data();
-                qDebug() << tmp[i];
             }
             ffmpeg(tmp.size(),argv);
             ft->exit();
