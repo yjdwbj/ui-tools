@@ -2382,7 +2382,7 @@ void NewList::onAddManyLine()
     int num = tinySpinBoxDialog(txt,1,1,99);
     for(int i = 0; i < num;i++)
     {
-        NewLayout *n =   AddOneLine(QJsonValue::fromVariant(mWindow->ComCtrl->mVariantLayout));
+       AddOneLine(QJsonValue::fromVariant(mWindow->ComCtrl->mVariantLayout));
     }
     if(num) updateAllItemsSize();
 }

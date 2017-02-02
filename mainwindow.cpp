@@ -206,7 +206,7 @@ void MainWindow::readExcelFile(char *xlsfile)
     static char *fieldSeparator = ";";
     static char *encoding = "UTF-8";
 
-    struct st_row_data* row;
+//    struct st_row_data* row;
     WORD cellRow =0, cellCol=0;
     xlsWorkBook* pWB;
     xlsWorkSheet* pWS;
@@ -260,7 +260,7 @@ void MainWindow::readExcelFile(char *xlsfile)
     // process all rows of the sheet
     for (cellRow = 0; cellRow <= pWS->rows.lastrow; cellRow++) {
         int isFirstCol = 1;
-        row = (struct st_row_data*)(xls_row(pWS, cellRow));
+//        row = (struct st_row_data*)(xls_row(pWS, cellRow));
         // process cells
 
         QStringList collist;

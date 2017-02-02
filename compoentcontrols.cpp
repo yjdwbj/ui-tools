@@ -703,7 +703,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                 cb->setObjectName(uname);
                 cb->setProperty(DKEY_VALTYPE,LIST);
                 // 这里通过它的JSON组数的位置去找它.
-                wid = cb;
+//                wid = cb;
                 QPushButton *btn = new QPushButton(caption,this);
                 btn->setProperty(DKEY_JSONIDX,i);
                 btn->setObjectName(uname);
@@ -749,7 +749,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                         baseform->changeJsonValue(btn,uname,
                                                   baseform->mWindow->mItemMap.key(txt));
                     });
-                    continue;
+//                    continue;
 
                 }else {
                     // 图片列表处理分支.这里不用Ｍap而用LIST来暂存一些数值,是因为map是无序的.
@@ -1551,7 +1551,7 @@ void CompoentControls::onCreateNewLayer()
         QPushButton *btn = (QPushButton*)(QObject::sender());
         QVariant variant = btn->property(DKEY_JSONSTR);
 
-        NewLayer *nlayer  = ss->createNewLayer( QJsonValue::fromVariant(variant),true);
+        /*NewLayer *nlayer  =*/ ss->createNewLayer( QJsonValue::fromVariant(variant),true);
         // mWindow->tree->addItemToRoot(nlayer);
     }
 }

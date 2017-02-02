@@ -226,7 +226,7 @@ void CanvasManager::onRecordClick(bool b)
                 pngargv[i] = pngarray[i].data();
             }
             ffmpeg(argc,pngargv);
-            delete pngargv;
+            delete[] pngargv;
             pngthread->exit();
         });
 
@@ -267,7 +267,7 @@ void CanvasManager::onRecordClick(bool b)
             QString rootdir =  QDir::currentPath();
             QFile::remove( rootdir + "/" + outputvideo);
             QFile::remove(rootdir + "/" + palettepng);
-            delete gifargv;
+            delete[] gifargv;
             gifthread->exit();
         });
 
@@ -327,8 +327,8 @@ void CanvasManager::onRecordClick(bool b)
                 << "-vcodec" << "huffyuv"
                 << "-pix_fmt" << "yuv422p"
                 << outputvideo;
-
-            char *argv[tmp.size()+1] = {NULL};
+//            int count = tmp.size()+1;
+            char **argv = new char*[tmp.size()+1]{NULL};
             for(int i =0 ;i < tmp.size() ;i++)
             {
                 argv[i] = tmp[i].data();
@@ -336,7 +336,7 @@ void CanvasManager::onRecordClick(bool b)
             ffmpeg(tmp.size(),argv);
             ft->exit();
             QThread::msleep(500);
-            //            delete argv;
+            delete[] argv;
 
         });
 
@@ -724,7 +724,7 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
         switch (val.type()) {
         case QJsonValue::Object:
         {
-            int w,h;
+            int w =0,h =0;
             QJsonObject valobj = val.toObject();
             foreach (QJsonValue pval, valobj[PROPERTY].toArray()) {
                 QJsonObject pobj = pval.toObject();

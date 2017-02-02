@@ -175,11 +175,12 @@ void TreeDock::setMyParentNode()
 
     if(citem)
     {
-        QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonPress,QCursor::pos(),
-                                             Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
+
         QTreeWidgetItem *item= citem->parent();
         if(item)
         {
+            QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonPress,QCursor::pos(),
+                                                 Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
             QWidget *w = mWindow->ComCtrl->ProMap[item->text(0)];
             QApplication::postEvent(w,event);
         }
@@ -190,6 +191,8 @@ void TreeDock::setMyParentNode()
             qwilist.removeOne(citem);
             if(qwilist.count())
             {
+                QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonPress,QCursor::pos(),
+                                                     Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
                 QWidget *w = mWindow->ComCtrl->ProMap[qwilist.last()->text(0)];
                 QApplication::postEvent(w,event);
             }
