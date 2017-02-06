@@ -55,5 +55,6 @@
         <file>icons/player_play.png</file>
         <file>icons/Cut.png</file>
         <file>icons/Screenshot.png</file>
+        <file>icons/smallpt.png</file>
     </qresource>
 </RCC>

@@ -703,7 +703,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                 cb->setObjectName(uname);
                 cb->setProperty(DKEY_VALTYPE,LIST);
                 // 这里通过它的JSON组数的位置去找它.
-//                wid = cb;
+                //                wid = cb;
                 QPushButton *btn = new QPushButton(caption,this);
                 btn->setProperty(DKEY_JSONIDX,i);
                 btn->setObjectName(uname);
@@ -730,6 +730,10 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                     QObject::connect(btn,&QPushButton::clicked,[=](){
                         QJsonArray cblist =btn->property(DKEY_CBLIST).toJsonArray();
                         I18nLanguage lang(cblist.toVariantList(),baseform->mWindow);
+                        QSize ps = lang.parentWidget()->size();
+                        int w = ( ps.width() - lang.width())/ 2;
+                        int h = (ps.height() - lang.height()) / 2;
+                        lang.move(lang.mapFromParent(QPoint(w,h)));
                         lang.exec();
 
                         QStringList nlst = lang.getSelectedItems();
@@ -749,7 +753,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                         baseform->changeJsonValue(btn,uname,
                                                   baseform->mWindow->mItemMap.key(txt));
                     });
-//                    continue;
+                    //                    continue;
 
                 }else {
                     // 图片列表处理分支.这里不用Ｍap而用LIST来暂存一些数值,是因为map是无序的.
@@ -894,18 +898,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                 //  nameEdt->setMaxLength(8);
                 //   nameEdt->setInputMask("nnnnnnnn;"); // or NNNNNNNN;_
                 nameEdt->setCursorPosition(0);
-
-                QString ename = ((BaseForm*)p)->mWindow->ComCtrl->mSeqEnameMap.key(p);
-                if(ename.isEmpty())
-                {
-                    ename = p->metaObject()->className()+ tr("_") + ((BaseForm*)p)->mUniqueStr.section('_',1,1);
-                }
-                ename =  ((BaseForm*)p)->mWindow->ComCtrl->getEnameSeq(ename,p);
-                //                    ((BaseForm*)p)->mWindow->ComCtrl->mEnameSeq.append(ename);
-                ((BaseForm*)p)->changeJsonValue(i,ename);
-
-
-                nameEdt->setText(ename);
+                nameEdt->setText(((BaseForm*)p)->updateEname(i));
                 //                ((BaseForm*)p)->mWindow->ComCtrl->mEnameSeq.append(ename);
 
                 mainLayout->addWidget(nameEdt);
@@ -1150,6 +1143,10 @@ QString CompoentControls::getEnameSeq(const QString &key,QWidget* obj)
         QString t = key.section('_',0,0);
         int n = key.section('_',1,1).toInt();
         QString tkey = key;
+        if(t.isEmpty())
+        {
+            t = obj->metaObject()->className();
+        }
         while(mSeqEnameMap.contains(tkey) )
         {
 
@@ -1169,8 +1166,15 @@ QString CompoentControls::getEnameSeq(const QString &key,QWidget* obj)
         return tkey;
     }else{
         int n = 0;
-        QString tkey  = key;
-        QString t = key;
+        QString tkey = "";
+        QString t = "";
+        if(key.isEmpty())
+        {
+            tkey = t = obj->metaObject()->className();
+        }else
+            tkey  =  t= key;
+
+
         while(mSeqEnameMap.contains(tkey) )
         {
             QWidget *exist = mSeqEnameMap.value(tkey);
@@ -1200,6 +1204,10 @@ void CompoentControls::ReadJsonWidgets()
     while (1){
         if(!file.isEmpty()) break;
         GlobalSettings gs(mWindow);
+        QSize ps = mWindow->size();
+        int w = ( ps.width() - gs.width() )/ 2;
+        int h = (ps.height()-gs.height()) / 2;
+        gs.move(gs.mapFromParent(QPoint(w,h)));
         gs.exec();
         if (gs.isSetFine()) {
             mWindow->mGlobalSet->deleteLater();
@@ -1481,7 +1489,7 @@ void CompoentControls::onCreateCompoentToCanvas()
         return;
     }
 
-    QString clsname = wid->metaObject()->className();
+
     if(wid->inherits(CN_NEWLAYER) /*|| !clsname.compare(CN_LAYER)*/)
     {
         QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));

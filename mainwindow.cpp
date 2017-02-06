@@ -120,6 +120,10 @@ MainWindow::MainWindow(QWidget *parent) :
     {
         while (1){
             GlobalSettings gs(this);
+            QSize ps = size();
+            int w = ( ps.width() - gs.width() )/ 2;
+            int h = (ps.height()-gs.height()) / 2;
+            gs.move(gs.mapFromParent(QPoint(w,h)));
             gs.exec();
             if (gs.isSetFine()) break;
         }

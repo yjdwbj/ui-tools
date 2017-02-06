@@ -105,6 +105,10 @@ CanvasManager::CanvasManager(MainWindow *w):
         while (1){
             GlobalSettings gs(mWindow);
             gs.setWindowTitle(globalbtn->text());
+            QSize ps = mWindow->size();
+            int w = ( ps.width() - gs.width() )/ 2;
+            int h = (ps.height()-gs.height()) / 2;
+            gs.move(gs.mapFromParent(QPoint(w,h)));
             gs.exec();
             if (gs.isSetFine()) break;
         }
@@ -143,7 +147,7 @@ CanvasManager::CanvasManager(MainWindow *w):
     connect(aboutbtn,&QPushButton::clicked,[=](){
         QDialog *aboutdlg  = new QDialog(mWindow);
         aboutdlg->setWindowTitle(WIN_TITLE);
-        aboutdlg->setFixedSize(430,360);
+        aboutdlg->setFixedSize(384,420);
         aboutdlg->setModal(true);
         QLabel *label = new QLabel(aboutbtn);
         QVBoxLayout *vbox = new QVBoxLayout();
@@ -152,12 +156,14 @@ CanvasManager::CanvasManager(MainWindow *w):
         vbox->setSpacing(0);
         aboutdlg->setLayout(vbox);
         vbox->addWidget(label);
-        QString txt = QString("<b><img src=':/icon/icons/QtBareMetal.png'></b>"\
+        QString txt = QString("<b><img src=':/icon/icons/smallpt.png'></b>"\
                               "<b>"\
                               "<p>版本:</p><p> %1 </p>"\
-                              "<p>联系作者: yjdwbj@gmail.com</p>"\
+                              "<p>开发者: 刘春阳</p>"\
+                              "<p>邮箱: yjdwbj@gmail.com</p>"\
                               "</b>").arg(VERSION);
         label->setText(txt);
+
         aboutdlg->exec();
         aboutdlg->deleteLater();
     });
@@ -397,7 +403,13 @@ ScenesScreen * CanvasManager::createNewCanvas()
     ScenesScreen *Scenes = new ScenesScreen(mPageSize,(QWidget*)mWindow);
 
     Scenes->addMainWindow(mWindow);
-    Scenes->move(mWindow->width() * 0.12,mWindow->height()* 0.3);  // 按屏幕比例调整
+
+//    QSize ps = mWindow->size();
+//    int w = ( ps.width() - Scenes->width() )/ 2;
+//    int h = (ps.height() - Scenes->height()) / 2;
+//    Scenes->move(Scenes->mapFromParent(QPoint(w,h)));
+
+//    Scenes->move(mWindow->width() * 0.12,mWindow->height()* 0.3);  // 按屏幕比例调整
     Scenes->setProperty(DKEY_SHOT,false);  // 检查该页面是否创建过截图.
 
 
@@ -442,12 +454,9 @@ void CanvasManager::setActiveSS(int index)
         // 把当前页的布局重新添加到treeWidget上
         foreach (QWidget *w, Scenes->childlist) {
             // QString key = w->property(DKEY_LOCALSEQ).toString();
-
             mWindow->tree->addItemToRoot(w);
             if(!w->isHidden())
                 ((BaseForm*)w)->addChildrenToTree();
-
-
         }
 
         screenshot();
@@ -489,7 +498,6 @@ void CanvasManager::onDelCurrentScenesScreen()
     //  qDebug() << " QMessageBox result " << ret;
     if(ret == QMessageBox::Yes)
     {
-
         deleteCurrentPage();
     }
 
@@ -522,6 +530,11 @@ void CanvasManager::onCreateNewProject()
 
     closeCurrentProject(); // 关闭当前工程.
     ProjectDialog *pd = new ProjectDialog(mWindow);
+
+    QSize ps = mWindow->size();
+    int w = ( ps.width() - pd->width() )/ 2;
+    int h = (ps.height() - pd->height()) / 2;
+    pd->move(pd->mapFromParent(QPoint(w,h)));
     pd->exec();
     // qDebug() << " ProjectDialog result " << pd->result();
     newPage->setEnabled(pd->result());
@@ -531,7 +544,6 @@ void CanvasManager::onCreateNewProject()
     pd->deleteLater();
     if(pd->result())
     {
-
         onCreateNewScenesScreen();
         autoSaveTimer->start(60000);
     }
@@ -638,7 +650,6 @@ void CanvasManager::onConfProject()
     // int n = cp.result();
     if(cp.result())  // accpet 就保存语言.
         mPrjSelectlang = cp.getSelectLang();
-
 }
 
 

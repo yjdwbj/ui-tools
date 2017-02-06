@@ -15,6 +15,10 @@ ScenesScreen::ScenesScreen(QSize size, QWidget *parent)
                   "background-color: #EEEEEE;}");
     setFixedSize(size);
     setFocusPolicy(Qt::ClickFocus);
+//    QSize ps = parent->size();
+//    int w = ( ps.width() - width() )/ 2;
+//    int h = (ps.height()-height()) / 2;
+//    move(mapFromParent(QPoint(w,h)));
     show();
 
 }

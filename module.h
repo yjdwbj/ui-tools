@@ -116,6 +116,7 @@ public:
     bool mCreateFlag; // 区分这是从原始模版读取的,还是工程读取
 
     QString mUniqueStr;
+    QString mEnameStr;
 
     void initialEname();
     void onSelectMe();
@@ -127,6 +128,11 @@ public:
     void initJsonValue();
     void createContextMenu(QWidget *parent, QPoint pos);
     void SwapLayerOrder(SwapType st);
+//    QString getEname() const{
+//        return mWindow->ComCtrl->mSeqEnameMap.key(this);
+//    }
+
+    QString updateEname(int index);
 
     QJsonObject ContainerWriteToJson(QWidget *w);
     QWidget* getPairWidgetFromPLayout(QWidget *sender);
@@ -151,9 +157,10 @@ public:
 
 
 
+
 public slots:
     void onXYWHChangedValue(int v);
-    void onSwapViewObject(bool b);
+    void onSwapViewObject();
     void onClearJsonValue();
 
     void onTextChanged(QString str);
@@ -178,6 +185,7 @@ protected:
     void paintEvent(QPaintEvent *);
     void resizeEvent(QResizeEvent *event);
     void wheelEvent(QWheelEvent *);
+    void initObject(const QJsonObject &json);
 
 };
 
@@ -186,7 +194,7 @@ class NewFrame :public BaseForm
     Q_OBJECT
 public:
 
-    NewFrame(QJsonObject json,QWidget *parent=0);
+    NewFrame(const QJsonObject &json,QWidget *parent=0);
 
     void addMainWindow(QObject *mw);
     QJsonObject  writeToJson();
@@ -254,7 +262,7 @@ class NewList :public BaseForm
 {
     Q_OBJECT
 public:
-    NewList(QJsonValue json,const QSize size,QWidget *parent=0);
+    NewList(const QJsonValue &json,const QSize size,QWidget *parent=0);
     QJsonObject writeToJson();
     void readFromJson(const QJsonValue &valobj);
     void updateAllItemsSize();
@@ -295,7 +303,7 @@ class NewLayout :public BaseForm
     friend class CompoentControls;
     Q_OBJECT
 public:
-    explicit NewLayout(QJsonObject json, QRect rect, MainWindow *w, QWidget *parent=0);
+    explicit NewLayout(const QJsonObject &json, QRect rect, MainWindow *w, QWidget *parent=0);
     NewLayout (int width,int height,QWidget *parent=0);
 
     void DeleteMe();
@@ -331,7 +339,7 @@ class NewLayer : public BaseForm
 {
     Q_OBJECT
 public:
-    explicit NewLayer(const QJsonObject json, QRect rect, QWidget *parent=0);
+    explicit NewLayer(const QJsonObject &json, QRect rect, QWidget *parent=0);
     void readLayoutFromJson(const QJsonValue &qv, bool flag);
 
     QJsonObject  writeToJson() ;

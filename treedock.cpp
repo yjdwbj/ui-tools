@@ -10,7 +10,7 @@
 #include "module.h"
 
 
-static QString HeadCol = "结点,属性";
+static QString HeadCol = "结点,属性,序号";
 
 class PageView;
 
@@ -90,7 +90,7 @@ connect(treeWidget,SIGNAL(itemClicked(QTreeWidgetItem*,int)),
         SLOT(onItemPressed(QTreeWidgetItem*,int)));
 
 
-setFixedWidth(200);
+setFixedWidth(parent->width() * 0.2);
 
 treeWidget->setContextMenuPolicy(Qt::CustomContextMenu);
 treeWidget->header()->setSectionResizeMode(0, QHeaderView::ResizeToContents);
@@ -148,23 +148,83 @@ void TreeDock::onCustomContextMenu(const QPoint &point)
     }
 }
 
+void TreeDock::onSwapShowHideSubObject()
+{
+    QTreeWidgetItem *item =  treeWidget->currentItem();
+    if(item)
+    {
+        QTreeWidgetItem *pitem = item->parent();
+        if(pitem)
+        {
+            QString ctext = item->text(1);
+            QWidget *cw = mWindow->ComCtrl->ProMap[item->text(0)];
+            bool flag = !cw->isHidden();
+            for(int i = 0 ; i < pitem->childCount();i++)
+            {
+                QTreeWidgetItem *citem = pitem->child(i);
+//                qDebug() << " child text  " << citem->text(0);
 
-void TreeDock::onSwapShowHideObject(bool)
+                if(flag == mWindow->ComCtrl->ProMap[citem->text(0)]->isHidden())
+                    continue;
+                if(!ctext.compare(citem->text(1)))
+                {
+                    SwapShowHideObject(citem);
+                    QWidget *w = mWindow->ComCtrl->ProMap[citem->text(0)];
+                    w->setHidden(!w->isHidden());
+
+                    citem->setIcon(0,w->isHidden() ?
+                                      QIcon(HIDE_ICON) :QIcon(SHOW_ICON));
+//                    citem->setHidden(!citem->isHidden());
+
+                }
+            }
+//            QWidget *pw = mWindow->ComCtrl->ProMap[pitem->text(0)];
+//            pw->setHidden(!pw->isHidden());
+//            pitem->setIcon(0,pw->isHidden()?
+//                              QIcon(HIDE_ICON) : QIcon(SHOW_ICON) );
+        }
+
+    }
+}
+
+
+void TreeDock::SwapShowHideObject(QTreeWidgetItem* item)
+{
+    if(!item)
+        return;
+
+
+    for(int i = 0; i < item->childCount();i++)
+    {
+        QTreeWidgetItem *it = item->child(i);
+        if(!it)
+            continue;
+         QString t = it->text(0);
+        SwapShowHideObject(it);
+
+        QWidget *w = mWindow->ComCtrl->ProMap[t];
+        w->setHidden(!w->isHidden());
+        it->setHidden(!it->isHidden());
+        if(it->text(1).compare(CN_NEWFRAME))
+            it->setIcon(0,it->childCount() > 0 && it->child(0)->isHidden() ?
+                              QIcon(HIDE_ICON) :QIcon(SHOW_ICON)  );
+
+    }
+
+}
+
+void TreeDock::onSwapShowHideObject()
 {
     QTreeWidgetItem *item = treeWidget->currentItem();
     if(item)
     {
-        QString text = item->text(0);
-        QWidget *ww = mWindow->ComCtrl->ProMap[text];
-        for(int i = 0; i < item->childCount();i++)
-        {
-            item->child(i)->setHidden(!ww->isHidden());
 
-        }
-        ww->setHidden(!ww->isHidden());
-        if(!ww->isHidden())
-            mWindow->pageView->PressItem(mWindow->cManager->activeIndex());
-        swapIconForItem(text);
+        QWidget *w = mWindow->ComCtrl->ProMap[item->text(0)];
+        w->setHidden(!w->isHidden());
+        SwapShowHideObject(item);
+        if(item->text(1).compare(CN_NEWFRAME))
+            item->setIcon(0,w->isHidden() ? QIcon(HIDE_ICON) : QIcon(SHOW_ICON));
+
     }
 }
 
@@ -210,18 +270,18 @@ void TreeDock::onItemPressed(QTreeWidgetItem *item,int col)
     treeWidget->setCurrentItem(item);
 }
 
-void TreeDock::addChildObject(QString root, QString node, QString property)
-{
-    QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(root,
-                                                            Qt::MatchFixedString | Qt::MatchRecursive);
+//void TreeDock::addChildObject(QString root, QString node, QString property)
+//{
+//    QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(root,
+//                                                            Qt::MatchFixedString | Qt::MatchRecursive);
 
-    if(qwilist.count())
-    {
-        QTreeWidgetItem *nqwi =  new QTreeWidgetItem(qwilist.at(0),
-                                                     QStringList() << node << property);
-        treeWidget->setCurrentItem(nqwi);
-    }
-}
+//    if(qwilist.count())
+//    {
+//        QTreeWidgetItem *nqwi =  new QTreeWidgetItem(qwilist.at(0),
+//                                                     QStringList() << node << property);
+//        treeWidget->setCurrentItem(nqwi);
+//    }
+//}
 
 void TreeDock::addItemToRoot(QString node, QString property)
 {
@@ -240,7 +300,8 @@ void TreeDock::addItemToRoot(QWidget *obj)
     QString key = /*ww->property(DKEY_LOCALSEQ).toString()*/((BaseForm*)obj)->mUniqueStr;;
     //    treeWidget->setCurrentItem(root);
     QTreeWidgetItem *nroot = new QTreeWidgetItem(treeWidget,
-                                                 QStringList()  << key << obj->metaObject()->className());
+                                                 QStringList()  << key
+                                                 << obj->metaObject()->className());
     nroot->setIcon(0,obj->isHidden() ? QIcon(HIDE_ICON) : QIcon(SHOW_ICON));
     nroot->setExpanded(obj->isHidden());
 
@@ -258,10 +319,11 @@ void TreeDock::addObjectToCurrentItem(QString root,QWidget *obj)
     if(qwilist.count())
     {
 
-        QString key = /*ww->property(DKEY_LOCALSEQ).toString()*/((BaseForm*)obj)->mUniqueStr;;
+        QString key = /*ww->property(DKEY_LOCALSEQ).toString()*/((BaseForm*)obj)->mUniqueStr;
+        QString ename = ((BaseForm*)obj)->mEnameStr;
         QString clsname = obj->metaObject()->className();
         QTreeWidgetItem *nqwi =  new QTreeWidgetItem(qwilist.first(),
-                                                     QStringList() << key << clsname);
+                                                     QStringList() << key << clsname << ename);
 
         if(obj->inherits(CN_NEWLAYOUT))
         {
@@ -308,4 +370,13 @@ void TreeDock::deleteAllitem()
 {
 
     treeWidget->clear();
+}
+
+void TreeDock::updateSeq(QString val)
+{
+    QTreeWidgetItem *item = treeWidget->currentItem();
+    if(item)
+    {
+        item->setText(2,val);
+    }
 }

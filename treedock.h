@@ -38,14 +38,16 @@ public:
     void setSelectTreeItem(QWidget *);
 
     void setMyParentNode();
+    void SwapShowHideObject(QTreeWidgetItem *item);
+    void updateSeq(QString val);
     QTreeWidget *treeWidget;
 
 
 public slots:
     void onItemPressed(QTreeWidgetItem *item, int col);
     void onCustomContextMenu(const QPoint &point);
-    void onSwapShowHideObject(bool);
-
+    void onSwapShowHideObject();
+    void onSwapShowHideSubObject();
 
 
 
