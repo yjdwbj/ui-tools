@@ -10,7 +10,7 @@
 #include "module.h"
 
 
-static QString HeadCol = "结点,属性,序号";
+static QString HeadCol = "结点,属性,ID号";
 
 class PageView;
 
@@ -299,9 +299,11 @@ void TreeDock::addItemToRoot(QWidget *obj)
 
     QString key = /*ww->property(DKEY_LOCALSEQ).toString()*/((BaseForm*)obj)->mUniqueStr;;
     //    treeWidget->setCurrentItem(root);
+    QString ename = ((BaseForm*)obj)->mEnameStr;
     QTreeWidgetItem *nroot = new QTreeWidgetItem(treeWidget,
                                                  QStringList()  << key
-                                                 << obj->metaObject()->className());
+                                                 << obj->metaObject()->className()
+                                                 << ename);
     nroot->setIcon(0,obj->isHidden() ? QIcon(HIDE_ICON) : QIcon(SHOW_ICON));
     nroot->setExpanded(obj->isHidden());
 

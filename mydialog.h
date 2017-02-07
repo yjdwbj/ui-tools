@@ -17,6 +17,7 @@
 #include <QTreeWidgetItem>
 #include <QTableWidget>
 #include <QTableWidgetItem>
+#include <QProgressBar>
 
 
 class MainWindow;
@@ -266,7 +267,28 @@ private:
 
 };
 
+namespace Ui {
+class findDlg;
+}
+class findDlg: public QDialog
+{
+    Q_OBJECT
+public:
+    explicit findDlg(QWidget *parent=0);
 
+private:
+    MainWindow *mWindow;
+    Ui::findDlg *ui;
+};
+
+class ProgressDlg: public BaseDialog
+{
+    Q_OBJECT
+public:
+    ProgressDlg(int min , int max,QWidget *parent =0);
+    QProgressBar *mProgressBar;
+
+};
 
 class ActionList: public BaseDialog
 {

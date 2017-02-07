@@ -453,7 +453,7 @@ ProjectDialog::ProjectDialog(QWidget *parent)
         h = 128;
     }
 
-    QSize pdsize(w,h);
+//    QSize pdsize(w,h);
     ui->spinBox->setMinimum(64);
     ui->spinBox_2->setMinimum(64);
     ui->spinBox->setMaximum(parent->width()*0.8);
@@ -686,6 +686,7 @@ I18nLanguage::I18nLanguage(QVariantList oldvar, QWidget *parent):
     }
 
     connect(ui->btn_ok,SIGNAL(clicked(bool)),SLOT(accept()));
+    ui->label_2->setText(QString("行:%1").arg(QString::number(mWindow->mOrderlist.length())));
     setModal(true);
 }
 
@@ -881,6 +882,19 @@ QStringList ConfigProject::getSelectLang()
     return lst;
 }
 
+
+findDlg::findDlg(QWidget *parent)
+    :QDialog(parent),
+    ui(new Ui::findDlg)
+{
+    ui->setupUi(this);
+    setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
+    setModal(true);
+    setObjectName(this->metaObject()->className());
+    mWindow = (MainWindow*)parent;
+
+
+}
 
 GlobalSettings::GlobalSettings(QWidget *parent):
     QDialog(parent),
@@ -1498,13 +1512,21 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
             //先把sender的控件的pos映射到全局,再加上在sender里的pos
             contextMenu.exec(mapToGlobal(subpos)+pos);
         }
-
-
-
     }
-
     //    contextMenu->deleteLater();
-
-
 }
 
+
+ProgressDlg::ProgressDlg(int min, int max, QWidget *parent)
+    :BaseDialog(parent),
+      mProgressBar(new QProgressBar(this))
+{
+    QVBoxLayout *vb = new QVBoxLayout();
+    vb->addWidget(mProgressBar);
+    mProgressBar->setRange(min,max);
+    setFixedSize(200,100);
+    this->setLayout(vb);
+    connect(this,SIGNAL(accepted()),SLOT(deleteLater()));
+    setWindowModality(Qt::ApplicationModal);
+    setModal(true);
+}

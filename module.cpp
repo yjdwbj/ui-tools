@@ -762,9 +762,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
             qDebug() << "tree click  " << this->objectName() << this->metaObject()->className();
             QAction *subobj = new QAction(this);
 
-            if(isHidden()
-                    && i->childCount() > 0
-                    && i->child(0)->isHidden())
+            if(isHidden())
             {
                 subobj->setIcon(QIcon(SHOW_ICON));
                 subobj->setIconText("显示同类容器");
@@ -968,6 +966,15 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
     contextMenu->addAction(&widlower);
     contextMenu->addAction(&upone);
     contextMenu->addAction(&widraise);
+     contextMenu->addSeparator();
+    QAction findaction("查找对像",this);
+    connect(&findaction,&QAction::triggered,[=]{
+
+
+
+
+    });
+
 
     bool inContainer = property(DKEY_INTOCONTAINER).toBool();
 

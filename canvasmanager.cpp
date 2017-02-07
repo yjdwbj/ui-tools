@@ -18,6 +18,7 @@
 #include <QMetaObject>
 #include <QKeyEvent>
 #include <signal.h>
+#include <QtConcurrent>
 
 
 
@@ -217,7 +218,7 @@ void CanvasManager::onRecordClick(bool b)
         //        moveToThread(pngthread);
 
         QString filters = "fps=10,scale=flags=lanczos";
-//        filters.sprintf("fps=10,scale=flags=lanczos",mWindow->size().width());
+        //        filters.sprintf("fps=10,scale=flags=lanczos",mWindow->size().width());
 
         connect(pngthread,&QThread::started,[=]{
             QList<QByteArray> pngarray ;
@@ -281,13 +282,13 @@ void CanvasManager::onRecordClick(bool b)
             recordbtn->setEnabled(true);
             recordbtn->setText("录屏");
             recordbtn->setIcon(QIcon(":/icon/icons/player_play.png"));
-//            gifthread->disconnect();
+            //            gifthread->disconnect();
         });
         connect(gifthread,SIGNAL(finished()),recordbtn,SLOT(repaint()));
         QObject::connect(gifthread,SIGNAL(finished()),gifthread,SLOT(deleteLater()));
         QObject::connect(pngthread,&QThread::finished,gifthread,[=]{
             gifthread->start();
-//            pngthread->disconnect();
+            //            pngthread->disconnect();
         });
 
         connect(pngthread,SIGNAL(finished()),pngthread,SLOT(deleteLater()));
@@ -317,7 +318,7 @@ void CanvasManager::onRecordClick(bool b)
             QList<QByteArray> tmp;
             tmp << "ffmpeg"
                 << "-v" << "quiet"  << "-y"
-                // Video Size 要在-f 的前面.
+                   // Video Size 要在-f 的前面.
                 << "-video_size" << wsize.toLocal8Bit()
                 << "-framerate" << "15"
        #if _WIN32
@@ -333,7 +334,7 @@ void CanvasManager::onRecordClick(bool b)
                 << "-vcodec" << "huffyuv"
                 << "-pix_fmt" << "yuv422p"
                 << outputvideo;
-//            int count = tmp.size()+1;
+            //            int count = tmp.size()+1;
             char **argv = new char*[tmp.size()+1]{NULL};
             for(int i =0 ;i < tmp.size() ;i++)
             {
@@ -404,12 +405,12 @@ ScenesScreen * CanvasManager::createNewCanvas()
 
     Scenes->addMainWindow(mWindow);
 
-//    QSize ps = mWindow->size();
-//    int w = ( ps.width() - Scenes->width() )/ 2;
-//    int h = (ps.height() - Scenes->height()) / 2;
-//    Scenes->move(Scenes->mapFromParent(QPoint(w,h)));
+    //    QSize ps = mWindow->size();
+    //    int w = ( ps.width() - Scenes->width() )/ 2;
+    //    int h = (ps.height() - Scenes->height()) / 2;
+    //    Scenes->move(Scenes->mapFromParent(QPoint(w,h)));
 
-//    Scenes->move(mWindow->width() * 0.12,mWindow->height()* 0.3);  // 按屏幕比例调整
+    //    Scenes->move(mWindow->width() * 0.12,mWindow->height()* 0.3);  // 按屏幕比例调整
     Scenes->setProperty(DKEY_SHOT,false);  // 检查该页面是否创建过截图.
 
 
@@ -452,11 +453,23 @@ void CanvasManager::setActiveSS(int index)
         mWindow->tree->deleteAllitem();
         ScenesScreen *Scenes = (ScenesScreen*)(stack->currentWidget());
         // 把当前页的布局重新添加到treeWidget上
+
         foreach (QWidget *w, Scenes->childlist) {
             // QString key = w->property(DKEY_LOCALSEQ).toString();
             mWindow->tree->addItemToRoot(w);
+
             if(!w->isHidden())
+            {
+                //                QThread *thread = new QThread();
+                //                QObject::connect(thread,&QThread::started,[=]{
+                //                    ((BaseForm*)w)->addChildrenToTree();
+                //                    thread->exit();
+                //                });
+                //                QObject::connect(thread,SIGNAL(finished()),thread,SLOT(deleteLater()));
+                //                thread->start();
                 ((BaseForm*)w)->addChildrenToTree();
+            }
+
         }
 
         screenshot();
@@ -651,35 +664,71 @@ void CanvasManager::onConfProject()
     if(cp.result())  // accpet 就保存语言.
         mPrjSelectlang = cp.getSelectLang();
 }
-
+QJsonArray saveProjectJson(QProgressDialog *pd,QWidgetList mCanvasList )
+{
+    QJsonArray CanvasArray;
+    int n = 0;
+    foreach (QWidget *w, mCanvasList) {
+        pd->setValue(n++);
+        CanvasArray.append(((ScenesScreen*)w)->writeToJson());
+    }
+    return CanvasArray;
+}
 
 void CanvasManager::saveProject(QString fname)
 {
-    QFile saveFile(fname);
-    if (!saveFile.open(QIODevice::WriteOnly)) {
-        qWarning("Couldn't open save file.");
 
-    }
 
-    QJsonArray CanvasArray;
-    // QJsonObject root;
-    foreach (QWidget *w, mCanvasList) {
-        CanvasArray.append(((ScenesScreen*)w)->writeToJson());
-    }
-    QJsonObject obj ;
-    obj[NAME] = mProjectName;
-    obj[ACTPAGE] = stack->currentIndex();
-    obj[PAGES] = CanvasArray;
-    obj[WTYPE] = "project";
-    QJsonArray lang;
-    foreach (QString v ,mPrjSelectlang) {
-        QJsonValue val = v;
-        lang.append(val);
-    }
-    obj[MLANG] = lang;
-    QJsonDocument jsonDoc(obj);
-    saveFile.write(jsonDoc.toJson());
+    ProgressDlg *pd = new ProgressDlg(0,mCanvasList.length(),mWindow);
+    QThread *dlgth = new QThread();
+//    pd->moveToThread(dlgth);
+    connect(dlgth,&QThread::started,[=]{
+        pd->show();
+//        pd->exec();
+        dlgth->exit();
+    });
+
+    QThread *saveth = new QThread();
+    connect(saveth,SIGNAL(started()),dlgth,SIGNAL(started()));
+
+    QObject::connect(saveth,&QThread::started,[=]{
+        QJsonArray CanvasArray;
+        int n = 0;
+        foreach (QWidget *w, mCanvasList) {
+            pd->mProgressBar->setValue(n++);
+            CanvasArray.append(((ScenesScreen*)w)->writeToJson());
+        }
+         QFile saveFile(fname);
+         if (!saveFile.open(QIODevice::WriteOnly)) {
+             qWarning("Couldn't open save file.");
+
+         }
+         QJsonObject obj ;
+         obj[NAME] = mProjectName;
+         obj[ACTPAGE] = stack->currentIndex();
+         obj[PAGES] = CanvasArray;
+         obj[WTYPE] = "project";
+         QJsonArray lang;
+         foreach (QString v ,mPrjSelectlang) {
+             QJsonValue val = v;
+             lang.append(val);
+         }
+         obj[MLANG] = lang;
+         QJsonDocument jsonDoc(obj);
+         saveFile.write(jsonDoc.toJson());
+         pd->mProgressBar->setValue(n);
+         emit pd->accepted();
+         saveth->exit();
+    });
+
+    connect(saveth,SIGNAL(finished()),saveth,SLOT(deleteLater()));
+    connect(dlgth,SIGNAL(finished()),dlgth,SLOT(deleteLater()));
+    saveth->start();
+
     mIsOpenProject = false;
+
+
+    //    pd->exec();
 }
 
 void CanvasManager::onSaveAsProject()
@@ -747,9 +796,22 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
                 }
             }
             setDefaultPageSize(QSize(w,h));
+//            QThread *tmp = new QThread();
+
+//            connect(tmp,&QThread::started,[=]{
+//                ScenesScreen *Scenes = createNewCanvas();
+//                // 递归读取它的页面.
+//                Scenes->readLayer(valobj[LAYER].toArray());
+//                tmp->exit();
+//            });
+
+//            connect(tmp,SIGNAL(finished()),tmp,SLOT(deleteLater()));
+//            tmp->start();
+
             ScenesScreen *Scenes = createNewCanvas();
             // 递归读取它的页面.
             Scenes->readLayer(valobj[LAYER].toArray());
+
         }
             break;
         default:

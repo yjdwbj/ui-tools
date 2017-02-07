@@ -593,7 +593,14 @@ void ComProperty::createPropertyBox(QWidget *p)
 
     mainLayout->setObjectName(COMGRPLYT);
     mainLayout->addSpacing(0);
-
+    QJsonArray arry = ((BaseForm*)p)->mOwerJson[PROPERTY].toArray();
+    //    QThread *th = new QThread();
+    //    QObject::connect(th,&QThread::started,[=]{
+    //        parseJsonToWidget(p,arry);
+    //        th->exit();
+    //    });
+    //    connect(th,SIGNAL(finished()),th,SLOT(deleteLater()));
+    //    th->start();
     parseJsonToWidget(p, ((BaseForm*)p)->mOwerJson[PROPERTY].toArray());
 
     mainLayout->setSizeConstraint(QLayout::SetFixedSize);
@@ -780,34 +787,46 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                         QJsonArray qa;
                         QString curstr = cb->currentText();
                         cb->clear();
+#ifdef DBGPRINT
                         QFile fd("imagelist.txt");
                         fd.open(QIODevice::WriteOnly|QIODevice::Text);
+#endif
                         foreach (QVariant v, imglist) {
                             QString s = v.toString();
                             // example for s   "alarm_du.bmp|/home/yjdwbj/build-ut-tools-Desktop_Qt_5_6_0_GCC_64bit-Debug/images/string/alarm_du.bmp
                             // example for s   ""m104.bmp|config/images/string/m104.bmp"
                             QString lastsection = s.section(SECTION_CHAR,1,1);
-
+#ifdef DBGPRINT
                             fd.write(v.toString().toLocal8Bit().data());
+#endif
                             QString substr;
                             if(lastsection.indexOf(BACKSLASH) == 0)
                             {
+#ifdef DBGPRINT
                                 fd.write(QString("baskslash equal zero").toLocal8Bit().data());
+#endif
                                 substr = s.section(SECTION_CHAR,1,1).mid(baseform->mWindow->mRootPathLen);
                             }else
                             {
+#ifdef DBGPRINT
                                 fd.write(QString("baskslash equal zero else").toLocal8Bit().data());
+#endif
                                 // 添加截取它的相对路径
                                 substr = s.section(SECTION_CHAR,1,1).mid(baseform->mWindow->mRootPathLen);
                             }
-                            fd.write("\n");
+
                             qa.append(substr);
+#ifdef DBGPRINT
+                            fd.write("\n");
                             fd.write(substr.toLocal8Bit().data());
                             fd.write("\n");
+#endif
                             cb->addItem(QIcon(s.section(SECTION_CHAR,1,1)),
                                         s.section(SECTION_CHAR,0,0));
                         }
-                        fd.close();;
+#ifdef DBGPRINT
+                        fd.close();
+#endif
                         cb->setCurrentText(curstr);
                         baseform->changeJsonValue(btn,uname,qa.toVariantList());
                         btn->setProperty(DKEY_CBLIST,qa.toVariantList());
@@ -899,8 +918,6 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                 //   nameEdt->setInputMask("nnnnnnnn;"); // or NNNNNNNN;_
                 nameEdt->setCursorPosition(0);
                 nameEdt->setText(((BaseForm*)p)->updateEname(i));
-                //                ((BaseForm*)p)->mWindow->ComCtrl->mEnameSeq.append(ename);
-
                 mainLayout->addWidget(nameEdt);
                 connect(nameEdt,SIGNAL(textChanged(QString)),
                         p,SLOT(onTextChanged(QString)));
@@ -964,7 +981,7 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
             {
                 // 这个按钮控件不作初始化了.
                 QPushButton *actBtn = new QPushButton(object[CAPTION].toString(),this);
-                qDebug() << " handle action is " << object[CAPTION].toString();
+//                qDebug() << " handle action is " << object[CAPTION].toString();
                 actBtn->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
                 actBtn->setProperty(DKEY_ARRIDX,i);
                 mainLayout->addWidget(actBtn);

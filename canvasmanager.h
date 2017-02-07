@@ -6,6 +6,7 @@
 #include <QtConcurrent>
 #include <QFuture>
 #include <QThread>
+#include <QProgressDialog>
 
 
 class ScenesScreen;
@@ -71,6 +72,7 @@ private slots:
 private:
     void screenshot();
     bool mFFmpegRuning;
+//    QJsonArray saveProjectJson(QProgressDialog *pd);
 
     void saveProject(QString fname);
     ScenesScreen *currentSS;

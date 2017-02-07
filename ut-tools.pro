@@ -75,7 +75,8 @@ FORMS    += mainwindow.ui \
     confproject.ui \
     globalset.ui \
     griddialog.ui \
-    dirdialog.ui
+    dirdialog.ui \
+    find.ui
 CONFIG += c++11   -fomit-frame-pointer
 
 

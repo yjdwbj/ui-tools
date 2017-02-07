@@ -84,6 +84,9 @@
         </property>
        </spacer>
       </item>
+      <item>
+       <widget class="QLabel" name="label_2"/>
+      </item>
      </layout>
     </item>
    </layout>
