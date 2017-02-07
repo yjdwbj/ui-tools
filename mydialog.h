@@ -276,6 +276,7 @@ class findDlg: public QDialog
 public:
     explicit findDlg(QWidget *parent=0);
 
+
 private:
     MainWindow *mWindow;
     Ui::findDlg *ui;

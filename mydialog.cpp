@@ -4,6 +4,7 @@
 #include "ui_language.h"
 #include "ui_confproject.h"
 #include "ui_globalset.h"
+#include "ui_find.h"
 #include <QMessageBox>
 #include "mainwindow.h"
 #include "canvasmanager.h"
@@ -60,10 +61,10 @@ ImageFileDialog::ImageFileDialog(const QVariantList &old, QString imgpath, QWidg
 
 
     QMap<QString,QString> navigator;
-    navigator[UP] = ":/icon/icons/buildstepmoveup@2x.png";
-    navigator[DOWN] = ":/icon/icons/buildstepmovedown@2x.png";
-    navigator[LEFT] = ":/icon/icons/prev@2x.png";
-    navigator[RIGHT] = ":/icon/icons/next@2x.png";
+    navigator[UP] = ":/icon/icons/go-up.png";
+    navigator[DOWN] = ":/icon/icons/go-down.png";
+    navigator[LEFT] = ":/icon/icons/go-previous.png";
+    navigator[RIGHT] = ":/icon/icons/go-next.png";
 
 
     QVBoxLayout *mainLayout = new QVBoxLayout();
@@ -72,7 +73,7 @@ ImageFileDialog::ImageFileDialog(const QVariantList &old, QString imgpath, QWidg
     this->setLayout(mainLayout);
     mainLayout->addLayout(mh);
     this->setWindowTitle(tr("图片编辑"));
-    QColor white(255,255,255);
+//    QColor white(255,255,255);
     QVBoxLayout *v = new QVBoxLayout();
     v->setSizeConstraint(QLayout::SetFixedSize);
 
@@ -893,6 +894,18 @@ findDlg::findDlg(QWidget *parent)
     setObjectName(this->metaObject()->className());
     mWindow = (MainWindow*)parent;
 
+    connect(ui->pushButton,&QPushButton::clicked,[=]{
+       QString text = ui->lineEdit->text();
+       QWidget *w = mWindow->ComCtrl->mSeqEnameMap.value(text);
+       if(w)
+       {
+           ((BaseForm*)w)->onSelectMe();
+       }
+       this->accept();
+       this->deleteLater();
+
+
+    });
 
 }
 
@@ -1466,14 +1479,14 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
 
 
             //            qDebug() << " pos in line  " << line << " Table row count " << mTable->rowCount();
-            QAction  up(QIcon(":/icon/icons/act_up.png")  ,
+            QAction  up(QIcon(":/icon/icons/go-up.png")  ,
                         QString("上移一行"),this);
             QObject::connect(&up,
                              &QAction::triggered,[=](){
                 //                    qDebug() << "current item " << mTable->currentItem();
                 sawp_lambda_func(line,line-1);
             });
-            QAction  uptop(QIcon(":/icon/icons/act_uptop.png")  ,
+            QAction  uptop(QIcon(":/icon/icons/go-top.png")  ,
                            QString("移到顶部"),this);
             QObject::connect(&uptop,
                              &QAction::triggered,[=](){
@@ -1481,13 +1494,13 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
             });
 
 
-            QAction down(QIcon(":/icon/icons/act_down.png")  ,
+            QAction down(QIcon(":/icon/icons/go-down.png")  ,
                          QString("下移一行"),this);
             QObject::connect(&down,
                              &QAction::triggered,[=](){
                 sawp_lambda_func(line,line+1);
             });
-            QAction downbottom(QIcon(":/icon/icons/act_downbottom.png")  ,
+            QAction downbottom(QIcon(":/icon/icons/go-bottom.png")  ,
                                QString("移到底部"),this);
             QObject::connect(&downbottom,
                              &QAction::triggered,[=](){

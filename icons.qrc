@@ -56,5 +56,17 @@
         <file>icons/Cut.png</file>
         <file>icons/Screenshot.png</file>
         <file>icons/smallpt.png</file>
+        <file>icons/bottom.png</file>
+        <file>icons/top.png</file>
+        <file>icons/eye-hidden.png</file>
+        <file>icons/eye.png</file>
+        <file>icons/go-next.png</file>
+        <file>icons/go-previous.png</file>
+        <file>icons/go-down.png</file>
+        <file>icons/go-up.png</file>
+        <file>icons/search.png</file>
+        <file>icons/go-bottom.png</file>
+        <file>icons/go-top.png</file>
+        <file>icons/system-search.png</file>
     </qresource>
 </RCC>

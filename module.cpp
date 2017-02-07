@@ -815,7 +815,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
 
 
 
-    QAction downone("移下一层",this);
+    QAction downone(QIcon(":/icon/icons/go-down.png"),"移下一层",this);
     connect(&downone,&QAction::triggered,[=](){
 
 
@@ -862,7 +862,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
     });
 
 
-    QAction upone("移上一层",this);
+    QAction upone(QIcon(":/icon/icons/go-up.png"),"移上一层",this);
     connect(&upone,&QAction::triggered,[=](){
 
         int n= 0;
@@ -905,7 +905,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
 
 
 
-    QAction widlower("移到底层",this);
+    QAction widlower(QIcon(":/icon/icons/go-bottom.png"),"移到底层",this);
     connect(&widlower,&QAction::triggered,[=](){
 
         this->lower();
@@ -929,7 +929,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
 
     });
 
-    QAction widraise("移到顶层",this);
+    QAction widraise(QIcon(":/icon/icons/go-top.png"),"移到顶层",this);
     connect(&widraise,&QAction::triggered,[=](){
         this->raise();
         QTreeWidgetItem *item =  treeWidget->currentItem();
@@ -967,13 +967,15 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
     contextMenu->addAction(&upone);
     contextMenu->addAction(&widraise);
      contextMenu->addSeparator();
-    QAction findaction("查找对像",this);
+    QAction findaction(QIcon(":/icon/icons/search.png"),"查找对像",this);
     connect(&findaction,&QAction::triggered,[=]{
 
 
-
-
+        findDlg dlg(mWindow);
+        dlg.exec();
     });
+    contextMenu->addAction(&findaction);
+     contextMenu->addSeparator();
 
 
     bool inContainer = property(DKEY_INTOCONTAINER).toBool();
