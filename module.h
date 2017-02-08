@@ -186,6 +186,8 @@ protected:
     void resizeEvent(QResizeEvent *event);
     void wheelEvent(QWheelEvent *);
     void initObject(const QJsonObject &json);
+    void objectMoveSwapMenu(QMenu *contextMenu);
+    void listObjectMoveMenu(QMenu *contextMenu, BaseForm *container);
 
 };
 

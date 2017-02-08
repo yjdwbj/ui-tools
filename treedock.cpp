@@ -228,6 +228,52 @@ void TreeDock::onSwapShowHideObject()
     }
 }
 
+void TreeDock::moveListItemOrder(QString pname, int src, int dst)
+{
+
+    QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(pname,
+                                                            Qt::MatchFixedString |
+                                                            Qt::MatchRecursive);
+    if(qwilist.count() > 0)
+    {
+        QTreeWidgetItem *item = qwilist.first();
+        item->insertChild(dst,item->takeChild(src));
+    }
+}
+
+void TreeDock::moveItemOrder(QTreeWidgetItem *item,int src,int dst)
+{
+    item->insertChild(dst,item->takeChild(src));
+}
+
+
+void TreeDock::moveTopItemOrder(QTreeWidgetItem *item,int src,int dst)
+{
+   treeWidget->insertTopLevelItem(dst,item->takeChild(src));
+}
+
+//void TreeDock::moveItemOrder()
+//{
+//    QTreeWidgetItem *item = currentItem();
+//    int myindex = 0;
+//    int row = currentIndex().row();
+//    if(item && row > 0)
+//    {
+//        QTreeWidgetItem* parent = item->parent();
+//        if(!parent)
+//        {
+
+//            myindex = indexOfTopLevelItem(item);
+//            QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(myindex);
+//            treeWidget->insertTopLevelItem(myindex-1,ntop);
+//        }else{
+//            myindex = parent->indexOfChild(item);
+//            QTreeWidgetItem *child = parent->takeChild(myindex);
+//            parent->insertChild(myindex-1,child);
+//        }
+//    }
+//}
+
 void TreeDock::setMyParentNode()
 {
     QTreeWidgetItem *citem = treeWidget->currentItem();

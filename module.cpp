@@ -338,10 +338,10 @@ QJsonArray Compoent::updateRBJsonValue(const QJsonArray &arr, QWidget *w)
 }
 
 
-QVariant Compoent::getJsonValue(const QJsonArray &arr, QString key,int index)
-{
+//QVariant Compoent::getJsonValue(const QJsonArray &arr, QString key,int index)
+//{
 
-}
+//}
 
 QVariant Compoent::getJsonValue(const QJsonValue &val, QString key)
 {
@@ -732,6 +732,242 @@ void BaseForm::SwapLayerOrder(SwapType st)
 }
 
 
+void BaseForm::objectMoveSwapMenu(QMenu *contextMenu)
+{
+    QWidget *pwid = this->parentWidget();
+    QTreeWidget *treeWidget = mWindow->tree->treeWidget;
+    QAction *downone = new QAction(QIcon(":/icon/icons/go-down.png"),"移下一层",this);
+    connect(downone,&QAction::triggered,[=](){
+        QWidget *last = this;
+        foreach( QObject *o,pwid->children())
+        {
+            // qDebug() << " object order " << o->objectName();
+            if(o == this)
+            {
+                if(o == last)
+                    break;
+                else
+                {
+                    this->stackUnder(last);
+                    int myindex = 0;
+
+                    QTreeWidgetItem *item = treeWidget->currentItem();
+                    int row = mWindow->tree->treeWidget->currentIndex().row();
+                    if(item && row > 0)
+                    {
+                        QTreeWidgetItem* parent = item->parent();
+                        if(!parent)
+                        {
+
+                            myindex = treeWidget->indexOfTopLevelItem(item);
+//                            QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(myindex);
+//                            treeWidget->insertTopLevelItem(myindex-1,ntop);
+                            mWindow->tree->moveTopItemOrder(item,myindex,myindex-1);
+
+                        }else{
+                            myindex = parent->indexOfChild(item);
+//                            QTreeWidgetItem *child = parent->takeChild(myindex);
+//                            parent->insertChild(myindex-1,child);
+                            mWindow->tree->moveItemOrder(parent,myindex,myindex-1);
+                        }
+                    }
+                    SwapLayerOrder(DownOne);
+                    break;
+                }
+
+            }
+            last=(QWidget*)o;
+        }
+    });
+
+
+    QAction *upone = new QAction(QIcon(":/icon/icons/go-up.png"),"移上一层",this);
+    connect(upone,&QAction::triggered,[=](){
+
+        int n= 0;
+        foreach( QObject *o,pwid->children())
+        {
+            //  qDebug() << " object order " << o->objectName();
+            if(o == this)
+            {
+                n = 1;
+            }else if(n)
+            {
+                ((QWidget*)o)->stackUnder(this);
+
+                QTreeWidgetItem *item =  treeWidget->currentItem();
+                int myindex = 0;
+                if(item)
+                {
+                    QTreeWidgetItem* parent = item->parent();
+                    if(!parent)
+                    {
+                        myindex = treeWidget->indexOfTopLevelItem(item);
+//                        QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(myindex);
+//                        treeWidget->insertTopLevelItem(myindex+1,ntop);
+                        mWindow->tree->moveTopItemOrder(item,myindex,myindex-1);
+                    }else{
+                        myindex = parent->indexOfChild(item);
+//                        QTreeWidgetItem *child = parent->takeChild(myindex);
+//                        parent->insertChild(myindex+1,child);
+                         mWindow->tree->moveItemOrder(parent,myindex,myindex+1);
+
+                    }
+                }
+
+                SwapLayerOrder(UpOne);
+
+                break;
+            }
+        }
+
+
+    });
+
+
+
+    QAction *widlower= new QAction(QIcon(":/icon/icons/go-bottom.png"),"移到底层",this);
+    connect(widlower,&QAction::triggered,[=](){
+
+        this->lower();
+
+        QTreeWidgetItem *item =  treeWidget->currentItem();
+        if(item)
+        {
+            QTreeWidgetItem* parent = item->parent();
+            if(!parent)
+            {
+//                int num = treeWidget->indexOfTopLevelItem(item);
+//                QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(num);
+//                treeWidget->insertTopLevelItem(0,ntop);
+                mWindow->tree->moveTopItemOrder(item,treeWidget->indexOfTopLevelItem(item),0);
+            }else{
+//                int index = parent->indexOfChild(item);
+//                QTreeWidgetItem *child = parent->takeChild(index);
+                mWindow->tree->moveItemOrder(parent,parent->indexOfChild(item),0);
+//                parent->insertChild(0,child);
+            }
+        }
+        SwapLayerOrder(Lower);
+
+    });
+
+    QAction *widraise = new QAction(QIcon(":/icon/icons/go-top.png"),"移到顶层",this);
+    connect(widraise,&QAction::triggered,[=](){
+        this->raise();
+        QTreeWidgetItem *item =  treeWidget->currentItem();
+        if(item)
+        {
+            QTreeWidgetItem* parent = item->parent();
+            if(!parent)
+            {
+//                int num = treeWidget->indexOfTopLevelItem(item);
+//                QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(num);
+//                treeWidget->insertTopLevelItem(treeWidget->topLevelItemCount(),ntop);
+                mWindow->tree->moveTopItemOrder(item,
+                                             treeWidget->indexOfTopLevelItem(item),
+                                             treeWidget->topLevelItemCount());
+            }else{
+//                int index = parent->indexOfChild(item);
+//                QTreeWidgetItem *child = parent->takeChild(index);
+//                parent->insertChild(parent->childCount(),child);
+                mWindow->tree->moveItemOrder(parent,
+                                             parent->indexOfChild(item),
+                                             parent->childCount());
+            }
+
+            SwapLayerOrder(Raise);
+        }
+    });
+
+
+
+    upone->setEnabled(pwid->children().last() != this);
+    widraise->setEnabled(pwid->children().last() != this);
+
+    downone->setEnabled(pwid->children().first() != this);
+    widlower->setEnabled(pwid->children().first() != this);
+
+    //    QWidget *pp = mWindow->ComCtrl->ProMap.value(pwid->objectName());
+    //    if(!pp || (!pp->inherits(CN_NEWGRID) && !pp->inherits(CN_NEWLIST)))
+    //    {
+    // 列表,表格容器类不支持该操作
+    contextMenu->addAction(downone);
+    contextMenu->addAction(widlower);
+    contextMenu->addAction(upone);
+    contextMenu->addAction(widraise);
+    contextMenu->addSeparator();
+    //    }
+}
+
+void BaseForm::listObjectMoveMenu(QMenu *contextMenu,BaseForm *container)
+{
+    if(container->inherits(CN_NEWLIST))
+    {
+        QBoxLayout *boxlayout = ((NewList*)container)->listLayout;
+        int first =  boxlayout->indexOf(this);
+        int last = boxlayout->count() -1;
+
+        qDebug() << " this widget index of  " << first
+                 << " count is " << boxlayout->count();
+        if(boxlayout->count() > 1)
+        {
+
+            QAction *downbottom = new QAction(QIcon(":/icon/icons/go-bottom.png"),"移到底层",this);
+            connect(downbottom,&QAction::triggered,[=]{
+                   boxlayout->insertItem(boxlayout->count(),
+                                         boxlayout->takeAt(first));
+                   mWindow->tree->moveListItemOrder(container->mUniqueStr,
+                                                    first,
+                                                    boxlayout->count());
+            });
+            QAction *uptop = new QAction(QIcon(":/icon/icons/go-top.png"),"移到顶层",this);
+            connect(uptop,&QAction::triggered,[=]{
+                boxlayout->insertItem(0,boxlayout->takeAt(first));
+                mWindow->tree->moveListItemOrder(container->mUniqueStr,
+                                                 first,
+                                                 0);
+            });
+            QAction *upone = new QAction(QIcon(":/icon/icons/go-up.png"),"移上一层",this);
+            connect(upone,&QAction::triggered,[=]{
+                boxlayout->insertItem(first - 1,boxlayout->takeAt(first));
+                mWindow->tree->moveListItemOrder(container->mUniqueStr,
+                                                 first,
+                                                 first - 1);
+            });
+
+
+            QAction *downone = new QAction(QIcon(":/icon/icons/go-down.png"),"移下一层",this);
+            connect(downone,&QAction::triggered,[=]{
+                boxlayout->insertItem(first + 1,boxlayout->takeAt(first));
+                mWindow->tree->moveListItemOrder(container->mUniqueStr,
+                                                 first,
+                                                 first + 1);
+            });
+
+            if(first == 0 )
+            {
+                contextMenu->addAction(downone);
+                contextMenu->addAction(downbottom);
+
+            }else if(first == last )
+            {
+                contextMenu->addAction(upone);
+                contextMenu->addAction(uptop);
+            }else{
+                contextMenu->addAction(upone);
+                contextMenu->addAction(uptop);
+                contextMenu->addAction(downone);
+                contextMenu->addAction(downbottom);
+            }
+
+
+        }
+
+        contextMenu->addSeparator();
+    }
+}
+
 void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
 {
 
@@ -749,17 +985,14 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
         connect(&saveTemp,SIGNAL(triggered(bool)),SLOT(onBeComeTemplateWidget()));
     }
 
-    if(inherits(CN_NEWFRAME))
-    {
-
-    }else
+    if(!inherits(CN_NEWFRAME))
     {
         QAction *qaobj = new QAction(this);
         if(parent->inherits("QTreeWidget"))
         {
             QTreeWidget *w = ((QTreeWidget*)parent);
             QTreeWidgetItem *i = w->itemAt(w->viewport()->mapFromGlobal(pos));
-            qDebug() << "tree click  " << this->objectName() << this->metaObject()->className();
+            //            qDebug() << "tree click  " << this->objectName() << this->metaObject()->className();
             QAction *subobj = new QAction(this);
 
             if(isHidden())
@@ -767,7 +1000,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
                 subobj->setIcon(QIcon(SHOW_ICON));
                 subobj->setIconText("显示同类容器");
                 qaobj->setIcon(QIcon(SHOW_ICON));
-                 qaobj->setIconText("显示");
+                qaobj->setIconText("显示");
 
             }else{
                 subobj->setIcon(QIcon(HIDE_ICON));
@@ -797,6 +1030,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
         contextMenu->addAction(qaobj);
     }
 
+
     contextMenu->addSeparator();
     QAction copy(QIcon(":/icon/icons/editcopy.png"),"复制",this);
     connect(&copy,&QAction::triggered,[=](){
@@ -808,165 +1042,20 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
         mWindow->cManager->activeSS()->pasteItem(this);
     });
 
-    QWidget *pwid = this->parentWidget();
 
-    QTreeWidget *treeWidget = mWindow->tree->treeWidget;
-
-
-
-
-    QAction downone(QIcon(":/icon/icons/go-down.png"),"移下一层",this);
-    connect(&downone,&QAction::triggered,[=](){
-
-
-        QWidget *last = this;
-
-        foreach( QObject *o,pwid->children())
-        {
-            // qDebug() << " object order " << o->objectName();
-            if(o == this)
-            {
-                if(o == last)
-                    break;
-                else
-                {
-                    this->stackUnder(last);
-                    int myindex = 0;
-
-                    QTreeWidgetItem *item = treeWidget->currentItem();
-                    int row = mWindow->tree->treeWidget->currentIndex().row();
-                    if(item && row > 0)
-                    {
-                        QTreeWidgetItem* parent = item->parent();
-                        if(!parent)
-                        {
-
-                            myindex = treeWidget->indexOfTopLevelItem(item);
-                            QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(myindex);
-                            treeWidget->insertTopLevelItem(myindex-1,ntop);
-                        }else{
-                            myindex = parent->indexOfChild(item);
-                            QTreeWidgetItem *child = parent->takeChild(myindex);
-                            parent->insertChild(myindex-1,child);
-                        }
-                    }
-                    SwapLayerOrder(DownOne);
-                    break;
-                }
-
-            }
-            last=(QWidget*)o;
-        }
-
-
-    });
-
-
-    QAction upone(QIcon(":/icon/icons/go-up.png"),"移上一层",this);
-    connect(&upone,&QAction::triggered,[=](){
-
-        int n= 0;
-        foreach( QObject *o,pwid->children())
-        {
-            //  qDebug() << " object order " << o->objectName();
-            if(o == this)
-            {
-                n = 1;
-            }else if(n)
-            {
-                ((QWidget*)o)->stackUnder(this);
-
-                QTreeWidgetItem *item =  treeWidget->currentItem();
-                int myindex = 0;
-                if(item)
-                {
-                    QTreeWidgetItem* parent = item->parent();
-                    if(!parent)
-                    {
-                        myindex = treeWidget->indexOfTopLevelItem(item);
-                        QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(myindex);
-                        treeWidget->insertTopLevelItem(myindex+1,ntop);
-                    }else{
-                        myindex = parent->indexOfChild(item);
-                        QTreeWidgetItem *child = parent->takeChild(myindex);
-                        parent->insertChild(myindex+1,child);
-
-                    }
-                }
-
-                SwapLayerOrder(UpOne);
-
-                break;
-            }
-        }
-
-
-    });
-
-
-
-    QAction widlower(QIcon(":/icon/icons/go-bottom.png"),"移到底层",this);
-    connect(&widlower,&QAction::triggered,[=](){
-
-        this->lower();
-
-        QTreeWidgetItem *item =  treeWidget->currentItem();
-        if(item)
-        {
-            QTreeWidgetItem* parent = item->parent();
-            if(!parent)
-            {
-                int num = treeWidget->indexOfTopLevelItem(item);
-                QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(num);
-                treeWidget->insertTopLevelItem(0,ntop);
-            }else{
-                int index = parent->indexOfChild(item);
-                QTreeWidgetItem *child = parent->takeChild(index);
-                parent->insertChild(0,child);
-            }
-        }
-        SwapLayerOrder(Lower);
-
-    });
-
-    QAction widraise(QIcon(":/icon/icons/go-top.png"),"移到顶层",this);
-    connect(&widraise,&QAction::triggered,[=](){
-        this->raise();
-        QTreeWidgetItem *item =  treeWidget->currentItem();
-        if(item)
-        {
-            QTreeWidgetItem* parent = item->parent();
-            if(!parent)
-            {
-                int num = treeWidget->indexOfTopLevelItem(item);
-                QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(num);
-                treeWidget->insertTopLevelItem(treeWidget->topLevelItemCount(),ntop);
-            }else{
-                int index = parent->indexOfChild(item);
-                QTreeWidgetItem *child = parent->takeChild(index);
-                parent->insertChild(parent->childCount(),child);
-            }
-
-            SwapLayerOrder(Raise);
-        }
-    });
 
     paste.setEnabled(!mWindow->mCopyItem.isNull());
     contextMenu->addAction(&copy);
     contextMenu->addAction(&paste);
     contextMenu->addSeparator();
-
-    upone.setEnabled(pwid->children().last() != this);
-    widraise.setEnabled(pwid->children().last() != this);
-
-    downone.setEnabled(pwid->children().first() != this);
-    widlower.setEnabled(pwid->children().first() != this);
-
-    contextMenu->addAction(&downone);
-    contextMenu->addAction(&widlower);
-    contextMenu->addAction(&upone);
-    contextMenu->addAction(&widraise);
-     contextMenu->addSeparator();
+    QWidget *pp = mWindow->ComCtrl->ProMap.value(parentWidget()->objectName());
+    if(!pp || (!pp->inherits(CN_NEWGRID) && !pp->inherits(CN_NEWLIST)))
+    {
+        objectMoveSwapMenu(contextMenu);
+    }
+    else{
+        listObjectMoveMenu(contextMenu,(BaseForm*)pp);
+    }
     QAction findaction(QIcon(":/icon/icons/search.png"),"查找对像",this);
     connect(&findaction,&QAction::triggered,[=]{
 
@@ -975,7 +1064,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
         dlg.exec();
     });
     contextMenu->addAction(&findaction);
-     contextMenu->addSeparator();
+    contextMenu->addSeparator();
 
 
     bool inContainer = property(DKEY_INTOCONTAINER).toBool();
@@ -1974,7 +2063,7 @@ void NewFrame::readFromJson(const QJsonValue &qv)
     // 下面这种粗暴的取值方式是一定含有:　　"-class": "Classname" 的条目.
     QString clsName = json[CLASS].toString();
     QString caption = json[CAPTION].toString();
-//    qDebug() << " read from json caption is " << caption;
+    //    qDebug() << " read from json caption is " << caption;
     QVariant variant = json[PROPERTY].toVariant();
 }
 
@@ -2004,8 +2093,8 @@ NewGrid::NewGrid(const QJsonValue &qv,
     mWindow = ((NewLayout*)parent->parentWidget())->mWindow;
     QJsonObject obj = qv.toObject();
     initObject(obj);
-//    QString caption = obj[CAPTION].toString();
-//    setProperty(DKEY_TXT,caption);
+    //    QString caption = obj[CAPTION].toString();
+    //    setProperty(DKEY_TXT,caption);
     setFocusPolicy(Qt::ClickFocus);
 
     mainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -2273,7 +2362,7 @@ NewList::NewList(const QJsonValue &json, const QSize size, QWidget *parent):
     mWindow = ((NewLayout*)parent->parentWidget())->mWindow;
     setProperty(DKEY_JSONSTR,json.toVariant());
     QJsonObject obj = json.toObject();
-//    QString caption = obj[CAPTION].toString();
+    //    QString caption = obj[CAPTION].toString();
     initObject(obj);
 
     QString Orientation = obj[QRIENTATION].toString();
@@ -2288,7 +2377,7 @@ NewList::NewList(const QJsonValue &json, const QSize size, QWidget *parent):
     mainScroll->setContentsMargins(0,0,0,0);
 
 
-    mainWidget->setObjectName(LISTWIDGET);  // 用来识别布局是否在列表控件下面.
+    //    mainWidget->setObjectName(LISTWIDGET);  // 用来识别布局是否在列表控件下面.
     mainWidget->setContentsMargins(0,0,0,0);
     mainScroll->setWidget(mainWidget);
 
@@ -2346,10 +2435,6 @@ void NewList::updateAllItemsSize()
 
     foreach (QWidget *w, childlist) {
         ((NewLayout*)w)->setMaximumSize(this->size());
-        // ((NewLayout*)w)->setFixedSize(this->size());
-        //        QRect rect= Compoent::getRectFromStruct(((BaseForm*)w)->mOwerJson[PROPERTY].toArray(),KEY_RECT);
-
-        //        qDebug() << " list layout rect " << rect;
         if(sliderOrientation == Qt::Horizontal)
         {
             if(itemHeight == w->width() &&

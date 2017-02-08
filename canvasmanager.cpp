@@ -683,8 +683,8 @@ void CanvasManager::saveProject(QString fname)
     QThread *dlgth = new QThread();
 //    pd->moveToThread(dlgth);
     connect(dlgth,&QThread::started,[=]{
-        pd->show();
-//        pd->exec();
+//        pd->show();
+        pd->exec();
         dlgth->exit();
     });
 
