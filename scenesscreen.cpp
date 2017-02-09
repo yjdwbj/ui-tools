@@ -61,7 +61,8 @@ void ScenesScreen::mousePressEvent(QMouseEvent *event)
         contextMenu->addSeparator();
         QAction copy(QIcon(":/icon/icons/editcopy.png"),"复制",this);
         connect(&copy,&QAction::triggered,[=](){
-            mWindow->mCopyItem = QJsonValue(writeToJson());
+            BaseForm::mCopyItem = QJsonValue(writeToJson());
+            BaseForm::mCopyFromType = BaseForm::ObjType::TYPESS;
         });
 
         QAction paste(QIcon(":/icon/icons/editpaste.png"),"粘贴",this);
@@ -69,7 +70,7 @@ void ScenesScreen::mousePressEvent(QMouseEvent *event)
             mWindow->cManager->activeSS()->pasteItem(this);
         });
         contextMenu->addAction(&copy);
-        paste.setEnabled(!mWindow->mCopyItem.isNull());
+        paste.setEnabled(!BaseForm::mCopyItem.isNull());
         contextMenu->addAction(&paste);
 
         contextMenu->exec(mapToGlobal(event->pos()));
@@ -219,7 +220,8 @@ void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
 
         if(s->matches(QKeySequence::Copy))
         {
-            mWindow->mCopyItem =  QJsonValue(bf->writeToJson());
+            BaseForm::mCopyItem =  QJsonValue(bf->writeToJson());
+            BaseForm::mCopyFromType = bf->mType;
         }else if(s->matches(QKeySequence::Paste))
         {
             pasteItem(bf);
@@ -241,32 +243,46 @@ void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
 void ScenesScreen::pasteItem(QWidget *w)
 {
     BaseForm *bf = (BaseForm*)w;
-    if(!mWindow->mCopyItem.isNull())
+    if(!BaseForm::mCopyItem.isNull())
     {
         //QString curobj = bf->metaObject()->className();
         BaseForm::ObjType curtype = bf->mType;
-        QString cls =  mWindow->mCopyItem.toObject()[CLASS].toString();
+        QString cls =  BaseForm::mCopyItem.toObject()[CLASS].toString();
 
         if(!cls.compare(CN_NEWLAYER) )
         {
             // 复制到同级.
             QJsonArray a;
-            a.append(mWindow->mCopyItem);
+            a.append(BaseForm::mCopyItem);
             readLayer(a);
 
         }else if(!cls.compare(CN_NEWLAYOUT)){
             if( curtype == BaseForm::TYPELAYOUT)
             {
                 NewLayout* bflayout = (NewLayout*)bf;
-                bflayout->readFromJson(mWindow->mCopyItem,true);
+                bflayout->readFromJson(BaseForm::mCopyItem,true);
             }
             else if (curtype == BaseForm::TYPELAYER)
             {
                 NewLayer *layer = (NewLayer *)bf;
-                layer->readLayoutFromJson(mWindow->mCopyItem,true);
-            }else{
+                layer->readLayoutFromJson(BaseForm::mCopyItem,true);
+            }else if(curtype == BaseForm::TYPELIST )
+            {
+                if(BaseForm::mCopyFromType != BaseForm::ObjType::TYPELAYOUT)
+                {
+                    QMessageBox::warning(this,"提示","列表容器只支持<布局>类型的粘贴!");
+                }else{
+                    NewList *nlist = (NewList*)bf;
+                    nlist->pasteOneLine(BaseForm::mCopyItem);
+                }
+
+            }else if(curtype == BaseForm::TYPEGRID)
+            {
+                QMessageBox::warning(this,"提示","当前类型容器不接受粘贴!");
+            }
+            else{
                 NewLayout* bflayout = (NewLayout*)(bf->parentWidget());
-                bflayout->readFromJson(mWindow->mCopyItem,true);
+                bflayout->readFromJson(BaseForm::mCopyItem,true);
             }
 
         }else if(!cls.compare(CN_NEWFRAME) ||
@@ -281,11 +297,11 @@ void ScenesScreen::pasteItem(QWidget *w)
             }else
             {
                 NewLayout* bflayout = (NewLayout*)bf;
-                bflayout->readFromJson(mWindow->mCopyItem,true);
+                bflayout->readFromJson(BaseForm::mCopyItem,true);
             }
         }else if(this->inherits(cls.toLocal8Bit().data()))
         {
-            QJsonObject ssobj = mWindow->mCopyItem.toObject();
+            QJsonObject ssobj = BaseForm::mCopyItem.toObject();
             readLayer(ssobj[LAYER].toArray());
         }
     }

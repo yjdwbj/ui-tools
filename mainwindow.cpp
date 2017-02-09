@@ -66,6 +66,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setStyleSheet(stylestr);
     setCentralWidget(bk);
 
+
     cManager = new CanvasManager(this);
     posWidget = 0;
 
@@ -507,7 +508,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
             //　需要保存
             cManager->onSaveProject();
         }
-        cManager->closeCurrentProject();
+//        cManager->closeCurrentProject();
     }
 }
 

@@ -73,7 +73,7 @@ ImageFileDialog::ImageFileDialog(const QVariantList &old, QString imgpath, QWidg
     this->setLayout(mainLayout);
     mainLayout->addLayout(mh);
     this->setWindowTitle(tr("图片编辑"));
-//    QColor white(255,255,255);
+    //    QColor white(255,255,255);
     QVBoxLayout *v = new QVBoxLayout();
     v->setSizeConstraint(QLayout::SetFixedSize);
 
@@ -454,7 +454,7 @@ ProjectDialog::ProjectDialog(QWidget *parent)
         h = 128;
     }
 
-//    QSize pdsize(w,h);
+    //    QSize pdsize(w,h);
     ui->spinBox->setMinimum(64);
     ui->spinBox_2->setMinimum(64);
     ui->spinBox->setMaximum(parent->width()*0.8);
@@ -886,7 +886,7 @@ QStringList ConfigProject::getSelectLang()
 
 findDlg::findDlg(QWidget *parent)
     :QDialog(parent),
-    ui(new Ui::findDlg)
+      ui(new Ui::findDlg)
 {
     ui->setupUi(this);
     setWindowFlags(Qt::Widget | Qt::FramelessWindowHint);
@@ -894,15 +894,25 @@ findDlg::findDlg(QWidget *parent)
     setObjectName(this->metaObject()->className());
     mWindow = (MainWindow*)parent;
 
+    QSize ps = parent->size();
+    int w = ( ps.width() - width() )/ 2;
+    int h = (ps.height()-height()) / 2;
+    move(mapFromParent(QPoint(w,h)));
+    ui->lineEdit->setFocus();
+
     connect(ui->pushButton,&QPushButton::clicked,[=]{
-       QString text = ui->lineEdit->text();
-       QWidget *w = mWindow->ComCtrl->mSeqEnameMap.value(text);
-       if(w)
-       {
-           ((BaseForm*)w)->onSelectMe();
-       }
-       this->accept();
-       this->deleteLater();
+        QString text = ui->lineEdit->text();
+        QWidget *w = mWindow->ComCtrl->mSeqEnameMap.value(text);
+
+        if(w)
+        {
+            int i = ((BaseForm*)w)->mPageIndex;
+            if(mWindow->cManager->activeIndex() !=  i)
+                mWindow->pageView->PressItem(i);
+            ((BaseForm*)w)->onSelectMe();
+        }
+        this->accept();
+        this->deleteLater();
 
 
     });
@@ -1540,6 +1550,6 @@ ProgressDlg::ProgressDlg(int min, int max, QWidget *parent)
     setFixedSize(200,100);
     this->setLayout(vb);
     connect(this,SIGNAL(accepted()),SLOT(deleteLater()));
-    setWindowModality(Qt::ApplicationModal);
+    //    setWindowModality(Qt::ApplicationModal);
     setModal(true);
 }

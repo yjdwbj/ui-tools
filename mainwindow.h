@@ -43,6 +43,7 @@ class CompoentControls;
 class ComProperty;
 class ImgProperty;
 class Position;
+class BaseForm;
 
 
 namespace Ui {
@@ -105,7 +106,12 @@ public:
     QMap<QString,QString> mItemMap;
     QMap<QString,QPixmap> mImgMap; //这里只用来缓图片
 
-    QJsonValue mCopyItem;
+//    BaseForm mCopyFromType;
+//    QJsonValue mCopyItem;
+
+
+
+
 
 
 

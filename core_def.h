@@ -126,14 +126,7 @@ static const char DKEY_SEQENAME[] = "EnameSequence";
 static const char DKEY_ROW[] = "gridrow";
 static const char DKEY_COL[] = "gridcol";
 
-/* Class Name */
-//static const QString CN_NEWLAYOUT = "NewLayout";
-//static const QString CN_NEWFRAME = "NewFrame";
-//static const QString CN_NEWLABEL = "NewLabel";
-//static const QString CN_NEWLAYER = "NewLayer";
-//static const QString CN_NEWLIST = "NewList";
-//static const QString CN_NEWGRID = "NewGrid";
-//static const QString CN_NEWPAGE = "NewPage";
+
 
 static const char CN_NEWLAYOUT[] = "NewLayout";
 static const char CN_NEWFRAME[] = "NewFrame";
@@ -178,11 +171,11 @@ static QSize MARGIN_SIZE = QSize(SELECTION_MARGIN * 2, SELECTION_MARGIN *2);
 
 
 
-static const QString WIN_TITLE = "图片编辑工具  ";
+static const QString WIN_TITLE = "图片编辑工具";
+static const QString GITVER = QString("1.0-r%1").arg(QString(APP_REVISION).mid(0,6));
+static const QString BUILDTIME = QString(" %1 , %2").arg( QDate::currentDate().toString("yyyy-MM-dd"),
+                                                               __TIME__);
 
-static QString VERSION = QString("%1 Ver:1.0-r%2 build time: %3 , %4   ").arg(WIN_TITLE,
-                                QString(APP_REVISION).mid(0,6),
-                                QDate::currentDate().toString("yyyy-MM-dd"),
-                                __TIME__);
+static const QString VERSION = QString("%1 Ver:%2  ").arg(WIN_TITLE,GITVER);
 
 #endif // CONFIG_H

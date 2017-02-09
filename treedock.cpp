@@ -252,28 +252,6 @@ void TreeDock::moveTopItemOrder(QTreeWidgetItem *item,int src,int dst)
    treeWidget->insertTopLevelItem(dst,item->takeChild(src));
 }
 
-//void TreeDock::moveItemOrder()
-//{
-//    QTreeWidgetItem *item = currentItem();
-//    int myindex = 0;
-//    int row = currentIndex().row();
-//    if(item && row > 0)
-//    {
-//        QTreeWidgetItem* parent = item->parent();
-//        if(!parent)
-//        {
-
-//            myindex = indexOfTopLevelItem(item);
-//            QTreeWidgetItem *ntop= treeWidget->takeTopLevelItem(myindex);
-//            treeWidget->insertTopLevelItem(myindex-1,ntop);
-//        }else{
-//            myindex = parent->indexOfChild(item);
-//            QTreeWidgetItem *child = parent->takeChild(myindex);
-//            parent->insertChild(myindex-1,child);
-//        }
-//    }
-//}
-
 void TreeDock::setMyParentNode()
 {
     QTreeWidgetItem *citem = treeWidget->currentItem();
@@ -316,24 +294,9 @@ void TreeDock::onItemPressed(QTreeWidgetItem *item,int col)
     treeWidget->setCurrentItem(item);
 }
 
-//void TreeDock::addChildObject(QString root, QString node, QString property)
-//{
-//    QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(root,
-//                                                            Qt::MatchFixedString | Qt::MatchRecursive);
-
-//    if(qwilist.count())
-//    {
-//        QTreeWidgetItem *nqwi =  new QTreeWidgetItem(qwilist.at(0),
-//                                                     QStringList() << node << property);
-//        treeWidget->setCurrentItem(nqwi);
-//    }
-//}
 
 void TreeDock::addItemToRoot(QString node, QString property)
 {
-
-
-
     QTreeWidgetItem *nroot = new QTreeWidgetItem(treeWidget,QStringList() << node << property);
     nroot->setIcon(0,QIcon(SHOW_ICON));
     treeWidget->setCurrentItem(nroot);

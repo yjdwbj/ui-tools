@@ -49,7 +49,7 @@ public slots:
     void onChangedBackgroundColor();
 private:
     void keyReleaseEvent(QKeyEvent *);
-    int mActiveIdx; //  当前激活的布局.
+//    int mActiveIdx; //  当前激活的布局.
 
     QWidget *activeObj;
 protected:

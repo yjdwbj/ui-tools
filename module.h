@@ -86,14 +86,17 @@ public:
         TYPEFRAME = 0x2,
         TYPELIST = 0x3,
         TYPEGRID = 0x4,
-        Object = 0x5
+        TYPESS = 0x5,
+        Object = 0x6
     };
+
+
 
     enum SwapType {
         UpOne = 0x0,
         DownOne = 0x1,
-        Lower = 0x3,
-        Raise = 0x4
+        DownBottom = 0x3,
+        UpTop = 0x4
     };
 
     explicit BaseForm(QWidget *parent=0);
@@ -128,9 +131,6 @@ public:
     void initJsonValue();
     void createContextMenu(QWidget *parent, QPoint pos);
     void SwapLayerOrder(SwapType st);
-//    QString getEname() const{
-//        return mWindow->ComCtrl->mSeqEnameMap.key(this);
-//    }
 
     QString updateEname(int index);
 
@@ -152,6 +152,10 @@ public:
 
 
     ObjType mType;
+
+    static ObjType mCopyFromType ;
+    static QJsonValue mCopyItem;
+    int mPageIndex;
 
 
 
@@ -274,6 +278,10 @@ public:
     QWidget *mainWidget;
     QBoxLayout *listLayout;
     Qt::Orientation  sliderOrientation;
+//    void pasteAddOneLine(const QJsonValue &value);
+    void updateOneItem(QWidget *w,int width,int height);
+    NewLayout *AddOneLine(const QJsonValue &value);
+    void pasteOneLine(const QJsonValue &value);
 
 
     // 菜单项.
@@ -282,7 +290,7 @@ public:
     QAction *menuSetSpace;
 
 private:
-    NewLayout *AddOneLine(QJsonValue value);
+
 
     int itemHeight; // 垂直是宽随父控件,水平是高随父控件.
 

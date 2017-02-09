@@ -159,10 +159,11 @@ CanvasManager::CanvasManager(MainWindow *w):
         vbox->addWidget(label);
         QString txt = QString("<b><img src=':/icon/icons/smallpt.png'></b>"\
                               "<b>"\
-                              "<p>版本:</p><p> %1 </p>"\
+                              "<p>版本: %1 </p>"\
+                              "<p>编译时间: %2</p>"\
                               "<p>开发者: 刘春阳</p>"\
                               "<p>邮箱: yjdwbj@gmail.com</p>"\
-                              "</b>").arg(VERSION);
+                              "</b>").arg(GITVER,BUILDTIME);
         label->setText(txt);
 
         aboutdlg->exec();
@@ -596,7 +597,7 @@ void CanvasManager::OpenProject(QString file)
             qDebug() << json_error.errorString();
         }
 
-
+        mWindow->statusBar()->showMessage(QString("本页控件数量: %1").arg(QString::number(mWindow->ComCtrl->mSeqEnameMap.size())));
     }
 }
 
@@ -638,9 +639,12 @@ void CanvasManager::onOpenProject()
 
 void CanvasManager::closeCurrentProject()
 {
-    foreach (QWidget *w, mCanvasList) {
+    while(this->activeSS())
+    {
         deleteCurrentPage();
     }
+
+
     mWindow->ComCtrl->ProMap.clear();
     mIsOpenProject = false;
     autoSaveTimer->stop();
@@ -681,9 +685,8 @@ void CanvasManager::saveProject(QString fname)
 
     ProgressDlg *pd = new ProgressDlg(0,mCanvasList.length(),mWindow);
     QThread *dlgth = new QThread();
-//    pd->moveToThread(dlgth);
+    pd->moveToThread(dlgth);
     connect(dlgth,&QThread::started,[=]{
-//        pd->show();
         pd->exec();
         dlgth->exit();
     });
