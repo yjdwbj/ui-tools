@@ -899,23 +899,39 @@ findDlg::findDlg(QWidget *parent)
     int h = (ps.height()-height()) / 2;
     move(mapFromParent(QPoint(w,h)));
     ui->lineEdit->setFocus();
+    connect(ui->pushButton,SIGNAL(clicked(bool)),SLOT(onStartSearch()));
+    connect(ui->lineEdit,SIGNAL(editingFinished()),SLOT(onStartSearch()));
+}
 
-    connect(ui->pushButton,&QPushButton::clicked,[=]{
-        QString text = ui->lineEdit->text();
-        QWidget *w = mWindow->ComCtrl->mSeqEnameMap.value(text);
+void findDlg::onStartSearch()
+{
+    QString text = ui->lineEdit->text();
+    QWidget *w = mWindow->ComCtrl->mSeqEnameMap.value(text);
 
-        if(w)
-        {
-            int i = ((BaseForm*)w)->mPageIndex;
-            if(mWindow->cManager->activeIndex() !=  i)
-                mWindow->pageView->PressItem(i);
-            ((BaseForm*)w)->onSelectMe();
-        }
-        this->accept();
-        this->deleteLater();
+    if(w)
+    {
+        int i = ((BaseForm*)w)->mPageIndex;
+        if(mWindow->cManager->activeIndex() !=  i)
+            mWindow->pageView->PressItem(i);
+        ((BaseForm*)w)->onSelectMe();
+    }
+    this->accept();
+    this->deleteLater();
+}
 
-
-    });
+void findDlg::keyReleaseEvent(QKeyEvent *s)
+{
+    switch (s->key()) {
+    case Qt::Key_Enter:
+        onStartSearch();
+        break;
+    case Qt::Key_Escape:
+        accept();
+        deleteLater();
+        break;
+    default:
+        break;
+    }
 
 }
 

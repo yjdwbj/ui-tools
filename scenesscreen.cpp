@@ -233,6 +233,10 @@ void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
         else if(s->matches(QKeySequence::SaveAs))
         {
             mWindow->cManager->onSaveAsProject();
+        }else if(s->matches(QKeySequence::Find))
+        {
+            findDlg dlg(mWindow);
+            dlg.exec();
         }
 
     }

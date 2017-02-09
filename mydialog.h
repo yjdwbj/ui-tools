@@ -276,6 +276,11 @@ class findDlg: public QDialog
 public:
     explicit findDlg(QWidget *parent=0);
 
+private slots:
+    void onStartSearch();
+
+protected:
+    void keyReleaseEvent(QKeyEvent *s);
 
 private:
     MainWindow *mWindow;
