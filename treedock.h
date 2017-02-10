@@ -20,6 +20,7 @@ class ScenesScreen;
 class BaseForm;
 
 
+
 class TreeDock : public QDockWidget
 {
     Q_OBJECT
@@ -38,7 +39,8 @@ public:
     void setSelectTreeItem(QWidget *);
 
     void setMyParentNode();
-    void SwapShowHideObject(QTreeWidgetItem *item);
+    void SwapShowHideObject_BF(BaseForm *bf);
+    void SwapShowHideObject(QTreeWidgetItem* item);
     void updateSeq(QString val);
     void moveListItemOrder(QString pname, int src, int dst);
     void moveItemOrder(QTreeWidgetItem *item,int src,int dst);

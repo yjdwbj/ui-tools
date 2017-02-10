@@ -188,7 +188,9 @@ void Position::setConnectNewQWidget(QWidget *com)
 
 
     // QVariant variant = com->property(DKEY_INTOCONTAINER);
-    bool isLW = com->property(DKEY_INTOCONTAINER).toBool();
+//    bool isLW = com->property(DKEY_INTOCONTAINER).toBool();
+//    BaseForm::ObjFlags flags = ((BaseForm*)com)->mParent->mType ;
+    bool isLW = ((BaseForm*)com)->mParent->isContainer();
 
     Xpos->setEnabled(!isLW);
     Ypos->setEnabled(!isLW);
@@ -386,7 +388,8 @@ void PropertyTab::onTabChanged(int index){
     if(color.isValid())
         bfobj->mBorderColor = color.name(QColor::HexArgb);
 
-    if(!bfobj->property(DKEY_INTOCONTAINER).toBool())
+    //if(!bfobj->property(DKEY_INTOCONTAINER).toBool())
+    if(!bfobj->mParent->isContainer())
     {
         //如果对像不在列表下,每一TAB属性里的位置坐标可以改变.
         //            qDebug() << tabrect << oldrect;
@@ -863,7 +866,9 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                 posWidget->setProperty(DKEY_JSONSTR,item); // 用来提取JSON里的值,不用在大范围查找.
                 if(!p->property(DKEY_ARRIDX).toInt())
                     ((BaseForm*)p)->posWidget = posWidget;
-                if(p->property(DKEY_INTOCONTAINER).toBool())
+              //  if(p->property(DKEY_INTOCONTAINER).toBool())
+                if(((BaseForm*)p)->mParent &&
+                        ((BaseForm*)p)->mParent->isContainer())
                 {
                     posWidget->setHidden(true);
 
@@ -1067,19 +1072,19 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
     }
 }
 
-void ComProperty::updateImageComboBox(QString key,int index , const QStringList &list)
-{
-    QComboBox *cb = (QComboBox*)(widgetMap.value(key,0));
-    if(!cb)
-        return;
+//void ComProperty::updateImageComboBox(QString key,int index , const QStringList &list)
+//{
+//    QComboBox *cb = (QComboBox*)(widgetMap.value(key,0));
+//    if(!cb)
+//        return;
 
-    cb->clear();
-    //  cb->addItems(list);
-    foreach (QString s, list) {
-        cb->addItem(s.section(SECTION_CHAR,0,0));
-    }
-    cb->setCurrentIndex(index);
-}
+//    cb->clear();
+//    //  cb->addItems(list);
+//    foreach (QString s, list) {
+//        cb->addItem(s.section(SECTION_CHAR,0,0));
+//    }
+//    cb->setCurrentIndex(index);
+//}
 
 
 
@@ -1089,7 +1094,7 @@ CompoentControls::CompoentControls(QWidget *parent)
       mainLayout(new QVBoxLayout()),
       mainWidget(new QWidget()),
       mCWidgetCount(0),
-      mSequence(0),
+//      mSequence(0),
       mWindow((MainWindow*)parent)
 {
 
@@ -1118,97 +1123,6 @@ CompoentControls::CompoentControls(QWidget *parent)
 
 }
 
-QString CompoentControls::getSequence(const QString &key)
-{
-    QString t = key.section('_',0,0);
-    int n = key.section('_',1,1).toInt();
-    QString tkey = key;
-    while(ProMap.contains(tkey))
-    {
-        tkey = QString("%1_%2").arg(t,
-                                    QString::number(++n));
-    }
-    return tkey;
-
-}
-QString CompoentControls::getEnameSeq(const QString &key,QWidget* obj)
-{
-
-    auto a_lambda_func = [this](const QString &k,QWidget *o) {
-
-        QString tmp = mSeqEnameMap.key(o);
-        if(!tmp.isEmpty())
-        {
-            // 找到这个对像已经有一个名字,
-            if(tmp.compare(k))
-            {
-                mSeqEnameMap.remove(tmp);
-                mSeqEnameMap[k] = o;
-            }
-        }
-        else{
-            mSeqEnameMap[k] = o;
-        }
-    };
-
-
-
-
-    if(key.contains('_'))
-    {
-
-        QString t = key.section('_',0,0);
-        int n = key.section('_',1,1).toInt();
-        QString tkey = key;
-        if(t.isEmpty())
-        {
-            t = obj->metaObject()->className();
-        }
-        while(mSeqEnameMap.contains(tkey) )
-        {
-
-            QWidget *exist = mSeqEnameMap.value(tkey);
-            if(exist == obj)
-            {
-                mSeqEnameMap[tkey] = obj;
-                break;
-            }
-            else
-                tkey = QString("%1_%2").arg(t,
-                                            QString::number(++n));
-        }
-
-        a_lambda_func(tkey,obj);
-
-        return tkey;
-    }else{
-        int n = 0;
-        QString tkey = "";
-        QString t = "";
-        if(key.isEmpty())
-        {
-            tkey = t = obj->metaObject()->className();
-        }else
-            tkey  =  t= key;
-
-
-        while(mSeqEnameMap.contains(tkey) )
-        {
-            QWidget *exist = mSeqEnameMap.value(tkey);
-            if(exist == obj){
-                mSeqEnameMap[tkey] = obj;
-                break;
-            }
-            else
-                tkey = QString("%1_%2").arg(t,
-                                            QString::number(++n));
-        }
-
-        a_lambda_func(tkey,obj);
-        return tkey;
-    }
-
-}
 
 
 void CompoentControls::ReadJsonWidgets()
@@ -1384,7 +1298,7 @@ void CompoentControls::onCreateCustomWidget()
         return;
     }
     //   QString clsname = wid->metaObject()->className();
-    BaseForm::ObjType wtype = ((BaseForm*)wid)->mType;
+    BaseForm::ObjFlags wtype = ((BaseForm*)wid)->mType;
     // if(!clsname.compare(CN_NEWLAYER) /*|| !clsname.compare(CN_LAYER)*/)
     if(wtype == BaseForm::TYPELAYER)
     {

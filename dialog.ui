@@ -115,7 +115,7 @@
     <item>
      <widget class="QLineEdit" name="prjname">
       <property name="text">
-       <string>test</string>
+       <string/>
       </property>
       <property name="maxLength">
        <number>255</number>

@@ -45,16 +45,12 @@ public:
     QJsonValue changeJsonValue(const QJsonArray &json, int index, const QVariant &val);
 
     QJsonArray updateRBJsonValue(const QJsonArray &json,QWidget *w); // 更新UID,RECT,BORDER三个属性
-
     void updateJsonArray(QString key,const QJsonArray &arr);
     static QJsonObject getValueFromProperty(const QJsonArray &arr,const QString &key);
     static QVariant getJsonValue(const QJsonValue &val, QString key);
     static QRect getRectFromStruct(const QJsonArray &arr, QString key) ;
     QJsonArray getActionListJson();
-
-
     QRect getRectFromJson(const QJsonObject &json) const;
-
     QString getEnameFromJson(const QJsonArray &arr);
 
     // QJsonObject dynValues;
@@ -88,9 +84,10 @@ public:
         TYPEGRID = 0x4,
         TYPESS = 0x5,
         Object = 0x6
+//        TYPECONTAINER = TYPEGRID | TYPELIST
     };
 
-
+    Q_DECLARE_FLAGS(ObjFlags, ObjType)
 
     enum SwapType {
         UpOne = 0x0,
@@ -101,13 +98,14 @@ public:
 
     explicit BaseForm(QWidget *parent=0);
     MainWindow *mWindow;
+    BaseForm *mParent; // 父对像
 
     QPoint mOffset;
     QRect mOldRect;
     QPoint mOldPos;
     QSize mOldSize;
     QList<QWidget*> childlist;
-    QWidget *parentControl;
+//    QWidget *parentControl;
 
     //　界面显示的一些变量.
     QString mBorderColor;
@@ -131,6 +129,9 @@ public:
     void initJsonValue();
     void createContextMenu(QWidget *parent, QPoint pos);
     void SwapLayerOrder(SwapType st);
+    bool isContainer(){
+        return  (mType == TYPELIST) || (mType == TYPEGRID);
+    }
 
     QString updateEname(int index);
 
@@ -143,6 +144,8 @@ public:
     int tinySpinBoxDialog(QString  str,int val ,int min ,int max);
     QSize ChangeSizeDialog(QSize size);
 
+    void mouseMoveToPos(const QPoint& p);
+
     virtual QJsonObject writeToJson() = 0;
 
     NewLayout *CreateNewLayout(const QJsonValue &qv,
@@ -151,13 +154,18 @@ public:
     //    QJsonValue mPropertyJson;
 
 
-    ObjType mType;
-
-    static ObjType mCopyFromType ;
-    static QJsonValue mCopyItem;
+    ObjFlags mType;
     int mPageIndex;
 
+    static ObjFlags mCopyFromType ;
+    static QJsonValue mCopyItem;
 
+
+    static QString getSequence(const QString &key);
+    static QString getEnameSeq(const QString &key, QWidget *obj);
+
+    static QMap<QString,QWidget*> mObjectMap; // 新生成的控件.
+    static QMap<QString,QWidget*> mSeqEnameMap; // 对应到小机里的唯一名称.
 
 
 
@@ -204,7 +212,7 @@ public:
 
     void addMainWindow(QObject *mw);
     QJsonObject  writeToJson();
-    void readFromJson(const QJsonValue &json);
+//    void readFromJson(const QJsonValue &json);
 
 public slots:
     void onDeleteMe();
@@ -332,7 +340,7 @@ public:
     void createNewFrameObject(const QJsonObject &json);
     QWidget* createObjectFromJson(const QJsonValue &qv);
 
-    QWidget *container; // 特意用来存放的
+//    QWidget *container; // 特意用来存放的
 
 private:
     void clearOtherObjectStyleSheet();

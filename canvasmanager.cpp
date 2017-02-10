@@ -9,7 +9,7 @@
 #include <QString>
 #include <QStyleFactory>
 #include <QComboBox>
-#include <QTimer>```
+#include <QTimer>
 #include <QFileDialog>
 #include <QTextBrowser>
 #include <functional>
@@ -148,7 +148,7 @@ CanvasManager::CanvasManager(MainWindow *w):
     connect(aboutbtn,&QPushButton::clicked,[=](){
         QDialog *aboutdlg  = new QDialog(mWindow);
         aboutdlg->setWindowTitle(WIN_TITLE);
-        aboutdlg->setFixedSize(384,420);
+        aboutdlg->setFixedSize(400,420);
         aboutdlg->setModal(true);
         QLabel *label = new QLabel(aboutbtn);
         QVBoxLayout *vbox = new QVBoxLayout();
@@ -159,11 +159,12 @@ CanvasManager::CanvasManager(MainWindow *w):
         vbox->addWidget(label);
         QString txt = QString("<b><img src=':/icon/icons/smallpt.png'></b>"\
                               "<b>"\
-                              "<p>版本: %1 </p>"\
-                              "<p>编译时间: %2</p>"\
+                              "<p>名称: %1 </p>"\
+                              "<p>版本: %2 </p>"\
+                              "<p>编译时间: %3</p>"\
                               "<p>开发者: 刘春阳</p>"\
                               "<p>邮箱: yjdwbj@gmail.com</p>"\
-                              "</b>").arg(GITVER,BUILDTIME);
+                              "</b>").arg(WIN_TITLE,GITVER,BUILDTIME);
         label->setText(txt);
 
         aboutdlg->exec();
@@ -403,17 +404,8 @@ ScenesScreen * CanvasManager::createNewCanvas()
 {
     screenshot();
     ScenesScreen *Scenes = new ScenesScreen(mPageSize,(QWidget*)mWindow);
-
     Scenes->addMainWindow(mWindow);
-
-    //    QSize ps = mWindow->size();
-    //    int w = ( ps.width() - Scenes->width() )/ 2;
-    //    int h = (ps.height() - Scenes->height()) / 2;
-    //    Scenes->move(Scenes->mapFromParent(QPoint(w,h)));
-
-    //    Scenes->move(mWindow->width() * 0.12,mWindow->height()* 0.3);  // 按屏幕比例调整
     Scenes->setProperty(DKEY_SHOT,false);  // 检查该页面是否创建过截图.
-
 
     // 这里不能改变它的对像名,用一个动态属
     //    // Scenes->setObjectName(QString("Page_%1").arg(QString::number(ssList.size()-1)));
@@ -461,13 +453,6 @@ void CanvasManager::setActiveSS(int index)
 
             if(!w->isHidden())
             {
-                //                QThread *thread = new QThread();
-                //                QObject::connect(thread,&QThread::started,[=]{
-                //                    ((BaseForm*)w)->addChildrenToTree();
-                //                    thread->exit();
-                //                });
-                //                QObject::connect(thread,SIGNAL(finished()),thread,SLOT(deleteLater()));
-                //                thread->start();
                 ((BaseForm*)w)->addChildrenToTree();
             }
 
@@ -478,6 +463,10 @@ void CanvasManager::setActiveSS(int index)
     }
 
 }
+
+
+
+
 
 
 void CanvasManager::deleteCurrentPage()
@@ -597,7 +586,7 @@ void CanvasManager::OpenProject(QString file)
             qDebug() << json_error.errorString();
         }
 
-        mWindow->statusBar()->showMessage(QString("本页控件数量: %1").arg(QString::number(mWindow->ComCtrl->mSeqEnameMap.size())));
+        mWindow->statusBar()->showMessage(QString("本页控件数量: %1").arg(QString::number(BaseForm::mSeqEnameMap.size())));
     }
 }
 
@@ -637,6 +626,8 @@ void CanvasManager::onOpenProject()
 }
 
 
+
+
 void CanvasManager::closeCurrentProject()
 {
     while(this->activeSS())
@@ -644,8 +635,7 @@ void CanvasManager::closeCurrentProject()
         deleteCurrentPage();
     }
 
-
-    mWindow->ComCtrl->ProMap.clear();
+    BaseForm::mObjectMap.clear();
     mIsOpenProject = false;
     autoSaveTimer->stop();
 }

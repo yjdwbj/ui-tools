@@ -61,27 +61,18 @@ private:
     QList<QMetaObject::Connection> connections;
 };
 
-
-
-
 class PropertyTab: public QTabWidget
 {
     Q_OBJECT
 public:
     explicit PropertyTab(QWidget *parent=0);
-     ~PropertyTab(){}
+    ~PropertyTab(){}
     void clearLayout();
-
-
-
     void setNewObject(QWidget *);
     void addNewTab();
     void deleteTab();
 
     QWidget *mOwerObj; // 拥有这个属性的对像.
-
-
-
     enum TabHandle { Append, Insert,Delete };
 public slots:
     void onTabChanged(int idex);
@@ -100,7 +91,7 @@ class BaseProperty: public QWidget
 public:
     explicit BaseProperty(QWidget *parent=0);
     void parseJsonToWidget(QWidget *p, const QJsonArray &array);
-     QVBoxLayout* mainLayout;
+    QVBoxLayout* mainLayout;
 };
 
 class CssProperty: public BaseProperty
@@ -109,7 +100,7 @@ class CssProperty: public BaseProperty
 public:
     explicit CssProperty(QWidget *parent=0);
     ~CssProperty(){}
-   // QVBoxLayout* mainLayout;
+    // QVBoxLayout* mainLayout;
 
 };
 
@@ -122,14 +113,14 @@ public:
 
     void createPropertyBox(QWidget *p);
     void delPropertyBox();
-    void updateImageComboBox(QString key, int index, const QStringList &list);
-    QWidget* getPropertyObject(QString key) const { return widgetMap.value(key);}
+//    void updateImageComboBox(QString key, int index, const QStringList &list);
+//    QWidget* getPropertyObject(QString key) const { return widgetMap.value(key);}
 
 
 private:
-     QWidget *mainWidget;
-     QWidget *oldobject;
-     QMap<QString,QWidget*> widgetMap;  // 预备着多个同类型的控件区分.
+    QWidget *mainWidget;
+    QWidget *oldobject;
+    QMap<QString,QWidget*> widgetMap;  // 预备着多个同类型的控件区分.
 
 };
 
@@ -148,35 +139,30 @@ class CompoentControls : public QGroupBox
 public:
     explicit CompoentControls(QWidget *parent = 0);
     void ReadJsonWidgets();
-    QString getSequence(const QString &key);
-    QString getEnameSeq(const QString &key, QWidget *obj);
-     int mCWidgetCount; // 自定义控件的个数.
-     QMap<QString,QWidget*> ProMap; // 新生成的控件.
-     QMap<QString,QWidget*> mSeqEnameMap; // 对应到小机里的唯一名称.
-     int mSequence;
-     QVariant mVariantLayout;
+    int mCWidgetCount; // 自定义控件的个数.
+    QVariant mVariantLayout;
 
 private:
-     MainWindow *mWindow;
-     QVariantMap mJsonMap;
-     //QGridLayout* mainLayout;
-     QVBoxLayout* mainLayout;
-     QWidget *mainWidget;
-     QString mJsonFile;
-     QWidgetList comList;
+    MainWindow *mWindow;
+    QVariantMap mJsonMap;
+    //QGridLayout* mainLayout;
+    QVBoxLayout* mainLayout;
+    QWidget *mainWidget;
+    QString mJsonFile;
+    QWidgetList comList;
 
-     void CreateButtonList(const QJsonArray &comJsonArr);
-     QWidget *createCustomObject(const QJsonArray &comJsonArr);
-     QJsonArray ReadTemplateWidgetFile(QString file) const;
+    void CreateButtonList(const QJsonArray &comJsonArr);
+    QWidget *createCustomObject(const QJsonArray &comJsonArr);
+    QJsonArray ReadTemplateWidgetFile(QString file) const;
 
 
 signals:
 
 public slots:
-     void onCreateCompoentToCanvas();
-     void onCreateCustomWidget();
-     void onCreateNewLayout();
-     void onCreateNewLayer();
+    void onCreateCompoentToCanvas();
+    void onCreateCustomWidget();
+    void onCreateNewLayout();
+    void onCreateNewLayer();
 };
 
 #endif // COMPOENTCONTROLS_H

@@ -10,7 +10,9 @@
 #include <QStyleOption>
 #include <QPainter>
 #include "core_def.h"
+#include "module.h"
 
+class BaseForm;
 enum { debugFormResizer = 0 };
 
 /* 在控件周围创建８个点用于鼠标拖动 */
@@ -129,7 +131,8 @@ void FormResizer::resizeEvent(QResizeEvent *event)
 {
     if (debugFormResizer)
         qDebug() << ">FormResizer::resizeEvent" <<  event->size();
-    if(property(DKEY_INTOCONTAINER).toBool())
+//    if(property(DKEY_INTOCONTAINER).toBool())
+    if(((BaseForm*)this)->mParent->isContainer())
     {
         return;
     }

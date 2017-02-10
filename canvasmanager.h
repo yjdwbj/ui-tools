@@ -87,4 +87,8 @@ private:
 
 };
 
+
+
+
+
 #endif // CANVASMANAGER_H

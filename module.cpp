@@ -36,7 +36,10 @@ static   QStringList KeyList = QStringList() << DEFAULT << ENAME
 
 
 QJsonValue BaseForm::mCopyItem;
-BaseForm::ObjType BaseForm::mCopyFromType;
+BaseForm::ObjFlags BaseForm::mCopyFromType;
+QMap<QString,QWidget*> BaseForm::mObjectMap; // 新生成的控件.
+QMap<QString,QWidget*> BaseForm::mSeqEnameMap; // 对应到小机里的唯一名称.
+
 
 QJsonValue Compoent::changeJsonValue(const QJsonArray &arg,QString key,
                                      const QVariant &val)
@@ -319,10 +322,10 @@ QJsonArray Compoent::updateRBJsonValue(const QJsonArray &arr, QWidget *w)
         {
             //ov = getRectJson(this);
             ov[KEY_RECT] = getRectJson(w)[KEY_RECT];
-            if(w->property(DKEY_INTOCONTAINER).toBool())
-            {
+//            if(w->property(DKEY_INTOCONTAINER).toBool())
+//            {
 
-            }
+//            }
 
         }else if(ov.contains(UID))
         {
@@ -339,11 +342,6 @@ QJsonArray Compoent::updateRBJsonValue(const QJsonArray &arr, QWidget *w)
     return projson;
 }
 
-
-//QVariant Compoent::getJsonValue(const QJsonArray &arr, QString key,int index)
-//{
-
-//}
 
 QVariant Compoent::getJsonValue(const QJsonValue &val, QString key)
 {
@@ -535,10 +533,13 @@ QJsonObject Compoent::getRectJson(QWidget *w)
 {
     QJsonObject rect;
     QVariantMap vmap;
-    if(w->property(DKEY_INTOCONTAINER).toBool())
+//    if(w->property(DKEY_INTOCONTAINER).toBool())
+    if(w->inherits("BaseForm") &&
+            ((BaseForm*)w)->mParent->isContainer())
     {
         // 在容器控件里要把它的坐标,转换成相对于父控件的绝对坐标.
-        QPoint pos = w->mapToParent(w->parentWidget()->pos());
+//        QPoint pos = w->mapToParent(w->parentWidget()->pos());
+        QPoint pos = w->mapToParent(((BaseForm*)w)->mParent->pos());
         vmap[LX] = pos.x();
         vmap[LY] = pos.y();
     }else{
@@ -624,6 +625,20 @@ BaseForm::BaseForm(QWidget *parent)
 
 }
 
+void BaseForm::mouseMoveToPos(const QPoint &p)
+{
+    onSelectMe();
+    move(this->pos() + p);
+    changeJsonValue( posWidget,
+                     KEY_RECT,
+                     QString("%1:%2").arg(LX,
+                                          QString::number(x())));
+    changeJsonValue( posWidget,
+                     KEY_RECT,
+                     QString("%1:%2").arg(LY,
+                                          QString::number(y())));
+}
+
 
 void BaseForm::mouseMoveEvent(QMouseEvent *event)
 {
@@ -636,40 +651,19 @@ void BaseForm::mouseMoveEvent(QMouseEvent *event)
     //                CN_NEWLAYER.compare(clsname) ) return;
     if (event->buttons() & Qt::LeftButton)
     {
-        if(property(DKEY_INTOCONTAINER).toBool())
+        //        if(property(DKEY_INTOCONTAINER).toBool())
+        if(mParent->mType == TYPEGRID ||
+                mParent->mType == TYPELIST)
         {
 
-            BaseForm* container = ((BaseForm*)((NewLayout*)this)->container);
-            container->onSelectMe();
-            container->move(container->pos() + (event->pos() -mOffset ));
-            // nl->posWidget->updatePosition(container);
-            container->changeJsonValue( container->posWidget,
-                                        KEY_RECT,
-                                        QString("%1:%2").arg(LX,
-                                                             QString::number(container->x())));
-            container->changeJsonValue( container->posWidget,
-                                        KEY_RECT,
-                                        QString("%1:%2").arg(LY,
-                                                             QString::number(container->y())));
-            // container->onSelectMe();
+            mParent->mouseMoveToPos(event->pos() - mOffset);
             event->accept();
         }else{
-            move(this->pos() + (event->pos() - mOffset));
+
+            mouseMoveToPos(event->pos() - mOffset);
             /* 把新的位置更新到右边属性框 */
             posWidget->updatePosition(this);
-            changeJsonValue(posWidget,
-                            KEY_RECT,
-                            QString("%1:%2").arg(LX,
-                                                 QString::number(this->x())));
-            changeJsonValue(posWidget,
-                            KEY_RECT,
-                            QString("%1:%2").arg(LY,
-                                                 QString::number(this->y())));
         }
-
-
-
-
         this->blockSignals(true);
     }
 }
@@ -696,23 +690,15 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
 
 void BaseForm::SwapLayerOrder(SwapType st)
 {
-    QWidget *p =  this->parentWidget();
+//    QWidget *p =  this->parentWidget();
     //    qDebug() << "this meta class name " << this->metaObject()->className();
     QList<QWidget*> *mlist;
-    if(p->inherits(CN_SSNAME))
+    if(mParent == this)
     {
-        mlist = &((ScenesScreen*)p)->childlist;
+        mlist = &((ScenesScreen*)this->parentWidget())->childlist;
     }else
     {
-        QWidget *container = mWindow->ComCtrl->ProMap.value(p->objectName());
-        if(container && container->inherits(CN_NEWLIST))
-        {
-
-            mlist = &((NewList*)container)->childlist;
-        }else
-        {
-            mlist = &((BaseForm*)p->parentWidget())->childlist;
-        }
+       mlist = &mParent->childlist;
     }
     //    qDebug() << " parent widget objectname " << p->objectName() << p->metaObject()->className();
     if(mlist->size())
@@ -742,13 +728,20 @@ void BaseForm::SwapLayerOrder(SwapType st)
 
 void BaseForm::objectMoveSwapMenu(QMenu *contextMenu)
 {
-    QWidget *pwid = this->parentWidget();
+//    QWidget *pwid = this->parentWidget();
+    QList<QWidget*> plist ;
+    if(this == mParent)
+    {
+        plist = ((ScenesScreen*)this->parentWidget())->childlist;
+    }else{
+        plist = mParent->childlist;
+    }
     QTreeWidget *treeWidget = mWindow->tree->treeWidget;
-    if(pwid->children().count() > 1)
+    if(plist.count() > 1)
     {
         auto lambda_downone = [=](){
             QWidget *last = this;
-            foreach( QObject *o,pwid->children())
+            foreach( QWidget *o,plist)
             {
                 // qDebug() << " object order " << o->objectName();
                 if(o == this)
@@ -786,7 +779,7 @@ void BaseForm::objectMoveSwapMenu(QMenu *contextMenu)
 
         auto lambda_upone = [=](){
             int n= 0;
-            foreach( QObject *o,pwid->children())
+            foreach( QWidget *o,plist)
             {
                 //  qDebug() << " object order " << o->objectName();
                 if(o == this)
@@ -858,7 +851,7 @@ void BaseForm::objectMoveSwapMenu(QMenu *contextMenu)
         };
 
 
-        if(pwid->children().last() == this)
+        if(plist.last() == this)
         {
             QAction *downone = new QAction(QIcon(":/icon/icons/go-down.png"),"移下一层",this);
             connect(downone,&QAction::triggered,lambda_downone);
@@ -866,7 +859,7 @@ void BaseForm::objectMoveSwapMenu(QMenu *contextMenu)
             connect(downbottom,&QAction::triggered,lambda_downbottom);
             contextMenu->addAction(downone);
             contextMenu->addAction(downbottom);
-        }else if(pwid->children().first() == this)
+        }else if(plist.first() == this)
         {
             QAction *upone = new QAction(QIcon(":/icon/icons/go-up.png"),"移上一层",this);
             connect(upone,&QAction::triggered,lambda_upone);
@@ -904,8 +897,8 @@ void BaseForm::listObjectMoveMenu(QMenu *contextMenu,BaseForm *container)
         int first =  boxlayout->indexOf(this);
         int last = boxlayout->count() -1;
 
-//        qDebug() << " this widget index of  " << first
-//                 << " count is " << boxlayout->count();
+        //        qDebug() << " this widget index of  " << first
+        //                 << " count is " << boxlayout->count();
         if(boxlayout->count() > 1)
         {
 
@@ -1000,7 +993,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
         if(parent->inherits("QTreeWidget"))
         {
             QTreeWidget *w = ((QTreeWidget*)parent);
-//            QTreeWidgetItem *i = w->itemAt(w->viewport()->mapFromGlobal(pos));
+            //            QTreeWidgetItem *i = w->itemAt(w->viewport()->mapFromGlobal(pos));
             //            qDebug() << "tree click  " << this->objectName() << this->metaObject()->className();
             QAction *subobj = new QAction(this);
 
@@ -1052,13 +1045,13 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
     contextMenu->addAction(&copy);
     contextMenu->addAction(&paste);
     contextMenu->addSeparator();
-    QWidget *pp = mWindow->ComCtrl->ProMap.value(parentWidget()->objectName());
-    if(!pp || (!pp->inherits(CN_NEWGRID) && !pp->inherits(CN_NEWLIST)))
+
+    if(mParent->isContainer())
     {
-        objectMoveSwapMenu(contextMenu);
+        listObjectMoveMenu(contextMenu,mParent);
     }
     else{
-        listObjectMoveMenu(contextMenu,(BaseForm*)pp);
+        objectMoveSwapMenu(contextMenu);
     }
     QAction findaction(QIcon(":/icon/icons/search.png"),"查找对像",this);
     connect(&findaction,&QAction::triggered,[=]{
@@ -1069,30 +1062,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
     contextMenu->addAction(&findaction);
     contextMenu->addSeparator();
 
-    bool inContainer = property(DKEY_INTOCONTAINER).toBool();
-    if(inContainer)
-    {
-        QWidget *container = ((NewLayout*)this)->container;
-        if(container->inherits(CN_NEWLIST))
-        {
-            NewList*  nl =(NewList*)(((NewLayout*)this)->container);
-            contextMenu->addAction(nl->menuAddLine);
-            contextMenu->addAction(nl->menuSetHeight);
-            contextMenu->addAction(nl->menuSetSpace);
-        }else if(container->inherits(CN_NEWGRID))
-        {
-            NewGrid*   ng = (NewGrid*)(((NewLayout*)this)->container);
-            contextMenu->addAction(ng->menuAddRow);
-            contextMenu->addAction(ng->menuAddCol);
-            contextMenu->addAction(ng->menuSpace);
-            contextMenu->addAction(ng->menuSize);
-            contextMenu->addAction(ng->menuV);
-            contextMenu->addAction(ng->menuH);
-        }
-
-    }else if(inherits(CN_NEWGRID))
-    {
-        NewGrid *ng = (NewGrid*)this;
+    auto lambda_grid_menu = [=](NewGrid *ng){
         contextMenu->addAction(ng->menuAddRow);
         contextMenu->addAction(ng->menuAddCol);
         contextMenu->addAction(ng->menuSpace);
@@ -1100,12 +1070,35 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
         contextMenu->addAction(ng->menuV);
         contextMenu->addAction(ng->menuH);
 
-    }else if(inherits(CN_NEWLIST))
-    {
-        NewList*  nl =(NewList*)this;
+    };
+
+    auto lambda_list_menu  = [=](NewList*  nl){
         contextMenu->addAction(nl->menuAddLine);
         contextMenu->addAction(nl->menuSetHeight);
         contextMenu->addAction(nl->menuSetSpace);
+    };
+
+//    bool inContainer = property(DKEY_INTOCONTAINER).toBool();
+    if(mParent->mType == TYPELIST)
+    {
+        lambda_list_menu((NewList*)(mParent));
+//        if(mParent->inherits(CN_NEWLIST))
+//        {
+//            lambda_list_menu((NewList*)(mParent));
+//        }else if(mParent->inherits(CN_NEWGRID))
+//        {
+//            lambda_grid_menu((NewGrid*)(mParent));
+//        }
+    }else if(mParent->mType == TYPEGRID)
+    {
+        lambda_grid_menu((NewGrid*)(mParent));
+    }
+    else if(inherits(CN_NEWGRID))
+    {
+        lambda_grid_menu((NewGrid*)(this));
+    }else if(inherits(CN_NEWLIST))
+    {
+         lambda_list_menu((NewList*)(this));
     }
 
     contextMenu->addSeparator();
@@ -1130,7 +1123,8 @@ void BaseForm::mouseReleaseEvent(QMouseEvent *event)
     // 这里只能在释放鼠标时改变左边的控件值
     //    qDebug() << " object size " << this->size()
     //             << " object pos " << this->pos();
-    if(!property(DKEY_INTOCONTAINER).toBool())
+  //  if(!property(DKEY_INTOCONTAINER).toBool())
+    if(!mParent->isContainer())
     {
         if(posWidget)
         {
@@ -1314,7 +1308,7 @@ void BaseForm::onTextChanged(QString str)
         if (!old.compare(str))
             return;
         //        mWindow->ComCtrl->mEnameSeq.removeOne(old);
-        mEnameStr = mWindow->ComCtrl->getEnameSeq(str,this);
+        mEnameStr = getEnameSeq(str,this);
         mWindow->tree->updateSeq(mEnameStr);
         //        mWindow->ComCtrl->mEnameSeq.append(nstr);
         changeJsonValue(txt,txt->objectName(),mEnameStr);
@@ -1617,27 +1611,27 @@ void BaseForm::removeChild(QWidget *w)
 void BaseForm::initialEname()
 {
     mEnameStr = getEnameFromJson(this->mOwerJson[PROPERTY].toArray());
-    mEnameStr = mWindow->ComCtrl->getEnameSeq(mEnameStr,this);
+    mEnameStr = getEnameSeq(mEnameStr,this);
     mPageIndex = mWindow->cManager->activeIndex();
 
     if(!mEnameStr.isEmpty())
     {
-        mWindow->ComCtrl->mSeqEnameMap[mEnameStr] = this;
+        mSeqEnameMap[mEnameStr] = this;
     }else{
         qDebug() << "Ename is empty";
     }
-    mWindow->statusBar()->showMessage(QString("本页控件数量: %1").arg(QString::number(mWindow->ComCtrl->mSeqEnameMap.size())));
+    mWindow->statusBar()->showMessage(QString("本页控件数量: %1").arg(QString::number(mSeqEnameMap.size())));
     //    mWindow->statusBar()->repaint();
 }
 
 QString BaseForm::updateEname(int index)
 {
-    mEnameStr =  mWindow->ComCtrl->mSeqEnameMap.key(this);
+    mEnameStr =  mSeqEnameMap.key(this);
     if(mEnameStr.isEmpty())
     {
         mEnameStr = metaObject()->className()+ tr("_") + mUniqueStr.section('_',1,1);
     }
-    mEnameStr =  mWindow->ComCtrl->getEnameSeq(mEnameStr,this);
+    mEnameStr =  getEnameSeq(mEnameStr,this);
     changeJsonValue(index,mEnameStr);
     return mEnameStr;
 
@@ -1649,7 +1643,8 @@ void BaseForm::onSelectMe()
     mWindow->propertyWidget->createPropertyBox(this);
 
     // posWidget->setConnectNewQWidget(this);
-    if(!property(DKEY_INTOCONTAINER).toBool())
+//    if(!property(DKEY_INTOCONTAINER).toBool())
+     if(!mParent->isContainer())
     {
         posWidget->updatePosition(this);
         posWidget->updateSize(this);
@@ -1668,8 +1663,8 @@ void BaseForm::DeleteMe()
 
     mWindow->tree->setMyParentNode();  //选中它的父控件.
     mWindow->tree->deleteItem(this);
-    mWindow->ComCtrl->ProMap.remove(mUniqueStr);
-    mWindow->ComCtrl->mSeqEnameMap.remove(mWindow->ComCtrl->mSeqEnameMap.key(this));
+    mObjectMap.remove(mUniqueStr);
+    mSeqEnameMap.remove(mSeqEnameMap.key(this));
     mWindow->propertyWidget->delPropertyBox();
     // 它是否是列表控件的一员.
     deleteLater();
@@ -1682,7 +1677,7 @@ void BaseForm::initJsonValue()
     mBorder = Compoent::getRectFromStruct(mOwerJson[PROPERTY].toArray(),BORDER);
     if(this->mCreateFlag)
     {
-        setProperty(DKEY_UID,mWindow->ComCtrl->ProMap.size());
+        setProperty(DKEY_UID,mObjectMap.size());
     }else{
         setProperty(DKEY_UID,Compoent::getJsonValue(UID).toInt());
     }
@@ -1762,10 +1757,7 @@ void BaseForm::onBackgroundImageDialog()
     QWidget *w  = (QWidget*)(QObject::sender());
     QString imgdir = mWindow->cManager->mProjectImageDir;
 
-
-
     ImageListView *imgview = new ImageListView(imgdir,this->mWindow);
-
     // 把一个动态属性传递给另一个事件发送对像,用来确定要修改JSON里的那一段值.
     imgview->imglist->setProperty(DKEY_ARRIDX,w->property(DKEY_ARRIDX));
     imgview->imglist->setProperty(DKEY_PARRIDX,w->property(DKEY_PARRIDX));
@@ -1775,7 +1767,6 @@ void BaseForm::onBackgroundImageDialog()
 
     QObject::connect(imgview->imglist,&QListWidget::itemDoubleClicked,
                      [=](QListWidgetItem *item){
-
         // QWidget *sender = imgview->imglist;
         QVariantMap vmap =  imgview->imglist->property(DKEY_IMGMAP).toMap();
         if(!vmap.isEmpty())
@@ -1790,11 +1781,8 @@ void BaseForm::onBackgroundImageDialog()
             p.load(fpath);
             ((QPushButton*)w)->setIcon(p);
         }
-
         QPushButton *btn = (QPushButton*)(getPairWidgetFromPLayout(w));
-
         btn->setEnabled(true);
-
     });
 
     imgview->setFixedSize(mWindow->size() * 0.6);
@@ -1814,12 +1802,10 @@ void BaseForm::onListImageChanged(QString img)
         if(!k.compare(img))
         {
             QString fpath = s.section(SECTION_CHAR,1,1);
-
             changeJsonValue(w,objname,fpath.mid(mWindow->mRootPathLen)); // 修改JSON里的值
             break;
         }
     }
-
 }
 
 
@@ -1857,9 +1843,7 @@ int  BaseForm::tinySpinBoxDialog(QString  str,int val ,int min ,int max)
     int ret = nWindow->result();
     if(ret)
         num = spinbox->value();
-
     nWindow->deleteLater();
-
     return num;
 
 }
@@ -1905,7 +1889,6 @@ QSize  BaseForm::ChangeSizeDialog(QSize size)
         nWindow->setLayout(glayout);
         nWindow->exec();
 
-
         int ret = nWindow->result();
         w = wbox->value();
         h = hbox->value();
@@ -1935,10 +1918,11 @@ NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,
     QJsonObject  valobj = qv.toObject();
     QRect oldrect = Compoent::getRectFromStruct(valobj[PROPERTY].toArray(),KEY_RECT);
     // QVariant variant = valobj.value(PROPERTY).toVariant();
-
+//    qDebug() << " whois call CreateNewLayout" << this->objectName() << this->metaObject()->className();
     NewLayout *newlayout = new NewLayout(valobj,oldrect,mWindow,parent);
-    if(incontainer)
-        newlayout->setProperty(DKEY_INTOCONTAINER,incontainer);
+    newlayout->mParent = this;
+//    if(incontainer)
+//        newlayout->setProperty(DKEY_INTOCONTAINER,incontainer);
     newlayout->mCreateFlag = isCreate;
     newlayout->setProperty(DKEY_TYPE, valobj[WTYPE].toString());
     newlayout->mOwerJson = qv.toObject();
@@ -1976,7 +1960,6 @@ QJsonObject BaseForm::ContainerWriteToJson(QWidget *w)
         NewLayout *layout =  (NewLayout*)w;
         QJsonArray parray = layout->mOwerJson[PROPERTY].toArray();
 
-
         for(int n = 0; n < parray.count() ; n++)
         {
             QJsonObject obj = parray.at(n).toObject();
@@ -1998,19 +1981,14 @@ QJsonObject BaseForm::ContainerWriteToJson(QWidget *w)
                             structArray.replace(snum,cssarray);
                             break;
                         }
-
                     }
                 }
-
                 obj[STRUCT] = structArray;
                 parray[n] = obj;
                 break;
             }
-
         }
-
         layout->mOwerJson[PROPERTY] = parray;
-
     }
     outjson = ((NewFrame*)w)->writeToJson();
     //     outjson = ((NewLayout*)w)->writeToJson();
@@ -2023,12 +2001,96 @@ void BaseForm::initObject(const QJsonObject &json)
     QString caption = json[CAPTION].toString();
     setProperty(DKEY_TXT,caption);
     QString uname = QString("%1_%2").arg(caption,
-                                         QString::number(mWindow->ComCtrl->ProMap.size()));
-    mUniqueStr = mWindow->ComCtrl->getSequence(uname);
-
+                                         QString::number(mObjectMap.size()));
+    mUniqueStr = getSequence(uname);
     setObjectName(mUniqueStr);
-
     setToolTip(mUniqueStr);
+}
+
+
+QString BaseForm::getSequence(const QString &key)
+{
+    QString t = key.section('_',0,0);
+    int n = key.section('_',1,1).toInt();
+    QString tkey = key;
+    while(mObjectMap.contains(tkey))
+    {
+        tkey = QString("%1_%2").arg(t,
+                                    QString::number(++n));
+    }
+    return tkey;
+}
+QString BaseForm::getEnameSeq(const QString &key,QWidget* obj)
+{
+    auto a_lambda_func = [=](const QString &k,QWidget *o) {
+        QString tmp = mSeqEnameMap.key(o);
+        if(!tmp.isEmpty())
+        {
+            // 找到这个对像已经有一个名字,
+            if(tmp.compare(k))
+            {
+                mSeqEnameMap.remove(tmp);
+                mSeqEnameMap[k] = o;
+            }
+        }
+        else{
+            mSeqEnameMap[k] = o;
+        }
+    };
+
+    if(key.contains('_'))
+    {
+        QString t = key.section('_',0,0);
+        int n = key.section('_',1,1).toInt();
+        QString tkey = key;
+        if(t.isEmpty())
+        {
+            t = obj->metaObject()->className();
+        }
+        while(mSeqEnameMap.contains(tkey) )
+        {
+
+            QWidget *exist = mSeqEnameMap.value(tkey);
+            if(exist == obj)
+            {
+                mSeqEnameMap[tkey] = obj;
+                break;
+            }
+            else
+                tkey = QString("%1_%2").arg(t,
+                                            QString::number(++n));
+        }
+
+        a_lambda_func(tkey,obj);
+
+        return tkey;
+    }else{
+        int n = 0;
+        QString tkey = "";
+        QString t = "";
+        if(key.isEmpty())
+        {
+            tkey = t = obj->metaObject()->className();
+        }else
+            tkey  =  t= key;
+
+
+        while(mSeqEnameMap.contains(tkey) )
+        {
+            QWidget *exist = mSeqEnameMap.value(tkey);
+            if(exist == obj){
+                mSeqEnameMap[tkey] = obj;
+                break;
+            }
+            else
+                tkey = QString("%1_%2").arg(t,
+                                            QString::number(++n));
+        }
+
+        a_lambda_func(tkey,obj);
+        return tkey;
+    }
+
 }
 
 
@@ -2063,16 +2125,16 @@ void NewFrame::onDeleteMe()
     DeleteMe();
 }
 
-void NewFrame::readFromJson(const QJsonValue &qv)
-{
-    QJsonObject json = qv.toObject();
-    QRect oldrect = Compoent::getRectFromStruct(json[PROPERTY].toArray(),KEY_RECT);
-    // 下面这种粗暴的取值方式是一定含有:　　"-class": "Classname" 的条目.
-    QString clsName = json[CLASS].toString();
-    QString caption = json[CAPTION].toString();
-    //    qDebug() << " read from json caption is " << caption;
-    QVariant variant = json[PROPERTY].toVariant();
-}
+//void NewFrame::readFromJson(const QJsonValue &qv)
+//{
+//    QJsonObject json = qv.toObject();
+//    QRect oldrect = Compoent::getRectFromStruct(json[PROPERTY].toArray(),KEY_RECT);
+//    // 下面这种粗暴的取值方式是一定含有:　　"-class": "Classname" 的条目.
+//    QString clsName = json[CLASS].toString();
+//    QString caption = json[CAPTION].toString();
+//    //    qDebug() << " read from json caption is " << caption;
+//    QVariant variant = json[PROPERTY].toVariant();
+//}
 
 
 QJsonObject NewFrame::writeToJson()
@@ -2189,7 +2251,7 @@ void NewGrid::initRowsCols(int row,int col,const QJsonValue &value)
 
     onSelectMe();
     NewLayout *nl = CreateNewLayout(value,mainWidget,mCreateFlag,true);
-    nl->container = this;
+//    nl->container = this;
 
     childlist.append(nl);
     // 自已的行列坐标.
@@ -2302,11 +2364,8 @@ void NewGrid::wheelEvent(QWheelEvent *event)
                                                 event->delta(),
                                                 event->buttons(),
                                                 event->modifiers(),Qt::Horizontal);
-            //  QApplication::sendEvent(mainScroll->horizontalScrollBar(),&evt);
             QApplication::postEvent(mainScroll->horizontalScrollBar(),evt);
         }
-
-        // wheelEvent(&evt);
     }
 
 }
@@ -2468,9 +2527,9 @@ void NewList::updateAllItemsSize()
             if(itemHeight == w->width() &&
                     w->height() == this->height())
             {
-//                 qDebug() << " widget it's size "  << w->size() << " name is "
-//                          << w->objectName() << w->metaObject()->className();
-                 break;
+                //                 qDebug() << " widget it's size "  << w->size() << " name is "
+                //                          << w->objectName() << w->metaObject()->className();
+                break;
             }
             updateOneItem(w,itemHeight,this->height());
         }
@@ -2480,11 +2539,11 @@ void NewList::updateAllItemsSize()
             if(itemHeight == w->height() &&
                     w->width() == this->width())
             {
-//                 qDebug() << " widget it's size "  << w->size() << " name is "
-//                          << w->objectName() << w->metaObject()->className();
-                 break;
+                //                 qDebug() << " widget it's size "  << w->size() << " name is "
+                //                          << w->objectName() << w->metaObject()->className();
+                break;
             }
-             updateOneItem(w,this->width(),itemHeight);
+            updateOneItem(w,this->width(),itemHeight);
         }
 
     }
@@ -2533,7 +2592,7 @@ NewLayout * NewList::AddOneLine(const QJsonValue &value)
 
     newlayout->onSelectMe();
     childlist.append(newlayout);
-    newlayout->container = this;
+//    newlayout->container = this;
 
     listLayout->addWidget(newlayout);
     if(sliderOrientation == Qt::Horizontal)
@@ -2697,7 +2756,7 @@ NewLayout::NewLayout(const QJsonObject &json, QRect rect,
         setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
 
     setFocusPolicy(Qt::ClickFocus);
-    setProperty(DKEY_INTOCONTAINER,false);
+//    setProperty(DKEY_INTOCONTAINER,false);
     show();
     setGeometry(rect);
     update();
@@ -2709,14 +2768,24 @@ NewLayout::NewLayout(const QJsonObject &json, QRect rect,
 void NewLayout::DeleteMe()
 {
     // 它是否是列表控件的一员.
-    if(property(DKEY_INTOCONTAINER).toBool())
-    {
+//    if(property(DKEY_INTOCONTAINER).toBool())
+//    {
 
-        if(this->inherits(CN_NEWLIST))
-            ((NewList*)container)->childlist.removeOne(this);
-        else{
-            ((NewGrid*)container)->childlist.removeOne(this);
-        }
+//        if(this->inherits(CN_NEWLIST))
+//            ((NewList*)container)->childlist.removeOne(this);
+//        else{
+//            ((NewGrid*)container)->childlist.removeOne(this);
+//        }
+//    }
+    if(mParent->mType == TYPEGRID ||
+            mParent->mType == TYPELIST)
+    {
+        mParent->childlist.removeOne(this);
+//        if(this->inherits(CN_NEWLIST))
+//            ((NewList*)container)->childlist.removeOne(this);
+//        else{
+//            ((NewGrid*)container)->childlist.removeOne(this);
+//        }
     }
     this->BaseForm::DeleteMe();
 }
@@ -2933,6 +3002,7 @@ void NewLayout::readFromJson(const QJsonValue &qv,bool flag)
     }else if(!clsName.compare(CN_NEWLIST))
     {
         NewList *nlist = new NewList(qv,QSize(10,10),m_frame);
+        nlist->mParent = this;
         nlist->mCreateFlag = flag;
         nlist->mOwerJson = qv.toObject();
         nlist->initialEname();
@@ -2954,6 +3024,8 @@ void NewLayout::readFromJson(const QJsonValue &qv,bool flag)
         if(flag)
         {
             QList<int> arglist =   rowcoldialog();
+            if(!arglist.size())
+                return;
             ngrid = new NewGrid(qv,&arglist,
                                 m_frame);
         }else{
@@ -2969,6 +3041,7 @@ void NewLayout::readFromJson(const QJsonValue &qv,bool flag)
                                         valobj[HEIGHT].toInt()),
                                   Qt::IgnoreAspectRatio);
         }
+        ngrid->mParent = this;
         ngrid->mCreateFlag = flag;
         ngrid->initialEname();
         mWindow->tree->addObjectToCurrentItem(mUniqueStr,ngrid);
@@ -2997,8 +3070,7 @@ QList<int> NewLayout::rowcoldialog()
 {
     QList<int> arglist;
     int r,c,w,h = 0;
-    while(1)
-    {
+   while(1){
 
         BaseDialog *nWindow = new BaseDialog();
         nWindow->setObjectName(metaObject()->className());
@@ -3058,6 +3130,11 @@ QList<int> NewLayout::rowcoldialog()
         dbb->button(QDialogButtonBox::Cancel)->setText("取消");
         connect(dbb,SIGNAL(accepted()),nWindow,SLOT(accept()));
         connect(dbb,SIGNAL(rejected()),nWindow,SLOT(reject()));
+//        connect(dbb,&QDialogButtonBox::clicked,[=](QAbstractButton *button){
+
+
+//        });
+//        connect(dbb,SIGNAL(rejected()),nWindow,SLOT(reject()));
         vb->addWidget(dbb);
         nWindow->setLayout(vb);
         nWindow->exec();
@@ -3072,9 +3149,11 @@ QList<int> NewLayout::rowcoldialog()
             nWindow->deleteLater();
             if(!r || !c || !w || !h )
             {
-                continue;
+                break;
             }
             arglist << r << c << w <<h;
+            break;
+        }else{
             break;
         }
     }
@@ -3086,6 +3165,7 @@ QWidget* NewLayout::createObjectFromJson(const QJsonValue &qv)
     QJsonObject json = qv.toObject();
     QString caption = json[CAPTION].toString();
     NewFrame *newFrame = new NewFrame(json,m_frame);
+    newFrame->mParent = this;
     // newFrame->setProperty(DKEY_JSONSTR,qv);
     newFrame->mOwerJson = qv.toObject();
     newFrame->initialEname();
@@ -3112,6 +3192,7 @@ NewLayer::NewLayer(const QJsonObject &json, QRect rect, QWidget *parent)
     :BaseForm(parent)
 {
     mType = TYPELAYER;
+    mParent = this; // 最顶层了,它的父对像设置成它自已.
     mWindow = ((ScenesScreen*)parent)->mWindow;
     setGeometry(rect);
     setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.

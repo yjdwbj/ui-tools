@@ -17,6 +17,7 @@
 #include <QStyleFactory>
 #include <QThread>
 #include <QLineEdit>
+class BaseForm;
 
 BaseDialog::BaseDialog(QWidget *parent):
     QDialog(parent)
@@ -427,6 +428,7 @@ ProjectDialog::ProjectDialog(QWidget *parent)
     setModal(true);
 
     setObjectName(this->metaObject()->className());
+    ui->prjname->setText("prj_" + QDate::currentDate().toString("yyyy-MM-dd"));
 
     mWindow = (MainWindow*)(parent);
     setWindowTitle("新建工程");
@@ -906,17 +908,31 @@ findDlg::findDlg(QWidget *parent)
 void findDlg::onStartSearch()
 {
     QString text = ui->lineEdit->text();
-    QWidget *w = mWindow->ComCtrl->mSeqEnameMap.value(text);
+    QWidget *w = BaseForm::mSeqEnameMap.value(text);
 
     if(w)
     {
         int i = ((BaseForm*)w)->mPageIndex;
         if(mWindow->cManager->activeIndex() !=  i)
             mWindow->pageView->PressItem(i);
+        BaseForm *pwid = ((BaseForm*)w)->mParent;
+        BaseForm *cw = (BaseForm*)w;
+        while( pwid != cw && pwid->isHidden())
+        {
+            cw = pwid;
+            pwid = pwid->mParent;
+        }
+        if(cw)
+        {
+//            ((BaseForm*)cw)->onSelectMe();
+            mWindow->tree->setSelectTreeItem(cw);
+            mWindow->tree->onSwapShowHideObject();
+        }
+
         ((BaseForm*)w)->onSelectMe();
     }
-    this->accept();
-    this->deleteLater();
+    accept();
+    deleteLater();
 }
 
 void findDlg::keyReleaseEvent(QKeyEvent *s)
@@ -1188,8 +1204,6 @@ FileEdit::FileEdit(QString txt, QWidget *parent)
             emit bd->accept();
         });
 
-
-
         bd->setLayout(vb);
         bd->exec();
         bd->deleteLater();
@@ -1198,8 +1212,6 @@ FileEdit::FileEdit(QString txt, QWidget *parent)
     });
 
 }
-
-
 
 
 class BaseForm;
@@ -1227,7 +1239,6 @@ ActionList::ActionList(QWidget *parent)
                 for(QVariantList::const_iterator it = qvlist.begin();
                     it != qvlist.end();++it)
                 {
-
                     t << (*it).toMap().firstKey();
                 }
                 mEnumMap[i] = t;
@@ -1240,7 +1251,7 @@ ActionList::ActionList(QWidget *parent)
             mTypeMap[i] = qobj[NAME].toString();
             mDefaultVals.append(qobj[DEFAULT].toString());
         }else{
-            qDebug() << " values is " << qobj[VALUES].toArray();
+//            qDebug() << " values is " << qobj[VALUES].toArray();
             QJsonArray arr =  qobj[VALUES].toArray();
             int asize = arr.size();
             for(int i = 0 ; i < asize;i++)
@@ -1317,11 +1328,7 @@ ActionList::ActionList(QWidget *parent)
             }
         }
         bf->mOwerJson[PROPERTY] = qa;
-
-
-
-        this->accept();
-
+        accept();
     });
 
 
@@ -1341,7 +1348,7 @@ ActionList::ActionList(QWidget *parent)
                 QString objstr = vmap[mTypeMap[n]].toString();
                 if(!QString::compare(OBJECT,w->objectName()))
                 {
-                    QStringList slit = mWindow->ComCtrl->mSeqEnameMap.keys();
+                    QStringList slit = BaseForm::mSeqEnameMap.keys();
 
                     if(!objstr.isEmpty() && slit.indexOf(objstr) < 0)
                     {
@@ -1392,18 +1399,16 @@ void ActionList::addNewRow(int line,const QVariantList &defvals)
             connect(cbox,SIGNAL(customContextMenuRequested(const QPoint&)),
                     SLOT(onCustomContextMenu(const QPoint&)));
 
-            cbox->addItems(mWindow->ComCtrl->mSeqEnameMap.keys());
+            cbox->addItems(BaseForm::mSeqEnameMap.keys());
             cbox->addItem("");
             cbox->setCurrentText(defvals[i].toString());
             mTable->setCellWidget(line,i,cbox);
             cbox->setObjectName(mTypeMap[i]);
-            //            cbox->setProperty(mWidType,ENUM);
         }else{
             QLineEdit *edit = new QLineEdit(mTable);
             mTable->setCellWidget(line,i,edit);
             edit->setText(defvals[i].toString());
             edit->setObjectName(mTypeMap[i]);
-            //            cbox->setProperty(mWidType,TEXT);
         }
 
 
@@ -1429,9 +1434,7 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
 
     if(isTable)
     {
-
         contextMenu.addAction(&addline);
-
         contextMenu.exec(mapToGlobal(pos));
     }else{
         QPoint subpos(((QWidget*)sender)->pos());
@@ -1452,8 +1455,6 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
                 w->deleteLater();
             }
             mTable->removeRow(line);
-
-
         });
 
 
@@ -1463,7 +1464,6 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
                          &QAction::triggered,[=](){
             mTable->insertRow(line);
             addNewRow(line,mDefaultVals);
-
         });
 
         contextMenu.addActions(QList<QAction*>() << &addline << &delline << &insert);
@@ -1474,14 +1474,10 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
         {
 
             auto sawp_lambda_func = [this](int src,int dst) {
-
-
                 QVariantList oldvals;
                 for(int i  = 0 ; i < mTable->columnCount();i++)
                 {
                     QWidget *w = mTable->cellWidget(src,i);
-
-
                     //                    if(!QString::compare(w->metaObject()->className(),"QComboBox"))
                     if(w->inherits("QComboBox"))
                     {
@@ -1499,8 +1495,6 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
                 //                qDebug() << " insert row " << dst;
                 mTable->insertRow(dst);
                 addNewRow(dst,oldvals);
-
-
             };
 
 
@@ -1552,7 +1546,7 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
             contextMenu.exec(mapToGlobal(subpos)+pos);
         }
     }
-    //    contextMenu->deleteLater();
+
 }
 
 
