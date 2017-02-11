@@ -269,9 +269,9 @@ void TreeDock::moveItemOrder(QTreeWidgetItem *item,int src,int dst)
 }
 
 
-void TreeDock::moveTopItemOrder(QTreeWidgetItem *item,int src,int dst)
+void TreeDock::moveTopItemOrder(int src,int dst)
 {
-   treeWidget->insertTopLevelItem(dst,item->takeChild(src));
+   treeWidget->insertTopLevelItem(dst,treeWidget->takeTopLevelItem(src));
 }
 
 void TreeDock::setMyParentNode()

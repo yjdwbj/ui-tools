@@ -44,7 +44,7 @@ public:
     void updateSeq(QString val);
     void moveListItemOrder(QString pname, int src, int dst);
     void moveItemOrder(QTreeWidgetItem *item,int src,int dst);
-    void moveTopItemOrder(QTreeWidgetItem *item,int src,int dst);
+    void moveTopItemOrder(int src, int dst);
     QTreeWidget *treeWidget;
 
 

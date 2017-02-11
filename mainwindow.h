@@ -31,6 +31,7 @@
 
 #include "busyindicator.h"
 
+
 #include <QRunnable>
 
 
@@ -43,7 +44,7 @@ class CompoentControls;
 class ComProperty;
 class ImgProperty;
 class Position;
-class BaseForm;
+
 
 
 namespace Ui {
@@ -61,12 +62,7 @@ protected:
 
 class MainWindow : public QMainWindow
 {
-
-    friend class NewLabel;
-    friend class ImageLayer;
     Q_OBJECT
-
-
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
@@ -84,7 +80,7 @@ public:
     QMap<QString,QString> bimgPath; // 背景图片的全路径
     ComProperty *propertyWidget;
     ComProperty *imgPropertyWidget;
-    Position *posWidget;
+//    Position *posWidget;
     QFrame *mCanvas;
     TreeDock *tree;
     ScenesScreen *Scenes;

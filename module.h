@@ -159,6 +159,7 @@ public:
 
     static ObjFlags mCopyFromType ;
     static QJsonValue mCopyItem;
+    static bool mPrjIsChanged;
 
 
     static QString getSequence(const QString &key);

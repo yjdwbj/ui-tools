@@ -4,6 +4,7 @@
 #include "scenesscreen.h"
 #include "canvasmanager.h"
 #include "pageview.h"
+#include "module.h"
 
 #include <QStandardPaths>
 #include <QStyleFactory>
@@ -17,6 +18,8 @@
 #include <QProcess>
 #include <stdio.h>
 #include <unistd.h>
+
+class BaseForm;
 
 using namespace xls;
 void Backgroud::paintEvent(QPaintEvent *)
@@ -68,7 +71,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
     cManager = new CanvasManager(this);
-    posWidget = 0;
+//    posWidget = 0;
 
     setWindowTitle(VERSION);
 
@@ -493,7 +496,7 @@ void MainWindow::onDobuleClickedImage(QListWidgetItem *item)
 
 void MainWindow::closeEvent(QCloseEvent *e)
 {
-    if(cManager->mIsOpenProject)
+    if(cManager->mIsOpenProject && BaseForm::mPrjIsChanged)
     {
         QMessageBox msgBox;
         msgBox.setWindowTitle("打开工程提示");

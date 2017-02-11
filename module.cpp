@@ -39,6 +39,7 @@ QJsonValue BaseForm::mCopyItem;
 BaseForm::ObjFlags BaseForm::mCopyFromType;
 QMap<QString,QWidget*> BaseForm::mObjectMap; // 新生成的控件.
 QMap<QString,QWidget*> BaseForm::mSeqEnameMap; // 对应到小机里的唯一名称.
+bool BaseForm::mPrjIsChanged = false;
 
 
 QJsonValue Compoent::changeJsonValue(const QJsonArray &arg,QString key,
@@ -322,10 +323,10 @@ QJsonArray Compoent::updateRBJsonValue(const QJsonArray &arr, QWidget *w)
         {
             //ov = getRectJson(this);
             ov[KEY_RECT] = getRectJson(w)[KEY_RECT];
-//            if(w->property(DKEY_INTOCONTAINER).toBool())
-//            {
+            //            if(w->property(DKEY_INTOCONTAINER).toBool())
+            //            {
 
-//            }
+            //            }
 
         }else if(ov.contains(UID))
         {
@@ -533,12 +534,12 @@ QJsonObject Compoent::getRectJson(QWidget *w)
 {
     QJsonObject rect;
     QVariantMap vmap;
-//    if(w->property(DKEY_INTOCONTAINER).toBool())
+    //    if(w->property(DKEY_INTOCONTAINER).toBool())
     if(w->inherits("BaseForm") &&
             ((BaseForm*)w)->mParent->isContainer())
     {
         // 在容器控件里要把它的坐标,转换成相对于父控件的绝对坐标.
-//        QPoint pos = w->mapToParent(w->parentWidget()->pos());
+        //        QPoint pos = w->mapToParent(w->parentWidget()->pos());
         QPoint pos = w->mapToParent(((BaseForm*)w)->mParent->pos());
         vmap[LX] = pos.x();
         vmap[LY] = pos.y();
@@ -622,6 +623,7 @@ BaseForm::BaseForm(QWidget *parent)
     setStyleSheet("");
     mbkImage = "";
     setContentsMargins(0,0,0,0);
+    mPrjIsChanged = true;
 
 }
 
@@ -665,6 +667,7 @@ void BaseForm::mouseMoveEvent(QMouseEvent *event)
             posWidget->updatePosition(this);
         }
         this->blockSignals(true);
+        mPrjIsChanged = true;
     }
 }
 
@@ -672,6 +675,7 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
 {
     //    qDebug() << " my name " << this->objectName() << "class " << metaObject()->className();
     onSelectMe();
+    mPrjIsChanged = true;
     if (event->button() == Qt::LeftButton)
     {
         mOffset = event->pos();
@@ -690,7 +694,7 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
 
 void BaseForm::SwapLayerOrder(SwapType st)
 {
-//    QWidget *p =  this->parentWidget();
+    //    QWidget *p =  this->parentWidget();
     //    qDebug() << "this meta class name " << this->metaObject()->className();
     QList<QWidget*> *mlist;
     if(mParent == this)
@@ -698,7 +702,7 @@ void BaseForm::SwapLayerOrder(SwapType st)
         mlist = &((ScenesScreen*)this->parentWidget())->childlist;
     }else
     {
-       mlist = &mParent->childlist;
+        mlist = &mParent->childlist;
     }
     //    qDebug() << " parent widget objectname " << p->objectName() << p->metaObject()->className();
     if(mlist->size())
@@ -728,7 +732,7 @@ void BaseForm::SwapLayerOrder(SwapType st)
 
 void BaseForm::objectMoveSwapMenu(QMenu *contextMenu)
 {
-//    QWidget *pwid = this->parentWidget();
+    //    QWidget *pwid = this->parentWidget();
     QList<QWidget*> plist ;
     if(this == mParent)
     {
@@ -761,7 +765,7 @@ void BaseForm::objectMoveSwapMenu(QMenu *contextMenu)
                             if(!parent)
                             {
                                 myindex = treeWidget->indexOfTopLevelItem(item);
-                                mWindow->tree->moveTopItemOrder(item,myindex,myindex-1);
+                                mWindow->tree->moveTopItemOrder(myindex,myindex-1);
                             }else{
                                 myindex = parent->indexOfChild(item);
                                 mWindow->tree->moveItemOrder(parent,myindex,myindex-1);
@@ -797,7 +801,7 @@ void BaseForm::objectMoveSwapMenu(QMenu *contextMenu)
                         if(!parent)
                         {
                             myindex = treeWidget->indexOfTopLevelItem(item);
-                            mWindow->tree->moveTopItemOrder(item,myindex,myindex-1);
+                            mWindow->tree->moveTopItemOrder(myindex,myindex-1);
                         }else{
                             myindex = parent->indexOfChild(item);
                             mWindow->tree->moveItemOrder(parent,myindex,myindex+1);
@@ -820,7 +824,7 @@ void BaseForm::objectMoveSwapMenu(QMenu *contextMenu)
                 QTreeWidgetItem* parent = item->parent();
                 if(!parent)
                 {
-                    mWindow->tree->moveTopItemOrder(item,treeWidget->indexOfTopLevelItem(item),0);
+                    mWindow->tree->moveTopItemOrder(treeWidget->indexOfTopLevelItem(item),0);
                 }else{
                     mWindow->tree->moveItemOrder(parent,parent->indexOfChild(item),0);
                 }
@@ -837,9 +841,9 @@ void BaseForm::objectMoveSwapMenu(QMenu *contextMenu)
                 QTreeWidgetItem* parent = item->parent();
                 if(!parent)
                 {
-                    mWindow->tree->moveTopItemOrder(item,
-                                                    treeWidget->indexOfTopLevelItem(item),
-                                                    treeWidget->topLevelItemCount());
+                    mWindow->tree->moveTopItemOrder(
+                                treeWidget->indexOfTopLevelItem(item),
+                                treeWidget->topLevelItemCount()-1);
                 }else{
                     mWindow->tree->moveItemOrder(parent,
                                                  parent->indexOfChild(item),
@@ -1078,17 +1082,10 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
         contextMenu->addAction(nl->menuSetSpace);
     };
 
-//    bool inContainer = property(DKEY_INTOCONTAINER).toBool();
+    //    bool inContainer = property(DKEY_INTOCONTAINER).toBool();
     if(mParent->mType == TYPELIST)
     {
         lambda_list_menu((NewList*)(mParent));
-//        if(mParent->inherits(CN_NEWLIST))
-//        {
-//            lambda_list_menu((NewList*)(mParent));
-//        }else if(mParent->inherits(CN_NEWGRID))
-//        {
-//            lambda_grid_menu((NewGrid*)(mParent));
-//        }
     }else if(mParent->mType == TYPEGRID)
     {
         lambda_grid_menu((NewGrid*)(mParent));
@@ -1098,7 +1095,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
         lambda_grid_menu((NewGrid*)(this));
     }else if(inherits(CN_NEWLIST))
     {
-         lambda_list_menu((NewList*)(this));
+        lambda_list_menu((NewList*)(this));
     }
 
     contextMenu->addSeparator();
@@ -1123,7 +1120,7 @@ void BaseForm::mouseReleaseEvent(QMouseEvent *event)
     // 这里只能在释放鼠标时改变左边的控件值
     //    qDebug() << " object size " << this->size()
     //             << " object pos " << this->pos();
-  //  if(!property(DKEY_INTOCONTAINER).toBool())
+    //  if(!property(DKEY_INTOCONTAINER).toBool())
     if(!mParent->isContainer())
     {
         if(posWidget)
@@ -1643,8 +1640,8 @@ void BaseForm::onSelectMe()
     mWindow->propertyWidget->createPropertyBox(this);
 
     // posWidget->setConnectNewQWidget(this);
-//    if(!property(DKEY_INTOCONTAINER).toBool())
-     if(!mParent->isContainer())
+    //    if(!property(DKEY_INTOCONTAINER).toBool())
+    if(!mParent->isContainer())
     {
         posWidget->updatePosition(this);
         posWidget->updateSize(this);
@@ -1918,11 +1915,11 @@ NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,
     QJsonObject  valobj = qv.toObject();
     QRect oldrect = Compoent::getRectFromStruct(valobj[PROPERTY].toArray(),KEY_RECT);
     // QVariant variant = valobj.value(PROPERTY).toVariant();
-//    qDebug() << " whois call CreateNewLayout" << this->objectName() << this->metaObject()->className();
+    //    qDebug() << " whois call CreateNewLayout" << this->objectName() << this->metaObject()->className();
     NewLayout *newlayout = new NewLayout(valobj,oldrect,mWindow,parent);
     newlayout->mParent = this;
-//    if(incontainer)
-//        newlayout->setProperty(DKEY_INTOCONTAINER,incontainer);
+    //    if(incontainer)
+    //        newlayout->setProperty(DKEY_INTOCONTAINER,incontainer);
     newlayout->mCreateFlag = isCreate;
     newlayout->setProperty(DKEY_TYPE, valobj[WTYPE].toString());
     newlayout->mOwerJson = qv.toObject();
@@ -2251,7 +2248,7 @@ void NewGrid::initRowsCols(int row,int col,const QJsonValue &value)
 
     onSelectMe();
     NewLayout *nl = CreateNewLayout(value,mainWidget,mCreateFlag,true);
-//    nl->container = this;
+    //    nl->container = this;
 
     childlist.append(nl);
     // 自已的行列坐标.
@@ -2592,7 +2589,7 @@ NewLayout * NewList::AddOneLine(const QJsonValue &value)
 
     newlayout->onSelectMe();
     childlist.append(newlayout);
-//    newlayout->container = this;
+    //    newlayout->container = this;
 
     listLayout->addWidget(newlayout);
     if(sliderOrientation == Qt::Horizontal)
@@ -2756,7 +2753,7 @@ NewLayout::NewLayout(const QJsonObject &json, QRect rect,
         setMaximumSize(parent->size()); //　最大尺寸不能超过它的父控件.
 
     setFocusPolicy(Qt::ClickFocus);
-//    setProperty(DKEY_INTOCONTAINER,false);
+    //    setProperty(DKEY_INTOCONTAINER,false);
     show();
     setGeometry(rect);
     update();
@@ -2768,24 +2765,24 @@ NewLayout::NewLayout(const QJsonObject &json, QRect rect,
 void NewLayout::DeleteMe()
 {
     // 它是否是列表控件的一员.
-//    if(property(DKEY_INTOCONTAINER).toBool())
-//    {
+    //    if(property(DKEY_INTOCONTAINER).toBool())
+    //    {
 
-//        if(this->inherits(CN_NEWLIST))
-//            ((NewList*)container)->childlist.removeOne(this);
-//        else{
-//            ((NewGrid*)container)->childlist.removeOne(this);
-//        }
-//    }
+    //        if(this->inherits(CN_NEWLIST))
+    //            ((NewList*)container)->childlist.removeOne(this);
+    //        else{
+    //            ((NewGrid*)container)->childlist.removeOne(this);
+    //        }
+    //    }
     if(mParent->mType == TYPEGRID ||
             mParent->mType == TYPELIST)
     {
         mParent->childlist.removeOne(this);
-//        if(this->inherits(CN_NEWLIST))
-//            ((NewList*)container)->childlist.removeOne(this);
-//        else{
-//            ((NewGrid*)container)->childlist.removeOne(this);
-//        }
+        //        if(this->inherits(CN_NEWLIST))
+        //            ((NewList*)container)->childlist.removeOne(this);
+        //        else{
+        //            ((NewGrid*)container)->childlist.removeOne(this);
+        //        }
     }
     this->BaseForm::DeleteMe();
 }
@@ -3070,7 +3067,7 @@ QList<int> NewLayout::rowcoldialog()
 {
     QList<int> arglist;
     int r,c,w,h = 0;
-   while(1){
+    while(1){
 
         BaseDialog *nWindow = new BaseDialog();
         nWindow->setObjectName(metaObject()->className());
@@ -3130,11 +3127,11 @@ QList<int> NewLayout::rowcoldialog()
         dbb->button(QDialogButtonBox::Cancel)->setText("取消");
         connect(dbb,SIGNAL(accepted()),nWindow,SLOT(accept()));
         connect(dbb,SIGNAL(rejected()),nWindow,SLOT(reject()));
-//        connect(dbb,&QDialogButtonBox::clicked,[=](QAbstractButton *button){
+        //        connect(dbb,&QDialogButtonBox::clicked,[=](QAbstractButton *button){
 
 
-//        });
-//        connect(dbb,SIGNAL(rejected()),nWindow,SLOT(reject()));
+        //        });
+        //        connect(dbb,SIGNAL(rejected()),nWindow,SLOT(reject()));
         vb->addWidget(dbb);
         nWindow->setLayout(vb);
         nWindow->exec();

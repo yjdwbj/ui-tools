@@ -47,7 +47,7 @@ CanvasManager::CanvasManager(MainWindow *w):
     confPrj(new QPushButton(tr("工程设置"))),
     saveas(new QPushButton(QIcon(":/icon/icons/document-save-as.png"),"另存为")),
     mProjectWidgetDir(QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH + "widgets"),
-    mPrjIsChanged(false),
+//    mPrjIsChanged(false),
     mIsOpenProject(false),
     autoSaveTimer(new QTimer(this)),
     mFFmpegRuning(false)
@@ -135,7 +135,8 @@ CanvasManager::CanvasManager(MainWindow *w):
     //将定时器超时信号与槽(功能函数)联系起来
 
     connect( autoSaveTimer,&QTimer::timeout,[=](){
-        saveProject("autosave.json");
+        if(BaseForm::mPrjIsChanged)
+            saveProject("autosave.json");
     } );
 
     connect(openPrj,SIGNAL(clicked(bool)),SLOT(onOpenProject()));
@@ -510,7 +511,7 @@ void CanvasManager::onCreateNewProject()
 {
 
 
-    if(mPrjIsChanged)
+    if(BaseForm::mPrjIsChanged)
     {
         // 当前工程有修改还没有保存.
         QMessageBox msgBox;
@@ -578,7 +579,8 @@ void CanvasManager::OpenProject(QString file)
                 }
                 readProjectJson(qdobj[PAGES].toArray());
                 setActiveSS(qdobj[ACTPAGE].toInt());
-                mPrjIsChanged=true;
+//                mPrjIsChanged=true;
+                BaseForm::mPrjIsChanged = false;
                 mIsOpenProject = true;
             }
         }else{
@@ -643,7 +645,7 @@ void CanvasManager::closeCurrentProject()
 void CanvasManager::onCreateNewScenesScreen()
 {
     mIsOpenProject = true;
-    mPrjIsChanged = true;
+//    mPrjIsChanged = true;
     createNewCanvas();
     delPage->setEnabled(true);
     mWindow->propertyWidget->delPropertyBox();
@@ -761,6 +763,7 @@ void CanvasManager::onSaveProject()
     mProjectFullPath = fname;
     mWindow->mGlobalSet->setValue(INI_PRJLAST,fname.toUtf8());
     saveProject(fname);
+    BaseForm::mPrjIsChanged = false;
 
 
 }

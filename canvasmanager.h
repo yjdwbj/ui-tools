@@ -41,7 +41,7 @@ public:
 
     QStackedLayout *stack;
     MainWindow *mWindow;
-    bool mPrjIsChanged;
+
 
     QStringList mPrjSelectlang; // 工程选择的多国语言
     QString mProjectName;  // 工程名
