@@ -58,7 +58,7 @@ void ScenesScreen::mousePressEvent(QMouseEvent *event)
         QAction copy(QIcon(":/icon/icons/editcopy.png"),"复制",this);
         connect(&copy,&QAction::triggered,[=](){
             BaseForm::mCopyItem = QJsonValue(writeToJson());
-            BaseForm::mCopyFromType = BaseForm::ObjType::TYPESS;
+            BaseForm::mCopyFromType = BaseForm::ObjTypes::TYPESS;
         });
 
         QAction paste(QIcon(":/icon/icons/editpaste.png"),"粘贴",this);
@@ -170,7 +170,7 @@ void ScenesScreen::delAllObjects()
 {
     foreach (QWidget *w, childlist) {
         // 这里递归删每一个新建的控件
-        if(((BaseForm*)w)->mType == BaseForm::TYPELAYOUT)
+        if(((BaseForm*)w)->mType == BaseForm::T_NewLayout)
         {
             ((NewLayout*)w)->DeleteMe();
         }
@@ -244,115 +244,59 @@ void ScenesScreen::pasteItem(QWidget *w)
 {
 
     qDebug() << " paste to object " << w->objectName() << w->metaObject()->className();
-    if(!BaseForm::mCopyItem.isNull())
+    if(BaseForm::mCopyItem.isNull()) return;
+
+    BaseForm::ObjTypes fromType = BaseForm::mCopyFromType;
+    if(w->inherits(this->metaObject()->className()) ||
+            fromType == BaseForm::T_NewLayer )
     {
-        BaseForm::ObjFlags fromType = BaseForm::mCopyFromType;
-        if(w->inherits(this->metaObject()->className()) ||
-               fromType == BaseForm::TYPELAYER )
+        //  qDebug() << " paste to sss object ";
+        if(fromType != BaseForm::T_NewLayer)
         {
-            //  qDebug() << " paste to sss object ";
-            if(fromType != BaseForm::TYPELAYER)
-            {
-                QMessageBox::warning(this,"提示","剪切板里的对像支持粘贴到当前容器上,请选择一个<布局>对像.");
-            }else
-            {
-                QJsonArray a;
-                a.append(BaseForm::mCopyItem);
-                readLayer(a);
-            }
-        }else{
-            BaseForm *bf = (BaseForm*)w;
-            BaseForm::ObjFlags curtype = bf->mType;
-            QString cls =  BaseForm::mCopyItem.toObject()[CLASS].toString();
+            QMessageBox::warning(this,"提示","剪切板里的对像支持粘贴到当前容器上,请选择一个<布局>对像.");
+        }else
+        {
+            QJsonArray a;
+            a.append(BaseForm::mCopyItem);
+            readLayer(a);
+        }
+    }else{
+        BaseForm *bf = (BaseForm*)w;
+        BaseForm::ObjTypes curtype = bf->mType;
+        //            QString cls =  BaseForm::mCopyItem.toObject()[CLASS].toString();
 
 
-            switch (curtype) {
-            case BaseForm::TYPELAYER:
-            case BaseForm::TYPELAYOUT:
-            {
-                    NewLayout* bflayout = (NewLayout*)bf;
-                    bflayout->readFromJson(BaseForm::mCopyItem,false);
-            }
-
-                break;
-            case BaseForm::TYPEGRID:
-                QMessageBox::warning(this,"提示","当前类型容器不接受粘贴!");
-                break;
-            case BaseForm::TYPELIST:
-                if(fromType == BaseForm::TYPELAYOUT)
-                {
-                    NewList *nlist = (NewList*)bf;
-                    nlist->pasteOneLine(BaseForm::mCopyItem);
-                }else{
-                    // 不能复制到当前对像上,请重新选择LAYOUT.
-                    QMessageBox::warning(this,"提示","当前的选中的对像不支持剪切板里的对像粘贴,请选择一个<布局>对像.");
-                }
-                break;
-            case BaseForm::TYPEFRAME:
-                ((NewLayout*)bf->mParent)->readFromJson(BaseForm::mCopyItem,false);
-                break;
-
-            default:
-                break;
-            }
+        switch (curtype) {
+        case BaseForm::T_NewLayer:
+        case BaseForm::T_NewLayout:
+        {
+            NewLayout* bflayout = (NewLayout*)bf;
+            bflayout->readFromJson(BaseForm::mCopyItem,false);
         }
 
-        //        if(!cls.compare(CN_NEWLAYER) )
-        //        {
-        //            // 复制到同级.
-        //            QJsonArray a;
-        //            a.append(BaseForm::mCopyItem);
-        //            readLayer(a);
+            break;
+        case BaseForm::T_NewGrid:
+            QMessageBox::warning(this,"提示","当前类型容器不接受粘贴!");
+            break;
+        case BaseForm::T_NewList:
+            if(fromType == BaseForm::T_NewLayout)
+            {
+                NewList *nlist = (NewList*)bf;
+                nlist->pasteOneLine(BaseForm::mCopyItem);
+            }else{
+                // 不能复制到当前对像上,请重新选择LAYOUT.
+                QMessageBox::warning(this,"提示","当前的选中的对像不支持剪切板里的对像粘贴,请选择一个<布局>对像.");
+            }
+            break;
+        case BaseForm::T_NewFrame:
+            ((NewLayout*)bf->mParent)->readFromJson(BaseForm::mCopyItem,false);
+            break;
 
-        //        }else if(!cls.compare(CN_NEWLAYOUT)){
-        //            if( curtype == BaseForm::TYPELAYOUT)
-        //            {
-        //                NewLayout* bflayout = (NewLayout*)bf;
-        //                bflayout->readFromJson(BaseForm::mCopyItem,true);
-        //            }
-        //            else if (curtype == BaseForm::TYPELAYER)
-        //            {
-        //                NewLayer *layer = (NewLayer *)bf;
-        //                layer->readLayoutFromJson(BaseForm::mCopyItem,true);
-        //            }else if(curtype == BaseForm::TYPELIST )
-        //            {
-        //                if(BaseForm::mCopyFromType != BaseForm::ObjType::TYPELAYOUT)
-        //                {
-        //                    QMessageBox::warning(this,"提示","列表容器只支持<布局>类型的粘贴!");
-        //                }else{
-        //                    NewList *nlist = (NewList*)bf;
-        //                    nlist->pasteOneLine(BaseForm::mCopyItem);
-        //                }
-
-        //            }else if(curtype == BaseForm::TYPEGRID)
-        //            {
-        //                QMessageBox::warning(this,"提示","当前类型容器不接受粘贴!");
-        //            }
-        //            else{
-        //                NewLayout* bflayout = (NewLayout*)(bf->parentWidget());
-        //                bflayout->readFromJson(BaseForm::mCopyItem,true);
-        //            }
-
-        //        }else if(!cls.compare(CN_NEWFRAME) ||
-        //                 !cls.compare(CN_NEWGRID) ||
-        //                 !cls.compare(CN_NEWLIST) )
-        //        {
-
-        //            if(curtype != BaseForm::TYPELAYOUT)
-        //            {
-        //                // 不能复制到当前对像上,请重新选择LAYOUT.
-        //                QMessageBox::warning(this,"提示","当前的选中的对像不支持剪切板里的对像粘贴,请选择一个<布局>对像.");
-        //            else
-        //            {
-        //                NewLayout* bflayout = (NewLayout*)bf;
-        //                bflayout->readFromJson(BaseForm::mCopyItem,true);
-        //            }
-        //        }else if(this->inherits(cls.toLocal8Bit().data()))
-        //        {
-        //            QJsonObject ssobj = BaseForm::mCopyItem.toObject();
-        //            readLayer(ssobj[LAYER].toArray());
-        //        }
+        default:
+            break;
+        }
     }
+
 }
 
 QJsonObject  ScenesScreen::writeToJson()

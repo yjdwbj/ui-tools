@@ -10,9 +10,19 @@
 #include <QLineEdit>
 #include <QSignalMapper>
 #include <QComboBox>
+
+#include <QDrag>
+#include <QDragEnterEvent>
+#include <QDragLeaveEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
+#include <QMimeData>
+
 #include "mainwindow.h"
 
 #include "treedock.h"
+#include "module.h"
+
 
 
 class TreeDock;
@@ -125,6 +135,19 @@ private:
 };
 
 
+class DragButton: public QPushButton
+{
+    Q_OBJECT
+public:
+    explicit DragButton(const QJsonValue &value,QWidget *parent =0);
+    QJsonValue mValue;
+    int mFlag ;
+
+
+protected:
+    void mousePressEvent(QMouseEvent *e);
+};
+
 class CompoentControls : public QGroupBox
 {
     friend class PropertyBox;
@@ -155,8 +178,6 @@ private:
     QWidget *createCustomObject(const QJsonArray &comJsonArr);
     QJsonArray ReadTemplateWidgetFile(QString file) const;
 
-
-signals:
 
 public slots:
     void onCreateCompoentToCanvas();

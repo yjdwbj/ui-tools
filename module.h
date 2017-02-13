@@ -19,12 +19,18 @@
 #include "formresizer.h"
 
 
+
 class MainWindow;
 class ScenesScreen;
 class NewLayout;
 class NewLayer;
 class NewGrid;
 class NewList;
+class Position;
+
+
+
+
 
 class Compoent
 {
@@ -75,19 +81,23 @@ private:
 class BaseForm: public FormResizer,public Compoent
 {
     Q_OBJECT
+    Q_ENUMS(ObjTypes)
 public:
-    enum ObjType {
-        TYPELAYER =  0x0,
-        TYPELAYOUT = 0x1,
-        TYPEFRAME = 0x2,
-        TYPELIST = 0x3,
-        TYPEGRID = 0x4,
+
+    enum ObjTypes {
+        T_NewLayer =  0x0,
+        T_NewLayout = 0x1,
+        T_NewFrame = 0x2,
+        T_NewList = 0x3,
+        T_NewGrid = 0x4,
         TYPESS = 0x5,
         Object = 0x6
-//        TYPECONTAINER = TYPEGRID | TYPELIST
+    //        TYPECONTAINER = TYPEGRID | TYELIST
     };
 
-    Q_DECLARE_FLAGS(ObjFlags, ObjType)
+//    Q_DECLARE_FLAGS(ObjFlags, ObjType)
+    Q_ENUM(ObjTypes)
+
 
     enum SwapType {
         UpOne = 0x0,
@@ -130,7 +140,7 @@ public:
     void createContextMenu(QWidget *parent, QPoint pos);
     void SwapLayerOrder(SwapType st);
     bool isContainer(){
-        return  (mType == TYPELIST) || (mType == TYPEGRID);
+        return  (mType == T_NewList) || (mType == T_NewGrid);
     }
 
     QString updateEname(int index);
@@ -154,10 +164,10 @@ public:
     //    QJsonValue mPropertyJson;
 
 
-    ObjFlags mType;
+    ObjTypes mType;
     int mPageIndex;
 
-    static ObjFlags mCopyFromType ;
+    static ObjTypes mCopyFromType ;
     static QJsonValue mCopyItem;
     static bool mPrjIsChanged;
 
@@ -201,6 +211,8 @@ protected:
     void initObject(const QJsonObject &json);
     void objectMoveSwapMenu(QMenu *contextMenu);
     void listObjectMoveMenu(QMenu *contextMenu, BaseForm *container);
+    void dropEvent(QDropEvent *e);
+    void dragEnterEvent(QDragEnterEvent *);
 
 };
 

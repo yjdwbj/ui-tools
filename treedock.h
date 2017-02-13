@@ -60,6 +60,8 @@ private:
     MainWindow *mWindow;
     QMenu *contextMenu ;
 
+    void SwapItem(QTreeWidgetItem *item);
+
 };
 
 

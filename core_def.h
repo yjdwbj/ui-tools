@@ -130,7 +130,6 @@ static const char DKEY_COL[] = "gridcol";
 
 static const char CN_NEWLAYOUT[] = "NewLayout";
 static const char CN_NEWFRAME[] = "NewFrame";
-static const char CN_NEWLABEL[] = "NewLabel";
 static const char CN_NEWLAYER[] = "NewLayer";
 static const char CN_NEWLIST[] = "NewList";
 static const char CN_NEWGRID[] = "NewGrid";

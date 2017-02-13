@@ -126,12 +126,11 @@ void TreeDock::swapIconForItem(QString txt)
     QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(txt,
                                                             Qt::MatchFixedString | Qt::MatchRecursive);
 
-    if(qwilist.count())
-    {
-        QTreeWidgetItem *item = qwilist.at(0);
-        QWidget *w = BaseForm::mObjectMap[txt];
-        item->setIcon(0,w->isHidden() ? QIcon(HIDE_ICON) : QIcon(SHOW_ICON));
-    }
+    if(!qwilist.count())
+        return;
+    QTreeWidgetItem *item = qwilist.at(0);
+    QWidget *w = BaseForm::mObjectMap[txt];
+    item->setIcon(0,w->isHidden() ? QIcon(HIDE_ICON) : QIcon(SHOW_ICON));
 
 }
 
@@ -140,52 +139,39 @@ void TreeDock::onCustomContextMenu(const QPoint &point)
     // QModelIndex index = treeWidget->indexAt(point);
 
     QTreeWidgetItem *item = treeWidget->itemAt(point);
-    if(item)
-    {
+    if(!item)
+        return;
 
-        QWidget *w = BaseForm::mObjectMap[item->text(0)];
-        ((BaseForm*)w)->createContextMenu(treeWidget,
-                                          treeWidget->viewport()->mapToGlobal(point));
-    }
+    QWidget *w = BaseForm::mObjectMap[item->text(0)];
+    ((BaseForm*)w)->createContextMenu(treeWidget,
+                                      treeWidget->viewport()->mapToGlobal(point));
 }
 
 void TreeDock::onSwapShowHideSubObject()
 {
     QTreeWidgetItem *item =  treeWidget->currentItem();
-    if(item)
+    if(!item)
+        return;
+
+    QTreeWidgetItem *pitem = item->parent();
+    if(!pitem)
+        return;
+
+    QString ctext = item->text(1);
+    QWidget *cw = BaseForm::mObjectMap[item->text(0)];
+    bool flag = !cw->isHidden();
+    for(int i = 0 ; i < pitem->childCount();i++)
     {
-        QTreeWidgetItem *pitem = item->parent();
-        if(pitem)
-        {
-            QString ctext = item->text(1);
-            QWidget *cw = BaseForm::mObjectMap[item->text(0)];
-            bool flag = !cw->isHidden();
-            for(int i = 0 ; i < pitem->childCount();i++)
-            {
-                QTreeWidgetItem *citem = pitem->child(i);
-//                qDebug() << " child text  " << citem->text(0);
+        QTreeWidgetItem *citem = pitem->child(i);
+        qDebug() << " child text  " << citem->text(0);
 
-                if(flag == BaseForm::mObjectMap[citem->text(0)]->isHidden())
-                    continue;
-                if(!ctext.compare(citem->text(1)))
-                {
-                    SwapShowHideObject(citem);
-                    QWidget *w = BaseForm::mObjectMap[citem->text(0)];
-                    w->setHidden(!w->isHidden());
-
-                    citem->setIcon(0,w->isHidden() ?
-                                      QIcon(HIDE_ICON) :QIcon(SHOW_ICON));
-//                    citem->setHidden(!citem->isHidden());
-
-                }
-            }
-//            QWidget *pw = mWindow->ComCtrl->ProMap[pitem->text(0)];
-//            pw->setHidden(!pw->isHidden());
-//            pitem->setIcon(0,pw->isHidden()?
-//                              QIcon(HIDE_ICON) : QIcon(SHOW_ICON) );
-        }
-
+        if(flag == BaseForm::mObjectMap[citem->text(0)]->isHidden())
+            continue;
+        if(ctext.compare(citem->text(1)))
+            continue;
+        SwapItem(citem);
     }
+
 }
 
 
@@ -215,7 +201,7 @@ void TreeDock::SwapShowHideObject(QTreeWidgetItem* item)
         QTreeWidgetItem *it = item->child(i);
         if(!it)
             continue;
-         QString t = it->text(0);
+        QString t = it->text(0);
         SwapShowHideObject(it);
 
         QWidget *w = BaseForm::mObjectMap[t];
@@ -223,31 +209,35 @@ void TreeDock::SwapShowHideObject(QTreeWidgetItem* item)
         it->setHidden(!it->isHidden());
         if(it->text(1).compare(CN_NEWFRAME))
             it->setIcon(0,it->childCount() > 0 && it->child(0)->isHidden() ?
-                              QIcon(HIDE_ICON) :QIcon(SHOW_ICON)  );
+                            QIcon(HIDE_ICON) :QIcon(SHOW_ICON)  );
 
     }
+
+}
+
+void TreeDock::SwapItem(QTreeWidgetItem *item)
+{
+    QWidget *w = BaseForm::mObjectMap[item->text(0)];
+    BaseForm *bf = (BaseForm*)w;
+    w->setHidden(!w->isHidden());
+    if( (bf->mType != BaseForm::T_NewFrame)  &&
+            (bf->childlist.count() != item->childCount()))
+    {
+        SwapShowHideObject_BF(bf);
+    }else
+        SwapShowHideObject(item);
+    if(item->text(1).compare(CN_NEWFRAME))
+        item->setIcon(0,w->isHidden() ? QIcon(HIDE_ICON) : QIcon(SHOW_ICON));
 
 }
 
 void TreeDock::onSwapShowHideObject()
 {
     QTreeWidgetItem *item = treeWidget->currentItem();
-    if(item)
-    {
+    if(!item)
+        return;
+    SwapItem(item);
 
-        QWidget *w = BaseForm::mObjectMap[item->text(0)];
-        BaseForm *bf = (BaseForm*)w;
-        w->setHidden(!w->isHidden());
-        if( (bf->mType != BaseForm::TYPEFRAME)  &&
-             (bf->childlist.count() != item->childCount()))
-        {
-            SwapShowHideObject_BF(bf);
-        }else
-            SwapShowHideObject(item);
-        if(item->text(1).compare(CN_NEWFRAME))
-            item->setIcon(0,w->isHidden() ? QIcon(HIDE_ICON) : QIcon(SHOW_ICON));
-
-    }
 }
 
 void TreeDock::moveListItemOrder(QString pname, int src, int dst)
@@ -271,39 +261,37 @@ void TreeDock::moveItemOrder(QTreeWidgetItem *item,int src,int dst)
 
 void TreeDock::moveTopItemOrder(int src,int dst)
 {
-   treeWidget->insertTopLevelItem(dst,treeWidget->takeTopLevelItem(src));
+    treeWidget->insertTopLevelItem(dst,treeWidget->takeTopLevelItem(src));
 }
 
 void TreeDock::setMyParentNode()
 {
     QTreeWidgetItem *citem = treeWidget->currentItem();
-    //  qDebug() << " current item text" << citem->text(0);
+    if(!citem)
+        return;
 
-    if(citem)
+    QTreeWidgetItem *item= citem->parent();
+    if(item)
     {
-
-        QTreeWidgetItem *item= citem->parent();
-        if(item)
-        {
-            QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonPress,QCursor::pos(),
-                                                 Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
-            QWidget *w = BaseForm::mObjectMap[item->text(0)];
-            QApplication::postEvent(w,event);
-        }
-        else if(citem->text(1).compare(CN_NEWLAYER))
-        {
-            QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(CN_NEWLAYER,
-                                                                    Qt::MatchFixedString | Qt::MatchRecursive,1);
-            qwilist.removeOne(citem);
-            if(qwilist.count())
-            {
-                QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonPress,QCursor::pos(),
-                                                     Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
-                QWidget *w = BaseForm::mObjectMap[qwilist.last()->text(0)];
-                QApplication::postEvent(w,event);
-            }
-        }
+        QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonPress,QCursor::pos(),
+                                             Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
+        QWidget *w = BaseForm::mObjectMap[item->text(0)];
+        QApplication::postEvent(w,event);
     }
+    else if(citem->text(1).compare(CN_NEWLAYER))
+    {
+        QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(CN_NEWLAYER,
+                                                                Qt::MatchFixedString | Qt::MatchRecursive,1);
+        qwilist.removeOne(citem);
+        if(!qwilist.count())
+            return;
+        QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonPress,QCursor::pos(),
+                                             Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
+        QWidget *w = BaseForm::mObjectMap[qwilist.last()->text(0)];
+        QApplication::postEvent(w,event);
+
+    }
+
 
 }
 
@@ -349,26 +337,26 @@ void TreeDock::addObjectToCurrentItem(QString root,QWidget *obj)
     QList<QTreeWidgetItem*> qwilist = treeWidget->findItems(root,
                                                             Qt::MatchFixedString | Qt::MatchRecursive);
 
-    if(qwilist.count())
+    if(!qwilist.count())
+        return;
+
+    QString key = /*ww->property(DKEY_LOCALSEQ).toString()*/((BaseForm*)obj)->mUniqueStr;
+    QString ename = ((BaseForm*)obj)->mEnameStr;
+    QString clsname = obj->metaObject()->className();
+    QTreeWidgetItem *nqwi =  new QTreeWidgetItem(qwilist.first(),
+                                                 QStringList() << key << clsname << ename);
+
+    if(obj->inherits(CN_NEWLAYOUT))
     {
-
-        QString key = /*ww->property(DKEY_LOCALSEQ).toString()*/((BaseForm*)obj)->mUniqueStr;
-        QString ename = ((BaseForm*)obj)->mEnameStr;
-        QString clsname = obj->metaObject()->className();
-        QTreeWidgetItem *nqwi =  new QTreeWidgetItem(qwilist.first(),
-                                                     QStringList() << key << clsname << ename);
-
-        if(obj->inherits(CN_NEWLAYOUT))
-        {
-            nqwi->setIcon(0,obj->isHidden() ? QIcon(HIDE_ICON) : QIcon(SHOW_ICON));
-            //            nqwi->setExpanded(obj->isHidden());
-        }
-        BaseForm::mObjectMap[key] = obj;
-        treeWidget->blockSignals(true);
-        treeWidget->setCurrentItem(nqwi);
-        ((BaseForm*)obj)->onSelectMe();
-        treeWidget->blockSignals(false);
+        nqwi->setIcon(0,obj->isHidden() ? QIcon(HIDE_ICON) : QIcon(SHOW_ICON));
+        //            nqwi->setExpanded(obj->isHidden());
     }
+    BaseForm::mObjectMap[key] = obj;
+    treeWidget->blockSignals(true);
+    treeWidget->setCurrentItem(nqwi);
+    ((BaseForm*)obj)->onSelectMe();
+    treeWidget->blockSignals(false);
+
 }
 
 void TreeDock::deleteItem(QWidget *obj)
@@ -378,38 +366,36 @@ void TreeDock::deleteItem(QWidget *obj)
 
     foreach (QTreeWidgetItem *qwi, qwilist) {
         //qDebug() << " this text " << qwi->text(0);
-        if(!qwi->text(0).compare(key))
-        {
-            // 在它的父控件里的列表里找到它,移除它.
-            if(qwi->parent())
-            {
-                QWidget *parentControl =BaseForm::mObjectMap[qwi->parent()->text(0)];
-                ((BaseForm*)parentControl)->removeChild(obj);
-            }else
-            {
-                // 这里是顶层了.
-                mWindow->cManager->activeSS()->childlist.removeOne(obj);
-            }
+        if(qwi->text(0).compare(key))
+            continue;
 
-            treeWidget->removeItemWidget(qwi,0);
-            BaseForm::mObjectMap.remove(key);
-            delete qwi;
-            break;
+        // 在它的父控件里的列表里找到它,移除它.
+        if(qwi->parent())
+        {
+            QWidget *parentControl =BaseForm::mObjectMap[qwi->parent()->text(0)];
+            ((BaseForm*)parentControl)->removeChild(obj);
+        }else
+        {
+            // 这里是顶层了.
+            mWindow->cManager->activeSS()->childlist.removeOne(obj);
         }
+
+        treeWidget->removeItemWidget(qwi,0);
+        BaseForm::mObjectMap.remove(key);
+        delete qwi;
+        break;
     }
 }
 
 void TreeDock::deleteAllitem()
 {
-
     treeWidget->clear();
 }
 
 void TreeDock::updateSeq(QString val)
 {
     QTreeWidgetItem *item = treeWidget->currentItem();
-    if(item)
-    {
-        item->setText(2,val);
-    }
+    if(!item)
+        return;
+    item->setText(2,val);
 }

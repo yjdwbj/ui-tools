@@ -167,25 +167,23 @@ CanvasManager::CanvasManager(MainWindow *w):
                               "<p>邮箱: yjdwbj@gmail.com</p>"\
                               "</b>").arg(WIN_TITLE,GITVER,BUILDTIME);
         label->setText(txt);
-
         aboutdlg->exec();
         aboutdlg->deleteLater();
     });
 
     //开始运行定时器，定时时间间隔为6000ms
     connect(recordbtn,SIGNAL(clicked(bool)),this,SLOT(onRecordClick(bool)));
-
-
 }
 
 
 static void my_logoutput(void* ptr, int level, const char* fmt,va_list vl){
     FILE *fp = fopen("my_log.txt","a+");
-    if(fp){
-        vfprintf(fp,fmt,vl);
-        fflush(fp);
-        fclose(fp);
-    }
+    if(!fp)
+        return;
+    vfprintf(fp,fmt,vl);
+    fflush(fp);
+    fclose(fp);
+
 }
 
 
@@ -363,42 +361,39 @@ void CanvasManager::onRecordClick(bool b)
 void CanvasManager::screenshot()
 {
     // 对原来的那个页面进行截屏
-    if(mCanvasList.size())
+    if(!mCanvasList.size())
+        return;
+
+    QWidget *wd = stack->currentWidget();
+    if(!wd)
+        return;
+
+    // 匿名函数测试对像的子对像.
+    //            std::function<void(QWidget*)> test_func =  [&](QWidget* obj){
+    //                foreach( QObject *t, obj->children())
+    //                {
+    //                    qDebug() << " class name " << t->metaObject()->className()
+    //                             << " widget name  "  << ((QWidget*)t)->objectName();
+    //                    test_func((QWidget*)t);
+    //                }
+    //            };
+    //            test_func(stack->currentWidget());
+
+    QPixmap pixmap(stack->currentWidget()->size());
+    stack->currentWidget()->render(&pixmap,QPoint(),QRegion(stack->currentWidget()->rect()));
+    QVariant vp = stack->currentWidget()->property(DKEY_SHOT);
+    if( vp.isValid() && vp.toBool() == false)
     {
-        QWidget *wd = stack->currentWidget();
-        if(wd)
-        {
-            // 匿名函数测试对像的子对像.
-            //            std::function<void(QWidget*)> test_func =  [&](QWidget* obj){
-            //                foreach( QObject *t, obj->children())
-            //                {
-            //                    qDebug() << " class name " << t->metaObject()->className()
-            //                             << " widget name  "  << ((QWidget*)t)->objectName();
-            //                    test_func((QWidget*)t);
-            //                }
-            //            };
-            //            test_func(stack->currentWidget());
+        mWindow->pageView->addNewPage(pixmap,
+                                      stack->currentWidget()->property(DKEY_TXT).toString());
 
-            QPixmap pixmap(stack->currentWidget()->size());
-            stack->currentWidget()->render(&pixmap,QPoint(),QRegion(stack->currentWidget()->rect()));
-            QVariant vp = stack->currentWidget()->property(DKEY_SHOT);
-            if( vp.isValid() && vp.toBool() == false)
-            {
-                mWindow->pageView->addNewPage(pixmap,
-                                              stack->currentWidget()->property(DKEY_TXT).toString());
-
-                //pixmap.save("test.png");　//　这里如果有需要可以保存成文件.
-                stack->currentWidget()->setProperty(DKEY_SHOT,true);
-            }else{
-
-                int index = stack->currentIndex();
-                mWindow->pageView->delPage(index); // 删除当前的,更新每新的.
-                mWindow->pageView->InsertPage(index,pixmap,stack->currentWidget()->property(DKEY_TXT).toString());
-            }
-        }
-
+        //pixmap.save("test.png");　//　这里如果有需要可以保存成文件.
+        stack->currentWidget()->setProperty(DKEY_SHOT,true);
+    }else{
+        int index = stack->currentIndex();
+        mWindow->pageView->delPage(index); // 删除当前的,更新每新的.
+        mWindow->pageView->InsertPage(index,pixmap,stack->currentWidget()->property(DKEY_TXT).toString());
     }
-
 }
 
 ScenesScreen * CanvasManager::createNewCanvas()
@@ -431,61 +426,48 @@ ScenesScreen *CanvasManager::activeSS()
 
 int CanvasManager::activeIndex()
 {
-
-
     return stack->currentIndex();
 }
 
 void CanvasManager::setActiveSS(int index)
 {
     if(index == -1) return;
-    if(index < mCanvasList.size())
-    {
+    if(index >= mCanvasList.size())
+        return;
 
-        stack->setCurrentIndex(index);
-        // 清理treeWidget 的行
-        mWindow->tree->deleteAllitem();
-        ScenesScreen *Scenes = (ScenesScreen*)(stack->currentWidget());
-        // 把当前页的布局重新添加到treeWidget上
 
-        foreach (QWidget *w, Scenes->childlist) {
-            // QString key = w->property(DKEY_LOCALSEQ).toString();
-            mWindow->tree->addItemToRoot(w);
+    stack->setCurrentIndex(index);
+    // 清理treeWidget 的行
+    mWindow->tree->deleteAllitem();
+    ScenesScreen *Scenes = (ScenesScreen*)(stack->currentWidget());
+    // 把当前页的布局重新添加到treeWidget上
 
-            if(!w->isHidden())
-            {
-                ((BaseForm*)w)->addChildrenToTree();
-            }
-
+    foreach (QWidget *w, Scenes->childlist) {
+        mWindow->tree->addItemToRoot(w);
+        if(!w->isHidden())
+        {
+            ((BaseForm*)w)->addChildrenToTree();
         }
-
-        screenshot();
-        //  stack->setGeometry(stackRect);
     }
-
+    screenshot();
 }
-
-
-
-
-
 
 void CanvasManager::deleteCurrentPage()
 {
     ScenesScreen *ss = this->activeSS();
-    if(ss)
-    {
-        int index = stack->currentIndex();
-        stack->removeWidget(ss);
-        mWindow->pageView->delPage(index);
-        mWindow->tree->deleteAllitem();
-        mCanvasList.removeAt(index);
+    if(!ss) return;
 
-        ss->delAllObjects();
-        delPage->setEnabled(stack->count() == 0 ? false : true);
-        mWindow->lDock->setEnabled(stack->count() == 0 ? false : true);
-        setActiveSS(stack->currentIndex());
-    }
+    int index = stack->currentIndex();
+    stack->removeWidget(ss);
+    mWindow->pageView->delPage(index);
+    mWindow->tree->deleteAllitem();
+    mCanvasList.removeAt(index);
+
+    ss->delAllObjects();
+    delPage->setEnabled(stack->count() == 0 ? false : true);
+    mWindow->lDock->setEnabled(stack->count() == 0 ? false : true);
+    setActiveSS(stack->currentIndex());
+
 }
 
 void CanvasManager::onDelCurrentScenesScreen()
@@ -499,7 +481,6 @@ void CanvasManager::onDelCurrentScenesScreen()
     msgBox.setButtonText(QMessageBox::Cancel,"取消");
     msgBox.setDefaultButton(QMessageBox::Cancel);
     int ret = msgBox.exec();
-    //  qDebug() << " QMessageBox result " << ret;
     if(ret == QMessageBox::Yes)
     {
         deleteCurrentPage();
@@ -509,7 +490,6 @@ void CanvasManager::onDelCurrentScenesScreen()
 
 void CanvasManager::onCreateNewProject()
 {
-
 
     if(BaseForm::mPrjIsChanged)
     {
@@ -530,7 +510,6 @@ void CanvasManager::onCreateNewProject()
             onSaveProject();
         }
     }
-
 
     closeCurrentProject(); // 关闭当前工程.
     ProjectDialog *pd = new ProjectDialog(mWindow);
@@ -558,38 +537,39 @@ void CanvasManager::onCreateNewProject()
 void CanvasManager::OpenProject(QString file)
 {
     QFile PrjFile(file);
-    if (PrjFile.open(QFile::ReadOnly|QIODevice::Text)) {
-        QByteArray qba = PrjFile.readAll();
-        QTextStream in(&PrjFile);
-        QString str;
-        int ans = 0;
-        in >> str >> ans;
-        QJsonParseError json_error;
-        QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
+    if (!PrjFile.open(QFile::ReadOnly|QIODevice::Text))
+        return;
 
-        if(json_error.error == QJsonParseError::NoError)
+    QByteArray qba = PrjFile.readAll();
+    QTextStream in(&PrjFile);
+    QString str;
+    int ans = 0;
+    in >> str >> ans;
+    QJsonParseError json_error;
+    QJsonDocument qd = QJsonDocument::fromJson(qba,&json_error);
+
+    if(json_error.error == QJsonParseError::NoError)
+    {
+        if(qd.isObject())
         {
-            if(qd.isObject())
-            {
-                QJsonObject  qdobj = qd.object();
-                mProjectName = qdobj[NAME].toString();
-                mWindow->setWindowTitle( VERSION + mProjectName);
-                foreach (QJsonValue val,qdobj[MLANG].toArray() ) {
-                    mPrjSelectlang.append(val.toString());
-                }
-                readProjectJson(qdobj[PAGES].toArray());
-                setActiveSS(qdobj[ACTPAGE].toInt());
-//                mPrjIsChanged=true;
-                BaseForm::mPrjIsChanged = false;
-                mIsOpenProject = true;
+            QJsonObject  qdobj = qd.object();
+            mProjectName = qdobj[NAME].toString();
+            mWindow->setWindowTitle( VERSION + mProjectName);
+            foreach (QJsonValue val,qdobj[MLANG].toArray() ) {
+                mPrjSelectlang.append(val.toString());
             }
-        }else{
-            // qDebug() << " read Json file error";
-            qDebug() << json_error.errorString();
+            readProjectJson(qdobj[PAGES].toArray());
+            setActiveSS(qdobj[ACTPAGE].toInt());
+            BaseForm::mPrjIsChanged = false;
+            mIsOpenProject = true;
         }
-
-        mWindow->statusBar()->showMessage(QString("本页控件数量: %1").arg(QString::number(BaseForm::mSeqEnameMap.size())));
+    }else{
+        // qDebug() << " read Json file error";
+        qDebug() << json_error.errorString();
     }
+
+    mWindow->statusBar()->showMessage(QString("本页控件数量: %1").arg(QString::number(BaseForm::mSeqEnameMap.size())));
+
 }
 
 void CanvasManager::onOpenProject()
@@ -623,7 +603,6 @@ void CanvasManager::onOpenProject()
     {
         OpenProject(pfile);
         autoSaveTimer->start(60000);
-        //        screenshot();
     }
 }
 
@@ -645,7 +624,6 @@ void CanvasManager::closeCurrentProject()
 void CanvasManager::onCreateNewScenesScreen()
 {
     mIsOpenProject = true;
-//    mPrjIsChanged = true;
     createNewCanvas();
     delPage->setEnabled(true);
     mWindow->propertyWidget->delPropertyBox();
@@ -734,15 +712,16 @@ void CanvasManager::onSaveAsProject()
                                                  prjvar.toString(),
                                                  tr("json files, json file (*.json)"));
 
-    if(!fname.isEmpty())
+    if(fname.isEmpty())
+        return;
+
+    if(!fname.endsWith(".json"))
     {
-        if(!fname.endsWith(".json"))
-        {
-            fname = fname+".json";
-        }
-        mWindow->mGlobalSet->setValue(INI_PRJLAST,fname.toUtf8());
-        saveProject(fname);
+        fname = fname+".json";
     }
+    mWindow->mGlobalSet->setValue(INI_PRJLAST,fname.toUtf8());
+    saveProject(fname);
+
 }
 
 void CanvasManager::onSaveProject()
@@ -792,18 +771,6 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
                 }
             }
             setDefaultPageSize(QSize(w,h));
-//            QThread *tmp = new QThread();
-
-//            connect(tmp,&QThread::started,[=]{
-//                ScenesScreen *Scenes = createNewCanvas();
-//                // 递归读取它的页面.
-//                Scenes->readLayer(valobj[LAYER].toArray());
-//                tmp->exit();
-//            });
-
-//            connect(tmp,SIGNAL(finished()),tmp,SLOT(deleteLater()));
-//            tmp->start();
-
             ScenesScreen *Scenes = createNewCanvas();
             // 递归读取它的页面.
             Scenes->readLayer(valobj[LAYER].toArray());
