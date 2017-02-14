@@ -23,7 +23,6 @@ FormResizer::FormResizer(QWidget *parent) :
 {
     // Make the resize grip of a mainwindow form find us as resizable window.
     setWindowFlags(windowFlags() | Qt::SubWindow);
-   // setBackgroundRole(QPalette::Base);
 
     QVBoxLayout *handleLayout = new QVBoxLayout(this);
     handleLayout->setMargin(SELECTION_MARGIN);

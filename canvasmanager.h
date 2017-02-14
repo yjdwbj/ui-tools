@@ -7,6 +7,7 @@
 #include <QFuture>
 #include <QThread>
 #include <QProgressDialog>
+#include <QSlider>
 
 
 class ScenesScreen;
@@ -50,6 +51,8 @@ public:
     QString mProjectImageDir; // 工程图片资源目录.
     QString mProjectFullPath;
     bool mIsOpenProject;
+    QSlider *mHSlier;
+    QSlider *mVSlier;
 
 
 

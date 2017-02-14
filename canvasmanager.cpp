@@ -50,7 +50,9 @@ CanvasManager::CanvasManager(MainWindow *w):
 //    mPrjIsChanged(false),
     mIsOpenProject(false),
     autoSaveTimer(new QTimer(this)),
-    mFFmpegRuning(false)
+    mFFmpegRuning(false),
+    mHSlier(new QSlider(Qt::Horizontal,mWindow->centralWidget())),
+    mVSlier(new QSlider(Qt::Vertical,mWindow->centralWidget()))
 {
     // w->ui->centralWidget;
     newPage->setEnabled(false);
@@ -86,7 +88,22 @@ CanvasManager::CanvasManager(MainWindow *w):
 
     mWindow->addWidgetToToolBar(Q_NULLPTR);
     //  mWindow->addWidgetToToolBar(cb);
-    mWindow->centralWidget()->setLayout(stack);
+    QGridLayout *glayout = new QGridLayout();
+    mHSlier->setTickPosition(QSlider::TicksBelow);
+    mVSlier->setTickPosition(QSlider::TicksLeft);
+    mHSlier->setHidden(true);
+    mHSlier->setHidden(true);
+
+    glayout->setSpacing(0);
+    glayout->setContentsMargins(0,0,0,0);
+    glayout->setSizeConstraint(QGridLayout::SetFixedSize);
+    glayout->addLayout(stack,0,1);
+    glayout->addWidget(mVSlier,0,0);
+    glayout->addWidget(mHSlier,1,1);
+
+    mWindow->centralWidget()->setLayout(glayout);
+
+//    mWindow->centralWidget()->setLayout(stack);
     // 按屏幕的大小比例调整.
 
     connect(newPrj,SIGNAL(clicked(bool)),SLOT(onCreateNewProject()));
@@ -400,6 +417,11 @@ ScenesScreen * CanvasManager::createNewCanvas()
 {
     screenshot();
     ScenesScreen *Scenes = new ScenesScreen(mPageSize,(QWidget*)mWindow);
+    mVSlier->setFixedHeight(Scenes->height());
+    mHSlier->setFixedWidth(Scenes->width());
+    mHSlier->setHidden(false);
+    mVSlier->setHidden(false);
+//    Scenes->installEventFilter(mWindow);
     Scenes->addMainWindow(mWindow);
     Scenes->setProperty(DKEY_SHOT,false);  // 检查该页面是否创建过截图.
 
@@ -416,6 +438,8 @@ ScenesScreen * CanvasManager::createNewCanvas()
     // 清理treeWidget 的行
     mWindow->tree->deleteAllitem();
     screenshot();
+    BaseForm::mLayout->setEnabled(false);
+    BaseForm::setObjectTempEnabled(false);
     return Scenes;
 }
 

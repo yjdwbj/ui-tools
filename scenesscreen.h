@@ -14,6 +14,8 @@ class NewLayer;
 class Compoentcontrol;
 class FormResizer;
 class Compoent;
+class HVLineWidget;
+
 class ScenesScreen : public QFrame
 {
     friend class Compoentcontrol;
@@ -42,6 +44,7 @@ public:
 
     QList<QWidget*> childlist;
     MainWindow* mWindow;
+    HVLineWidget *mLine;
 
 signals:
 
@@ -52,8 +55,21 @@ private:
 //    int mActiveIdx; //  当前激活的布局.
 
     QWidget *activeObj;
+//    QLine mVLine;
+//    QLine mHLine;
+
+
+
 protected:
     void mousePressEvent(QMouseEvent *);
+    void mouseReleaseEvent(QMouseEvent *);
+    void dropEvent(QDropEvent *);
+    void dragEnterEvent(QDragEnterEvent *);
+    void dragLeaveEvent(QDragLeaveEvent *);
+    void dragMoveEvent(QDragMoveEvent *);
+//    void mouseMoveEvent(QMouseEvent *e);
+//    void paintEvent(QPaintEvent *e);
+
 
 };
 

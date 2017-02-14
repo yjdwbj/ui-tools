@@ -16,6 +16,17 @@ ScenesScreen::ScenesScreen(QSize size, QWidget *parent)
     setFixedSize(size);
     setFocusPolicy(Qt::ClickFocus);
     show();
+    setAcceptDrops(true);
+//    mVLine.setP1(pos());
+//    mVLine.setP2(pos());
+//    mHLine.setP1(pos());
+//    mHLine.setP2(pos());
+
+    setMouseTracking(true);
+    setAttribute(Qt::WA_Hover);
+    mLine = new HVLineWidget(this);
+    mLine->setGeometry(this->geometry());
+   // mLine->show();
 
 }
 
@@ -242,7 +253,6 @@ void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
 
 void ScenesScreen::pasteItem(QWidget *w)
 {
-
     qDebug() << " paste to object " << w->objectName() << w->metaObject()->className();
     if(BaseForm::mCopyItem.isNull()) return;
 
@@ -319,3 +329,65 @@ QJsonObject  ScenesScreen::writeToJson()
     return json;
 }
 
+void ScenesScreen::dragEnterEvent(QDragEnterEvent *e)
+{
+
+    mLine->show();
+    mLine->setHidden(false);
+    mLine->update();
+    qDebug() << " drag enter ";
+    e->accept();
+}
+void ScenesScreen::dragLeaveEvent(QDragLeaveEvent *)
+{
+    qDebug() << " drag levave";
+    mLine->update();
+    mLine->setHidden(true);
+}
+
+void ScenesScreen::dragMoveEvent(QDragMoveEvent *e)
+{
+    mLine->setPos(e->pos());
+    e->accept();
+}
+
+void ScenesScreen::dropEvent(QDropEvent *e)
+{
+    mLine->setHidden(true);
+    e->acceptProposedAction();
+
+    QByteArray itemData = e->mimeData()->data("application/x-dnditemdata");
+    QDataStream dataStream(&itemData, QIODevice::ReadOnly);
+
+    QPixmap pixmap;
+    QPoint offset;
+
+    QVariant qv;
+    int flag ;
+    dataStream >> flag  >> qv >> pixmap >> offset;
+     QJsonValue val = QJsonValue::fromVariant(qv);
+    if(static_cast<int>(BaseForm::ObjTypes::T_NewLayer)  == flag)
+    {
+        createNewLayer(val,true);
+    }else if(static_cast<int>(BaseForm::ObjTypes::T_NewLayout)  == flag){
+        BaseForm *active =(BaseForm*)(this->activeObject());
+        if(active->mType == BaseForm::T_NewLayer)
+        {
+            ((NewLayer*)active)->readLayoutFromJson(val,true);
+        }else if(active->mType == BaseForm::T_NewLayout)
+        {
+            ((NewLayout*)active)->readFromJson(val,true);
+        }
+    }else{
+        BaseForm *active =(BaseForm*)(this->activeObject());
+        ((NewLayout*)active)->readFromJson(val,true);
+
+//        QMessageBox::warning(0,tr("提示"),tr("请先拖入创建一个图层"));
+    }
+    mLine->raise();
+}
+
+void ScenesScreen::mouseReleaseEvent(QMouseEvent *)
+{
+    mLine->setHidden(true);
+}

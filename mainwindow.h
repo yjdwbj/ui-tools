@@ -60,6 +60,8 @@ protected:
     void paintEvent(QPaintEvent *);
 };
 
+
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -80,7 +82,7 @@ public:
     QMap<QString,QString> bimgPath; // 背景图片的全路径
     ComProperty *propertyWidget;
     ComProperty *imgPropertyWidget;
-//    Position *posWidget;
+    //    Position *posWidget;
     QFrame *mCanvas;
     TreeDock *tree;
     ScenesScreen *Scenes;
@@ -102,8 +104,8 @@ public:
     QMap<QString,QString> mItemMap;
     QMap<QString,QPixmap> mImgMap; //这里只用来缓图片
 
-//    BaseForm mCopyFromType;
-//    QJsonValue mCopyItem;
+    //    BaseForm mCopyFromType;
+    //    QJsonValue mCopyItem;
 
 
 
@@ -119,6 +121,10 @@ protected:
     void keyReleaseEvent(QMouseEvent *);
     void mousePressEvent(QMouseEvent *ev);
     void closeEvent(QCloseEvent *e);
+    bool eventFilter(QObject *, QEvent *);
+    void paintEvent(QPaintEvent *e);
+//    void mouseMoveEvent(QMouseEvent *e);
+
 private:
     Ui::MainWindow *ui;
 
@@ -134,6 +140,10 @@ private:
     void createCSVFile(QString xlsfile);
     void readCSVFile(QString csvfile);
     QWidget *pWin;
+    QLine mVLine;
+    QLine mHLine;
+
+
 
 
 

@@ -41,6 +41,10 @@ QMap<QString,QWidget*> BaseForm::mObjectMap; // 新生成的控件.
 QMap<QString,QWidget*> BaseForm::mSeqEnameMap; // 对应到小机里的唯一名称.
 bool BaseForm::mPrjIsChanged = false;
 
+QWidgetList BaseForm::mObjectTemplte;
+//QWidget *BaseForm::mLayer;
+QWidget *BaseForm::mLayout;
+
 
 QJsonValue Compoent::changeJsonValue(const QJsonArray &arg,QString key,
                                      const QVariant &val)
@@ -624,6 +628,8 @@ BaseForm::BaseForm(QWidget *parent)
     setAcceptDrops(true);
     this->m_frame->setAcceptDrops(true);
     mPrjIsChanged = true;
+    setMouseTracking(true);
+    setAttribute(Qt::WA_Hover);
 
 }
 
@@ -1640,6 +1646,18 @@ void BaseForm::onSelectMe()
         posWidget->updatePosition(this);
         posWidget->updateSize(this);
     }
+    if(mType == T_NewLayer)
+    {
+        mLayout->setEnabled(true);
+        setObjectTempEnabled(false);
+    }else if(mType == T_NewLayout)
+    {
+        mLayout->setEnabled(true);
+        setObjectTempEnabled(true);
+    }else{
+        mLayout->setEnabled(false);
+        setObjectTempEnabled(false);
+    }
 
 }
 
@@ -1902,48 +1920,85 @@ void BaseForm::wheelEvent(QWheelEvent *event)
 
 void BaseForm::dragEnterEvent(QDragEnterEvent *e)
 {
-    qDebug() << " drag enter is " << e->pos();
+    qDebug() << " drag enter is " << e->pos() << this->objectName() << this->metaObject()->className();
     e->accept();
 }
 
-void BaseForm::dropEvent(QDropEvent *e)
-{
+//void BaseForm::dropEvent(QDropEvent *e)
+//{
 
-     e->acceptProposedAction();
-   qDebug() << " drop event is " << e->pos();
+//    switch (mType) {
+//    case T_NewLayout:
+//    {
+//        if(mWindow->cManager->activeSS()->activeObject() == this)
+//            e->acceptProposedAction();
+//        else
+//            return;
 
-   QByteArray itemData = e->mimeData()->data("application/x-dnditemdata");
-   QDataStream dataStream(&itemData, QIODevice::ReadOnly);
+//        QByteArray itemData = e->mimeData()->data("application/x-dnditemdata");
+//        QDataStream dataStream(&itemData, QIODevice::ReadOnly);
 
-   QPixmap pixmap;
-   QPoint offset;
-   QJsonValue value;
-   QVariant qv;
-   int flag ;
+//        QPixmap pixmap;
+//        QPoint offset;
 
+//        QVariant qv;
+//        int flag ;
+//        dataStream >> flag  >> qv >> pixmap >> offset;
+//        if(static_cast<int>(ObjTypes::T_NewLayer)  == flag){
+//            ScenesScreen *ss = mWindow->cManager->activeSS();
+//            if(!ss)
+//                return;
+//            ss->createNewLayer( QJsonValue::fromVariant(qv),true);
+//        }else{
+//            QJsonValue val = QJsonValue::fromVariant(qv);
+//            ((NewLayout*)this)->readFromJson(val,true);
+//        }
+//    }
+//        break;
+//    case T_NewLayer:
+//    {
+//        QByteArray itemData = e->mimeData()->data("application/x-dnditemdata");
+//        QDataStream dataStream(&itemData, QIODevice::ReadOnly);
 
-   dataStream >> flag  >> qv >> pixmap >> offset;
+//        QPixmap pixmap;
+//        QPoint offset;
 
-   qDebug() << " drop data " << flag << qv << pixmap << offset ;
-   const QMetaObject &mo = BaseForm::staticMetaObject;
-   QMetaEnum metaEnum = mo.enumerator(flag);
+//        QVariant qv;
+//        int flag ;
+//        dataStream >> flag  >> qv >> pixmap >> offset;
+//        if(mWindow->cManager->activeSS()->activeObject() == this)
+//            e->acceptProposedAction();
+//        else
+//            return;
+//        if(static_cast<int>(ObjTypes::T_NewLayout)  == flag)
+//        {
+//            ((NewLayer*)this)->readLayoutFromJson(QJsonValue::fromVariant(qv),true);
+//        }else{
+//            QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
+//        }
+//    }
+//        break;
+//    default:
+//    {
+//        if(mWindow->cManager->activeSS()->activeObject() == mParent)
+//            e->acceptProposedAction();
+//        else
+//            return;
+//        QByteArray itemData = e->mimeData()->data("application/x-dnditemdata");
+//        QDataStream dataStream(&itemData, QIODevice::ReadOnly);
 
-        switch (mType) {
-    case T_NewLayout:
-        {
-            if( static_cast<int>(ObjTypes::T_NewLayout)  == flag )
-            {
-                ((NewLayout*)this)->readFromJson(qv.toJsonValue(),true);
-            }else if(static_cast<int>(ObjTypes::T_NewLayer)  == flag){
+//        QPixmap pixmap;
+//        QPoint offset;
 
-            }
-        }
-        break;
-    default:
-        break;
-}
+//        QVariant qv;
+//        int flag ;
+//        dataStream >> flag  >> qv >> pixmap >> offset;
+//        ((NewLayout*)mParent)->readFromJson(qv.toJsonValue(),true);
+//     }
+//        break;
+//    }
 
-}
+//}
 
 NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,
                                      QWidget *parent,bool isCreate,bool incontainer)
@@ -2126,7 +2181,12 @@ QString BaseForm::getEnameSeq(const QString &key,QWidget* obj)
 
 }
 
-
+void BaseForm::setObjectTempEnabled(bool f)
+{
+    foreach (QWidget *w, mObjectTemplte) {
+       w->setEnabled(f);
+    }
+}
 
 NewFrame::NewFrame(const QJsonObject &json, QWidget *parent)
 //  :FormResizer(parent),Compoent()
@@ -3186,6 +3246,41 @@ QWidget* NewLayout::createObjectFromJson(const QJsonValue &qv)
 
 }
 
+void NewLayout::dragEnterEvent(QDragEnterEvent *e)
+{
+    mWindow->cManager->activeSS()->mLine->setHidden(false);
+    e->accept();
+}
+
+void NewLayout::dragLeaveEvent(QDragLeaveEvent *e)
+{
+    mWindow->cManager->activeSS()->mLine->setHidden(true);
+}
+
+void NewLayout::dropEvent(QDropEvent *e)
+{
+    mWindow->cManager->activeSS()->mLine->setHidden(true);
+    e->acceptProposedAction();
+
+    QByteArray itemData = e->mimeData()->data("application/x-dnditemdata");
+    QDataStream dataStream(&itemData, QIODevice::ReadOnly);
+
+    QPixmap pixmap;
+    QPoint offset;
+
+    QVariant qv;
+    int flag ;
+    dataStream >> flag  >> qv >> pixmap >> offset;
+    if(static_cast<int>(ObjTypes::T_NewLayer)  == flag){
+        ScenesScreen *ss = mWindow->cManager->activeSS();
+        if(!ss)
+            return;
+        ss->createNewLayer( QJsonValue::fromVariant(qv),true);
+    }else{
+        readFromJson(QJsonValue::fromVariant(qv),true);
+    }
+}
+
 
 NewLayer::NewLayer(const QJsonObject &json, QRect rect, QWidget *parent)
     :BaseForm(parent)
@@ -3257,4 +3352,41 @@ QJsonObject  NewLayer::writeToJson()
     json[LAYOUT] = layoutarr;
     json[PROPERTY] = mOwerJson[PROPERTY];
     return json;
+}
+
+
+void NewLayer::dragEnterEvent(QDragEnterEvent *e)
+{
+    mWindow->cManager->activeSS()->mLine->setHidden(false);
+    e->accept();
+}
+
+void NewLayer::dragLeaveEvent(QDragLeaveEvent *e)
+{
+    mWindow->cManager->activeSS()->mLine->setHidden(false);
+}
+
+void NewLayer::dropEvent(QDropEvent *e)
+{
+    e->acceptProposedAction();
+
+    QByteArray itemData = e->mimeData()->data("application/x-dnditemdata");
+    QDataStream dataStream(&itemData, QIODevice::ReadOnly);
+
+    QPixmap pixmap;
+    QPoint offset;
+
+    QVariant qv;
+    int flag ;
+    mWindow->cManager->activeSS()->mLine->setHidden(true);
+    dataStream >> flag  >> qv >> pixmap >> offset;
+    if(static_cast<int>(ObjTypes::T_NewLayer)  == flag){
+        ScenesScreen *ss = mWindow->cManager->activeSS();
+        if(!ss)
+            return;
+        ss->createNewLayer( QJsonValue::fromVariant(qv),true);
+    }else{
+        readLayoutFromJson(QJsonValue::fromVariant(qv),true);
+    }
+
 }

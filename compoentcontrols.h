@@ -148,6 +148,24 @@ protected:
     void mousePressEvent(QMouseEvent *e);
 };
 
+class HVLineWidget: public QWidget
+{
+    Q_OBJECT
+public:
+    explicit HVLineWidget(QWidget *parent =0);
+    void setPos(const QPoint &p);
+
+
+protected:
+    void mouseMoveEvent(QMouseEvent *e);
+    void paintEvent(QPaintEvent *e);
+
+private:
+    QLine mVLine;
+    QLine mHLine;
+
+};
+
 class CompoentControls : public QGroupBox
 {
     friend class PropertyBox;

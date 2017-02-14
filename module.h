@@ -170,10 +170,14 @@ public:
     static ObjTypes mCopyFromType ;
     static QJsonValue mCopyItem;
     static bool mPrjIsChanged;
+    static QWidgetList mObjectTemplte; // 左侧控件列表
+    static QWidget *mLayout; // 左侧布局
+//    static QWidget *mLayer; // 左侧图层
 
 
     static QString getSequence(const QString &key);
     static QString getEnameSeq(const QString &key, QWidget *obj);
+    static void setObjectTempEnabled(bool f);
 
     static QMap<QString,QWidget*> mObjectMap; // 新生成的控件.
     static QMap<QString,QWidget*> mSeqEnameMap; // 对应到小机里的唯一名称.
@@ -211,7 +215,7 @@ protected:
     void initObject(const QJsonObject &json);
     void objectMoveSwapMenu(QMenu *contextMenu);
     void listObjectMoveMenu(QMenu *contextMenu, BaseForm *container);
-    void dropEvent(QDropEvent *e);
+//    void dropEvent(QDropEvent *e);
     void dragEnterEvent(QDragEnterEvent *);
 
 };
@@ -362,6 +366,12 @@ private:
 public slots:
     void onDeleteMe();
     void onBeComeTemplateWidget();
+
+protected:
+//    void dragEnterEvent(QDragEnterEvent *);
+    void dropEvent(QDropEvent *e);
+    void dragEnterEvent(QDragEnterEvent *e);
+    void dragLeaveEvent(QDragLeaveEvent *e);
 };
 
 
@@ -380,6 +390,11 @@ public slots:
 
 private:
     void clearOtherObjectStyleSheet();
+protected:
+//    void dragEnterEvent(QDragEnterEvent *);
+    void dropEvent(QDropEvent *e);
+    void dragEnterEvent(QDragEnterEvent *e);
+    void dragLeaveEvent(QDragLeaveEvent *e);
 };
 
 
