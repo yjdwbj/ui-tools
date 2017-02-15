@@ -377,7 +377,7 @@ void TreeDock::deleteItem(QWidget *obj)
         }else
         {
             // 这里是顶层了.
-            mWindow->cManager->activeSS()->childlist.removeOne(obj);
+            CanvasManager::mActiveSS->childlist.removeOne(obj);
         }
 
         treeWidget->removeItemWidget(qwi,0);

@@ -25,7 +25,8 @@ class CanvasManager : public QObject
 public:
     CanvasManager(MainWindow *w);
     ScenesScreen *createNewCanvas();
-    ScenesScreen *activeSS();
+//    ScenesScreen *activeSS();
+    static  ScenesScreen* mActiveSS;
     int activeIndex();
     void deleteCanvas(int index);
     void deleteCanvas(ScenesScreen *ss);
@@ -51,8 +52,10 @@ public:
     QString mProjectImageDir; // 工程图片资源目录.
     QString mProjectFullPath;
     bool mIsOpenProject;
-    QSlider *mHSlier;
-    QSlider *mVSlier;
+
+//    static void setXYPosition(const QPoint &p);
+//    static void setXYHidden(bool b);
+//    static void setXYRange(const QSize &size);
 
 
 
@@ -87,6 +90,8 @@ private:
 
     QPushButton *newPrj,*newPage,*delPage,*savePrj,*confPrj,*saveas;
     QString PrjJsonPath;
+//    static QSlider *mHSlier;
+//    static QSlider *mVSlier;
 
 };
 

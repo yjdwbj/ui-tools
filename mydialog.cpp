@@ -924,7 +924,6 @@ void findDlg::onStartSearch()
         }
         if(cw)
         {
-//            ((BaseForm*)cw)->onSelectMe();
             mWindow->tree->setSelectTreeItem(cw);
             mWindow->tree->onSwapShowHideObject();
         }

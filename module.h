@@ -45,7 +45,7 @@ public:
     QVariant getJsonValue(const QJsonArray &arr, QString key,int index);
     void changeJsonValue(int idex, const QVariant &val);
     void changeJsonValue(QString key, const QVariant &val);
-    QJsonValue changeJsonValue( const QJsonArray &json,QString key,
+    static QJsonValue changeJsonValue( const QJsonArray &json,QString key,
                                 const QVariant &val);
     void changeJsonValue(QWidget *w, QString key, const QVariant &val);
     QJsonValue changeJsonValue(const QJsonArray &json, int index, const QVariant &val);
@@ -161,8 +161,6 @@ public:
     NewLayout *CreateNewLayout(const QJsonValue &qv,
                                QWidget *parent, bool isCreate, bool incontainer);
 
-    //    QJsonValue mPropertyJson;
-
 
     ObjTypes mType;
     int mPageIndex;
@@ -215,9 +213,6 @@ protected:
     void initObject(const QJsonObject &json);
     void objectMoveSwapMenu(QMenu *contextMenu);
     void listObjectMoveMenu(QMenu *contextMenu, BaseForm *container);
-//    void dropEvent(QDropEvent *e);
-    void dragEnterEvent(QDragEnterEvent *);
-
 };
 
 class NewFrame :public BaseForm
@@ -367,11 +362,11 @@ public slots:
     void onDeleteMe();
     void onBeComeTemplateWidget();
 
-protected:
-//    void dragEnterEvent(QDragEnterEvent *);
-    void dropEvent(QDropEvent *e);
-    void dragEnterEvent(QDragEnterEvent *e);
-    void dragLeaveEvent(QDragLeaveEvent *e);
+//protected:
+//    void dropEvent(QDropEvent *e);
+//    void dragEnterEvent(QDragEnterEvent *e);
+//    void dragLeaveEvent(QDragLeaveEvent *e);
+//    void dragMoveEvent(QDragMoveEvent *e);
 };
 
 
@@ -390,11 +385,12 @@ public slots:
 
 private:
     void clearOtherObjectStyleSheet();
-protected:
+//protected:
 //    void dragEnterEvent(QDragEnterEvent *);
-    void dropEvent(QDropEvent *e);
-    void dragEnterEvent(QDragEnterEvent *e);
-    void dragLeaveEvent(QDragLeaveEvent *e);
+//    void dropEvent(QDropEvent *e);
+//    void dragEnterEvent(QDragEnterEvent *e);
+//    void dragLeaveEvent(QDragLeaveEvent *e);
+//    void dragMoveEvent(QDragMoveEvent *e);
 };
 
 

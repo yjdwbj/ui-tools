@@ -62,6 +62,8 @@ protected:
 
 
 
+
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -104,14 +106,6 @@ public:
     QMap<QString,QString> mItemMap;
     QMap<QString,QPixmap> mImgMap; //这里只用来缓图片
 
-    //    BaseForm mCopyFromType;
-    //    QJsonValue mCopyItem;
-
-
-
-
-
-
 
 private slots:
     void onChangeBackgroud();
@@ -121,8 +115,8 @@ protected:
     void keyReleaseEvent(QMouseEvent *);
     void mousePressEvent(QMouseEvent *ev);
     void closeEvent(QCloseEvent *e);
-    bool eventFilter(QObject *, QEvent *);
-    void paintEvent(QPaintEvent *e);
+//    bool eventFilter(QObject *, QEvent *);
+//    void paintEvent(QPaintEvent *e);
 //    void mouseMoveEvent(QMouseEvent *e);
 
 private:
@@ -140,14 +134,12 @@ private:
     void createCSVFile(QString xlsfile);
     void readCSVFile(QString csvfile);
     QWidget *pWin;
-    QLine mVLine;
-    QLine mHLine;
-
-
-
-
-
 };
+
+
+
+
+
 
 
 class LoadImgTask : public QRunnable

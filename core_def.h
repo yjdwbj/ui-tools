@@ -163,7 +163,7 @@ const QMargins propertyMarg = QMargins(2,12,2,50);
 const int labHeight = 25;
 
 
-enum { SELECTION_HANDLE_SIZE = 6, SELECTION_MARGIN = 6 };
+enum { SELECTION_HANDLE_SIZE = 5, SELECTION_MARGIN = 5 };
 enum SelectionHandleState { SelectionHandleOff, SelectionHandleInactive, SelectionHandleActive };
 
 static QSize MARGIN_SIZE = QSize(SELECTION_MARGIN * 2, SELECTION_MARGIN *2);

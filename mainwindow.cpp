@@ -49,14 +49,10 @@ MainWindow::MainWindow(QWidget *parent) :
     //out(stdout, QIODevice::WriteOnly),
     ui(new Ui::MainWindow),
     mGlobalIniFile(QStandardPaths::displayName(QStandardPaths::DataLocation) + "/ui-config")
+
 {
 
     ui->setupUi(this);
-
-    mVLine.setP1(pos());
-    mVLine.setP2(pos());
-    mHLine.setP1(pos());
-    mHLine.setP2(pos());
     mRootPathLen = QDir::currentPath().length()+1;
     ui->mainToolBar->setContextMenuPolicy(Qt::PreventContextMenu);
     mGlobalIniFile = mGlobalIniFile.toUtf8();
@@ -528,39 +524,5 @@ MainWindow::~MainWindow()
 }
 
 
-bool MainWindow::eventFilter(QObject *o, QEvent *e)
-{
-    qDebug() << " object name " << o->objectName() << e->type();
-    if(e->type() == QEvent::HoverMove)
-    {
-        QMouseEvent *mouseEvent = static_cast<QMouseEvent*>(e);
-
-        //QPoint gpos = mapToGlobal(((QWidget*)o)->pos()) + mouseEvent->pos();
-        QWidget *ss = (QWidget*)o;
-        QPoint gpos = ss->pos() + mouseEvent->pos() + QPoint(ss->width(),ss->height()) ;
-        qDebug()  << "HoverMove " << mouseEvent->pos() << gpos
-                  << mapToGlobal(((QWidget*)o)->pos());
-        mVLine.setP1(QPoint(gpos.rx(),height()));
-        mVLine.setP2(QPoint(gpos.rx(),0));
-
-        mHLine.setP1(QPoint(0,gpos.ry()));
-        mHLine.setP2(QPoint(width(),gpos.ry()));
-
-        update();
-    }
-}
 
 
-
-
-void MainWindow::paintEvent(QPaintEvent *e)
-{
-    QPainter painter(this);
-
-    QPen pen;
-    pen.setColor(Qt::gray);
-    pen.setStyle(Qt::DashLine);
-    painter.setPen(pen);
-    painter.drawLine(mVLine);
-    painter.drawLine(mHLine);
-}

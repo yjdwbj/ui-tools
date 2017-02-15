@@ -659,19 +659,38 @@ void BaseForm::mouseMoveEvent(QMouseEvent *event)
     //                CN_NEWLAYER.compare(clsname) ) return;
     if (event->buttons() & Qt::LeftButton)
     {
+
+        QPoint np = mapTo(CanvasManager::mActiveSS,event->pos()) - event->pos() ;
+
+        if(event->pos().x() > mOffset.x())
+            np.setX(np.x() + SELECTION_MARGIN/2);
+        if(event->pos().x() < mOffset.x())
+            np.setX(np.x() - SELECTION_MARGIN/2);
+
+        if(event->pos().y() > mOffset.y())
+            np.setY(np.y() + SELECTION_MARGIN/2);
+        if(event->pos().y() < mOffset.y())
+            np.setY(np.y() - SELECTION_MARGIN/2);
+
+
+        CanvasManager::mActiveSS->mXYLine->setPos(np);
+
+
+
         //        if(property(DKEY_INTOCONTAINER).toBool())
         if(mParent->mType == T_NewGrid ||
                 mParent->mType == T_NewList)
         {
 
             mParent->mouseMoveToPos(event->pos() - mOffset);
-            event->accept();
+
         }else{
 
             mouseMoveToPos(event->pos() - mOffset);
             /* 把新的位置更新到右边属性框 */
             posWidget->updatePosition(this);
         }
+        event->accept();
         this->blockSignals(true);
         mPrjIsChanged = true;
     }
@@ -688,6 +707,8 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
         mOldRect = this->geometry();
         this->setProperty(DKEY_OLDPOS,this->pos());
         mOldSize = this->size();
+        //        mWindow->mXYLine->raise();
+        CanvasManager::mActiveSS->mXYLine->setHidden(false);
 
     }else if(event->button() == Qt::RightButton)
     {
@@ -1048,7 +1069,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
 
     QAction paste(QIcon(":/icon/icons/editpaste.png"),"粘贴",this);
     connect(&paste,&QAction::triggered,[=](){
-        mWindow->cManager->activeSS()->pasteItem(this);
+        CanvasManager::mActiveSS->pasteItem(this);
     });
 
     paste.setEnabled(!mCopyItem.isNull());
@@ -1119,6 +1140,7 @@ void BaseForm::onSwapViewObject()
 void BaseForm::mouseReleaseEvent(QMouseEvent *event)
 {
 
+    CanvasManager::mActiveSS->mXYLine->setHidden(true);
     /* 放开鼠标时检查它的是否出了边界要 */
     // QWidget *p = this->parentWidget();
     QPoint pos = this->pos();
@@ -1127,28 +1149,26 @@ void BaseForm::mouseReleaseEvent(QMouseEvent *event)
     //    qDebug() << " object size " << this->size()
     //             << " object pos " << this->pos();
     //  if(!property(DKEY_INTOCONTAINER).toBool())
-    if(!mParent->isContainer())
-    {
-        if(posWidget)
-        {
-            posWidget->updateSize(this);
-            posWidget->updatePosition(this);
-            changeJsonValue(posWidget,
-                            KEY_RECT,
-                            QString("%1:%2").arg(LX,QString::number(this->x())));
-            changeJsonValue(posWidget,
-                            KEY_RECT,
-                            QString("%1:%2").arg(LY,QString::number(this->y())));
+    if(mParent->isContainer())
+        return;
 
-            changeJsonValue(posWidget,
-                            KEY_RECT,
-                            QString("%1:%2").arg(WIDTH,QString::number(this->width())));
-            changeJsonValue(posWidget,
-                            KEY_RECT,
-                            QString("%1:%2").arg(HEIGHT,QString::number(this->height())));
+    if(!posWidget) return;
 
-        }
-    }
+    posWidget->updateSize(this);
+    posWidget->updatePosition(this);
+    changeJsonValue(posWidget,
+                    KEY_RECT,
+                    QString("%1:%2").arg(LX,QString::number(this->x())));
+    changeJsonValue(posWidget,
+                    KEY_RECT,
+                    QString("%1:%2").arg(LY,QString::number(this->y())));
+
+    changeJsonValue(posWidget,
+                    KEY_RECT,
+                    QString("%1:%2").arg(WIDTH,QString::number(this->width())));
+    changeJsonValue(posWidget,
+                    KEY_RECT,
+                    QString("%1:%2").arg(HEIGHT,QString::number(this->height())));
 }
 
 void BaseForm::moveNewPos(int x,int y)
@@ -1639,7 +1659,7 @@ QString BaseForm::updateEname(int index)
 
 void BaseForm::onSelectMe()
 {
-    mWindow->cManager->activeSS()->setSelectObject(this);
+    CanvasManager::mActiveSS->setSelectObject(this);
     mWindow->propertyWidget->createPropertyBox(this);
     if(!mParent->isContainer())
     {
@@ -1918,11 +1938,11 @@ void BaseForm::wheelEvent(QWheelEvent *event)
     event->ignore();
 }
 
-void BaseForm::dragEnterEvent(QDragEnterEvent *e)
-{
-    qDebug() << " drag enter is " << e->pos() << this->objectName() << this->metaObject()->className();
-    e->accept();
-}
+//void BaseForm::dragEnterEvent(QDragEnterEvent *e)
+//{
+//    qDebug() << " drag enter is " << e->pos() << this->objectName() << this->metaObject()->className();
+//    e->accept();
+//}
 
 //void BaseForm::dropEvent(QDropEvent *e)
 //{
@@ -2184,7 +2204,7 @@ QString BaseForm::getEnameSeq(const QString &key,QWidget* obj)
 void BaseForm::setObjectTempEnabled(bool f)
 {
     foreach (QWidget *w, mObjectTemplte) {
-       w->setEnabled(f);
+        w->setEnabled(f);
     }
 }
 
@@ -3246,41 +3266,48 @@ QWidget* NewLayout::createObjectFromJson(const QJsonValue &qv)
 
 }
 
-void NewLayout::dragEnterEvent(QDragEnterEvent *e)
-{
-    mWindow->cManager->activeSS()->mLine->setHidden(false);
-    e->accept();
-}
+//void NewLayout::dragEnterEvent(QDragEnterEvent *e)
+//{
+//    CanvasManager::mActiveSS->mXYLine->setHidden(false);
+//    e->accept();
+//}
 
-void NewLayout::dragLeaveEvent(QDragLeaveEvent *e)
-{
-    mWindow->cManager->activeSS()->mLine->setHidden(true);
-}
+//void NewLayout::dragLeaveEvent(QDragLeaveEvent *e)
+//{
+//    CanvasManager::mActiveSS->mXYLine->setHidden(true);
+//}
 
-void NewLayout::dropEvent(QDropEvent *e)
-{
-    mWindow->cManager->activeSS()->mLine->setHidden(true);
-    e->acceptProposedAction();
+//void NewLayout::dropEvent(QDropEvent *e)
+//{
+//    CanvasManager::mActiveSS->mXYLine->setHidden(true);
+//    e->acceptProposedAction();
 
-    QByteArray itemData = e->mimeData()->data("application/x-dnditemdata");
-    QDataStream dataStream(&itemData, QIODevice::ReadOnly);
+//    QByteArray itemData = e->mimeData()->data("application/x-dnditemdata");
+//    QDataStream dataStream(&itemData, QIODevice::ReadOnly);
 
-    QPixmap pixmap;
-    QPoint offset;
+//    QPixmap pixmap;
+//    QPoint offset;
 
-    QVariant qv;
-    int flag ;
-    dataStream >> flag  >> qv >> pixmap >> offset;
-    if(static_cast<int>(ObjTypes::T_NewLayer)  == flag){
-        ScenesScreen *ss = mWindow->cManager->activeSS();
-        if(!ss)
-            return;
-        ss->createNewLayer( QJsonValue::fromVariant(qv),true);
-    }else{
-        readFromJson(QJsonValue::fromVariant(qv),true);
-    }
-}
+//    QVariant qv;
+//    int flag ;
+//    dataStream >> flag  >> qv >> pixmap >> offset;
+//    if(static_cast<int>(ObjTypes::T_NewLayer)  == flag){
+//        ScenesScreen *ss = mWindow->cManager->activeSS();
+//        if(!ss)
+//            return;
+//        ss->createNewLayer( QJsonValue::fromVariant(qv),true);
+//    }else{
+//        readFromJson(QJsonValue::fromVariant(qv),true);
+//    }
+//    CanvasManager::mActiveSS->mXYLine->raise();
+//}
 
+
+//void NewLayout::dragMoveEvent(QDragMoveEvent *e)
+//{
+//    CanvasManager::mActiveSS->mXYLine->setPos(e->pos());
+//    qDebug() << " NewLayout drag move " << e->pos();
+//}
 
 NewLayer::NewLayer(const QJsonObject &json, QRect rect, QWidget *parent)
     :BaseForm(parent)
@@ -3355,38 +3382,46 @@ QJsonObject  NewLayer::writeToJson()
 }
 
 
-void NewLayer::dragEnterEvent(QDragEnterEvent *e)
-{
-    mWindow->cManager->activeSS()->mLine->setHidden(false);
-    e->accept();
-}
+//void NewLayer::dragEnterEvent(QDragEnterEvent *e)
+//{
+//    CanvasManager::mActiveSS->mXYLine->setHidden(false);
+//    e->accept();
+//}
 
-void NewLayer::dragLeaveEvent(QDragLeaveEvent *e)
-{
-    mWindow->cManager->activeSS()->mLine->setHidden(false);
-}
+//void NewLayer::dragLeaveEvent(QDragLeaveEvent *e)
+//{
+//    CanvasManager::mActiveSS->mXYLine->setHidden(true);
+//}
 
-void NewLayer::dropEvent(QDropEvent *e)
-{
-    e->acceptProposedAction();
+//void NewLayer::dragMoveEvent(QDragMoveEvent *e)
+//{
+//    qDebug() << "NewLayer drag move " << e->pos();
+//    CanvasManager::mActiveSS->mXYLine->setPos(e->pos());
+//}
 
-    QByteArray itemData = e->mimeData()->data("application/x-dnditemdata");
-    QDataStream dataStream(&itemData, QIODevice::ReadOnly);
+//void NewLayer::dropEvent(QDropEvent *e)
+//{
+//    CanvasManager::mActiveSS->mXYLine->setHidden(true);
+//    e->acceptProposedAction();
 
-    QPixmap pixmap;
-    QPoint offset;
+//    QByteArray itemData = e->mimeData()->data("application/x-dnditemdata");
+//    QDataStream dataStream(&itemData, QIODevice::ReadOnly);
 
-    QVariant qv;
-    int flag ;
-    mWindow->cManager->activeSS()->mLine->setHidden(true);
-    dataStream >> flag  >> qv >> pixmap >> offset;
-    if(static_cast<int>(ObjTypes::T_NewLayer)  == flag){
-        ScenesScreen *ss = mWindow->cManager->activeSS();
-        if(!ss)
-            return;
-        ss->createNewLayer( QJsonValue::fromVariant(qv),true);
-    }else{
-        readLayoutFromJson(QJsonValue::fromVariant(qv),true);
-    }
+//    QPixmap pixmap;
+//    QPoint offset;
 
-}
+//    QVariant qv;
+//    int flag ;
+
+//    dataStream >> flag  >> qv >> pixmap >> offset;
+//    if(static_cast<int>(ObjTypes::T_NewLayer)  == flag){
+//        ScenesScreen *ss = mWindow->cManager->activeSS();
+//        if(!ss)
+//            return;
+//        ss->createNewLayer( QJsonValue::fromVariant(qv),true);
+//    }else{
+//        readLayoutFromJson(QJsonValue::fromVariant(qv),true);
+//    }
+//    CanvasManager::mActiveSS->mXYLine->raise();
+
+//}

@@ -53,10 +53,6 @@ signals:
 protected:
     void resizeEvent(QResizeEvent *event) override;
 
-//    void mouseMoveEvent(QMouseEvent *);
-//    void mousePressEvent(QMouseEvent *);
-//    void mouseReleaseEvent(QMouseEvent *);
-
 private slots:
    // void mainContainerChanged();
    // void onBorderChangedValue(int v);

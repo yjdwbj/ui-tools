@@ -2,6 +2,14 @@
 #include <QPainter>
 #include <QMouseEvent>
 
+
+#include "canvasmanager.h"
+#include "scenesscreen.h"
+#include "module.h"
+class CanvasManager;
+class ScenesScreen;
+class BaseForm;
+
 enum { debugSizeHandle = 0 };
 
 SizeHandleRect::SizeHandleRect(QWidget *parent, Direction d, QWidget *resizable) :
@@ -53,7 +61,8 @@ void SizeHandleRect::paintEvent(QPaintEvent *)
     case SelectionHandleActive: {
         QPainter p(this);
         p.setPen(Qt::blue);
-        p.drawRect(0, 0, width() - 1, height() - 1);
+       // p.drawRect(0, 0, width() - 1, height() - 1);
+        p.drawRect(0, 0, width() , height() );
 
     }
         break;
@@ -66,6 +75,8 @@ void SizeHandleRect::mousePressEvent(QMouseEvent *e)
 
     if (e->button() != Qt::LeftButton)
         return;
+
+    CanvasManager::mActiveSS->mXYLine->setHidden(false);
 
     m_startSize = m_curSize = m_resizable->size();
     m_startPos = m_curPos = m_resizable->mapFromGlobal(e->globalPos());
@@ -84,12 +95,12 @@ void SizeHandleRect::mouseMoveEvent(QMouseEvent *e)
     // causes the handle and the mouse cursor to become out of sync
     // once a min/maxSize limit is hit. When the cursor reenters the valid
     // areas, it will now snap to it.
-   // qDebug() << " try to move a control point" << e;
+    // qDebug() << " try to move a control point" << e;
     m_curPos = m_resizable->mapFromGlobal(e->globalPos());
-//    qDebug() << " resizable name " <<
-//                m_resizable->objectName()
-//             << m_resizable->metaObject()->className()
-//             << " this pos " << m_resizable->pos();
+    //    qDebug() << " resizable name " <<
+    //                m_resizable->objectName()
+    //             << m_resizable->metaObject()->className()
+    //             << " this pos " << m_resizable->pos();
     m_resizable->setProperty(DKEY_OLDPOS,m_resizable->pos());
     QSize delta = QSize(m_curPos.x() - m_startPos.x(), m_curPos.y() -  m_startPos.y());
     switch (m_dir) {
@@ -109,32 +120,45 @@ void SizeHandleRect::mouseMoveEvent(QMouseEvent *e)
     }
     if (delta != QSize(0, 0))
         tryResize(delta);
+    //    qDebug() << " this pos " << m_resizable->pos();
+
+    QPoint mp = mapTo(CanvasManager::mActiveSS,e->pos()) - e->pos();
+    QPoint gp = QPoint(mp.x() + SELECTION_MARGIN,
+                       mp.y() + SELECTION_MARGIN);
+    CanvasManager::mActiveSS->mXYLine->setPos(gp);
+    ((BaseForm*)m_resizable)->posWidget->updateSize(m_resizable);
 }
 
-//void SizeHandleRect::mouseReleaseEvent(QMouseEvent *e)
-//{
-//    if (e->button() != Qt::LeftButton)
-//        return;
+void SizeHandleRect::mouseReleaseEvent(QMouseEvent *e)
+{
+    if (e->button() != Qt::LeftButton)
+        return;
+    CanvasManager::mActiveSS->mXYLine->setHidden(true);
 
-//    e->accept();
-//    if (m_startSize != m_curSize) {
-//        const QRect startRect = QRect(0, 0, m_startPos.x(), m_startPos.y());
-//        const QRect newRect = QRect(0, 0, m_curPos.x(), m_curPos.y());
-//        if (debugSizeHandle)
-//            qDebug() << "SizeHandleRect::mouseReleaseEvent" << startRect << newRect;
-//        emit mouseButtonReleased(startRect, newRect);
-//    }
-//}
+    e->accept();
+    //    if (m_startSize != m_curSize) {
+    //        const QRect startRect = QRect(0, 0, m_startPos.x(), m_startPos.y());
+    //        const QRect newRect = QRect(0, 0, m_curPos.x(), m_curPos.y());
+    //        if (debugSizeHandle)
+    //            qDebug() << "SizeHandleRect::mouseReleaseEvent" << startRect << newRect;
+    //        emit mouseButtonReleased(startRect, newRect);
+    //    }
+}
 
 void SizeHandleRect::tryResize(const QSize &delta)
 {
     // Try resize with delta against start position
+
     QSize newSize = m_startSize + delta;
     newSize = newSize.expandedTo(m_resizable->minimumSizeHint());
     newSize = newSize.expandedTo(m_resizable->minimumSize());
     newSize = newSize.boundedTo(m_resizable->maximumSize());
     if (newSize == m_resizable->size())
         return;
+    if(newSize.width() < 5)
+        newSize.setWidth(5);
+    if(newSize.height() < 5)
+        newSize.setHeight(5);
     if (debugSizeHandle)
         qDebug() << "SizeHandleRect::tryResize by (" << m_startSize << '+' <<  delta << ')' << newSize;
     m_resizable->resize(newSize);

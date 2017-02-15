@@ -1248,7 +1248,7 @@ QWidget* CompoentControls::createCustomObject(const QJsonArray &comJsonArr)
 void CompoentControls::onCreateCustomWidget()
 {
     // 被拖放替代,废弃了
-    QWidget *wid = mWindow->cManager->activeSS()->activeObject();
+    QWidget *wid = ScenesScreen::mActiveObj;
     if(!wid)
     {
         QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
@@ -1363,7 +1363,7 @@ void CompoentControls::onCreateCompoentToCanvas()
     // QObject *sender = QObject::sender(); /* 确定的那一个按钮被点击了 */
 
     //这里要区分一下控件的类型,在没有图层的情况下,要先建图层,再在图层下面新建布局.
-    QWidget *wid = mWindow->cManager->activeSS()->activeObject();
+    QWidget *wid = ScenesScreen::mActiveObj;
     if(!wid)
     {
         QMessageBox::warning(0,tr("提示"),tr("请选择一个布局或者新建一个并选中它."));
@@ -1397,7 +1397,7 @@ void CompoentControls::onCreateNewLayout()
 {
     // 被拖放替代,废弃了
     //布局只能创建在图层上.
-    QWidget *w = mWindow->cManager->activeSS()->activeObject();
+    QWidget *w = ScenesScreen::mActiveObj;
     if(!w)
     {
         QMessageBox::warning(0,tr("提示"),tr("请选择一个图层或者新建一个图层,并选中它."));
@@ -1436,12 +1436,12 @@ void CompoentControls::onCreateNewLayout()
 void CompoentControls::onCreateNewLayer()
 {
     // 被拖放替代,废弃了
-    ScenesScreen *ss = mWindow->cManager->activeSS();
-    if(!ss)
+//    ScenesScreen *ss = CanvasManager::mActiveSS;
+    if(!CanvasManager::mActiveSS)
         return;
     DragButton *btn = (DragButton*)(QObject::sender());
     QVariant variant = btn->property(DKEY_JSONSTR);
-    ss->createNewLayer( QJsonValue::fromVariant(variant),true);
+    CanvasManager::mActiveSS->createNewLayer( QJsonValue::fromVariant(variant),true);
 }
 
 
@@ -1472,66 +1472,18 @@ void DragButton::mousePressEvent(QMouseEvent *event)
 
     QByteArray itemData;
     QDataStream dataStream(&itemData, QIODevice::WriteOnly);
-    dataStream << mFlag << mValue.toVariant() << pixmap << QPoint(event->pos() - pos()) ;
+    dataStream << mFlag << mValue.toVariant() << pixmap <<  event->pos() ;
 
     QMimeData *mimeData = new QMimeData;
     mimeData->setData("application/x-dnditemdata", itemData);
-
     drag->setMimeData(mimeData);
     drag->setPixmap(pixmap);
-    //    drag->setHotSpot(mapToGlobal(event->pos() - pos()));
+    drag->setHotSpot(QPoint(0,0));
+
     drag->exec();
 }
 
 
-HVLineWidget::HVLineWidget(QWidget *parent)
-    :QWidget(parent)
-{
-    mVLine.setP1(pos());
-    mVLine.setP2(pos());
-    mHLine.setP1(pos());
-    mHLine.setP2(pos());
-    setMouseTracking(true);
-    setAttribute(Qt::WA_Hover);
-    setStyleSheet("background:transparent");
-    setAttribute(Qt::WA_AlwaysStackOnTop );
 
-    setWindowFlags(Qt::FramelessWindowHint);
-}
-
-void HVLineWidget::mouseMoveEvent(QMouseEvent *e)
-{
-    mVLine.setP1(QPoint(e->pos().rx(),height()));
-    mVLine.setP2(QPoint(e->pos().rx(),0));
-
-    mHLine.setP1(QPoint(0,e->pos().ry()));
-    mHLine.setP2(QPoint(width(),e->pos().ry()));
-
-    update();
-}
-
-
-void HVLineWidget::setPos(const QPoint &p)
-{
-    mVLine.setP1(QPoint(p.x(),height()));
-    mVLine.setP2(QPoint(p.x(),0));
-
-    mHLine.setP1(QPoint(0,p.y()));
-    mHLine.setP2(QPoint(width(),p.y()));
-
-    update();
-}
-
-void HVLineWidget::paintEvent(QPaintEvent *e)
-{
-    QPainter painter(this);
-
-    QPen pen;
-    pen.setColor(Qt::gray);
-    pen.setStyle(Qt::DashLine);
-    painter.setPen(pen);
-    painter.drawLine(mVLine);
-    painter.drawLine(mHLine);
-}
 
 

@@ -14,7 +14,25 @@ class NewLayer;
 class Compoentcontrol;
 class FormResizer;
 class Compoent;
-class HVLineWidget;
+
+
+class HVLineWidget: public QWidget
+{
+    Q_OBJECT
+public:
+    explicit HVLineWidget(QWidget *parent =0);
+    void setPos(const QPoint &p);
+
+
+protected:
+    void mouseMoveEvent(QMouseEvent *e);
+    void paintEvent(QPaintEvent *e);
+
+private:
+    QLine mVLine;
+    QLine mHLine;
+    QPoint mPos;
+};
 
 class ScenesScreen : public QFrame
 {
@@ -25,38 +43,36 @@ public:
     ~ScenesScreen();
 
 
-    QWidget *activeObject() {
-        return activeObj;
-    }
+//    QWidget *activeObject() {
+//        return mActiveObj;
+//    }
 
-    void removeActiveObj() { activeObj = 0;}
+    void removeActiveObj() { mActiveObj = 0;}
     NewLayer *createNewLayer(const QJsonValue &json, bool createflag);
-    void addMainWindow(MainWindow* m) { mWindow = m;}
+//    void addMainWindow(MainWindow* m) { mWindow = m;}
     void setSelectObject(FormResizer *obj);
     void readLayer(const QJsonArray &array);
 
     void pasteItem(QWidget *w);
-
-
     QJsonObject writeToJson();
 
     void delAllObjects();
 
     QList<QWidget*> childlist;
     MainWindow* mWindow;
-    HVLineWidget *mLine;
+    HVLineWidget *mXYLine;
 
-signals:
+    static QWidget *mActiveObj;
 
 public slots:
     void onChangedBackgroundColor();
 private:
     void keyReleaseEvent(QKeyEvent *);
-//    int mActiveIdx; //  当前激活的布局.
+    //    int mActiveIdx; //  当前激活的布局.
 
-    QWidget *activeObj;
-//    QLine mVLine;
-//    QLine mHLine;
+
+    //    QLine mVLine;
+    //    QLine mHLine;
 
 
 
@@ -67,8 +83,8 @@ protected:
     void dragEnterEvent(QDragEnterEvent *);
     void dragLeaveEvent(QDragLeaveEvent *);
     void dragMoveEvent(QDragMoveEvent *);
-//    void mouseMoveEvent(QMouseEvent *e);
-//    void paintEvent(QPaintEvent *e);
+    //    void mouseMoveEvent(QMouseEvent *e);
+    //    void paintEvent(QPaintEvent *e);
 
 
 };

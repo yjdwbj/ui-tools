@@ -37,6 +37,12 @@ static QString gifFileName = outputgif;
 
 
 
+
+//QSlider*  CanvasManager::mHSlier = NULL;
+//QSlider*  CanvasManager::mVSlier = NULL;
+
+ScenesScreen* CanvasManager::mActiveSS = NULL;
+
 CanvasManager::CanvasManager(MainWindow *w):
     mWindow(w),stack(new QStackedLayout()),
     mPageSize(0,0),
@@ -50,9 +56,7 @@ CanvasManager::CanvasManager(MainWindow *w):
 //    mPrjIsChanged(false),
     mIsOpenProject(false),
     autoSaveTimer(new QTimer(this)),
-    mFFmpegRuning(false),
-    mHSlier(new QSlider(Qt::Horizontal,mWindow->centralWidget())),
-    mVSlier(new QSlider(Qt::Vertical,mWindow->centralWidget()))
+    mFFmpegRuning(false)
 {
     // w->ui->centralWidget;
     newPage->setEnabled(false);
@@ -60,6 +64,11 @@ CanvasManager::CanvasManager(MainWindow *w):
     savePrj->setEnabled(false);
     saveas->setEnabled(false);
     confPrj->setEnabled(false);
+
+//    if(!mVSlier)
+//        mVSlier = new QSlider(Qt::Vertical,w->centralWidget());
+//    if(!mHSlier)
+//        mHSlier = new QSlider(Qt::Horizontal,w->centralWidget());
 
 
     QComboBox *cb = new QComboBox();
@@ -88,22 +97,25 @@ CanvasManager::CanvasManager(MainWindow *w):
 
     mWindow->addWidgetToToolBar(Q_NULLPTR);
     //  mWindow->addWidgetToToolBar(cb);
-    QGridLayout *glayout = new QGridLayout();
-    mHSlier->setTickPosition(QSlider::TicksBelow);
-    mVSlier->setTickPosition(QSlider::TicksLeft);
-    mHSlier->setHidden(true);
-    mHSlier->setHidden(true);
+//    QGridLayout *glayout = new QGridLayout();
+//    mHSlier->setTickPosition(QSlider::TicksBelow);
+//    mVSlier->setTickPosition(QSlider::TicksLeft);
+//    mVSlier->setTracking(true);
+//    mVSlier->setInvertedAppearance(true);
 
-    glayout->setSpacing(0);
-    glayout->setContentsMargins(0,0,0,0);
-    glayout->setSizeConstraint(QGridLayout::SetFixedSize);
-    glayout->addLayout(stack,0,1);
-    glayout->addWidget(mVSlier,0,0);
-    glayout->addWidget(mHSlier,1,1);
+//    setXYHidden(true);
 
-    mWindow->centralWidget()->setLayout(glayout);
 
-//    mWindow->centralWidget()->setLayout(stack);
+//    glayout->setSpacing(0);
+//    glayout->setContentsMargins(0,0,0,0);
+//    glayout->setSizeConstraint(QGridLayout::SetFixedSize);
+//    glayout->addLayout(stack,0,1);
+//    glayout->addWidget(mVSlier,0,0);
+//    glayout->addWidget(mHSlier,1,1);
+
+//    mWindow->centralWidget()->setLayout(glayout);
+
+    mWindow->centralWidget()->setLayout(stack);
     // 按屏幕的大小比例调整.
 
     connect(newPrj,SIGNAL(clicked(bool)),SLOT(onCreateNewProject()));
@@ -204,6 +216,28 @@ static void my_logoutput(void* ptr, int level, const char* fmt,va_list vl){
 }
 
 
+//void CanvasManager::setXYHidden(bool b)
+//{
+//    mVSlier->setHidden(b);
+//    mHSlier->setHidden(b);
+//}
+
+//void CanvasManager::setXYPosition(const QPoint &p)
+//{
+//    mVSlier->setValue(p.y());
+//    mVSlier->setToolTip(QString::number(p.y()));
+//    mHSlier->setValue(p.x());
+
+//}
+
+//void CanvasManager::setXYRange(const QSize &size)
+//{
+//    mVSlier->setRange(0,size.height());
+//    mVSlier->setTickInterval(size.height()/500);
+//    mHSlier->setRange(0,size.width());
+//    mHSlier->setTickInterval(size.width()/500);
+
+//}
 
 void CanvasManager::onRecordClick(bool b)
 {
@@ -416,37 +450,33 @@ void CanvasManager::screenshot()
 ScenesScreen * CanvasManager::createNewCanvas()
 {
     screenshot();
-    ScenesScreen *Scenes = new ScenesScreen(mPageSize,(QWidget*)mWindow);
-    mVSlier->setFixedHeight(Scenes->height());
-    mHSlier->setFixedWidth(Scenes->width());
-    mHSlier->setHidden(false);
-    mVSlier->setHidden(false);
-//    Scenes->installEventFilter(mWindow);
-    Scenes->addMainWindow(mWindow);
-    Scenes->setProperty(DKEY_SHOT,false);  // 检查该页面是否创建过截图.
+    mActiveSS = new ScenesScreen(mPageSize,(QWidget*)mWindow);
+
+
+    mActiveSS->setProperty(DKEY_SHOT,false);  // 检查该页面是否创建过截图.
 
     // 这里不能改变它的对像名,用一个动态属
     //    // Scenes->setObjectName(QString("Page_%1").arg(QString::number(ssList.size()-1)));
-    Scenes->setProperty(DKEY_TXT,QString("页面_%1").arg(QString::number(mCanvasList.size())));
-    Scenes->setToolTip(Scenes->property(DKEY_TXT).toString());
-    mCanvasList.append(Scenes);
-    currentSS = Scenes;
+    mActiveSS->setProperty(DKEY_TXT,QString("页面_%1").arg(QString::number(mCanvasList.size())));
+    mActiveSS->setToolTip(mActiveSS->property(DKEY_TXT).toString());
+    mCanvasList.append(mActiveSS);
+    currentSS = mActiveSS;
     mWindow->lDock->setEnabled(true);
-    stack->addWidget(Scenes);
-    stack->setCurrentWidget(Scenes);
+    stack->addWidget(mActiveSS);
+    stack->setCurrentWidget(mActiveSS);
     // stack->setGeometry(stackRect);
     // 清理treeWidget 的行
     mWindow->tree->deleteAllitem();
     screenshot();
     BaseForm::mLayout->setEnabled(false);
     BaseForm::setObjectTempEnabled(false);
-    return Scenes;
+    return mActiveSS;
 }
 
-ScenesScreen *CanvasManager::activeSS()
-{
-    return (ScenesScreen*)(stack->currentWidget());
-}
+//ScenesScreen *CanvasManager::activeSS()
+//{
+//    return (ScenesScreen*)(stack->currentWidget());
+//}
 
 int CanvasManager::activeIndex()
 {
@@ -463,10 +493,11 @@ void CanvasManager::setActiveSS(int index)
     stack->setCurrentIndex(index);
     // 清理treeWidget 的行
     mWindow->tree->deleteAllitem();
-    ScenesScreen *Scenes = (ScenesScreen*)(stack->currentWidget());
+    mActiveSS = (ScenesScreen*)(stack->currentWidget());
+
     // 把当前页的布局重新添加到treeWidget上
 
-    foreach (QWidget *w, Scenes->childlist) {
+    foreach (QWidget *w, mActiveSS->childlist) {
         mWindow->tree->addItemToRoot(w);
         if(!w->isHidden())
         {
@@ -478,16 +509,16 @@ void CanvasManager::setActiveSS(int index)
 
 void CanvasManager::deleteCurrentPage()
 {
-    ScenesScreen *ss = this->activeSS();
-    if(!ss) return;
+//    ScenesScreen *ss = this->activeSS();
+    if(!mActiveSS) return;
 
     int index = stack->currentIndex();
-    stack->removeWidget(ss);
+    stack->removeWidget(mActiveSS);
     mWindow->pageView->delPage(index);
     mWindow->tree->deleteAllitem();
     mCanvasList.removeAt(index);
 
-    ss->delAllObjects();
+    mActiveSS->delAllObjects();
     delPage->setEnabled(stack->count() == 0 ? false : true);
     mWindow->lDock->setEnabled(stack->count() == 0 ? false : true);
     setActiveSS(stack->currentIndex());
@@ -635,7 +666,7 @@ void CanvasManager::onOpenProject()
 
 void CanvasManager::closeCurrentProject()
 {
-    while(this->activeSS())
+    while(mActiveSS)
     {
         deleteCurrentPage();
     }
@@ -795,9 +826,10 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
                 }
             }
             setDefaultPageSize(QSize(w,h));
-            ScenesScreen *Scenes = createNewCanvas();
+            mActiveSS = createNewCanvas();
+
             // 递归读取它的页面.
-            Scenes->readLayer(valobj[LAYER].toArray());
+            mActiveSS->readLayer(valobj[LAYER].toArray());
 
         }
             break;

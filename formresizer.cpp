@@ -12,7 +12,9 @@
 #include "core_def.h"
 #include "module.h"
 
+
 class BaseForm;
+
 enum { debugFormResizer = 0 };
 
 /* 在控件周围创建８个点用于鼠标拖动 */
@@ -63,25 +65,42 @@ void FormResizer::updateGeometry()
         SizeHandleRect *hndl = *it;
         switch (hndl->dir()) {
         case SizeHandleRect::LeftTop:
-            hndl->move(geom.x() - w / 2 + SELECTION_HANDLE_SIZE / 2, geom.y() - h / 2 + SELECTION_HANDLE_SIZE / 2);
+            hndl->move(geom.x() - w/2  + SELECTION_HANDLE_SIZE /2 ,
+                       geom.y() - h/2 + SELECTION_HANDLE_SIZE /2);
             break;
         case SizeHandleRect::Top:
-            hndl->move(geom.x() + geom.width() / 2 - w / 2, geom.y() - h / 2+ SELECTION_HANDLE_SIZE / 2);
+            hndl->move(geom.x() + geom.width() / 2 - w / 2,
+                       geom.y() - h / 2+ SELECTION_HANDLE_SIZE / 2);
             break;
         case SizeHandleRect::RightTop:
-            hndl->move(geom.x() + geom.width() - w / 2 - SELECTION_HANDLE_SIZE / 2 , geom.y() - h / 2 + SELECTION_HANDLE_SIZE / 2 );
+//            hndl->move(geom.x() + geom.width() - w / 2 - SELECTION_HANDLE_SIZE / 2 ,
+//                       geom.y() - h / 2 + SELECTION_HANDLE_SIZE / 2 );
+            hndl->move(geom.x() + geom.width()  - SELECTION_HANDLE_SIZE  ,
+                       geom.y() - h / 2 + SELECTION_HANDLE_SIZE / 2 );
             break;
         case SizeHandleRect::Right:
-            hndl->move(geom.x() + geom.width() - w / 2 - SELECTION_HANDLE_SIZE / 2, geom.y() + geom.height() / 2 - h / 2);
+//            hndl->move(geom.x() + geom.width() - w / 2 - SELECTION_HANDLE_SIZE / 2,
+//                       geom.y() + geom.height() / 2 - h / 2);
+            hndl->move(geom.x() + geom.width() - SELECTION_HANDLE_SIZE ,
+                       geom.y() + geom.height() / 2 - h / 2);
             break;
         case SizeHandleRect::RightBottom:
-            hndl->move(geom.x() + geom.width() - w / 2 - SELECTION_HANDLE_SIZE / 2, geom.y() + geom.height() - h / 2 - SELECTION_HANDLE_SIZE / 2);
+//            hndl->move(geom.x() + geom.width() - w / 2 - SELECTION_HANDLE_SIZE / 2,
+//                       geom.y() + geom.height() - h / 2 - SELECTION_HANDLE_SIZE / 2);
+            hndl->move(geom.x() + geom.width()  - SELECTION_HANDLE_SIZE ,
+                       geom.y() + geom.height()  - SELECTION_HANDLE_SIZE );
             break;
         case SizeHandleRect::Bottom:
-            hndl->move(geom.x() + geom.width() / 2 - w / 2, geom.y() + geom.height() - h / 2 - SELECTION_HANDLE_SIZE / 2);
+//            hndl->move(geom.x() + geom.width() / 2 - w / 2,
+//                       geom.y() + geom.height() - h / 2 - SELECTION_HANDLE_SIZE / 2);
+            hndl->move(geom.x() + geom.width() / 2 - w /2  ,
+                       geom.y() + geom.height() - h );
             break;
         case SizeHandleRect::LeftBottom:
-            hndl->move(geom.x() - w / 2 + SELECTION_HANDLE_SIZE / 2, geom.y() + geom.height() - h / 2 - SELECTION_HANDLE_SIZE / 2);
+//            hndl->move(geom.x() - w / 2 + SELECTION_HANDLE_SIZE / 2,
+//                       geom.y() + geom.height() - h / 2 - SELECTION_HANDLE_SIZE / 2);
+            hndl->move(geom.x()  - w /2 + SELECTION_HANDLE_SIZE/2   ,
+                       geom.y() + geom.height() - SELECTION_HANDLE_SIZE );
             break;
         case SizeHandleRect::Left:
             hndl->move(geom.x() - w / 2 + SELECTION_HANDLE_SIZE / 2, geom.y() + geom.height() / 2 - h / 2 );
@@ -150,5 +169,6 @@ QSize FormResizer::decorationSize() const
     qDebug() << " margin " << margin;
     return QSize(margin, margin);
 }
+
 
 

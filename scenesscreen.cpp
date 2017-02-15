@@ -4,11 +4,16 @@
 #include <QColorDialog>
 #include <QKeySequence>
 
+class Compoent;
 
+QWidget* ScenesScreen::mActiveObj = 0;
 
 ScenesScreen::ScenesScreen(QSize size, QWidget *parent)
     : QFrame(parent),
-      activeObj(0)
+      mWindow((MainWindow*)parent),
+      //      mActiveObj(0),
+      mXYLine(new HVLineWidget(this))
+
 {
     setObjectName("PageScreen");
     setStyleSheet("QFrame#PageScreen{border: 1.5px solid gray;"\
@@ -17,17 +22,13 @@ ScenesScreen::ScenesScreen(QSize size, QWidget *parent)
     setFocusPolicy(Qt::ClickFocus);
     show();
     setAcceptDrops(true);
-//    mVLine.setP1(pos());
-//    mVLine.setP2(pos());
-//    mHLine.setP1(pos());
-//    mHLine.setP2(pos());
 
     setMouseTracking(true);
     setAttribute(Qt::WA_Hover);
-    mLine = new HVLineWidget(this);
-    mLine->setGeometry(this->geometry());
-   // mLine->show();
 
+    mXYLine->setHidden(true);
+    mXYLine->setGeometry(this->geometry());
+    //    CanvasManager::setXYRange(this->size());
 }
 
 void ScenesScreen::mousePressEvent(QMouseEvent *event)
@@ -74,7 +75,7 @@ void ScenesScreen::mousePressEvent(QMouseEvent *event)
 
         QAction paste(QIcon(":/icon/icons/editpaste.png"),"粘贴",this);
         connect(&paste,&QAction::triggered,[=](){
-            mWindow->cManager->activeSS()->pasteItem(this);
+            CanvasManager::mActiveSS->pasteItem(this);
         });
         contextMenu->addAction(&copy);
         paste.setEnabled(!BaseForm::mCopyItem.isNull());
@@ -122,7 +123,7 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv,bool createflag)
         oldrect.setY(0);
     }
 
-    NewLayer *nlayer = new NewLayer(json, oldrect/* + MARGIN_SIZE*/,this);
+    NewLayer *nlayer = new NewLayer(json, oldrect,this);
     nlayer->mCreateFlag = createflag;
     nlayer->setProperty(DKEY_JSONSTR,qv);
     nlayer->setProperty(DKEY_TYPE, json[WTYPE].toString());
@@ -171,7 +172,7 @@ void ScenesScreen::setSelectObject(FormResizer *obj)
     obj->setState(SelectionHandleActive);
     obj->setFocus();
 
-    activeObj = obj;
+    mActiveObj = obj;
 
     mWindow->tree->setSelectTreeItem(obj);
 }
@@ -197,9 +198,9 @@ void ScenesScreen::delAllObjects()
 void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
 {
     // 处理一些鼠标事件.
-    if(activeObj)
+    if(mActiveObj)
     {
-        BaseForm *bf = (BaseForm*)activeObj;
+        BaseForm *bf = (BaseForm*)mActiveObj;
         QPoint mpos = bf->pos();
         switch (s->key()) {
         case Qt::Key_Delete:
@@ -331,29 +332,24 @@ QJsonObject  ScenesScreen::writeToJson()
 
 void ScenesScreen::dragEnterEvent(QDragEnterEvent *e)
 {
-
-    mLine->show();
-    mLine->setHidden(false);
-    mLine->update();
-    qDebug() << " drag enter ";
+    mXYLine->setHidden(false);
     e->accept();
 }
-void ScenesScreen::dragLeaveEvent(QDragLeaveEvent *)
+void ScenesScreen::dragLeaveEvent(QDragLeaveEvent *e)
 {
-    qDebug() << " drag levave";
-    mLine->update();
-    mLine->setHidden(true);
+    mXYLine->setHidden(true);
+    e->accept();
 }
 
 void ScenesScreen::dragMoveEvent(QDragMoveEvent *e)
 {
-    mLine->setPos(e->pos());
+    mXYLine->setPos(e->pos());
     e->accept();
 }
 
 void ScenesScreen::dropEvent(QDropEvent *e)
 {
-    mLine->setHidden(true);
+    mXYLine->setHidden(true);
     e->acceptProposedAction();
 
     QByteArray itemData = e->mimeData()->data("application/x-dnditemdata");
@@ -365,29 +361,107 @@ void ScenesScreen::dropEvent(QDropEvent *e)
     QVariant qv;
     int flag ;
     dataStream >> flag  >> qv >> pixmap >> offset;
-     QJsonValue val = QJsonValue::fromVariant(qv);
+
+    QJsonValue val = QJsonValue::fromVariant(qv);
+
+    auto lambda_func = [](QJsonValue val,QPoint pos)
+    {
+        QString n;
+        n.sprintf("x:%d",pos.x());
+        QJsonObject json = val.toObject();
+        val =  Compoent::changeJsonValue(val.toObject()[PROPERTY].toArray(),KEY_RECT,n);
+        n.sprintf("y:%d",pos.y());
+        val =  Compoent::changeJsonValue(val.toArray(),KEY_RECT,n);
+        json[PROPERTY] = val;
+        return json;
+    };
+
+
     if(static_cast<int>(BaseForm::ObjTypes::T_NewLayer)  == flag)
     {
-        createNewLayer(val,true);
+
+        createNewLayer(lambda_func(val,e->pos()),true);
     }else if(static_cast<int>(BaseForm::ObjTypes::T_NewLayout)  == flag){
-        BaseForm *active =(BaseForm*)(this->activeObject());
+        BaseForm *active =(BaseForm*)(mActiveObj);
+        QPoint gp =  e->pos() - active->pos();
+        qDebug() << " m parent pos " << active->pos() << " drop pos " << e->pos();
         if(active->mType == BaseForm::T_NewLayer)
         {
-            ((NewLayer*)active)->readLayoutFromJson(val,true);
+
+            ((NewLayer*)active)->readLayoutFromJson(lambda_func(val,gp),true);
         }else if(active->mType == BaseForm::T_NewLayout)
         {
-            ((NewLayout*)active)->readFromJson(val,true);
+            ((NewLayout*)active)->readFromJson(lambda_func(val,gp),true);
         }
     }else{
-        BaseForm *active =(BaseForm*)(this->activeObject());
-        ((NewLayout*)active)->readFromJson(val,true);
+        BaseForm *active =(BaseForm*)(mActiveObj);
+        QPoint gp =  e->pos() - active->pos();
+        ((NewLayout*)active)->readFromJson(lambda_func(val,gp),true);
 
-//        QMessageBox::warning(0,tr("提示"),tr("请先拖入创建一个图层"));
+        //        QMessageBox::warning(0,tr("提示"),tr("请先拖入创建一个图层"));
     }
-    mLine->raise();
+    mXYLine->raise();
 }
 
 void ScenesScreen::mouseReleaseEvent(QMouseEvent *)
 {
-    mLine->setHidden(true);
+    //    mXYLine->setHidden(true);
 }
+
+HVLineWidget::HVLineWidget(QWidget *parent)
+    :QWidget(parent)
+{
+    mVLine.setP1(pos());
+    mVLine.setP2(pos());
+    mHLine.setP1(pos());
+    mHLine.setP2(pos());
+    //    setMouseTracking(true);
+    //    setAttribute(Qt::WA_Hover);
+    //    setStyleSheet("background:transparent");
+    setAttribute(Qt::WA_AlwaysStackOnTop );
+
+    setWindowFlags(Qt::FramelessWindowHint);
+}
+
+void HVLineWidget::mouseMoveEvent(QMouseEvent *e)
+{
+    mVLine.setP1(QPoint(e->pos().rx(),height()));
+    mVLine.setP2(QPoint(e->pos().rx(),0));
+
+    mHLine.setP1(QPoint(0,e->pos().ry()));
+    mHLine.setP2(QPoint(width(),e->pos().ry()));
+
+    update();
+}
+
+
+void HVLineWidget::setPos(const QPoint &p)
+{
+    mVLine.setP1(QPoint(p.x(),height()));
+    mVLine.setP2(QPoint(p.x(),0));
+
+    mHLine.setP1(QPoint(0,p.y()));
+    mHLine.setP2(QPoint(width(),p.y()));
+    //    CanvasManager::setXYPosition(p);
+    mPos = p;
+
+    update();
+}
+
+void HVLineWidget::paintEvent(QPaintEvent *e)
+{
+    QPainter painter(this);
+
+    QPen pen;
+    pen.setColor(Qt::gray);
+    pen.setStyle(Qt::DashLine);
+    painter.setPen(pen);
+    painter.drawLine(mVLine);
+
+    painter.drawLine(mHLine);
+    QString hstr;
+    hstr.sprintf("x:%d,y:%d",mPos.x(),mPos.y());
+    painter.drawText(mPos,hstr);
+}
+
+
