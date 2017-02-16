@@ -115,7 +115,7 @@ public:
     QPoint mOldPos;
     QSize mOldSize;
     QList<QWidget*> childlist;
-//    QWidget *parentControl;
+
 
     //　界面显示的一些变量.
     QString mBorderColor;
@@ -170,7 +170,7 @@ public:
     static bool mPrjIsChanged;
     static QWidgetList mObjectTemplte; // 左侧控件列表
     static QWidget *mLayout; // 左侧布局
-//    static QWidget *mLayer; // 左侧图层
+    static bool mReadJson; //读取JSON控件
 
 
     static QString getSequence(const QString &key);

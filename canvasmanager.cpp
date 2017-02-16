@@ -451,8 +451,6 @@ ScenesScreen * CanvasManager::createNewCanvas()
 {
     screenshot();
     mActiveSS = new ScenesScreen(mPageSize,(QWidget*)mWindow);
-
-
     mActiveSS->setProperty(DKEY_SHOT,false);  // 检查该页面是否创建过截图.
 
     // 这里不能改变它的对像名,用一个动态属
@@ -460,7 +458,6 @@ ScenesScreen * CanvasManager::createNewCanvas()
     mActiveSS->setProperty(DKEY_TXT,QString("页面_%1").arg(QString::number(mCanvasList.size())));
     mActiveSS->setToolTip(mActiveSS->property(DKEY_TXT).toString());
     mCanvasList.append(mActiveSS);
-    currentSS = mActiveSS;
     mWindow->lDock->setEnabled(true);
     stack->addWidget(mActiveSS);
     stack->setCurrentWidget(mActiveSS);
@@ -472,11 +469,6 @@ ScenesScreen * CanvasManager::createNewCanvas()
     BaseForm::setObjectTempEnabled(false);
     return mActiveSS;
 }
-
-//ScenesScreen *CanvasManager::activeSS()
-//{
-//    return (ScenesScreen*)(stack->currentWidget());
-//}
 
 int CanvasManager::activeIndex()
 {
@@ -513,6 +505,11 @@ void CanvasManager::deleteCurrentPage()
     if(!mActiveSS) return;
 
     int index = stack->currentIndex();
+    if(index < 0)
+    {
+        mActiveSS = 0;
+        return;
+    }
     stack->removeWidget(mActiveSS);
     mWindow->pageView->delPage(index);
     mWindow->tree->deleteAllitem();
@@ -623,7 +620,7 @@ void CanvasManager::OpenProject(QString file)
         qDebug() << json_error.errorString();
     }
 
-    mWindow->statusBar()->showMessage(QString("本页控件数量: %1").arg(QString::number(BaseForm::mSeqEnameMap.size())));
+    mWindow->statusBar()->showMessage(QString("控件数量: %1").arg(QString::number(BaseForm::mSeqEnameMap.size())));
 
 }
 
@@ -807,6 +804,7 @@ void CanvasManager::onSaveProject()
 void CanvasManager::readProjectJson(const QJsonArray &array)
 {
     bool readflag = false;
+    BaseForm::mReadJson = false;
     foreach (QJsonValue val, array) {
         readflag = true;
         // QVariantMap  qjm = val.toObject().toVariantMap();
@@ -830,6 +828,7 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
 
             // 递归读取它的页面.
             mActiveSS->readLayer(valobj[LAYER].toArray());
+            mActiveSS->mXYLine->raise();
 
         }
             break;
@@ -837,6 +836,7 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
             break;
         }
     }
+    BaseForm::mReadJson = false;
     newPage->setEnabled(readflag);
     savePrj->setEnabled(readflag);
     saveas->setEnabled(readflag);

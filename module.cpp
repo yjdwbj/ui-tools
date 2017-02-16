@@ -40,6 +40,7 @@ BaseForm::ObjTypes BaseForm::mCopyFromType;
 QMap<QString,QWidget*> BaseForm::mObjectMap; // 新生成的控件.
 QMap<QString,QWidget*> BaseForm::mSeqEnameMap; // 对应到小机里的唯一名称.
 bool BaseForm::mPrjIsChanged = false;
+bool BaseForm::mReadJson = false;
 
 QWidgetList BaseForm::mObjectTemplte;
 //QWidget *BaseForm::mLayer;
@@ -1640,8 +1641,7 @@ void BaseForm::initialEname()
     }else{
         qDebug() << "Ename is empty";
     }
-    mWindow->statusBar()->showMessage(QString("本页控件数量: %1").arg(QString::number(mSeqEnameMap.size())));
-    //    mWindow->statusBar()->repaint();
+    mWindow->statusBar()->showMessage(QString("控件数量: %1").arg(QString::number(mSeqEnameMap.size())));
 }
 
 QString BaseForm::updateEname(int index)
@@ -1660,6 +1660,8 @@ QString BaseForm::updateEname(int index)
 void BaseForm::onSelectMe()
 {
     CanvasManager::mActiveSS->setSelectObject(this);
+    if(mReadJson) return;
+
     mWindow->propertyWidget->createPropertyBox(this);
     if(!mParent->isContainer())
     {
@@ -2399,6 +2401,8 @@ void NewGrid::updateAllItemsSize()
         ((NewLayout*)w)->setMaximumSize(this->size());
         ((NewLayout*)w)->setFixedSize(itemSize);
         ((BaseForm*)w)->onSelectMe();
+        if(mReadJson)
+            continue;
         ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
                                         KEY_RECT,
                                         QString("%1:%2").arg(WIDTH,

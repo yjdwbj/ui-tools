@@ -129,21 +129,22 @@ void SizeHandleRect::mouseMoveEvent(QMouseEvent *e)
     ((BaseForm*)m_resizable)->posWidget->updateSize(m_resizable);
 }
 
-void SizeHandleRect::mouseReleaseEvent(QMouseEvent *e)
-{
-    if (e->button() != Qt::LeftButton)
-        return;
-    CanvasManager::mActiveSS->mXYLine->setHidden(true);
+//这里的事件不能开启使用.
+//void SizeHandleRect::mouseReleaseEvent(QMouseEvent *e)
+//{
+//    if (e->button() != Qt::LeftButton)
+//        return;
+//    CanvasManager::mActiveSS->mXYLine->setHidden(true);
 
-    e->accept();
-    //    if (m_startSize != m_curSize) {
-    //        const QRect startRect = QRect(0, 0, m_startPos.x(), m_startPos.y());
-    //        const QRect newRect = QRect(0, 0, m_curPos.x(), m_curPos.y());
-    //        if (debugSizeHandle)
-    //            qDebug() << "SizeHandleRect::mouseReleaseEvent" << startRect << newRect;
-    //        emit mouseButtonReleased(startRect, newRect);
-    //    }
-}
+//    e->accept();
+//        if (m_startSize != m_curSize) {
+//            const QRect startRect = QRect(0, 0, m_startPos.x(), m_startPos.y());
+//            const QRect newRect = QRect(0, 0, m_curPos.x(), m_curPos.y());
+//            if (debugSizeHandle)
+//                qDebug() << "SizeHandleRect::mouseReleaseEvent" << startRect << newRect;
+//            emit mouseButtonReleased(startRect, newRect);
+//        }
+//}
 
 void SizeHandleRect::tryResize(const QSize &delta)
 {

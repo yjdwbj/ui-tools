@@ -590,7 +590,7 @@ void ComProperty::createPropertyBox(QWidget *p)
 
     mainLayout->setObjectName(COMGRPLYT);
     mainLayout->addSpacing(0);
-    QJsonArray arry = ((BaseForm*)p)->mOwerJson[PROPERTY].toArray();
+    //    QJsonArray arry = ((BaseForm*)p)->mOwerJson[PROPERTY].toArray();
     //    QThread *th = new QThread();
     //    QObject::connect(th,&QThread::started,[=]{
     //        parseJsonToWidget(p,arry);
@@ -1218,9 +1218,9 @@ QWidget* CompoentControls::createCustomObject(const QJsonArray &comJsonArr)
         QJsonObject jobj = qjv.toObject();
         //        QByteArray ba = QJsonDocument(jobj).toJson();
 
-        QString caption = jobj[CAPTION].toString();
-        QString objname = jobj[NAME].toString();
-        DragButton *btnTest = new DragButton(caption);
+//        QString caption = jobj[CAPTION].toString();
+//        QString objname = jobj[NAME].toString();
+        DragButton *btnTest = new DragButton(qjv,this);
 //        btnTest->setProperty(DKEY_CATEGORY,objname);
 //        btnTest->setProperty(DKEY_JSONSTR,qjv.toVariant()); // 这个按钮绑定这一个JSON控件.
 

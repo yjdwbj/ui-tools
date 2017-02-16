@@ -31,7 +31,7 @@ public:
     void deleteCanvas(int index);
     void deleteCanvas(ScenesScreen *ss);
     void setActiveSS(int index);
-    void setActiveSS(ScenesScreen *ss) { currentSS =ss;}
+//    void setActiveSS(ScenesScreen *ss) { currentSS =ss;}
     void setDefaultPageSize(QSize s) { mPageSize = s;}
     void closeCurrentProject();
 
@@ -81,7 +81,7 @@ private:
 //    QJsonArray saveProjectJson(QProgressDialog *pd);
 
     void saveProject(QString fname);
-    ScenesScreen *currentSS;
+//    ScenesScreen *currentSS;
     QWidgetList mCanvasList; // 画布列表
 
     QRect stackRect;

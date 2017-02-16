@@ -11,9 +11,7 @@ QWidget* ScenesScreen::mActiveObj = 0;
 ScenesScreen::ScenesScreen(QSize size, QWidget *parent)
     : QFrame(parent),
       mWindow((MainWindow*)parent),
-      //      mActiveObj(0),
       mXYLine(new HVLineWidget(this))
-
 {
     setObjectName("PageScreen");
     setStyleSheet("QFrame#PageScreen{border: 1.5px solid gray;"\
@@ -28,7 +26,7 @@ ScenesScreen::ScenesScreen(QSize size, QWidget *parent)
 
     mXYLine->setHidden(true);
     mXYLine->setGeometry(this->geometry());
-    //    CanvasManager::setXYRange(this->size());
+    mXYLine->raise();
 }
 
 void ScenesScreen::mousePressEvent(QMouseEvent *event)
@@ -376,6 +374,23 @@ void ScenesScreen::dropEvent(QDropEvent *e)
         return json;
     };
 
+    auto lambda_getpos = [=](QWidget *active){
+        QPoint gp  = active->pos();
+        BaseForm *tmp = (BaseForm*)active;
+        while(tmp != tmp->mParent)
+        {
+            tmp = tmp->mParent;
+            gp += tmp->pos();
+        }
+
+        gp = e->pos() - gp;
+        if(gp.x() < 0 || gp.x() > active->width())
+            gp.setX(0);
+        if(gp.y() < 0 || gp.y() > active->height())
+            gp.setY(0);
+        return gp;
+    };
+
 
     if(static_cast<int>(BaseForm::ObjTypes::T_NewLayer)  == flag)
     {
@@ -383,22 +398,20 @@ void ScenesScreen::dropEvent(QDropEvent *e)
         createNewLayer(lambda_func(val,e->pos()),true);
     }else if(static_cast<int>(BaseForm::ObjTypes::T_NewLayout)  == flag){
         BaseForm *active =(BaseForm*)(mActiveObj);
-        QPoint gp =  e->pos() - active->pos();
-        qDebug() << " m parent pos " << active->pos() << " drop pos " << e->pos();
+
+       // QPoint gp = mapToGlobal(e->pos()) - mapToGlobal(active->pos());
         if(active->mType == BaseForm::T_NewLayer)
         {
-
-            ((NewLayer*)active)->readLayoutFromJson(lambda_func(val,gp),true);
+            ((NewLayer*)active)->readLayoutFromJson(lambda_func(val,lambda_getpos(mActiveObj)),true);
         }else if(active->mType == BaseForm::T_NewLayout)
         {
-            ((NewLayout*)active)->readFromJson(lambda_func(val,gp),true);
+            ((NewLayout*)active)->readFromJson(lambda_func(val,
+                                                           lambda_getpos(mActiveObj)),true);
         }
     }else{
         BaseForm *active =(BaseForm*)(mActiveObj);
-        QPoint gp =  e->pos() - active->pos();
-        ((NewLayout*)active)->readFromJson(lambda_func(val,gp),true);
-
-        //        QMessageBox::warning(0,tr("提示"),tr("请先拖入创建一个图层"));
+        ((NewLayout*)active)->readFromJson(lambda_func(val,
+                                                       lambda_getpos(mActiveObj)),true);
     }
     mXYLine->raise();
 }
@@ -464,4 +477,7 @@ void HVLineWidget::paintEvent(QPaintEvent *e)
     painter.drawText(mPos,hstr);
 }
 
-
+void HVLineWidget::mouseReleaseEvent(QMouseEvent *e)
+{
+    setHidden(true);
+}

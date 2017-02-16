@@ -27,6 +27,8 @@ public:
 protected:
     void mouseMoveEvent(QMouseEvent *e);
     void paintEvent(QPaintEvent *e);
+    void mouseReleaseEvent(QMouseEvent *e);
+
 
 private:
     QLine mVLine;
