@@ -44,8 +44,6 @@ public:
    // void setFormWindow(QDesignerFormWindowInterface *fw);
     QFrame *m_frame;
   // Canvas *m_frame;
-//    QRect mBorder;
-//    QString mBorderColor;
 
 signals:
     void formWindowSizeChanged(const QRect &oldGeo, const QRect &newGeo);

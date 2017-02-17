@@ -489,6 +489,8 @@ void CanvasManager::setActiveSS(int index)
 
     // 把当前页的布局重新添加到treeWidget上
 
+    BaseForm::mReadJson = true;
+
     foreach (QWidget *w, mActiveSS->childlist) {
         mWindow->tree->addItemToRoot(w);
         if(!w->isHidden())
@@ -496,7 +498,10 @@ void CanvasManager::setActiveSS(int index)
             ((BaseForm*)w)->addChildrenToTree();
         }
     }
+
+    BaseForm::mReadJson = false;
     screenshot();
+    ((BaseForm*)mActiveSS->mActiveObj)->onSelectMe();
 }
 
 void CanvasManager::deleteCurrentPage()
@@ -562,8 +567,8 @@ void CanvasManager::onCreateNewProject()
             onSaveProject();
         }
     }
-
     closeCurrentProject(); // 关闭当前工程.
+
     ProjectDialog *pd = new ProjectDialog(mWindow);
 
     QSize ps = mWindow->size();
@@ -804,7 +809,7 @@ void CanvasManager::onSaveProject()
 void CanvasManager::readProjectJson(const QJsonArray &array)
 {
     bool readflag = false;
-    BaseForm::mReadJson = false;
+    BaseForm::mReadJson = true;
     foreach (QJsonValue val, array) {
         readflag = true;
         // QVariantMap  qjm = val.toObject().toVariantMap();
@@ -837,6 +842,7 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
         }
     }
     BaseForm::mReadJson = false;
+    ((BaseForm*)mActiveSS->mActiveObj)->onSelectMe();
     newPage->setEnabled(readflag);
     savePrj->setEnabled(readflag);
     saveas->setEnabled(readflag);

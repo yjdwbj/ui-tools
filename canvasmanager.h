@@ -31,6 +31,7 @@ public:
     void deleteCanvas(int index);
     void deleteCanvas(ScenesScreen *ss);
     void setActiveSS(int index);
+    void updateScreenshot() {screenshot();}
 //    void setActiveSS(ScenesScreen *ss) { currentSS =ss;}
     void setDefaultPageSize(QSize s) { mPageSize = s;}
     void closeCurrentProject();

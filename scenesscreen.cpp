@@ -391,7 +391,7 @@ void ScenesScreen::dropEvent(QDropEvent *e)
         return gp;
     };
 
-
+    BaseForm::mReadJson = false;
     if(static_cast<int>(BaseForm::ObjTypes::T_NewLayer)  == flag)
     {
 

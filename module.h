@@ -106,6 +106,8 @@ public:
         UpTop = 0x4
     };
 
+
+
     explicit BaseForm(QWidget *parent=0);
     MainWindow *mWindow;
     BaseForm *mParent; // 父对像
@@ -170,7 +172,8 @@ public:
     static bool mPrjIsChanged;
     static QWidgetList mObjectTemplte; // 左侧控件列表
     static QWidget *mLayout; // 左侧布局
-    static bool mReadJson; //读取JSON控件
+    static bool mReadJson; //读取JSON控件,false时不创建详细的控件
+
 
 
     static QString getSequence(const QString &key);
@@ -280,7 +283,7 @@ private:
 
 
 protected:
-    void mouseReleaseEvent(QMouseEvent *event);
+//    void mouseReleaseEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent *event);
 };
 
@@ -322,7 +325,7 @@ public slots:
 
 
 protected:
-    void mouseReleaseEvent(QMouseEvent *event);
+  //  void mouseReleaseEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent *);
     bool eventFilter(QObject *obj, QEvent *event);
 };

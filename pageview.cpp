@@ -67,7 +67,13 @@ void PageView::InsertPage(int index, QPixmap &p, QString txt)
 void PageView::onClickedItem(QListWidgetItem *item)
 {
     //qDebug() << " clicked index is " << item->text() ;
+
     int row = mImgList->row(item);
+    if(row == mWindow->cManager->activeIndex())
+    {
+        mWindow->cManager->updateScreenshot();
+        return;
+    }
     mWindow->cManager->setActiveSS(row);
     mImgList->clearSelection();
    // mImgList->setCurrentItem(item);

@@ -42,6 +42,7 @@ QMap<QString,QWidget*> BaseForm::mSeqEnameMap; // 对应到小机里的唯一名
 bool BaseForm::mPrjIsChanged = false;
 bool BaseForm::mReadJson = false;
 
+
 QWidgetList BaseForm::mObjectTemplte;
 //QWidget *BaseForm::mLayer;
 QWidget *BaseForm::mLayout;
@@ -399,6 +400,13 @@ QVariant Compoent::getJsonValue(const QJsonArray &parr,QString key)
                     return obj[str].toVariant();
             }
 
+        }else if(!wtype.compare(STRUCT))
+        {
+            ret = getJsonValue(obj[STRUCT].toArray(),key);
+            if(ret.isValid())
+                return ret;
+            else
+                continue;
         }
 
     }
@@ -1153,6 +1161,15 @@ void BaseForm::mouseReleaseEvent(QMouseEvent *event)
     if(mParent->isContainer())
         return;
 
+    if(mType == T_NewList)
+    {
+        ((NewList*)this)->mainScroll->resize(this->size());
+        ((NewList*)this)->updateAllItemsSize();
+    }else if(mType == T_NewGrid){
+        ((NewGrid*)this)->mainScroll->resize(this->size());
+        ((NewGrid*)this)->mainWidget->resize(this->size());
+    }
+
     if(!posWidget) return;
 
     posWidget->updateSize(this);
@@ -1170,6 +1187,7 @@ void BaseForm::mouseReleaseEvent(QMouseEvent *event)
     changeJsonValue(posWidget,
                     KEY_RECT,
                     QString("%1:%2").arg(HEIGHT,QString::number(this->height())));
+    event->accept();
 }
 
 void BaseForm::moveNewPos(int x,int y)
@@ -1642,6 +1660,8 @@ void BaseForm::initialEname()
         qDebug() << "Ename is empty";
     }
     mWindow->statusBar()->showMessage(QString("控件数量: %1").arg(QString::number(mSeqEnameMap.size())));
+    if(BaseForm::mReadJson)
+        initJsonValue();
 }
 
 QString BaseForm::updateEname(int index)
@@ -1703,15 +1723,29 @@ void BaseForm::DeleteMe()
 
 void BaseForm::initJsonValue()
 {
-    mbkColor = Compoent::getJsonValue(BAKCOLOR).toString();
-    mBorderColor = Compoent::getJsonValue(BORDER).toString();
-    mBorder = Compoent::getRectFromStruct(mOwerJson[PROPERTY].toArray(),BORDER);
-    if(this->mCreateFlag)
+    QColor c;
+    QString cname = getJsonValue(BAKCOLOR).toString();
+    c = QColor(cname) ;
+    // if(isFirst)
+    if(c.isValid())
     {
-        setProperty(DKEY_UID,mObjectMap.size());
-    }else{
-        setProperty(DKEY_UID,Compoent::getJsonValue(UID).toInt());
+
+        mbkColor =c.name(QColor::HexArgb);
     }
+    c = QColor(getJsonValue(GRAYCOLOR).toString());
+    if(c.isValid())
+        mBorderColor = c.name(QColor::HexArgb);
+
+    //    mBorder =  getRectFromStruct(mOwerJson[PROPERTY].toArray(),BORDER);
+
+    QString img = getJsonValue(BAKIMAGE).toString();
+    if(!img.isEmpty())
+    {
+        img = QDir::currentPath() + BACKSLASH + img;
+        mbkImage = img;
+    }
+
+    setGeometry(getRectFromStruct(mOwerJson[PROPERTY].toArray(),KEY_RECT));
 }
 
 
@@ -2363,6 +2397,7 @@ void NewGrid::initRowsCols(int row,int col,const QJsonValue &value)
 void NewGrid::onAddOneRow()
 {
     mCreateFlag = true;
+    mReadJson = true;
     QAction *a = (QAction*)(QObject::sender());
     int num = tinySpinBoxDialog(a->text(),1,0,99);
     for(int x = 0 ; x < num ;
@@ -2375,12 +2410,15 @@ void NewGrid::onAddOneRow()
     }
 
     updateAllItemsSize();
+    mReadJson = false;
+    ((NewGrid*)childlist.last())->onSelectMe();
 
 }
 
 void NewGrid::onAddOneCol()
 {
     mCreateFlag = true;
+    mReadJson = true;
     QAction *a = (QAction*)(QObject::sender());
     int num = tinySpinBoxDialog(a->text(),1,0,99);
     for(int x = 0 ; x < num;
@@ -2392,6 +2430,8 @@ void NewGrid::onAddOneCol()
         }
     }
     updateAllItemsSize();
+    mReadJson = false;
+    ((NewGrid*)childlist.last())->onSelectMe();
 
 }
 
@@ -2445,14 +2485,14 @@ void NewGrid::onDeleteMe()
 
 }
 
-void NewGrid::mouseReleaseEvent(QMouseEvent *event)
-{
+//void NewGrid::mouseReleaseEvent(QMouseEvent *event)
+//{
 
-    mainScroll->resize(this->size());
-    mainWidget->resize(this->size());
-    BaseForm::mouseReleaseEvent(event);
+//    mainScroll->resize(this->size());
+//    mainWidget->resize(this->size());
+//    BaseForm::mouseReleaseEvent(event);
 
-}
+//}
 
 void NewGrid::wheelEvent(QWheelEvent *event)
 {
@@ -2669,10 +2709,13 @@ void NewList::onAddManyLine()
 {
     QString txt =((QAction*)(QObject::sender()))->text();
     int num = tinySpinBoxDialog(txt,1,1,99);
+    mReadJson = true;
     for(int i = 0; i < num;i++)
     {
         AddOneLine(QJsonValue::fromVariant(mWindow->ComCtrl->mVariantLayout));
     }
+    mReadJson = false;
+    ((NewList*)childlist.last())->onSelectMe();
 }
 
 void NewList::pasteOneLine(const QJsonValue &value)
@@ -2733,15 +2776,16 @@ void NewList::onDeleteMe()
 }
 
 
-void NewList::mouseReleaseEvent(QMouseEvent *event)
-{
-    BaseForm::mouseReleaseEvent(event);
-    // 把　QScrollArea　的大小调成与父控件一样大.
-    mainScroll->resize(this->size());
-    //  qDebug() << "release event " << event;
-    updateAllItemsSize();
+//void NewList::mouseReleaseEvent(QMouseEvent *event)
+//{
 
-}
+//    // 把　QScrollArea　的大小调成与父控件一样大.
+//    mainScroll->resize(this->size());
+//    updateAllItemsSize();
+////    BaseForm::mouseReleaseEvent(event);
+//    event->accept();
+
+//}
 
 
 void NewList::wheelEvent(QWheelEvent *event)
