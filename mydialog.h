@@ -291,9 +291,11 @@ class ProgressDlg: public BaseDialog
 {
     Q_OBJECT
 public:
-    ProgressDlg(int min , int max,QWidget *parent =0);
+    ProgressDlg(QString name,const QWidgetList &list,QWidget *parent =0);
     QProgressBar *mProgressBar;
 
+protected:
+    void mousePressEvent(QMouseEvent *e);
 };
 
 class ActionList: public BaseDialog

@@ -590,14 +590,7 @@ void ComProperty::createPropertyBox(QWidget *p)
 
     mainLayout->setObjectName(COMGRPLYT);
     mainLayout->addSpacing(0);
-    //    QJsonArray arry = ((BaseForm*)p)->mOwerJson[PROPERTY].toArray();
-    //    QThread *th = new QThread();
-    //    QObject::connect(th,&QThread::started,[=]{
-    //        parseJsonToWidget(p,arry);
-    //        th->exit();
-    //    });
-    //    connect(th,SIGNAL(finished()),th,SLOT(deleteLater()));
-    //    th->start();
+
     parseJsonToWidget(p, ((BaseForm*)p)->mOwerJson[PROPERTY].toArray());
 
     mainLayout->setSizeConstraint(QLayout::SetFixedSize);

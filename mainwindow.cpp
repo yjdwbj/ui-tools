@@ -499,23 +499,39 @@ void MainWindow::onDobuleClickedImage(QListWidgetItem *item)
 
 void MainWindow::closeEvent(QCloseEvent *e)
 {
-    if(cManager->mIsOpenProject && BaseForm::mPrjIsChanged)
+    if(!cManager->mIsOpenProject)
+        return;
+    QMessageBox ExtmsgBox;
+    ExtmsgBox.setWindowTitle("退出程序");
+    ExtmsgBox.setText("是否真的退出程序?");
+    ExtmsgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+    ExtmsgBox.setButtonText(QMessageBox::Yes,"退出");
+    ExtmsgBox.setButtonText(QMessageBox::Cancel,"取消");
+    ExtmsgBox.setDefaultButton(QMessageBox::Cancel);
+    int ret = ExtmsgBox.exec();
+    if(ret == QMessageBox::Yes)
     {
-        QMessageBox msgBox;
-        msgBox.setWindowTitle("打开工程提示");
-        msgBox.setText("当前编辑的工程有新的修改没有保存,选请择<保存>进行保存.");
-        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-        msgBox.setButtonText(QMessageBox::Yes,"保存");
-        msgBox.setButtonText(QMessageBox::Cancel,"取消");
-        msgBox.setDefaultButton(QMessageBox::Cancel);
-        int ret = msgBox.exec();
-        if(ret == QMessageBox::Yes)
+        if(BaseForm::mPrjIsChanged)
         {
-            //　需要保存
-            cManager->onSaveProject();
+            QMessageBox msgBox;
+            msgBox.setWindowTitle("打开工程提示");
+            msgBox.setText("当前编辑的工程有新的修改没有保存,选请择<保存>进行保存.");
+            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+            msgBox.setButtonText(QMessageBox::Yes,"保存");
+            msgBox.setButtonText(QMessageBox::Cancel,"取消");
+            msgBox.setDefaultButton(QMessageBox::Cancel);
+            int ret = msgBox.exec();
+            if(ret == QMessageBox::Yes)
+            {
+                //　需要保存
+                cManager->onSaveProject();
+            }
+            //        cManager->closeCurrentProject();
         }
-        //        cManager->closeCurrentProject();
+    }else{
+        e->ignore();
     }
+
 }
 
 MainWindow::~MainWindow()

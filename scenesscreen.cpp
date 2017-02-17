@@ -3,8 +3,10 @@
 #include "canvasmanager.h"
 #include <QColorDialog>
 #include <QKeySequence>
+#include <QStatusBar>
 
 class Compoent;
+class QStatusBar;
 
 QWidget* ScenesScreen::mActiveObj = 0;
 
@@ -112,26 +114,14 @@ void ScenesScreen::onChangedBackgroundColor()
 NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv,bool createflag)
 {
     QJsonObject json = qv.toObject();
-    QRect oldrect = Compoent::getRectFromStruct(json[PROPERTY].toArray(),KEY_RECT);
-    if(oldrect.isEmpty())
-    {
-        oldrect.setWidth(200);
-        oldrect.setHeight(200);
-        oldrect.setX(0);
-        oldrect.setY(0);
-    }
-
-    NewLayer *nlayer = new NewLayer(json, oldrect,this);
+    NewLayer *nlayer = new NewLayer(json, mWindow,this);
     nlayer->mCreateFlag = createflag;
     nlayer->setProperty(DKEY_JSONSTR,qv);
     nlayer->setProperty(DKEY_TYPE, json[WTYPE].toString());
     childlist.append(nlayer);
-    nlayer->mOwerJson = qv.toObject();
-    nlayer->initialEname();
     nlayer->onSelectMe();
     nlayer->updateStyleSheets();
     mWindow->tree->addItemToRoot(nlayer);
-
     nlayer->show();
     return nlayer;
 
@@ -140,6 +130,7 @@ NewLayer* ScenesScreen::createNewLayer(const QJsonValue &qv,bool createflag)
 void ScenesScreen::readLayer(const QJsonArray &array)
 {
     // 从工程里读取图层.
+
     foreach (QJsonValue val, array) {
         switch (val.type()) {
         case QJsonValue::Object:
@@ -252,7 +243,7 @@ void ScenesScreen::keyReleaseEvent(QKeyEvent *s)
 
 void ScenesScreen::pasteItem(QWidget *w)
 {
-    qDebug() << " paste to object " << w->objectName() << w->metaObject()->className();
+//    qDebug() << " paste to object " << w->objectName() << w->metaObject()->className();
     if(BaseForm::mCopyItem.isNull()) return;
 
     BaseForm::ObjTypes fromType = BaseForm::mCopyFromType;
@@ -305,6 +296,9 @@ void ScenesScreen::pasteItem(QWidget *w)
             break;
         }
     }
+
+    mWindow->statusBar()->showMessage(QString("控件数量: %1").arg(QString::number(BaseForm::mSeqEnameMap.size())));
+
 
 }
 
@@ -414,6 +408,8 @@ void ScenesScreen::dropEvent(QDropEvent *e)
                                                        lambda_getpos(mActiveObj)),true);
     }
     mXYLine->raise();
+    mWindow->statusBar()->showMessage(QString("控件数量: %1").arg(QString::number(BaseForm::mSeqEnameMap.size())));
+
 }
 
 void ScenesScreen::mouseReleaseEvent(QMouseEvent *)
@@ -428,11 +424,7 @@ HVLineWidget::HVLineWidget(QWidget *parent)
     mVLine.setP2(pos());
     mHLine.setP1(pos());
     mHLine.setP2(pos());
-    //    setMouseTracking(true);
-    //    setAttribute(Qt::WA_Hover);
-    //    setStyleSheet("background:transparent");
     setAttribute(Qt::WA_AlwaysStackOnTop );
-
     setWindowFlags(Qt::FramelessWindowHint);
 }
 

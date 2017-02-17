@@ -449,7 +449,7 @@ void CanvasManager::screenshot()
 
 ScenesScreen * CanvasManager::createNewCanvas()
 {
-    screenshot();
+
     mActiveSS = new ScenesScreen(mPageSize,(QWidget*)mWindow);
     mActiveSS->setProperty(DKEY_SHOT,false);  // 检查该页面是否创建过截图.
 
@@ -464,7 +464,7 @@ ScenesScreen * CanvasManager::createNewCanvas()
     // stack->setGeometry(stackRect);
     // 清理treeWidget 的行
     mWindow->tree->deleteAllitem();
-    screenshot();
+
     BaseForm::mLayout->setEnabled(false);
     BaseForm::setObjectTempEnabled(false);
     return mActiveSS;
@@ -550,6 +550,20 @@ void CanvasManager::onCreateNewProject()
 
     if(BaseForm::mPrjIsChanged)
     {
+
+        QMessageBox ExtmsgBox;
+        ExtmsgBox.setWindowTitle("新建工程提示");
+        ExtmsgBox.setText("是否关闭当前工程,新建工程?");
+        ExtmsgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+        ExtmsgBox.setButtonText(QMessageBox::Yes,"关闭");
+        ExtmsgBox.setButtonText(QMessageBox::Cancel,"取消");
+        ExtmsgBox.setDefaultButton(QMessageBox::Cancel);
+        int ret = ExtmsgBox.exec();
+        if(ret == QMessageBox::Cancel)
+        {
+            return;
+        }
+
         // 当前工程有修改还没有保存.
         QMessageBox msgBox;
         msgBox.setWindowTitle("新建工程提示");
@@ -559,7 +573,7 @@ void CanvasManager::onCreateNewProject()
         msgBox.setButtonText(QMessageBox::Yes,"保存");
         msgBox.setButtonText(QMessageBox::Cancel,"取消");
         msgBox.setDefaultButton(QMessageBox::Cancel);
-        int ret = msgBox.exec();
+        ret = msgBox.exec();
         //qDebug() << " QMessageBox result " << ret;
         if(ret == QMessageBox::Yes)
         {
@@ -633,6 +647,20 @@ void CanvasManager::onOpenProject()
 {
     if(mIsOpenProject)
     {
+
+        QMessageBox ExtmsgBox;
+        ExtmsgBox.setWindowTitle("打开工程提示");
+        ExtmsgBox.setText("是否关闭当前工程,打开新工程?");
+        ExtmsgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
+        ExtmsgBox.setButtonText(QMessageBox::Yes,"关闭");
+        ExtmsgBox.setButtonText(QMessageBox::Cancel,"取消");
+        ExtmsgBox.setDefaultButton(QMessageBox::Cancel);
+        int ret = ExtmsgBox.exec();
+        if(ret == QMessageBox::Cancel)
+        {
+            return;
+        }
+
         QMessageBox msgBox;
         msgBox.setWindowTitle("打开工程提示");
         msgBox.setText("当前编辑的工程有新的修改没有保存,选请择<保存>进行保存.");
@@ -641,7 +669,7 @@ void CanvasManager::onOpenProject()
         msgBox.setButtonText(QMessageBox::Yes,"保存");
         msgBox.setButtonText(QMessageBox::Cancel,"取消");
         msgBox.setDefaultButton(QMessageBox::Cancel);
-        int ret = msgBox.exec();
+        ret = msgBox.exec();
         //qDebug() << " QMessageBox result " << ret;
         if(ret == QMessageBox::Yes)
         {
@@ -682,6 +710,7 @@ void CanvasManager::onCreateNewScenesScreen()
 {
     mIsOpenProject = true;
     createNewCanvas();
+    screenshot();
     delPage->setEnabled(true);
     mWindow->propertyWidget->delPropertyBox();
 }
@@ -708,24 +737,10 @@ QJsonArray saveProjectJson(QProgressDialog *pd,QWidgetList mCanvasList )
 
 void CanvasManager::saveProject(QString fname)
 {
-
-
-    ProgressDlg *pd = new ProgressDlg(0,mCanvasList.length(),mWindow);
-    QThread *dlgth = new QThread();
-    pd->moveToThread(dlgth);
-    connect(dlgth,&QThread::started,[=]{
-        pd->exec();
-        dlgth->exit();
-    });
-
     QThread *saveth = new QThread();
-    connect(saveth,SIGNAL(started()),dlgth,SIGNAL(started()));
-
     QObject::connect(saveth,&QThread::started,[=]{
         QJsonArray CanvasArray;
-        int n = 0;
         foreach (QWidget *w, mCanvasList) {
-            pd->mProgressBar->setValue(n++);
             CanvasArray.append(((ScenesScreen*)w)->writeToJson());
         }
          QFile saveFile(fname);
@@ -746,19 +761,17 @@ void CanvasManager::saveProject(QString fname)
          obj[MLANG] = lang;
          QJsonDocument jsonDoc(obj);
          saveFile.write(jsonDoc.toJson());
-         pd->mProgressBar->setValue(n);
-         emit pd->accepted();
-         saveth->exit();
+         savePrj->setEnabled(true);
+         saveth->quit();
     });
 
     connect(saveth,SIGNAL(finished()),saveth,SLOT(deleteLater()));
-    connect(dlgth,SIGNAL(finished()),dlgth,SLOT(deleteLater()));
+    connect(saveth,SIGNAL(finished()),savePrj,SLOT(repaint()));
     saveth->start();
+    savePrj->setEnabled(false);
+    savePrj->repaint();
 
     mIsOpenProject = false;
-
-
-    //    pd->exec();
 }
 
 void CanvasManager::onSaveAsProject()
@@ -830,10 +843,10 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
             }
             setDefaultPageSize(QSize(w,h));
             mActiveSS = createNewCanvas();
-
             // 递归读取它的页面.
             mActiveSS->readLayer(valobj[LAYER].toArray());
             mActiveSS->mXYLine->raise();
+            screenshot();
 
         }
             break;
@@ -848,4 +861,5 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
     saveas->setEnabled(readflag);
     delPage->setEnabled(readflag);
     confPrj->setEnabled(readflag);
+    mWindow->statusBar()->showMessage(QString("控件数量: %1").arg(QString::number(BaseForm::mSeqEnameMap.size())));
 }

@@ -18,6 +18,7 @@
 #include <QThread>
 #include <QLineEdit>
 class BaseForm;
+class ScenesScreen;
 
 BaseDialog::BaseDialog(QWidget *parent):
     QDialog(parent)
@@ -1549,16 +1550,23 @@ void ActionList::onCustomContextMenu(const QPoint &pos)
 }
 
 
-ProgressDlg::ProgressDlg(int min, int max, QWidget *parent)
+ProgressDlg::ProgressDlg(QString fname, const QWidgetList &list, QWidget *parent)
     :BaseDialog(parent),
       mProgressBar(new QProgressBar(this))
 {
     QVBoxLayout *vb = new QVBoxLayout();
     vb->addWidget(mProgressBar);
-    mProgressBar->setRange(min,max);
+    mProgressBar->setRange(0,list.size());
     setFixedSize(200,100);
     this->setLayout(vb);
     connect(this,SIGNAL(accepted()),SLOT(deleteLater()));
     //    setWindowModality(Qt::ApplicationModal);
-    setModal(true);
+
+     setModal(true);
+
+}
+
+void ProgressDlg::mousePressEvent(QMouseEvent *e)
+{
+//   this->accept();
 }

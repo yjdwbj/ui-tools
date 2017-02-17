@@ -108,7 +108,7 @@ public:
 
 
 
-    explicit BaseForm(QWidget *parent=0);
+    explicit BaseForm(const QJsonValue &json, MainWindow *mw, QWidget *parent=0);
     MainWindow *mWindow;
     BaseForm *mParent; // 父对像
 
@@ -213,7 +213,7 @@ protected:
     void paintEvent(QPaintEvent *);
     void resizeEvent(QResizeEvent *event);
     void wheelEvent(QWheelEvent *);
-    void initObject(const QJsonObject &json);
+    void initObject();
     void objectMoveSwapMenu(QMenu *contextMenu);
     void listObjectMoveMenu(QMenu *contextMenu, BaseForm *container);
 };
@@ -223,7 +223,7 @@ class NewFrame :public BaseForm
     Q_OBJECT
 public:
 
-    NewFrame(const QJsonObject &json,QWidget *parent=0);
+    NewFrame(const QJsonValue &json, MainWindow *mw, QWidget *parent=0);
 
     void addMainWindow(QObject *mw);
     QJsonObject  writeToJson();
@@ -241,7 +241,7 @@ class NewGrid: public BaseForm
 {
     Q_OBJECT
 public:
-    NewGrid(const QJsonValue &qv,  const QList<int> *arglist, QWidget *parent=0);
+    NewGrid(const QJsonValue &json,  const QList<int> *arglist, MainWindow *mw, QWidget *parent=0);
 
     bool rowcoldialog();
     void initRowsCols(int row, int col, const QJsonValue &value);
@@ -283,7 +283,6 @@ private:
 
 
 protected:
-//    void mouseReleaseEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent *event);
 };
 
@@ -291,17 +290,14 @@ class NewList :public BaseForm
 {
     Q_OBJECT
 public:
-    NewList(const QJsonValue &json,const QSize size,QWidget *parent=0);
+    NewList(const QJsonValue &json, MainWindow *mw, QWidget *parent=0);
     QJsonObject writeToJson();
     void readFromJson(const QJsonValue &valobj);
     void updateAllItemsSize();
-    // void addChildrenToTree();
-    QScrollArea *mainScroll;
-    // ContainerScroll *mainScroll;
+    BaseScrollArea *mainScroll;
     QWidget *mainWidget;
     QBoxLayout *listLayout;
     Qt::Orientation  sliderOrientation;
-//    void pasteAddOneLine(const QJsonValue &value);
     void updateOneItem(QWidget *w,int width,int height);
     NewLayout *AddOneLine(const QJsonValue &value);
     void pasteOneLine(const QJsonValue &value);
@@ -325,8 +321,8 @@ public slots:
 
 
 protected:
-  //  void mouseReleaseEvent(QMouseEvent *event);
     void wheelEvent(QWheelEvent *);
+    void mouseReleaseEvent(QMouseEvent *event);
     bool eventFilter(QObject *obj, QEvent *event);
 };
 
@@ -336,7 +332,7 @@ class NewLayout :public BaseForm
     friend class CompoentControls;
     Q_OBJECT
 public:
-    explicit NewLayout(const QJsonObject &json, QRect rect, MainWindow *w, QWidget *parent=0);
+    explicit NewLayout(const QJsonObject &json, MainWindow *w, QWidget *parent=0);
     NewLayout (int width,int height,QWidget *parent=0);
 
     void DeleteMe();
@@ -364,12 +360,6 @@ private:
 public slots:
     void onDeleteMe();
     void onBeComeTemplateWidget();
-
-//protected:
-//    void dropEvent(QDropEvent *e);
-//    void dragEnterEvent(QDragEnterEvent *e);
-//    void dragLeaveEvent(QDragLeaveEvent *e);
-//    void dragMoveEvent(QDragMoveEvent *e);
 };
 
 
@@ -378,7 +368,7 @@ class NewLayer : public BaseForm
 {
     Q_OBJECT
 public:
-    explicit NewLayer(const QJsonObject &json, QRect rect, QWidget *parent=0);
+    explicit NewLayer(const QJsonValue &json, MainWindow *mw, QWidget *parent=0);
     void readLayoutFromJson(const QJsonValue &qv, bool flag);
 
     QJsonObject  writeToJson() ;
@@ -388,12 +378,6 @@ public slots:
 
 private:
     void clearOtherObjectStyleSheet();
-//protected:
-//    void dragEnterEvent(QDragEnterEvent *);
-//    void dropEvent(QDropEvent *e);
-//    void dragEnterEvent(QDragEnterEvent *e);
-//    void dragLeaveEvent(QDragLeaveEvent *e);
-//    void dragMoveEvent(QDragMoveEvent *e);
 };
 
 
