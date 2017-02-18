@@ -545,15 +545,17 @@ void CanvasManager::onDelCurrentScenesScreen()
 
 }
 
-void CanvasManager::onCreateNewProject()
+void CanvasManager::closeProjectDlg()
 {
-
     if(BaseForm::mPrjIsChanged)
     {
 
         QMessageBox ExtmsgBox;
         ExtmsgBox.setWindowTitle("新建工程提示");
         ExtmsgBox.setText("是否关闭当前工程,新建工程?");
+        ExtmsgBox.setIconPixmap(QPixmap(":/icon/icons/ask.png"));
+        ExtmsgBox.setWindowIcon(QIcon(":/icon/icons/info.png"));
+
         ExtmsgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
         ExtmsgBox.setButtonText(QMessageBox::Yes,"关闭");
         ExtmsgBox.setButtonText(QMessageBox::Cancel,"取消");
@@ -567,6 +569,8 @@ void CanvasManager::onCreateNewProject()
         // 当前工程有修改还没有保存.
         QMessageBox msgBox;
         msgBox.setWindowTitle("新建工程提示");
+        msgBox.setIconPixmap(QPixmap(":/icon/icons/ask.png"));
+        msgBox.setWindowIcon(QIcon(":/icon/icons/info.png"));
         msgBox.setText("当前编辑的工程有新的修改没有保存,选请择<保存>进行保存.");
         // msgBox.setInformativeText("Do you want to save your changes?");
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
@@ -583,6 +587,12 @@ void CanvasManager::onCreateNewProject()
     }
     closeCurrentProject(); // 关闭当前工程.
 
+}
+
+void CanvasManager::onCreateNewProject()
+{
+
+    closeProjectDlg();
     ProjectDialog *pd = new ProjectDialog(mWindow);
 
     QSize ps = mWindow->size();
@@ -645,40 +655,7 @@ void CanvasManager::OpenProject(QString file)
 
 void CanvasManager::onOpenProject()
 {
-    if(mIsOpenProject)
-    {
-
-        QMessageBox ExtmsgBox;
-        ExtmsgBox.setWindowTitle("打开工程提示");
-        ExtmsgBox.setText("是否关闭当前工程,打开新工程?");
-        ExtmsgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-        ExtmsgBox.setButtonText(QMessageBox::Yes,"关闭");
-        ExtmsgBox.setButtonText(QMessageBox::Cancel,"取消");
-        ExtmsgBox.setDefaultButton(QMessageBox::Cancel);
-        int ret = ExtmsgBox.exec();
-        if(ret == QMessageBox::Cancel)
-        {
-            return;
-        }
-
-        QMessageBox msgBox;
-        msgBox.setWindowTitle("打开工程提示");
-        msgBox.setText("当前编辑的工程有新的修改没有保存,选请择<保存>进行保存.");
-        // msgBox.setInformativeText("Do you want to save your changes?");
-        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
-        msgBox.setButtonText(QMessageBox::Yes,"保存");
-        msgBox.setButtonText(QMessageBox::Cancel,"取消");
-        msgBox.setDefaultButton(QMessageBox::Cancel);
-        ret = msgBox.exec();
-        //qDebug() << " QMessageBox result " << ret;
-        if(ret == QMessageBox::Yes)
-        {
-            //　需要保存
-            onSaveProject();
-        }
-
-    }
-    closeCurrentProject();
+    closeProjectDlg();
     QString pfile = QFileDialog::getOpenFileName(mWindow,
                                                  tr("打开工程文件"),
                                                  QDir::currentPath(),

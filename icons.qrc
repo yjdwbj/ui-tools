@@ -68,5 +68,12 @@
         <file>icons/go-bottom.png</file>
         <file>icons/go-top.png</file>
         <file>icons/system-search.png</file>
+        <file>icons/info.png</file>
+        <file>icons/waring.png</file>
+        <file>icons/Save_Icon.png</file>
+        <file>icons/Tick_Mark_Dark.png</file>
+        <file>icons/Close_Dark.png</file>
+        <file>icons/Close_Circle.png</file>
+        <file>icons/ask.png</file>
     </qresource>
 </RCC>

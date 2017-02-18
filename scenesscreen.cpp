@@ -299,7 +299,6 @@ void ScenesScreen::pasteItem(QWidget *w)
 
     mWindow->statusBar()->showMessage(QString("控件数量: %1").arg(QString::number(BaseForm::mSeqEnameMap.size())));
 
-
 }
 
 QJsonObject  ScenesScreen::writeToJson()

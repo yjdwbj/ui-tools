@@ -35,6 +35,7 @@ public:
 //    void setActiveSS(ScenesScreen *ss) { currentSS =ss;}
     void setDefaultPageSize(QSize s) { mPageSize = s;}
     void closeCurrentProject();
+    void closeProjectDlg();
 
     void deleteCurrentPage();
     void OpenProject(QString file);

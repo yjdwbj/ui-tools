@@ -53,6 +53,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
 
     ui->setupUi(this);
+    setWindowIcon(QIcon(":/icon/icons/smallpt.png"));
     mRootPathLen = QDir::currentPath().length()+1;
     ui->mainToolBar->setContextMenuPolicy(Qt::PreventContextMenu);
     mGlobalIniFile = mGlobalIniFile.toUtf8();
@@ -503,10 +504,14 @@ void MainWindow::closeEvent(QCloseEvent *e)
         return;
     QMessageBox ExtmsgBox;
     ExtmsgBox.setWindowTitle("退出程序");
+    ExtmsgBox.setWindowIcon(QIcon(":/icon/icons/waring.png"));
     ExtmsgBox.setText("是否真的退出程序?");
     ExtmsgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
     ExtmsgBox.setButtonText(QMessageBox::Yes,"退出");
+    ExtmsgBox.setIconPixmap(QPixmap(":/icon/icons/ask.png"));
+
     ExtmsgBox.setButtonText(QMessageBox::Cancel,"取消");
+
     ExtmsgBox.setDefaultButton(QMessageBox::Cancel);
     int ret = ExtmsgBox.exec();
     if(ret == QMessageBox::Yes)
@@ -514,7 +519,9 @@ void MainWindow::closeEvent(QCloseEvent *e)
         if(BaseForm::mPrjIsChanged)
         {
             QMessageBox msgBox;
-            msgBox.setWindowTitle("打开工程提示");
+            msgBox.setWindowTitle("关闭工程提示");
+            msgBox.setWindowIcon(QIcon(":/icon/icons/waring.png"));
+            msgBox.setIconPixmap(QPixmap(":/icon/icons/ask.png"));
             msgBox.setText("当前编辑的工程有新的修改没有保存,选请择<保存>进行保存.");
             msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::Cancel);
             msgBox.setButtonText(QMessageBox::Yes,"保存");
