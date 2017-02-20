@@ -41,6 +41,8 @@ QMap<QString,QWidget*> BaseForm::mObjectMap; // 新生成的控件.
 QMap<QString,QWidget*> BaseForm::mSeqEnameMap; // 对应到小机里的唯一名称.
 bool BaseForm::mPrjIsChanged = false;
 bool BaseForm::mReadJson = false;
+float BaseForm::mWidthRate = 0.0f;
+float BaseForm::mHeightRate = 0.0f;
 
 
 QWidgetList BaseForm::mObjectTemplte;
@@ -71,18 +73,21 @@ QJsonValue Compoent::changeJsonValue(const QJsonArray &arg,QString key,
 
             }else if(obj.contains(key) && !key.compare(KEY_RECT))
             {
-                QString str = val.toString();
-                QString section1 = str.section(":",0,0);
-                int num = str.section(":",1,1).toInt();
+                QString strlist = val.toString();
+                foreach(QString str , strlist.split(","))
+                {
+                    QString section1 = str.section(":",0,0);
+                    int num = str.section(":",1,1).toInt();
 
-                foreach (QString str, QStringList() << LX << LY
-                         << WIDTH << HEIGHT) {
-                    if(!str.compare(section1))
-                    {
-                        QJsonObject rect = obj[KEY_RECT].toObject();
-                        rect[section1] = num;
-                        obj[KEY_RECT] = rect;
-                        break;
+                    foreach (QString str, QStringList() << LX << LY
+                             << WIDTH << HEIGHT) {
+                        if(!str.compare(section1))
+                        {
+                            QJsonObject rect = obj[KEY_RECT].toObject();
+                            rect[section1] = num;
+                            obj[KEY_RECT] = rect;
+                            break;
+                        }
                     }
                 }
                 parr.replace(i,obj);
@@ -700,9 +705,9 @@ BaseForm::BaseForm(const QJsonValue& json, MainWindow *mw, QWidget *parent)
     setObjectName(mUniqueStr);
     setToolTip(mUniqueStr);
 
-//    initialEname();
-//    initJsonValue();
-//    initObject();
+    //    initialEname();
+    //    initJsonValue();
+    //    initObject();
 
 }
 
@@ -780,7 +785,6 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
         mOldRect = this->geometry();
         this->setProperty(DKEY_OLDPOS,this->pos());
         mOldSize = this->size();
-        //        mWindow->mXYLine->raise();
         CanvasManager::mActiveSS->mXYLine->setHidden(false);
 
     }else if(event->button() == Qt::RightButton)
@@ -1210,6 +1214,28 @@ void BaseForm::onSwapViewObject()
     mWindow->tree->onSwapShowHideObject();
 }
 
+
+void BaseForm::updateObjectSize()
+{
+    if(!posWidget) return;
+
+    posWidget->updateSize(this);
+    posWidget->updatePosition(this);
+    changeJsonValue(posWidget,
+                    KEY_RECT,
+                    QString("%1:%2").arg(LX,QString::number(this->x())));
+    changeJsonValue(posWidget,
+                    KEY_RECT,
+                    QString("%1:%2").arg(LY,QString::number(this->y())));
+
+    changeJsonValue(posWidget,
+                    KEY_RECT,
+                    QString("%1:%2").arg(WIDTH,QString::number(this->width())));
+    changeJsonValue(posWidget,
+                    KEY_RECT,
+                    QString("%1:%2").arg(HEIGHT,QString::number(this->height())));
+}
+
 void BaseForm::mouseReleaseEvent(QMouseEvent *event)
 {
 
@@ -1230,23 +1256,7 @@ void BaseForm::mouseReleaseEvent(QMouseEvent *event)
         ((NewGrid*)this)->mainWidget->resize(this->size());
     }
 
-    if(!posWidget) return;
-
-    posWidget->updateSize(this);
-    posWidget->updatePosition(this);
-    changeJsonValue(posWidget,
-                    KEY_RECT,
-                    QString("%1:%2").arg(LX,QString::number(this->x())));
-    changeJsonValue(posWidget,
-                    KEY_RECT,
-                    QString("%1:%2").arg(LY,QString::number(this->y())));
-
-    changeJsonValue(posWidget,
-                    KEY_RECT,
-                    QString("%1:%2").arg(WIDTH,QString::number(this->width())));
-    changeJsonValue(posWidget,
-                    KEY_RECT,
-                    QString("%1:%2").arg(HEIGHT,QString::number(this->height())));
+    updateObjectSize();
     event->accept();
 }
 
@@ -1330,28 +1340,20 @@ void BaseForm::onXYWHChangedValue(int v)
     QWidget *sender =(QWidget *)(QObject::sender());
     // bool isFirst = !sender->property(DKEY_ARRIDX).toInt();
     QPoint pos = this->pos();
+    QString xywhstr ;
     if(!sender->objectName().compare(X))
     {
 
         pos.setX(v);
-
         moveNewPos(pos);
-
-        changeJsonValue(sender,
-                        KEY_RECT,
-                        QString("%1:%2").arg(LX,QString::number(v)));
-
+        xywhstr.sprintf("%s:%d",LX.toLocal8Bit().data(),v);
     }else if(!sender->objectName().compare(Y))
     {
 
         pos.setY(v);
 
         moveNewPos(pos);
-
-        changeJsonValue(sender,
-                        KEY_RECT,
-                        QString("%1:%2").arg(LY,QString::number(v)));
-
+        xywhstr.sprintf("%s:%d",LY.toLocal8Bit().data(),v);
     }else if(!sender->objectName().compare(W))
     {
 
@@ -1360,10 +1362,7 @@ void BaseForm::onXYWHChangedValue(int v)
         n.setWidth(v);
         this->resize(n);
         moveNewPos(pos);
-
-        changeJsonValue(sender,
-                        KEY_RECT,
-                        QString("%1:%2").arg(WIDTH,QString::number(v)));
+        xywhstr.sprintf("%s:%d",WIDTH.toLocal8Bit().data(),v);
     }else if(!sender->objectName().compare(H))
     {
 
@@ -1372,11 +1371,11 @@ void BaseForm::onXYWHChangedValue(int v)
         n.setHeight(v);
         this->resize(n);
         moveNewPos(pos);
-
-        changeJsonValue(sender,
-                        KEY_RECT,
-                        QString("%1:%2").arg(HEIGHT,QString::number(v)));
+        xywhstr.sprintf("%s:%d",HEIGHT.toLocal8Bit().data(),v);
     }
+    changeJsonValue(sender,
+                    KEY_RECT,
+                    xywhstr);
 
     if(this->mType == T_NewList ||
             this->mType == T_NewGrid)
@@ -1412,15 +1411,9 @@ void BaseForm::onTextChanged(QString str)
         mWindow->tree->updateSeq(mEnameStr);
         //        mWindow->ComCtrl->mEnameSeq.append(nstr);
         changeJsonValue(txt,txt->objectName(),mEnameStr);
-
     }else{
-
         changeJsonValue(txt,txt->objectName(),str);
-
     }
-
-
-    //  dynValues[txt->objectName()] = str;
 }
 
 
@@ -1561,23 +1554,18 @@ void BaseForm::updateStyleSheets()
 
     }
 
-
-
-
-
     if(!mbkColor.isEmpty())
     {
         str = QString("background-color: %1; %2").arg(mbkColor,str);
     }
 
-    QString clsname = metaObject()->className();
+    //    QString clsname = metaObject()->className();
 
     if(inherits(CN_NEWGRID))
     {
         ((NewGrid*)this)->mainScroll->setStyleSheet(QString("BaseScrollArea#%1 { %2 }").arg(
                                                         this->objectName(),
                                                         str));
-
     }
     else if(inherits(CN_NEWLIST))
     {
@@ -1603,10 +1591,8 @@ void BaseForm::paintEvent(QPaintEvent *ev)
     QStyleOption option;
     option.init(this);
     QPainter painter(this);
-
     style()->drawPrimitive(QStyle::PE_Widget,
                            &option, &painter, this);
-
 }
 
 BaseScrollArea::BaseScrollArea(QWidget *parent):
@@ -1862,13 +1848,9 @@ void BaseForm::onActionDialog()
         QMessageBox::warning(this,"格式错误",((QPushButton*)w)->text() + "格式错误,必须是数组类型");
         return;
     }
-
     ActionList *actlist = new ActionList(this);
-
     actlist->setFixedSize(this->mWindow->size() * 0.5);
     actlist->exec();
-
-
 }
 
 void BaseForm::onBackgroundImageDialog()
@@ -2037,7 +2019,7 @@ NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,
 {
 
     QJsonObject  valobj = qv.toObject();
-//    QRect oldrect = Compoent::getRectFromStruct(valobj[PROPERTY].toArray(),KEY_RECT);
+    //    QRect oldrect = Compoent::getRectFromStruct(valobj[PROPERTY].toArray(),KEY_RECT);
     // QVariant variant = valobj.value(PROPERTY).toVariant();
     //    qDebug() << " whois call CreateNewLayout" << this->objectName() << this->metaObject()->className();
     NewLayout *newlayout = new NewLayout(valobj,mWindow,parent);
@@ -2113,7 +2095,7 @@ QJsonObject BaseForm::ContainerWriteToJson(QWidget *w)
 
 void BaseForm::initObject()
 {
-//    QString caption = json[CAPTION].toString();
+    //    QString caption = json[CAPTION].toString();
     QString caption = mOwerJson[CAPTION].toString();
     setProperty(DKEY_TXT,caption);
     QString uname = QString("%1_%2").arg(caption,
@@ -2214,6 +2196,51 @@ void BaseForm::setObjectTempEnabled(bool f)
     foreach (QWidget *w, mObjectTemplte) {
         w->setEnabled(f);
     }
+}
+
+
+void BaseForm::updateNewPageSize()
+{
+
+    foreach(QWidget *w, childlist)
+    {
+        ((BaseForm *)w)->updateNewPageSize();
+    }
+
+    int nx = this->x();
+    int ny = this->y();
+    if(!cmpf(mWidthRate,1.0f,0.0001))
+    {
+        this->setFixedWidth(this->width() * mWidthRate);
+        nx = float(nx) * mWidthRate;
+    }
+
+    if(!cmpf(mHeightRate,1.0f,0.0001))
+    {
+        this->setFixedHeight(this->height() * mHeightRate);
+        ny = float(ny) * mHeightRate;
+    }
+
+    if(!mParent->isContainer())
+    {
+        move(QPoint(nx,ny));
+    }
+
+
+
+    QString xywhstr;
+    xywhstr.sprintf("%s:%d,%s:%d,%s:%d,%s:%d",
+                    LX.toLocal8Bit().data(),x(),
+                    LY.toLocal8Bit().data(),y(),
+                    WIDTH.toLocal8Bit().data(),width(),
+                    HEIGHT.toLocal8Bit().data(),height());
+
+    changeJsonValue(KEY_RECT,xywhstr);
+    QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonRelease,pos(),
+                                         Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
+    QApplication::postEvent(this,event);
+
+    repaint();
 }
 
 NewFrame::NewFrame(const QJsonValue &json, MainWindow *mw, QWidget *parent)
@@ -2406,14 +2433,19 @@ void NewGrid::updateAllItemsSize()
         ((BaseForm*)w)->onSelectMe();
         if(mReadJson)
             continue;
+        QString sizestr;
+        sizestr.sprintf("%s:%d,%s:%d",WIDTH.toLocal8Bit().data(),itemSize.width(),
+                        HEIGHT.toLocal8Bit().data(),itemSize.height());
         ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
-                                        KEY_RECT,
-                                        QString("%1:%2").arg(WIDTH,
-                                                             QString::number(itemSize.width())));
-        ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
-                                        KEY_RECT,
-                                        QString("%1:%2").arg(HEIGHT,
-                                                             QString::number(itemSize.height())));
+                                        KEY_RECT,sizestr);
+        //        ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
+        //                                        KEY_RECT,
+        //                                        QString("%1:%2").arg(WIDTH,
+        //                                                             QString::number(itemSize.width())));
+        //        ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
+        //                                        KEY_RECT,
+        //                                        QString("%1:%2").arg(HEIGHT,
+        //                                                             QString::number(itemSize.height())));
 
     }
     onSelectMe();
@@ -2586,7 +2618,7 @@ NewList::NewList(const QJsonValue &json,  MainWindow *mw, QWidget *parent):
 
 
     listLayout->setGeometry(this->geometry());
-//    setGeometry(oldrect);
+    //    setGeometry(oldrect);
     resize(this->size());
     mainWidget->resize(this->size());
     show();
@@ -2608,14 +2640,19 @@ void NewList::updateOneItem(QWidget *w,int width,int height)
     w->setFixedWidth(width);
     if(((BaseForm*)w)->posWidget)
     {
+
+        QString sizestr;
+        sizestr.sprintf("%s:%d,%s:%d",WIDTH.toLocal8Bit().data(),width,HEIGHT.toLocal8Bit().data(),height);
         ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
-                                        KEY_RECT,
-                                        QString("%1:%2").arg(HEIGHT,
-                                                             QString::number(height)));
-        ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
-                                        KEY_RECT,
-                                        QString("%1:%2").arg(WIDTH,
-                                                             QString::number(width)));
+                                        KEY_RECT,sizestr);
+        //        ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
+        //                                        KEY_RECT,
+        //                                        QString("%1:%2").arg(HEIGHT,
+        //                                                             QString::number(height)));
+        //        ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
+        //                                        KEY_RECT,
+        //                                        QString("%1:%2").arg(WIDTH,
+        //                                                             QString::number(width)));
 
     }
 }
@@ -3246,8 +3283,8 @@ QWidget* NewLayout::createObjectFromJson(const QJsonValue &qv)
     NewFrame *newFrame = new NewFrame(json,mWindow,m_frame);
     newFrame->mParent = this;
     // newFrame->setProperty(DKEY_JSONSTR,qv);
-//    newFrame->mOwerJson = qv.toObject();
-//    newFrame->initialEname();
+    //    newFrame->mOwerJson = qv.toObject();
+    //    newFrame->initialEname();
     newFrame->setProperty(DKEY_TYPE,json[WTYPE].toString());
     newFrame->setProperty(DKEY_TXT,caption);
     childlist.append(newFrame);

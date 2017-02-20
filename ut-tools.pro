@@ -43,7 +43,8 @@ SOURCES += main.cpp\
     xlstool.c \
     ole.c \
     endian.c \
-    busyindicator.cpp
+    busyindicator.cpp \
+    zoomproject.cpp
 
     getopt.c
 
@@ -67,7 +68,8 @@ HEADERS  += mainwindow.h \
     libxls/brdb.h \
     libxls/brdb.c.h \
     config.h \
-    busyindicator.h
+    busyindicator.h \
+    zoomproject.h
 
 FORMS    += mainwindow.ui \
     dialog.ui \
@@ -76,7 +78,8 @@ FORMS    += mainwindow.ui \
     globalset.ui \
     griddialog.ui \
     dirdialog.ui \
-    find.ui
+    find.ui \
+    zoomproject.ui
 CONFIG += c++11   -fomit-frame-pointer
 
 

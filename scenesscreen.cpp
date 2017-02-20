@@ -358,12 +358,9 @@ void ScenesScreen::dropEvent(QDropEvent *e)
     auto lambda_func = [](QJsonValue val,QPoint pos)
     {
         QString n;
-        n.sprintf("x:%d",pos.x());
+        n.sprintf("%s:%d,%s:%d",LX.toLocal8Bit().data(),pos.x(),LY.toLocal8Bit().data(),pos.y());
         QJsonObject json = val.toObject();
-        val =  Compoent::changeJsonValue(val.toObject()[PROPERTY].toArray(),KEY_RECT,n);
-        n.sprintf("y:%d",pos.y());
-        val =  Compoent::changeJsonValue(val.toArray(),KEY_RECT,n);
-        json[PROPERTY] = val;
+        json[PROPERTY] =  Compoent::changeJsonValue(val.toObject()[PROPERTY].toArray(),KEY_RECT,n);
         return json;
     };
 
@@ -414,6 +411,30 @@ void ScenesScreen::dropEvent(QDropEvent *e)
 void ScenesScreen::mouseReleaseEvent(QMouseEvent *)
 {
     //    mXYLine->setHidden(true);
+}
+
+
+void ScenesScreen::updateNewPageSize()
+{
+
+    foreach (QWidget *w, childlist) {
+        ((BaseForm*)w)->updateNewPageSize();
+    }
+
+    if(!BaseForm::cmpf(BaseForm::mWidthRate,1.0f,0.0001))
+    {
+        int n = float(this->width()) * BaseForm::mWidthRate;
+        this->setFixedWidth(n);
+    }
+
+    if(!BaseForm::cmpf(BaseForm::mHeightRate,1.0f,0.0001))
+    {
+        int h = float(this->height()) * BaseForm::mHeightRate;
+        this->setFixedHeight(h);
+    }
+
+
+    repaint();
 }
 
 HVLineWidget::HVLineWidget(QWidget *parent)

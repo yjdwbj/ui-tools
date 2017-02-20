@@ -20,6 +20,8 @@
 #include <signal.h>
 #include <QtConcurrent>
 
+#include "zoomproject.h"
+
 
 
 extern "C"  {
@@ -46,11 +48,12 @@ ScenesScreen* CanvasManager::mActiveSS = NULL;
 CanvasManager::CanvasManager(MainWindow *w):
     mWindow(w),stack(new QStackedLayout()),
     mPageSize(0,0),
-    newPrj(new QPushButton(tr("新建工程"))),
-    newPage(new QPushButton(tr("新建页面"))),
-    delPage(new QPushButton(tr("删除当前页"))),
-    savePrj(new QPushButton(tr("保存工程"))),
+    newPrj(new QPushButton(QIcon(":/icon/icons/category_vcs.png"),tr("新建工程"))),
+    newPage(new QPushButton(QIcon(":/icon/icons/canvas-diagram.png"),tr("新建页面"))),
+    delPage(new QPushButton(QIcon(":/icon/icons/removesubmitfield.png"),tr("删除当前页"))),
+    savePrj(new QPushButton(QIcon(":/icon/icons/document-save-as.png"),tr("保存工程"))),
     confPrj(new QPushButton(tr("工程设置"))),
+    zoomPrj(new QPushButton(QIcon(":/icon/icons/interface.png"),"工程缩放")),
     saveas(new QPushButton(QIcon(":/icon/icons/document-save-as.png"),"另存为")),
     mProjectWidgetDir(QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH + "widgets"),
 //    mPrjIsChanged(false),
@@ -74,7 +77,8 @@ CanvasManager::CanvasManager(MainWindow *w):
     QComboBox *cb = new QComboBox();
 
     QPushButton *openPrj = new QPushButton("打开工程");
-    QPushButton *globalbtn = new QPushButton("全局设置");
+    QPushButton *globalbtn = new QPushButton(QIcon(":/icon/icons/preferences-system.png"),"全局设置");
+    globalbtn->setToolTip("软件的全局设置,需要重启软件后生效.");
 
     QPushButton *recordbtn = new QPushButton(QIcon(":/icon/icons/player_play.png"),"录屏");
     recordbtn->setToolTip("录取当前程序大小的窗口区域,最终保存成GIF图片");
@@ -82,6 +86,8 @@ CanvasManager::CanvasManager(MainWindow *w):
     sshoot->setToolTip("截取程序的界面,并保存成PNG图片");
     QPushButton *aboutbtn = new QPushButton(QIcon(":/icon/icons/mode_help@2x.png"),"关于");
     cb->addItems(QStyleFactory::keys());
+
+    zoomPrj->setToolTip("对当前工程的页面尺寸进行缩放,宽高最好要按比例缩放,不然会出现截断与坐标清零.");
 
     mWindow->addWidgetToToolBar(newPrj);
     mWindow->addWidgetToToolBar(openPrj);
@@ -96,24 +102,6 @@ CanvasManager::CanvasManager(MainWindow *w):
     mWindow->addWidgetToToolBar(recordbtn);
 
     mWindow->addWidgetToToolBar(Q_NULLPTR);
-    //  mWindow->addWidgetToToolBar(cb);
-//    QGridLayout *glayout = new QGridLayout();
-//    mHSlier->setTickPosition(QSlider::TicksBelow);
-//    mVSlier->setTickPosition(QSlider::TicksLeft);
-//    mVSlier->setTracking(true);
-//    mVSlier->setInvertedAppearance(true);
-
-//    setXYHidden(true);
-
-
-//    glayout->setSpacing(0);
-//    glayout->setContentsMargins(0,0,0,0);
-//    glayout->setSizeConstraint(QGridLayout::SetFixedSize);
-//    glayout->addLayout(stack,0,1);
-//    glayout->addWidget(mVSlier,0,0);
-//    glayout->addWidget(mHSlier,1,1);
-
-//    mWindow->centralWidget()->setLayout(glayout);
 
     mWindow->centralWidget()->setLayout(stack);
     // 按屏幕的大小比例调整.
@@ -123,13 +111,11 @@ CanvasManager::CanvasManager(MainWindow *w):
     connect(delPage,SIGNAL(clicked(bool)),SLOT(onDelCurrentScenesScreen()));
     connect(savePrj,SIGNAL(clicked(bool)),SLOT(onSaveProject()));
     connect(confPrj,SIGNAL(clicked(bool)),SLOT(onConfProject()));
-    newPage->setIcon(QIcon(":/icon/icons/canvas-diagram.png"));
-    newPrj->setIcon(QIcon(":/icon/icons/category_vcs.png"));
-    savePrj->setIcon(QIcon(":/icon/icons/document-save-as.png"));
-    delPage->setIcon(QIcon(":/icon/icons/removesubmitfield.png"));
 
 
-    globalbtn->setIcon(QIcon(":/icon/icons/preferences-system.png"));
+
+
+
     connect(globalbtn,&QPushButton::clicked,[=](){
 
         while (1){
@@ -172,6 +158,15 @@ CanvasManager::CanvasManager(MainWindow *w):
 
     connect(saveas,SIGNAL(clicked(bool)),SLOT(onSaveAsProject()));
 
+    mWindow->addWidgetToToolBar(zoomPrj);
+
+    connect(zoomPrj,&QPushButton::clicked,[=]{
+
+           ZoomProject *zp = new ZoomProject(mPageSize,mWindow);
+           connect(zp,SIGNAL(accepted()),SLOT(onUpdateNewProjectSize()));
+           connect(zp,SIGNAL(accepted()),zp,SLOT(deleteLater()));
+           zp->exec();
+    });
 
     mWindow->addWidgetToToolBar(Q_NULLPTR);
     mWindow->addWidgetToToolBar(aboutbtn);
@@ -407,6 +402,28 @@ void CanvasManager::onRecordClick(bool b)
 
     }
 
+}
+
+
+
+void CanvasManager::onUpdateNewProjectSize()
+{
+    ZoomProject *p = (ZoomProject*)(QObject::sender());
+    QSize nsize = p->getNewSize();
+    if(nsize.width() == mPageSize.width() &&
+            nsize.height()  == mPageSize.height())
+        return;
+
+    BaseForm::mWidthRate = float(nsize.width()) / float(mPageSize.width());
+    BaseForm::mHeightRate = float(nsize.height()) / float(mPageSize.height());
+
+    foreach (QWidget *w, mCanvasList) {
+        ((ScenesScreen*)w)->updateNewPageSize();
+    }
+
+    mPageSize = QSize(BaseForm::mWidthRate * mPageSize.width(),
+                      BaseForm::mHeightRate * mPageSize.height());
+    BaseForm::mPrjIsChanged = true;
 }
 
 void CanvasManager::screenshot()

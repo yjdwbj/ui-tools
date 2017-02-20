@@ -141,6 +141,8 @@ public:
     void initJsonValue();
     void createContextMenu(QWidget *parent, QPoint pos);
     void SwapLayerOrder(SwapType st);
+
+    void updateNewPageSize();
     bool isContainer(){
         return  (mType == T_NewList) || (mType == T_NewGrid);
     }
@@ -157,6 +159,7 @@ public:
     QSize ChangeSizeDialog(QSize size);
 
     void mouseMoveToPos(const QPoint& p);
+    void updateObjectSize();
 
     virtual QJsonObject writeToJson() = 0;
 
@@ -166,6 +169,9 @@ public:
 
     ObjTypes mType;
     int mPageIndex;
+
+    static float mWidthRate;
+    static float mHeightRate;
 
     static ObjTypes mCopyFromType ;
     static QJsonValue mCopyItem;
@@ -182,6 +188,13 @@ public:
 
     static QMap<QString,QWidget*> mObjectMap; // 新生成的控件.
     static QMap<QString,QWidget*> mSeqEnameMap; // 对应到小机里的唯一名称.
+
+    static bool cmpf(float A, float B, float epsilon = 0.005f)
+    {
+        return (fabs(A - B) < epsilon);
+    }
+
+
 
 
 
@@ -265,6 +278,7 @@ public:
     QAction *menuV,*menuH;
     int rows =0,cols=0;  //行列数
     QSize itemSize;
+    QGridLayout *gridLayout;
 
 
 
@@ -278,7 +292,7 @@ private:
     int rowH,rowW;  //行高行宽
     int colH,colW;  //列高列宽
 
-    QGridLayout *gridLayout;
+
     Qt::Orientation sliderOrientation;
 
 

@@ -41,6 +41,7 @@ public:
     void OpenProject(QString file);
     void readProjectJson(const QJsonArray &array);
 
+
     QSize getDefaultPageSize() { return mPageSize;}
 
     QStackedLayout *stack;
@@ -66,6 +67,7 @@ public slots:
       void onSaveAsProject();
       void onOpenProject();
       void onCreateNewProject();
+      void onUpdateNewProjectSize();
 
 private slots:
 
@@ -90,7 +92,7 @@ private:
     QSize mPageSize;
     QTimer *autoSaveTimer;
 
-    QPushButton *newPrj,*newPage,*delPage,*savePrj,*confPrj,*saveas;
+    QPushButton *newPrj,*newPage,*delPage,*savePrj,*confPrj,*saveas,*zoomPrj;
     QString PrjJsonPath;
 //    static QSlider *mHSlier;
 //    static QSlider *mVSlier;

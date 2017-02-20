@@ -59,6 +59,7 @@ public:
     QJsonObject writeToJson();
 
     void delAllObjects();
+    void updateNewPageSize();
 
     QList<QWidget*> childlist;
     MainWindow* mWindow;

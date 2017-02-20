@@ -75,5 +75,6 @@
         <file>icons/Close_Dark.png</file>
         <file>icons/Close_Circle.png</file>
         <file>icons/ask.png</file>
+        <file>icons/interface.png</file>
     </qresource>
 </RCC>
