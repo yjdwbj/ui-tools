@@ -321,10 +321,6 @@ public:
     QAction *menuAddLine;
     QAction *menuSetHeight;
     QAction *menuSetSpace;
-
-private:
-
-
     int itemHeight; // 垂直是宽随父控件,水平是高随父控件.
 
 public slots:

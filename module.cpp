@@ -2221,12 +2221,37 @@ void BaseForm::updateNewPageSize()
         ny = float(ny) * mHeightRate;
     }
 
+
+    if(mType == T_NewGrid)
+    {
+        QSize ns = ((NewGrid*)this)->itemSize;
+        ns.setHeight(mHeightRate * float(ns.height()));
+        ns.setWidth(mWidthRate * float(ns.width()));
+        ((NewGrid*)this)->itemSize = ns;
+    }
+
+    if(mType == T_NewList)
+    {
+        NewList *nl = (NewList*)this;
+        if(nl->sliderOrientation == Qt::Horizontal)
+        {
+            nl->itemHeight = mHeightRate * float(nl->itemHeight);
+        }else{
+            nl->itemHeight = mWidthRate * float(nl->itemHeight);
+        }
+
+    }
+
     if(!mParent->isContainer())
     {
         move(QPoint(nx,ny));
     }
-
-
+    if(isContainer())
+    {
+        QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonRelease,pos(),
+                                             Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
+        QApplication::postEvent(this,event);
+    }
 
     QString xywhstr;
     xywhstr.sprintf("%s:%d,%s:%d,%s:%d,%s:%d",
@@ -2236,9 +2261,8 @@ void BaseForm::updateNewPageSize()
                     HEIGHT.toLocal8Bit().data(),height());
 
     changeJsonValue(KEY_RECT,xywhstr);
-    QMouseEvent *event = new QMouseEvent(QMouseEvent::MouseButtonRelease,pos(),
-                                         Qt::LeftButton,Qt::LeftButton,Qt::NoModifier);
-    QApplication::postEvent(this,event);
+
+
 
     repaint();
 }
@@ -2642,18 +2666,11 @@ void NewList::updateOneItem(QWidget *w,int width,int height)
     {
 
         QString sizestr;
-        sizestr.sprintf("%s:%d,%s:%d",WIDTH.toLocal8Bit().data(),width,HEIGHT.toLocal8Bit().data(),height);
+        sizestr.sprintf("%s:%d,%s:%d",
+                        WIDTH.toLocal8Bit().data(),width,
+                        HEIGHT.toLocal8Bit().data(),height);
         ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
                                         KEY_RECT,sizestr);
-        //        ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
-        //                                        KEY_RECT,
-        //                                        QString("%1:%2").arg(HEIGHT,
-        //                                                             QString::number(height)));
-        //        ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
-        //                                        KEY_RECT,
-        //                                        QString("%1:%2").arg(WIDTH,
-        //                                                             QString::number(width)));
-
     }
 }
 
