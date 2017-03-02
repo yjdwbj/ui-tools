@@ -22,7 +22,8 @@
 
 static QString sBkCSS = QString("QMainWindow { background-image: url(%1);"\
                         "background-position: center;"\
-                        "background-repeat: no-repeat; }");
+                        "background-repeat: no-repeat; }"\
+                        "QDialog {background-color: #FFFFBF}");
 
 class BaseForm;
 

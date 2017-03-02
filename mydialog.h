@@ -82,7 +82,7 @@ namespace Ui {
 class ProjectDialog;
 }
 
-class ProjectDialog : public QDialog
+class ProjectDialog : public BaseDialog
 {
     Q_OBJECT
 public:
@@ -112,6 +112,7 @@ class ImageListView : public QDialog
 public:
     explicit ImageListView(QString path = QDir::currentPath(),QWidget *parent = 0);
     QListWidget *imglist;
+    static QString mLastOpenDir;
 private:
 
     void updateListImages(QString path);
@@ -125,12 +126,13 @@ private:
 
     QStringList filters;
 
+
+
 signals:
     void loadImageDone();
 
 private slots:
     void onTreeViewClicked(QModelIndex );
-
 };
 
 namespace Ui {

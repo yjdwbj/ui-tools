@@ -39,7 +39,7 @@ PageView::PageView(MainWindow *mw)
     //    vb->addWidget(mImgList);
     //    vb->addWidget(BaseForm::mUndoView);
     vb->addWidget(gblist);
-    vb->addWidget(gbundo);
+//    vb->addWidget(gbundo);
     setWidget(w);
     w->setLayout(vb);
     //    setWidget(mImgList);

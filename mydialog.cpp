@@ -20,6 +20,8 @@
 class BaseForm;
 class ScenesScreen;
 
+QString ImageListView::mLastOpenDir;
+
 BaseDialog::BaseDialog(QWidget *parent):
     QDialog(parent)
 {
@@ -31,7 +33,7 @@ BaseDialog::BaseDialog(QWidget *parent):
 void BaseDialog::UpdateStyle()
 {
     setStyleSheet( QString("BaseDialog#%1 {background-color: #FFFFBF;}").arg(objectName()));
-    qDebug() << " basedialog stylesheet " << styleSheet();
+//    qDebug() << " basedialog stylesheet " << styleSheet();
 }
 
 ImageFileDialog::ImageFileDialog(const QVariantList &old, QString imgpath, QWidget *parent)
@@ -419,7 +421,7 @@ void ImageFileDialog::onTreeViewClicked(QModelIndex index)
 
 
 ProjectDialog::ProjectDialog(QWidget *parent)
-    :QDialog(parent),
+    :BaseDialog(parent),
       //:QDialog(parent),
       ui(new Ui::ProjectDialog),
       defaultXLS(QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH + "行车记录仪.xls")
@@ -581,14 +583,14 @@ ImageListView::ImageListView(QString path, QWidget *parent)
 
     mh->addWidget(treefile);
     mh->addWidget(imglist);
-    // mvb->addWidget(okbtn);
-
-
 
     treefile->setFixedWidth(160);
     connect(treefile,SIGNAL(clicked(QModelIndex)),SLOT(onTreeViewClicked(QModelIndex)));
 
-    updateListImages(path);
+    if(mLastOpenDir.isEmpty())
+        updateListImages(path);
+    else
+        updateListImages(mLastOpenDir);
 }
 
 void ImageListView::updateListImages(QString path)
@@ -616,14 +618,15 @@ void ImageListView::updateListImages(QString path)
 
 void ImageListView::onTreeViewClicked(QModelIndex index)
 {
-    QString mPath = treeModel->fileInfo(index).absoluteFilePath();
-    updateListImages(mPath);
+    mLastOpenDir = treeModel->fileInfo(index).absoluteFilePath();
+    updateListImages(mLastOpenDir);
 
     // dirModel->fetchMore(index);
     treefile->setExpanded(index,true);
     treefile->expand(index);
-    treefile->setCurrentIndex(treeModel->index(mPath));
+    treefile->setCurrentIndex(treeModel->index(mLastOpenDir));
 }
+
 
 
 MenuItemDialog::MenuItemDialog( QString old, QWidget *parent)
