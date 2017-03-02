@@ -43,7 +43,6 @@ SOURCES += main.cpp\
     xlstool.c \
     ole.c \
     endian.c \
-    busyindicator.cpp \
     zoomproject.cpp
 
     getopt.c
@@ -68,7 +67,6 @@ HEADERS  += mainwindow.h \
     libxls/brdb.h \
     libxls/brdb.c.h \
     config.h \
-    busyindicator.h \
     zoomproject.h
 
 FORMS    += mainwindow.ui \

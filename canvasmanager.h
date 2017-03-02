@@ -10,6 +10,8 @@
 #include <QSlider>
 
 
+
+
 class ScenesScreen;
 class MainWindow;
 class QStackedLayout;
@@ -46,6 +48,8 @@ public:
 
     QStackedLayout *stack;
     MainWindow *mWindow;
+
+
 
 
     QStringList mPrjSelectlang; // 工程选择的多国语言
@@ -92,7 +96,7 @@ private:
     QSize mPageSize;
     QTimer *autoSaveTimer;
 
-    QPushButton *newPrj,*newPage,*delPage,*savePrj,*confPrj,*saveas,*zoomPrj;
+    QPushButton *newPrj,*newPage,*delPage,*savePrj,*confPrj,*saveas,*zoomPrj,*mRedo,*mUndo;
     QString PrjJsonPath;
 //    static QSlider *mHSlier;
 //    static QSlider *mVSlier;

@@ -23,6 +23,8 @@
 #include <QBitmap>
 #include <QDateTime>
 
+
+
 #include "core_def.h"
 #include "scenesscreen.h"
 #include "canvasmanager.h"
@@ -43,6 +45,9 @@ bool BaseForm::mPrjIsChanged = false;
 bool BaseForm::mReadJson = false;
 float BaseForm::mWidthRate = 0.0f;
 float BaseForm::mHeightRate = 0.0f;
+
+QUndoStack *BaseForm::mUndoStack =0 ;
+QUndoView *BaseForm::mUndoView = 0;
 
 
 QWidgetList BaseForm::mObjectTemplte;
@@ -705,10 +710,11 @@ BaseForm::BaseForm(const QJsonValue& json, MainWindow *mw, QWidget *parent)
     setObjectName(mUniqueStr);
     setToolTip(mUniqueStr);
 
-    //    initialEname();
-    //    initJsonValue();
-    //    initObject();
-
+    if(!mReadJson)
+    {
+        AddCmd *cmd= new AddCmd(mUniqueStr);
+        mUndoStack->push(cmd);
+    }
 }
 
 void BaseForm::mouseMoveToPos(const QPoint &p)
@@ -759,9 +765,7 @@ void BaseForm::mouseMoveEvent(QMouseEvent *event)
         if(mParent->mType == T_NewGrid ||
                 mParent->mType == T_NewList)
         {
-
             mParent->mouseMoveToPos(event->pos() - mOffset);
-
         }else{
 
             mouseMoveToPos(event->pos() - mOffset);
@@ -786,12 +790,9 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
         this->setProperty(DKEY_OLDPOS,this->pos());
         mOldSize = this->size();
         CanvasManager::mActiveSS->mXYLine->setHidden(false);
-
     }else if(event->button() == Qt::RightButton)
     {
-
         createContextMenu(this,mapToGlobal(event->pos()));
-
     }
 }
 
@@ -975,9 +976,7 @@ void BaseForm::objectMoveSwapMenu(QMenu *contextMenu)
             connect(uptop,&QAction::triggered,lambda_uptop);
             contextMenu->addAction(upone);
             contextMenu->addAction(uptop);
-
         }else{
-
             QAction *downone = new QAction(QIcon(":/icon/icons/go-down.png"),"移下一层",this);
             connect(downone,&QAction::triggered,lambda_downone);
             QAction *downbottom= new QAction(QIcon(":/icon/icons/go-bottom.png"),"移到底层",this);
@@ -991,8 +990,6 @@ void BaseForm::objectMoveSwapMenu(QMenu *contextMenu)
             contextMenu->addAction(upone);
             contextMenu->addAction(uptop);
         }
-
-
     }
     contextMenu->addSeparator();
 }
@@ -1154,6 +1151,8 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
     contextMenu->addAction(&paste);
     contextMenu->addSeparator();
 
+
+
     if(mParent->isContainer())
     {
         listObjectMoveMenu(contextMenu,mParent);
@@ -1244,6 +1243,7 @@ void BaseForm::mouseReleaseEvent(QMouseEvent *event)
     // QWidget *p = this->parentWidget();
     QPoint pos = this->pos();
     moveNewPos(pos);
+
     // 这里只能在释放鼠标时改变左边的控件值
     //    qDebug() << " object size " << this->size()
     //             << " object pos " << this->pos();
@@ -1257,6 +1257,7 @@ void BaseForm::mouseReleaseEvent(QMouseEvent *event)
     }
 
     updateObjectSize();
+
     event->accept();
 }
 
@@ -1461,6 +1462,9 @@ void BaseForm::onBorderChangedValue(int v)
 
 void BaseForm::updateStyleSheets()
 {
+    QString bkcss = QString("background-image: url(%1);"\
+                            "background-position: center;"\
+                            "background-repeat: no-repeat; %2");
     QString str = QString(
                 "border-style: solid; "\
                 "border-left-width: %1px; "\
@@ -1472,7 +1476,6 @@ void BaseForm::updateStyleSheets()
                                                   QString::number(mBorder.bottom())
                                                   );
 
-
     if(!mBorderColor.isEmpty())
     {
         str = QString("border-color: %1; %2").arg(mBorderColor,str);
@@ -1483,7 +1486,7 @@ void BaseForm::updateStyleSheets()
     // 没有背景图片这个参数时就显示背景色.
     if(!mbkImage.isEmpty())
     {
-        str =  QString("background-image: url(%1); %2").arg(mbkImage,str);
+        str =  bkcss.arg(mbkImage,str);
     }else{
         //找图片列表属性.
         QJsonArray parray = mOwerJson[PROPERTY].toArray();
@@ -1504,7 +1507,6 @@ void BaseForm::updateStyleSheets()
                 }
                 if(!imgpic.isEmpty())
                 {
-
                     break;
                 }
 
@@ -1512,7 +1514,7 @@ void BaseForm::updateStyleSheets()
         }
 
         if(!imgpic.isEmpty())
-            str =  QString("background-image: url(%1); %2").arg(imgpic,str);
+            str =  bkcss.arg(imgpic,str);
         else if(!txtpic.isEmpty())
         {
 
@@ -1549,7 +1551,7 @@ void BaseForm::updateStyleSheets()
                     mWindow->mImgMap[fpath] = pixmap;
                 }
             }
-            str =  QString("background-image: url(%1); %2").arg(fpath,str);
+            str =  bkcss.arg(fpath,str);
         }
 
     }
@@ -1670,18 +1672,13 @@ void BaseForm::onColorButtonClicked()
         }
         else if(!objname.compare(BORDER))
         {
-
             changeJsonValue(btn,BORDER,
                             QString("%1:%2").arg( GRAYCOLOR,c.name(QColor::HexArgb)));
-
             mBorderColor = c.name(QColor::HexArgb);
-
         }
-
         updateStyleSheets();
         QPushButton *cbtn = (QPushButton*)(getPairWidgetFromPLayout(btn));
         cbtn->setEnabled(true);
-
     }
 
 }
@@ -1717,7 +1714,6 @@ QString BaseForm::updateEname(int index)
     mEnameStr =  getEnameSeq(mEnameStr,this);
     changeJsonValue(index,mEnameStr);
     return mEnameStr;
-
 }
 
 void BaseForm::onSelectMe()
@@ -1754,6 +1750,9 @@ void BaseForm::DeleteMe()
         QWidget *w = item.next();
         ((BaseForm*)w)->DeleteMe();
     }
+
+    DeleteCmd *cmd= new DeleteCmd(this->mUniqueStr);
+    mUndoStack->push(cmd);
 
     mWindow->tree->setMyParentNode();  //选中它的父控件.
     mWindow->tree->deleteItem(this);
@@ -2202,26 +2201,31 @@ void BaseForm::setObjectTempEnabled(bool f)
 void BaseForm::updateNewPageSize()
 {
 
-    foreach(QWidget *w, childlist)
+    if(mParent == this)
     {
-        ((BaseForm *)w)->updateNewPageSize();
+        setMaximumSize(parentWidget()->size());
+    }else{
+        setMaximumSize(mParent->size());
     }
-
     int nx = this->x();
     int ny = this->y();
+    int nh = height();
+    int nw = width();
     if(!cmpf(mWidthRate,1.0f,0.0001))
     {
-        this->setFixedWidth(this->width() * mWidthRate);
+
+        nw = nw * mWidthRate;
         nx = float(nx) * mWidthRate;
     }
 
     if(!cmpf(mHeightRate,1.0f,0.0001))
     {
-        this->setFixedHeight(this->height() * mHeightRate);
+        //        this->setFixedHeight(this->height() * mHeightRate);
+        nh = nh * mHeightRate;
         ny = float(ny) * mHeightRate;
     }
 
-
+    resize(nw,nh);
     if(mType == T_NewGrid)
     {
         QSize ns = ((NewGrid*)this)->itemSize;
@@ -2262,9 +2266,10 @@ void BaseForm::updateNewPageSize()
 
     changeJsonValue(KEY_RECT,xywhstr);
 
-
-
-    repaint();
+    foreach(QWidget *w, childlist)
+    {
+        ((BaseForm *)w)->updateNewPageSize();
+    }
 }
 
 NewFrame::NewFrame(const QJsonValue &json, MainWindow *mw, QWidget *parent)
@@ -2321,8 +2326,6 @@ NewGrid::NewGrid(const QJsonValue &json,
     mainScroll->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainScroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     mainScroll->setAlignment(Qt::AlignCenter);
-
-
 
     mainScroll->setWidget(mainWidget);
     mainScroll->setContentsMargins(0,0,0,0);
@@ -2462,15 +2465,6 @@ void NewGrid::updateAllItemsSize()
                         HEIGHT.toLocal8Bit().data(),itemSize.height());
         ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
                                         KEY_RECT,sizestr);
-        //        ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
-        //                                        KEY_RECT,
-        //                                        QString("%1:%2").arg(WIDTH,
-        //                                                             QString::number(itemSize.width())));
-        //        ((BaseForm*)w)->changeJsonValue(((BaseForm*)w)->posWidget,
-        //                                        KEY_RECT,
-        //                                        QString("%1:%2").arg(HEIGHT,
-        //                                                             QString::number(itemSize.height())));
-
     }
     onSelectMe();
 
@@ -2503,15 +2497,6 @@ void NewGrid::onDeleteMe()
     }
 
 }
-
-//void NewGrid::mouseReleaseEvent(QMouseEvent *event)
-//{
-
-//    mainScroll->resize(this->size());
-//    mainWidget->resize(this->size());
-//    BaseForm::mouseReleaseEvent(event);
-
-//}
 
 void NewGrid::wheelEvent(QWheelEvent *event)
 {
@@ -3299,9 +3284,6 @@ QWidget* NewLayout::createObjectFromJson(const QJsonValue &qv)
     QString caption = json[CAPTION].toString();
     NewFrame *newFrame = new NewFrame(json,mWindow,m_frame);
     newFrame->mParent = this;
-    // newFrame->setProperty(DKEY_JSONSTR,qv);
-    //    newFrame->mOwerJson = qv.toObject();
-    //    newFrame->initialEname();
     newFrame->setProperty(DKEY_TYPE,json[WTYPE].toString());
     newFrame->setProperty(DKEY_TXT,caption);
     childlist.append(newFrame);
@@ -3389,3 +3371,38 @@ QJsonObject  NewLayer::writeToJson()
     return json;
 }
 
+
+
+DeleteCmd::DeleteCmd(const QString &text)
+    :QUndoCommand("删除_" +text)
+{
+
+}
+
+void DeleteCmd::undo()
+{
+
+    qDebug() << "delete undo" ;
+}
+
+void DeleteCmd::redo()
+{
+    qDebug() << "delete redo" ;
+}
+
+
+AddCmd::AddCmd(const QString &text)
+    :QUndoCommand("添加_" + text)
+{
+
+}
+
+void AddCmd::redo()
+{
+    qDebug() << "AddCmd redo" ;
+}
+
+void AddCmd::undo()
+{
+    qDebug() << "AddCmd undo" ;
+}

@@ -417,9 +417,7 @@ void ScenesScreen::mouseReleaseEvent(QMouseEvent *)
 void ScenesScreen::updateNewPageSize()
 {
 
-    foreach (QWidget *w, childlist) {
-        ((BaseForm*)w)->updateNewPageSize();
-    }
+
 
     if(!BaseForm::cmpf(BaseForm::mWidthRate,1.0f,0.0001))
     {
@@ -431,6 +429,11 @@ void ScenesScreen::updateNewPageSize()
     {
         int h = float(this->height()) * BaseForm::mHeightRate;
         this->setFixedHeight(h);
+    }
+
+    mXYLine->setGeometry(this->geometry());
+    foreach (QWidget *w, childlist) {
+        ((BaseForm*)w)->updateNewPageSize();
     }
 
 

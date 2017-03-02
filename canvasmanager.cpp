@@ -9,7 +9,7 @@
 #include <QString>
 #include <QStyleFactory>
 #include <QComboBox>
-#include <QTimer>
+#include <QTimer>`
 #include <QFileDialog>
 #include <QTextBrowser>
 #include <functional>
@@ -19,6 +19,7 @@
 #include <QKeyEvent>
 #include <signal.h>
 #include <QtConcurrent>
+
 
 #include "zoomproject.h"
 
@@ -55,6 +56,8 @@ CanvasManager::CanvasManager(MainWindow *w):
     confPrj(new QPushButton(tr("工程设置"))),
     zoomPrj(new QPushButton(QIcon(":/icon/icons/interface.png"),"工程缩放")),
     saveas(new QPushButton(QIcon(":/icon/icons/document-save-as.png"),"另存为")),
+    mRedo(new QPushButton(QIcon(":/icon/icons/Redo.png"),"重做")),
+    mUndo(new QPushButton(QIcon(":/icon/icons/Undo.png"),"撤消")),
     mProjectWidgetDir(QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH + "widgets"),
 //    mPrjIsChanged(false),
     mIsOpenProject(false),

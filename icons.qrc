@@ -76,5 +76,7 @@
         <file>icons/Close_Circle.png</file>
         <file>icons/ask.png</file>
         <file>icons/interface.png</file>
+        <file>icons/Redo.png</file>
+        <file>icons/Undo.png</file>
     </qresource>
 </RCC>

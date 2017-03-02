@@ -16,9 +16,11 @@
 #include <QMenu>
 #include <QAction>
 
+#include <QUndoCommand>
+#include <QUndoView>
+#include <QUndoStack>
+
 #include "formresizer.h"
-
-
 
 class MainWindow;
 class ScenesScreen;
@@ -29,8 +31,25 @@ class NewList;
 class Position;
 
 
+class DeleteCmd: public QUndoCommand
+{
 
+public:
+     explicit DeleteCmd(const QString &text);
+    void undo();
+    void redo();
 
+    QJsonValue mJson;
+
+};
+
+class AddCmd: public QUndoCommand
+{
+public:
+    explicit AddCmd(const QString &text);
+    void redo();
+    void undo();
+};
 
 class Compoent
 {
@@ -123,6 +142,7 @@ public:
     QString mBorderColor;
     QString mbkColor;
     QString mbkImage;
+    QPixmap mbkPixmap;
     Position *posWidget;
     QRect mBorder;
 
@@ -170,6 +190,9 @@ public:
     ObjTypes mType;
     int mPageIndex;
 
+    static QUndoStack *mUndoStack;
+    static QUndoView *mUndoView;
+
     static float mWidthRate;
     static float mHeightRate;
 
@@ -180,8 +203,6 @@ public:
     static QWidget *mLayout; // 左侧布局
     static bool mReadJson; //读取JSON控件,false时不创建详细的控件
 
-
-
     static QString getSequence(const QString &key);
     static QString getEnameSeq(const QString &key, QWidget *obj);
     static void setObjectTempEnabled(bool f);
@@ -189,15 +210,13 @@ public:
     static QMap<QString,QWidget*> mObjectMap; // 新生成的控件.
     static QMap<QString,QWidget*> mSeqEnameMap; // 对应到小机里的唯一名称.
 
+    static QWidgetList mRedoList;
+    static QWidgetList mUndoList;
+
     static bool cmpf(float A, float B, float epsilon = 0.005f)
     {
         return (fabs(A - B) < epsilon);
     }
-
-
-
-
-
 
 public slots:
     void onXYWHChangedValue(int v);

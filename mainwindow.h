@@ -28,10 +28,6 @@
 #include <QSettings>
 #include "treedock.h"
 #include "pageview.h"
-
-#include "busyindicator.h"
-
-
 #include <QRunnable>
 
 
@@ -50,19 +46,6 @@ class Position;
 namespace Ui {
 class MainWindow;
 }
-
-class Backgroud: public QWidget
-{
-public:
-    QPixmap backImage;
-
-protected:
-    void paintEvent(QPaintEvent *);
-};
-
-
-
-
 
 class MainWindow : public QMainWindow
 {
@@ -91,12 +74,14 @@ public:
 
     QWidgetList *ssList;
     CanvasManager *cManager;
-    QDockWidget* lDock;
+    QDockWidget* lDock,rDock;
     PageView *pageView;
     CompoentControls *ComCtrl;
-    QString backImage;
-    Backgroud *bk;
+
+//    Backgroud *bk;
     QSettings *mGlobalSet;
+
+
     int mRootPathLen;
 
     QString mJsonfile; // 控件模版文件.
@@ -122,8 +107,6 @@ protected:
 private:
     Ui::MainWindow *ui;
 
-    QDockWidget* rDock;
-
     QListWidget* rList;
     QListWidget* lList;
 
@@ -133,25 +116,8 @@ private:
     void readExcelFile(char *xlsfile);
     void createCSVFile(QString xlsfile);
     void readCSVFile(QString csvfile);
+
+    QString mBkImage;
     QWidget *pWin;
 };
-
-
-
-
-
-
-
-class LoadImgTask : public QRunnable
-{
-public:
-
-    LoadImgTask(QWidget *parent);
-    void run();
-    void setDone();
-private:
-    bool isStop;
-    BusyIndicator *rotate;
-};
-
 #endif // MAINWINDOW_H

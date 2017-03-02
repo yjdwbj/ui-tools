@@ -19,37 +19,22 @@
 #include <stdio.h>
 #include <unistd.h>
 
+
+static QString sBkCSS = QString("QMainWindow { background-image: url(%1);"\
+                        "background-position: center;"\
+                        "background-repeat: no-repeat; }");
+
 class BaseForm;
 
 using namespace xls;
-void Backgroud::paintEvent(QPaintEvent *)
-{
-    // 这里必需要得新定义一个类,重写它的paintEvent才能画出它的背景.
-    QPainter p(this);
-    p.drawPixmap(this->rect(),QPixmap(backImage));
-}
-LoadImgTask::LoadImgTask(QWidget *parent)
-{
-    rotate = new BusyIndicator(parent);
-}
 
-void LoadImgTask::setDone()
-{
-    rotate->onStop();
-}
 
-void LoadImgTask::run()
-{
-    rotate->exec();
-    rotate->deleteLater();
-}
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     //out(stdout, QIODevice::WriteOnly),
     ui(new Ui::MainWindow),
     mGlobalIniFile(QStandardPaths::displayName(QStandardPaths::DataLocation) + "/ui-config")
-
 {
 
     ui->setupUi(this);
@@ -58,27 +43,17 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->mainToolBar->setContextMenuPolicy(Qt::PreventContextMenu);
     mGlobalIniFile = mGlobalIniFile.toUtf8();
     mGlobalSet= new QSettings(mGlobalIniFile,QSettings::IniFormat);
-
-
-
     QApplication::setStyle(QStyleFactory::create("Fusion"));
-
-    bk = new Backgroud();
     QString stylestr = "QPushButton::hover{"\
                        "background: #F48024}"\
                        "QDialog {background-color: #FFFFBF};";
-    //"background: #5EBA7D}";
-
 
     setStyleSheet(stylestr);
-    setCentralWidget(bk);
-
-
     cManager = new CanvasManager(this);
-    //    posWidget = 0;
+    BaseForm::mUndoStack = new  QUndoStack(this);
+    BaseForm::mUndoView = new QUndoView(BaseForm::mUndoStack);
 
     setWindowTitle(VERSION);
-
 
     // 左边属性框
     lDock = new QDockWidget(this);
@@ -107,6 +82,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     propertyWidget = new ComProperty(this) ;
     leftLayout->addWidget(propertyWidget);
+
+
     tree = new TreeDock(this);
     // 左边两个并排的QDockWidget
     addDockWidget(Qt::LeftDockWidgetArea, tree);
@@ -117,12 +94,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //　右边的截图页面.
     pageView = new PageView(this);
-    // pageView->setFloating(true);
-    pageView->addMainWindow(this);
-    pageView->setAllowedAreas( Qt::RightDockWidgetArea);
-    pageView->setFeatures(QDockWidget::NoDockWidgetFeatures);
-
     addDockWidget(Qt::RightDockWidgetArea,pageView);
+
     show();
     if(!QFileInfo(mGlobalIniFile).exists())
     {
@@ -168,16 +141,12 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     QVariant bkvar = mGlobalSet->value(INI_PRJBAKIMG);
-    if(bkvar.isValid())
-    {
-        // bk->backImage = bakimageMap[bkvar.toString()];
-        bk->backImage = mImgMap[bkvar.toString()];
+    if(bkvar.isValid()){
+        mBkImage = bkvar.toString();
+        if(QFileInfo::exists(mBkImage))
+            setStyleSheet(sBkCSS.arg(mBkImage));
     }
-    else
-    {
-        bk->backImage = bakimageList.count() > 0 ? mImgMap[bakimageList.first()] :
-                QPixmap() ;
-    }
+
 
     this->centralWidget()->update();
     show();  // 这里不能少.
@@ -378,10 +347,6 @@ void MainWindow::readExcelFile(char *xlsfile)
 
 }
 
-
-
-
-
 void MainWindow::readCSVFile(QString csvfile)
 {
 
@@ -391,7 +356,6 @@ void MainWindow::readCSVFile(QString csvfile)
         QMessageBox::warning(this,"open xls file error","xls 打不开,请查看[全局设置]里的路径目录是否正确");
         return;
     }
-
 
     QByteArray firstline=csv.readLine();
     QByteArrayList balist ;
@@ -442,18 +406,14 @@ void MainWindow::addWidgetToToolBar(QWidget *w)
         ui->mainToolBar->addWidget(w);
 }
 
-
-
 void MainWindow::mousePressEvent(QMouseEvent *ev)
 {
-
     if(ev->button() == Qt::RightButton)
     {
         QMenu *contextMenu = new QMenu(this);
         QAction chBakimg("修改背景",this);
         contextMenu->addAction(&chBakimg);
         connect(&chBakimg,SIGNAL(triggered(bool)),this,SLOT(onChangeBackgroud()));
-
         contextMenu->exec(ev->pos());
     }
 }
@@ -472,6 +432,13 @@ void MainWindow::onChangeBackgroud()
     QString tooltip = "<b><p>背景图片目录名是 'backgrounds'　</p>"\
                       "<p>把背景图片放在该目录下就可以显示了,只支持JPG格式</p></b>";
     v->addWidget(new QLabel(tooltip));
+    QPushButton *btnClean = new QPushButton("清除背景");
+    v->addWidget(btnClean);
+    connect(btnClean,&QPushButton::clicked,[=](){
+        setStyleSheet("");
+        mBkImage = "";
+        mGlobalSet->setValue(INI_PRJBAKIMG,mBkImage);
+    });
     imglist->setSelectionMode(QAbstractItemView::SingleSelection);
     imglist->setViewMode(QListWidget::IconMode);
     imglist->setIconSize(QSize(160,140));
@@ -491,11 +458,11 @@ void MainWindow::onChangeBackgroud()
 
 void MainWindow::onDobuleClickedImage(QListWidgetItem *item)
 {
-    bk->backImage = mImgMap[bimgPath.value(item->text())];
+//    bk->backImage = mImgMap[bimgPath.value(item->text())];
     QString imgpath = bimgPath.value(item->text()).toUtf8().mid(mRootPathLen);
     if(imgpath.isEmpty()) imgpath=".";
     mGlobalSet->setValue(INI_PRJBAKIMG,imgpath);
-    this->centralWidget()->update();
+    setStyleSheet(sBkCSS.arg(bimgPath.value(item->text())));
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)
