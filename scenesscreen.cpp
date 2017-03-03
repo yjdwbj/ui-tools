@@ -10,6 +10,7 @@ class QStatusBar;
 
 QWidget* ScenesScreen::mActiveObj = 0;
 
+
 ScenesScreen::ScenesScreen(QSize size, QWidget *parent)
     : QFrame(parent),
       mWindow((MainWindow*)parent),
@@ -273,7 +274,6 @@ void ScenesScreen::pasteItem(QWidget *w)
             NewLayout* bflayout = (NewLayout*)bf;
             bflayout->readFromJson(BaseForm::mCopyItem,false);
         }
-
             break;
         case BaseForm::T_NewGrid:
             QMessageBox::warning(this,"提示","当前类型容器不接受粘贴!");
@@ -335,6 +335,8 @@ void ScenesScreen::dragLeaveEvent(QDragLeaveEvent *e)
 void ScenesScreen::dragMoveEvent(QDragMoveEvent *e)
 {
     mXYLine->setPos(e->pos());
+//    CanvasManager::setSliderPos(e->pos());
+//    CanvasManager::setSliderSize(((QDrag*)e->source())->pixmap().size());
     e->accept();
 }
 
@@ -388,8 +390,6 @@ void ScenesScreen::dropEvent(QDropEvent *e)
         createNewLayer(lambda_func(val,e->pos()),true);
     }else if(static_cast<int>(BaseForm::ObjTypes::T_NewLayout)  == flag){
         BaseForm *active =(BaseForm*)(mActiveObj);
-
-       // QPoint gp = mapToGlobal(e->pos()) - mapToGlobal(active->pos());
         if(active->mType == BaseForm::T_NewLayer)
         {
             ((NewLayer*)active)->readLayoutFromJson(lambda_func(val,lambda_getpos(mActiveObj)),true);
@@ -416,9 +416,6 @@ void ScenesScreen::mouseReleaseEvent(QMouseEvent *)
 
 void ScenesScreen::updateNewPageSize()
 {
-
-
-
     if(!BaseForm::cmpf(BaseForm::mWidthRate,1.0f,0.0001))
     {
         int n = float(this->width()) * BaseForm::mWidthRate;
@@ -435,8 +432,6 @@ void ScenesScreen::updateNewPageSize()
     foreach (QWidget *w, childlist) {
         ((BaseForm*)w)->updateNewPageSize();
     }
-
-
     repaint();
 }
 
@@ -470,13 +465,12 @@ void HVLineWidget::setPos(const QPoint &p)
 
     mHLine.setP1(QPoint(0,p.y()));
     mHLine.setP2(QPoint(width(),p.y()));
-    //    CanvasManager::setXYPosition(p);
+    CanvasManager::setSliderPos(p);
     mPos = p;
-
     update();
 }
 
-void HVLineWidget::paintEvent(QPaintEvent *e)
+void HVLineWidget::paintEvent(QPaintEvent *)
 {
     QPainter painter(this);
 
@@ -492,7 +486,7 @@ void HVLineWidget::paintEvent(QPaintEvent *e)
     painter.drawText(mPos,hstr);
 }
 
-void HVLineWidget::mouseReleaseEvent(QMouseEvent *e)
+void HVLineWidget::mouseReleaseEvent(QMouseEvent *)
 {
     setHidden(true);
 }

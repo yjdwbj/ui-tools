@@ -341,11 +341,8 @@ void MainWindow::readExcelFile(char *xlsfile)
     }
     mOrderlist.removeFirst();
     xls_close_WS(pWS);
-
     xls_close(pWB);
-
     cvsfile.close();
-
 }
 
 void MainWindow::readCSVFile(QString csvfile)
@@ -415,7 +412,7 @@ void MainWindow::mousePressEvent(QMouseEvent *ev)
         QAction chBakimg("修改背景",this);
         contextMenu->addAction(&chBakimg);
         connect(&chBakimg,SIGNAL(triggered(bool)),this,SLOT(onChangeBackgroud()));
-        contextMenu->exec(ev->pos());
+        contextMenu->exec(mapToGlobal(ev->pos()));
     }
 }
 

@@ -26,8 +26,8 @@ public:
 
 protected:
     void mouseMoveEvent(QMouseEvent *e);
-    void paintEvent(QPaintEvent *e);
-    void mouseReleaseEvent(QMouseEvent *e);
+    void paintEvent(QPaintEvent *);
+    void mouseReleaseEvent(QMouseEvent *);
 
 
 private:
@@ -43,11 +43,6 @@ class ScenesScreen : public QFrame
 public:
     explicit  ScenesScreen(QSize size,QWidget *parent = 0);
     ~ScenesScreen();
-
-
-//    QWidget *activeObject() {
-//        return mActiveObj;
-//    }
 
     void removeActiveObj() { mActiveObj = 0;}
     NewLayer *createNewLayer(const QJsonValue &json, bool createflag);
@@ -66,6 +61,7 @@ public:
     HVLineWidget *mXYLine;
 
     static QWidget *mActiveObj;
+
 
 public slots:
     void onChangedBackgroundColor();

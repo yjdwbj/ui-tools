@@ -180,6 +180,7 @@ public:
 
     void mouseMoveToPos(const QPoint& p);
     void updateObjectSize();
+    QPoint& getGlobalPos(const QPoint &p) const;
 
     virtual QJsonObject writeToJson() = 0;
 
@@ -212,6 +213,11 @@ public:
 
     static QWidgetList mRedoList;
     static QWidgetList mUndoList;
+
+    static QSize mPageSize;
+    static void setPageSize(const QSize &s) { mPageSize = s;}
+    static void setPageSize(int w,int h) { mPageSize.setHeight(h);
+                                            mPageSize.setWidth(w);}
 
     static bool cmpf(float A, float B, float epsilon = 0.005f)
     {

@@ -39,16 +39,143 @@ static QString screenshootpng = "screenshoot.png";
 static QString gifFileName = outputgif;
 
 
+HVSlider*  CanvasManager::mHSlier = NULL;
+HVSlider*  CanvasManager::mVSlier = NULL;
 
 
-//QSlider*  CanvasManager::mHSlier = NULL;
-//QSlider*  CanvasManager::mVSlier = NULL;
+HVSlider::HVSlider(Qt::Orientation hv,int wh,QWidget *parent)
+    :QFrame(parent),
+      mOrient(hv),
+      mLen(wh),
+      mFixHW(15),
+      mStep(5),
+      mGradPos(10),
+      mMaxStep(50),
+      mRectLen(0),
+      mRectStart(0)
+{
+
+    setFrameShadow(QFrame::Plain);
+    //    setStyleSheet("HVSlider {background-color: #ffffff;}");
+    if(mOrient == Qt::Horizontal)
+    {
+        setFixedSize(mLen,mFixHW);
+    }else{
+        setFixedSize(mFixHW,mLen);
+    }
+
+    setStyleSheet("background-color: white;");
+
+}
+
+void HVSlider::paintEvent(QPaintEvent *)
+{
+
+    QPainter painter(this);
+    QPen pen;
+    pen.setColor(Qt::gray);
+    pen.setStyle(Qt::SolidLine);
+    painter.setPen(pen);
+
+    QPen blackpen;
+    blackpen.setColor(Qt::black);
+    blackpen.setStyle(Qt::SolidLine);
+
+    if(mOrient == Qt::Horizontal)
+    {
+        QLine line;
+        for(int i = 0 ; i < mLen;i+=mStep)
+        {
+            if(i % mMaxStep)
+            {
+                line.setP1(QPoint(i,mGradPos));
+                line.setP2(QPoint(i,mFixHW));
+            }else{
+                painter.setPen(blackpen);
+                line.setP1(QPoint(i,0));
+                line.setP2(QPoint(i,mFixHW ));
+                painter.drawText(QPoint(i,mGradPos),QString::number(i));
+                painter.setPen(pen);
+            }
+            painter.drawLine(line);
+
+        }
+    }else{
+        QLine line;
+        for(int i = 0 ; i < mLen;i+=mStep)
+        {
+            if(i % mMaxStep)
+            {
+                line.setP1(QPoint(mGradPos,i));
+                line.setP2(QPoint(mFixHW,i));
+            }else{
+
+                painter.setPen(blackpen);
+                line.setP1(QPoint(0,i));
+                line.setP2(QPoint(mFixHW ,i));
+                painter.rotate(90);
+                painter.drawText(QPoint(i,0),QString::number(i));
+                painter.setPen(pen);
+                painter.rotate(-90);
+            }
+            painter.drawLine(line);
+        }
+    }
+
+    if(mRectLen)
+    {
+        //画当前对像的高亮区域.
+        QPen rectpen;
+      //  rectpen.setColor("#e9e9e9");
+        rectpen.setColor(QColor("#e9e9e9"));
+        rectpen.setStyle(Qt::SolidLine);
+        painter.setPen(rectpen);
+        QColor c = QColor("#ffd8bf").rgba();
+        c.setAlpha(150);
+        if(mOrient == Qt::Horizontal)
+        {
+            QRect rect(mRectStart,0,mRectLen,mFixHW);
+            painter.drawRect(rect);
+            painter.fillRect(rect,c);
+        }else{
+            QRect rect(0,mRectStart,mFixHW,mRectLen);
+            painter.drawRect(rect);
+            painter.fillRect(rect,c);
+        }
+    }
+}
+
+
+void HVSlider::setNewLen(int len)
+{
+    mLen = len;
+    if(mOrient == Qt::Horizontal)
+    {
+        setFixedSize(mLen,mFixHW);
+    }else{
+        setFixedSize(mFixHW,mLen);
+    }
+    repaint();
+}
+
+
+void HVSlider::setRectPos(const QPoint &p)
+{
+    mRectStart = mOrient == Qt::Horizontal ? p.x() : p.y();
+    repaint();
+}
+
+void HVSlider::setRectSize(const QSize &s)
+{
+    mRectLen =  mOrient == Qt::Horizontal ? s.width() : s.height();
+    repaint();
+}
+
 
 ScenesScreen* CanvasManager::mActiveSS = NULL;
 
 CanvasManager::CanvasManager(MainWindow *w):
-    mWindow(w),stack(new QStackedLayout()),
-    mPageSize(0,0),
+    mWindow(w),mStack(new QStackedLayout()),
     newPrj(new QPushButton(QIcon(":/icon/icons/category_vcs.png"),tr("新建工程"))),
     newPage(new QPushButton(QIcon(":/icon/icons/canvas-diagram.png"),tr("新建页面"))),
     delPage(new QPushButton(QIcon(":/icon/icons/removesubmitfield.png"),tr("删除当前页"))),
@@ -59,7 +186,7 @@ CanvasManager::CanvasManager(MainWindow *w):
     mRedo(new QPushButton(QIcon(":/icon/icons/Redo.png"),"重做")),
     mUndo(new QPushButton(QIcon(":/icon/icons/Undo.png"),"撤消")),
     mProjectWidgetDir(QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH + "widgets"),
-//    mPrjIsChanged(false),
+    //    mPrjIsChanged(false),
     mIsOpenProject(false),
     autoSaveTimer(new QTimer(this)),
     mFFmpegRuning(false)
@@ -71,10 +198,10 @@ CanvasManager::CanvasManager(MainWindow *w):
     saveas->setEnabled(false);
     confPrj->setEnabled(false);
 
-//    if(!mVSlier)
-//        mVSlier = new QSlider(Qt::Vertical,w->centralWidget());
-//    if(!mHSlier)
-//        mHSlier = new QSlider(Qt::Horizontal,w->centralWidget());
+    if(!mVSlier)
+        mVSlier = new HVSlider(Qt::Vertical,BaseForm::mPageSize.width());
+    if(!mHSlier)
+        mHSlier = new HVSlider(Qt::Horizontal,BaseForm::mPageSize.height());
 
 
     QComboBox *cb = new QComboBox();
@@ -106,7 +233,16 @@ CanvasManager::CanvasManager(MainWindow *w):
 
     mWindow->addWidgetToToolBar(Q_NULLPTR);
 
-    mWindow->centralWidget()->setLayout(stack);
+    QGridLayout *gridLayout = new QGridLayout(mWindow);
+
+    gridLayout->setSpacing(0);
+    gridLayout->setMargin(1);
+    gridLayout->addWidget(mHSlier,0,1);
+    gridLayout->addWidget(mVSlier,1,0,1,1,Qt::AlignTop);
+    gridLayout->addLayout(mStack,1,1);
+    //    gridLayout->setOriginCorner(Qt::TopLeftCorner);
+
+    mWindow->centralWidget()->setLayout(gridLayout);
     // 按屏幕的大小比例调整.
 
     connect(newPrj,SIGNAL(clicked(bool)),SLOT(onCreateNewProject()));
@@ -116,11 +252,7 @@ CanvasManager::CanvasManager(MainWindow *w):
     connect(confPrj,SIGNAL(clicked(bool)),SLOT(onConfProject()));
 
 
-
-
-
     connect(globalbtn,&QPushButton::clicked,[=](){
-
         while (1){
             GlobalSettings gs(mWindow);
             gs.setWindowTitle(globalbtn->text());
@@ -165,10 +297,10 @@ CanvasManager::CanvasManager(MainWindow *w):
 
     connect(zoomPrj,&QPushButton::clicked,[=]{
 
-           ZoomProject *zp = new ZoomProject(mPageSize,mWindow);
-           connect(zp,SIGNAL(accepted()),SLOT(onUpdateNewProjectSize()));
-           connect(zp,SIGNAL(accepted()),zp,SLOT(deleteLater()));
-           zp->exec();
+        ZoomProject *zp = new ZoomProject(BaseForm::mPageSize,mWindow);
+        connect(zp,SIGNAL(accepted()),SLOT(onUpdateNewProjectSize()));
+        connect(zp,SIGNAL(accepted()),zp,SLOT(deleteLater()));
+        zp->exec();
     });
 
     mWindow->addWidgetToToolBar(Q_NULLPTR);
@@ -203,6 +335,18 @@ CanvasManager::CanvasManager(MainWindow *w):
 }
 
 
+void CanvasManager::setSliderPos(const QPoint &p)
+{
+    mHSlier->setRectPos(p);
+    mVSlier->setRectPos(p);
+}
+
+void CanvasManager::setSliderSize(const QSize &size)
+{
+    mHSlier->setRectSize(size);
+    mVSlier->setRectSize(size);
+}
+
 static void my_logoutput(void* ptr, int level, const char* fmt,va_list vl){
     FILE *fp = fopen("my_log.txt","a+");
     if(!fp)
@@ -212,30 +356,6 @@ static void my_logoutput(void* ptr, int level, const char* fmt,va_list vl){
     fclose(fp);
 
 }
-
-
-//void CanvasManager::setXYHidden(bool b)
-//{
-//    mVSlier->setHidden(b);
-//    mHSlier->setHidden(b);
-//}
-
-//void CanvasManager::setXYPosition(const QPoint &p)
-//{
-//    mVSlier->setValue(p.y());
-//    mVSlier->setToolTip(QString::number(p.y()));
-//    mHSlier->setValue(p.x());
-
-//}
-
-//void CanvasManager::setXYRange(const QSize &size)
-//{
-//    mVSlier->setRange(0,size.height());
-//    mVSlier->setTickInterval(size.height()/500);
-//    mHSlier->setRange(0,size.width());
-//    mHSlier->setTickInterval(size.width()/500);
-
-//}
 
 void CanvasManager::onRecordClick(bool b)
 {
@@ -288,10 +408,7 @@ void CanvasManager::onRecordClick(bool b)
         });
 
 
-
-
         QThread *gifthread = new QThread();
-
         connect(gifthread,&QThread::started,[=]{
             //            qDebug() << "start to gif";
 
@@ -394,15 +511,11 @@ void CanvasManager::onRecordClick(bool b)
             ft->exit();
             QThread::msleep(500);
             delete[] argv;
-
         });
-
         connect(ft,SIGNAL(finished()),ft,SLOT(quit()));
         connect(ft,SIGNAL(finished()),ft,SLOT(deleteLater()));
         ft->start();
         mFFmpegRuning = true;
-
-
     }
 
 }
@@ -413,19 +526,22 @@ void CanvasManager::onUpdateNewProjectSize()
 {
     ZoomProject *p = (ZoomProject*)(QObject::sender());
     QSize nsize = p->getNewSize();
-    if(nsize.width() == mPageSize.width() &&
-            nsize.height()  == mPageSize.height())
+    if(nsize.width() == BaseForm::mPageSize.width() &&
+            nsize.height()  == BaseForm::mPageSize.height())
         return;
 
-    BaseForm::mWidthRate = float(nsize.width()) / float(mPageSize.width());
-    BaseForm::mHeightRate = float(nsize.height()) / float(mPageSize.height());
+    BaseForm::mWidthRate = float(nsize.width()) / float(BaseForm::mPageSize.width());
+    BaseForm::mHeightRate = float(nsize.height()) / float(BaseForm::mPageSize.height());
 
     foreach (QWidget *w, mCanvasList) {
         ((ScenesScreen*)w)->updateNewPageSize();
     }
 
-    mPageSize = QSize(BaseForm::mWidthRate * mPageSize.width(),
-                      BaseForm::mHeightRate * mPageSize.height());
+    BaseForm::setPageSize(BaseForm::mWidthRate * BaseForm::mPageSize.width(),
+                          BaseForm::mHeightRate * BaseForm::mPageSize.height());
+
+    mHSlier->setNewLen(BaseForm::mPageSize.width());
+    mVSlier->setNewLen(BaseForm::mPageSize.height());
     BaseForm::mPrjIsChanged = true;
 }
 
@@ -435,7 +551,7 @@ void CanvasManager::screenshot()
     if(!mCanvasList.size())
         return;
 
-    QWidget *wd = stack->currentWidget();
+    QWidget *wd = mStack->currentWidget();
     if(!wd)
         return;
 
@@ -450,27 +566,29 @@ void CanvasManager::screenshot()
     //            };
     //            test_func(stack->currentWidget());
 
-    QPixmap pixmap(stack->currentWidget()->size());
-    stack->currentWidget()->render(&pixmap,QPoint(),QRegion(stack->currentWidget()->rect()));
-    QVariant vp = stack->currentWidget()->property(DKEY_SHOT);
+    QPixmap pixmap(mStack->currentWidget()->size());
+    mStack->currentWidget()->render(&pixmap,QPoint(),QRegion(mStack->currentWidget()->rect()));
+    QVariant vp = mStack->currentWidget()->property(DKEY_SHOT);
     if( vp.isValid() && vp.toBool() == false)
     {
         mWindow->pageView->addNewPage(pixmap,
-                                      stack->currentWidget()->property(DKEY_TXT).toString());
+                                      mStack->currentWidget()->property(DKEY_TXT).toString());
 
         //pixmap.save("test.png");　//　这里如果有需要可以保存成文件.
-        stack->currentWidget()->setProperty(DKEY_SHOT,true);
+        mStack->currentWidget()->setProperty(DKEY_SHOT,true);
     }else{
-        int index = stack->currentIndex();
+        int index = mStack->currentIndex();
         mWindow->pageView->delPage(index); // 删除当前的,更新每新的.
-        mWindow->pageView->InsertPage(index,pixmap,stack->currentWidget()->property(DKEY_TXT).toString());
+        mWindow->pageView->InsertPage(index,pixmap,mStack->currentWidget()->property(DKEY_TXT).toString());
     }
 }
 
 ScenesScreen * CanvasManager::createNewCanvas()
 {
 
-    mActiveSS = new ScenesScreen(mPageSize,(QWidget*)mWindow);
+    mActiveSS = new ScenesScreen(BaseForm::mPageSize,(QWidget*)mWindow);
+    mHSlier->setNewLen(BaseForm::mPageSize.width());
+    mVSlier->setNewLen(BaseForm::mPageSize.height());
     mActiveSS->setProperty(DKEY_SHOT,false);  // 检查该页面是否创建过截图.
 
     // 这里不能改变它的对像名,用一个动态属
@@ -479,8 +597,8 @@ ScenesScreen * CanvasManager::createNewCanvas()
     mActiveSS->setToolTip(mActiveSS->property(DKEY_TXT).toString());
     mCanvasList.append(mActiveSS);
     mWindow->lDock->setEnabled(true);
-    stack->addWidget(mActiveSS);
-    stack->setCurrentWidget(mActiveSS);
+    mStack->addWidget(mActiveSS);
+    mStack->setCurrentWidget(mActiveSS);
     // stack->setGeometry(stackRect);
     // 清理treeWidget 的行
     mWindow->tree->deleteAllitem();
@@ -492,7 +610,7 @@ ScenesScreen * CanvasManager::createNewCanvas()
 
 int CanvasManager::activeIndex()
 {
-    return stack->currentIndex();
+    return mStack->currentIndex();
 }
 
 void CanvasManager::setActiveSS(int index)
@@ -502,10 +620,10 @@ void CanvasManager::setActiveSS(int index)
         return;
 
 
-    stack->setCurrentIndex(index);
+    mStack->setCurrentIndex(index);
     // 清理treeWidget 的行
     mWindow->tree->deleteAllitem();
-    mActiveSS = (ScenesScreen*)(stack->currentWidget());
+    mActiveSS = (ScenesScreen*)(mStack->currentWidget());
 
     // 把当前页的布局重新添加到treeWidget上
 
@@ -526,24 +644,24 @@ void CanvasManager::setActiveSS(int index)
 
 void CanvasManager::deleteCurrentPage()
 {
-//    ScenesScreen *ss = this->activeSS();
+    //    ScenesScreen *ss = this->activeSS();
     if(!mActiveSS) return;
 
-    int index = stack->currentIndex();
+    int index = mStack->currentIndex();
     if(index < 0)
     {
         mActiveSS = 0;
         return;
     }
-    stack->removeWidget(mActiveSS);
+    mStack->removeWidget(mActiveSS);
     mWindow->pageView->delPage(index);
     mWindow->tree->deleteAllitem();
     mCanvasList.removeAt(index);
 
     mActiveSS->delAllObjects();
-    delPage->setEnabled(stack->count() == 0 ? false : true);
-    mWindow->lDock->setEnabled(stack->count() == 0 ? false : true);
-    setActiveSS(stack->currentIndex());
+    delPage->setEnabled(mStack->count() == 0 ? false : true);
+    mWindow->lDock->setEnabled(mStack->count() == 0 ? false : true);
+    setActiveSS(mStack->currentIndex());
 
 }
 
@@ -740,26 +858,26 @@ void CanvasManager::saveProject(QString fname)
         foreach (QWidget *w, mCanvasList) {
             CanvasArray.append(((ScenesScreen*)w)->writeToJson());
         }
-         QFile saveFile(fname);
-         if (!saveFile.open(QIODevice::WriteOnly)) {
-             qWarning("Couldn't open save file.");
+        QFile saveFile(fname);
+        if (!saveFile.open(QIODevice::WriteOnly)) {
+            qWarning("Couldn't open save file.");
 
-         }
-         QJsonObject obj ;
-         obj[NAME] = mProjectName;
-         obj[ACTPAGE] = stack->currentIndex();
-         obj[PAGES] = CanvasArray;
-         obj[WTYPE] = "project";
-         QJsonArray lang;
-         foreach (QString v ,mPrjSelectlang) {
-             QJsonValue val = v;
-             lang.append(val);
-         }
-         obj[MLANG] = lang;
-         QJsonDocument jsonDoc(obj);
-         saveFile.write(jsonDoc.toJson());
-         savePrj->setEnabled(true);
-         saveth->quit();
+        }
+        QJsonObject obj ;
+        obj[NAME] = mProjectName;
+        obj[ACTPAGE] = mStack->currentIndex();
+        obj[PAGES] = CanvasArray;
+        obj[WTYPE] = "project";
+        QJsonArray lang;
+        foreach (QString v ,mPrjSelectlang) {
+            QJsonValue val = v;
+            lang.append(val);
+        }
+        obj[MLANG] = lang;
+        QJsonDocument jsonDoc(obj);
+        saveFile.write(jsonDoc.toJson());
+        savePrj->setEnabled(true);
+        saveth->quit();
     });
 
     connect(saveth,SIGNAL(finished()),saveth,SLOT(deleteLater()));
@@ -810,10 +928,7 @@ void CanvasManager::onSaveProject()
     mWindow->mGlobalSet->setValue(INI_PRJLAST,fname.toUtf8());
     saveProject(fname);
     BaseForm::mPrjIsChanged = false;
-
-
 }
-
 
 
 void CanvasManager::readProjectJson(const QJsonArray &array)
@@ -827,18 +942,20 @@ void CanvasManager::readProjectJson(const QJsonArray &array)
         switch (val.type()) {
         case QJsonValue::Object:
         {
-            int w =0,h =0;
+            //            int w =0,h =0;
+            QSize sm;
             QJsonObject valobj = val.toObject();
             foreach (QJsonValue pval, valobj[PROPERTY].toArray()) {
                 QJsonObject pobj = pval.toObject();
                 if(pobj.contains(KEY_RECT))
                 {
-                    w = pobj[KEY_RECT].toObject()[WIDTH].toInt();
-                    h = pobj[KEY_RECT].toObject()[HEIGHT].toInt();
+                    sm.setWidth(pobj[KEY_RECT].toObject()[WIDTH].toInt());
+                    sm.setHeight(pobj[KEY_RECT].toObject()[HEIGHT].toInt());
                     break;
                 }
             }
-            setDefaultPageSize(QSize(w,h));
+            //            setDefaultPageSize(QSize(w,h));
+            BaseForm::setPageSize(sm);
             mActiveSS = createNewCanvas();
             // 递归读取它的页面.
             mActiveSS->readLayer(valobj[LAYER].toArray());

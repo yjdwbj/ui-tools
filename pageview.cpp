@@ -21,6 +21,8 @@ PageView::PageView(MainWindow *mw)
     // vb->addWidget(mImgList);
     QWidget *w = new QWidget(this);
     QVBoxLayout *vb = new QVBoxLayout(w);
+    vb->setMargin(0);
+    vb->setSpacing(0);
 
 
     QGroupBox *gblist = new QGroupBox("工程页面");

@@ -17,8 +17,9 @@
 #include <QStyleFactory>
 #include <QThread>
 #include <QLineEdit>
+#include <QSize>
 class BaseForm;
-class ScenesScreen;
+
 
 QString ImageListView::mLastOpenDir;
 
@@ -526,7 +527,7 @@ void ProjectDialog::onAccepted()
     }
 
 
-    mWindow->cManager->setDefaultPageSize(QSize(ui->spinBox->value(),ui->spinBox_2->value()));
+    BaseForm::setPageSize(ui->spinBox->value(),ui->spinBox_2->value());
     mWindow->mGlobalSet->setValue(INI_PRJSIZE,
                                   QString("%1*%2").arg(QString::number(ui->spinBox->value()),
                                                        QString::number(ui->spinBox_2->value())));
@@ -1124,7 +1125,7 @@ void GlobalSettings::onAccepted()
         w = 64;
     }
 
-    mWindow->cManager->setDefaultPageSize(QSize(w,h));
+    BaseForm::setPageSize(w,h);
     mWindow->mGlobalSet->setValue(INI_PRJSIZE,
                                   QString("%1*%2").arg(QString::number(w),
                                                        QString::number(h)));

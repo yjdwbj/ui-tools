@@ -772,6 +772,10 @@ void BaseProperty::parseJsonToWidget(QWidget *p, const QJsonArray &array)
                         ImageFileDialog ifd(cblist.toVariantList(),
                                             baseform->mWindow->cManager->mProjectImageDir,
                                             baseform->mWindow);
+                        QSize ps = baseform->mWindow->size();
+                        int w = ( ps.width() - ifd.width() )/ 2;
+                        int h = (ps.height()-ifd.height()) / 2;
+                        ifd.move(ifd.mapFromParent(QPoint(w,h)));
                         ifd.exec();
                         QVariantList imglist = ifd.getSelectedList();
                         QJsonArray qa;
@@ -1303,7 +1307,7 @@ void CompoentControls::CreateButtonList(const QJsonArray &comJsonArr)
     {
         QJsonObject jobj = qjv.toObject();
         //        QString caption = jobj[CAPTION].toString();
-        QString objname = jobj[NAME].toString();
+//        QString objname = jobj[NAME].toString();
         QString clsname = jobj[CLASS].toString();
         if(!clsname.compare(CN_NEWLAYOUT) /*||!CN_LAYOUT.compare(clsname)*/)
         {

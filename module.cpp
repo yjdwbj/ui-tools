@@ -49,6 +49,8 @@ float BaseForm::mHeightRate = 0.0f;
 QUndoStack *BaseForm::mUndoStack =0 ;
 QUndoView *BaseForm::mUndoView = 0;
 
+QSize BaseForm::mPageSize = QSize(0,0);
+
 
 QWidgetList BaseForm::mObjectTemplte;
 //QWidget *BaseForm::mLayer;
@@ -732,10 +734,25 @@ void BaseForm::mouseMoveToPos(const QPoint &p)
 }
 
 
+QPoint& BaseForm::getGlobalPos(const QPoint &p) const
+{
+    QPoint np = mapTo(CanvasManager::mActiveSS,p) - p ;
+
+    if(p.x() > mOffset.x())
+        np.setX(np.x() + SELECTION_MARGIN/2);
+    if(p.x() < mOffset.x())
+        np.setX(np.x() - SELECTION_MARGIN/2);
+
+    if(p.y() > mOffset.y())
+        np.setY(np.y() + SELECTION_MARGIN/2);
+    if(p.y() < mOffset.y())
+        np.setY(np.y() - SELECTION_MARGIN/2);
+
+    return np;
+}
+
 void BaseForm::mouseMoveEvent(QMouseEvent *event)
 {
-    //    QString clsname = parentWidget()->parentWidget()->metaObject()->className();
-    //   //  qDebug() << " parent class name " <<  clsname;
     //     // 这里主要防止它在列表的拖动事件.
     //    QString thisname = metaObject()->className();
     //    if(thisname.compare(CN_NEWLAYER))
@@ -743,24 +760,7 @@ void BaseForm::mouseMoveEvent(QMouseEvent *event)
     //                CN_NEWLAYER.compare(clsname) ) return;
     if (event->buttons() & Qt::LeftButton)
     {
-
-        QPoint np = mapTo(CanvasManager::mActiveSS,event->pos()) - event->pos() ;
-
-        if(event->pos().x() > mOffset.x())
-            np.setX(np.x() + SELECTION_MARGIN/2);
-        if(event->pos().x() < mOffset.x())
-            np.setX(np.x() - SELECTION_MARGIN/2);
-
-        if(event->pos().y() > mOffset.y())
-            np.setY(np.y() + SELECTION_MARGIN/2);
-        if(event->pos().y() < mOffset.y())
-            np.setY(np.y() - SELECTION_MARGIN/2);
-
-
-        CanvasManager::mActiveSS->mXYLine->setPos(np);
-
-
-
+        CanvasManager::mActiveSS->mXYLine->setPos(getGlobalPos(event->pos()));
         //        if(property(DKEY_INTOCONTAINER).toBool())
         if(mParent->mType == T_NewGrid ||
                 mParent->mType == T_NewList)
@@ -789,6 +789,9 @@ void BaseForm::mousePressEvent(QMouseEvent *event)
         mOldRect = this->geometry();
         this->setProperty(DKEY_OLDPOS,this->pos());
         mOldSize = this->size();
+
+        CanvasManager::mActiveSS->mXYLine->setPos(getGlobalPos(event->pos()));
+        CanvasManager::setSliderSize(this->size());
         CanvasManager::mActiveSS->mXYLine->setHidden(false);
     }else if(event->button() == Qt::RightButton)
     {
@@ -1041,7 +1044,6 @@ void BaseForm::listObjectMoveMenu(QMenu *contextMenu,BaseForm *container)
 
             if(first == 0 )
             {
-
                 QAction *downbottom = new QAction(QIcon(":/icon/icons/go-bottom.png"),"移到底层",this);
                 connect(downbottom,&QAction::triggered,lambda_downbottom);
                 QAction *downone = new QAction(QIcon(":/icon/icons/go-down.png"),"移下一层",this);
@@ -1097,11 +1099,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
         QAction *qaobj = new QAction(this);
         if(parent->inherits("QTreeWidget"))
         {
-            QTreeWidget *w = ((QTreeWidget*)parent);
-            //            QTreeWidgetItem *i = w->itemAt(w->viewport()->mapFromGlobal(pos));
-            //            qDebug() << "tree click  " << this->objectName() << this->metaObject()->className();
             QAction *subobj = new QAction(this);
-
             if(isHidden())
             {
                 subobj->setIcon(QIcon(SHOW_ICON));
@@ -1151,7 +1149,15 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
     contextMenu->addAction(&paste);
     contextMenu->addSeparator();
 
-
+    if(!mbkImage.isEmpty())
+    {
+        QAction *adjustsize = new QAction(QIcon(":/icon/icons/resize-full.png"),"匹配背景尺寸",this);
+        connect(adjustsize,&QAction::triggered,[=](){
+            resize(mbkPixmap.size());
+        });
+        contextMenu->addAction(adjustsize);
+        contextMenu->addSeparator();
+    }
 
     if(mParent->isContainer())
     {
@@ -1487,6 +1493,7 @@ void BaseForm::updateStyleSheets()
     if(!mbkImage.isEmpty())
     {
         str =  bkcss.arg(mbkImage,str);
+        mbkPixmap.load(mbkImage);
     }else{
         //找图片列表属性.
         QJsonArray parray = mOwerJson[PROPERTY].toArray();
@@ -1514,12 +1521,12 @@ void BaseForm::updateStyleSheets()
         }
 
         if(!imgpic.isEmpty())
+        {
             str =  bkcss.arg(imgpic,str);
+        }
         else if(!txtpic.isEmpty())
         {
-
             QString textname = mWindow->mItemMap[txtpic];
-
             QString fpath =  mWindow->cManager->mProjectImageDir + BACKSLASH + txtpic + ".png";
             QPixmap pic = mWindow->mImgMap[fpath];
 
@@ -1561,8 +1568,6 @@ void BaseForm::updateStyleSheets()
         str = QString("background-color: %1; %2").arg(mbkColor,str);
     }
 
-    //    QString clsname = metaObject()->className();
-
     if(inherits(CN_NEWGRID))
     {
         ((NewGrid*)this)->mainScroll->setStyleSheet(QString("BaseScrollArea#%1 { %2 }").arg(
@@ -1588,7 +1593,7 @@ void BaseForm::updateStyleSheets()
 
 }
 
-void BaseForm::paintEvent(QPaintEvent *ev)
+void BaseForm::paintEvent(QPaintEvent *)
 {
     QStyleOption option;
     option.init(this);
@@ -1603,7 +1608,7 @@ BaseScrollArea::BaseScrollArea(QWidget *parent):
 
 }
 
-void BaseScrollArea::paintEvent(QPaintEvent *ev)
+void BaseScrollArea::paintEvent(QPaintEvent *)
 {
     QStyleOption option;
     option.init(this);
@@ -1720,6 +1725,9 @@ void BaseForm::onSelectMe()
 {
     CanvasManager::mActiveSS->setSelectObject(this);
     if(mReadJson) return;
+
+//    CanvasManager::setSliderPos(getGlobalPos(this->pos()));
+    CanvasManager::setSliderSize(this->size());
 
     mWindow->propertyWidget->createPropertyBox(this);
     if(!mParent->isContainer())
@@ -2018,13 +2026,8 @@ NewLayout *BaseForm::CreateNewLayout(const QJsonValue &qv,
 {
 
     QJsonObject  valobj = qv.toObject();
-    //    QRect oldrect = Compoent::getRectFromStruct(valobj[PROPERTY].toArray(),KEY_RECT);
-    // QVariant variant = valobj.value(PROPERTY).toVariant();
-    //    qDebug() << " whois call CreateNewLayout" << this->objectName() << this->metaObject()->className();
     NewLayout *newlayout = new NewLayout(valobj,mWindow,parent);
     newlayout->mParent = this;
-    //    if(incontainer)
-    //        newlayout->setProperty(DKEY_INTOCONTAINER,incontainer);
     newlayout->mCreateFlag = isCreate;
     newlayout->setProperty(DKEY_TYPE, valobj[WTYPE].toString());
     mWindow->tree->addObjectToCurrentItem(mUniqueStr,newlayout);
@@ -2716,6 +2719,7 @@ void NewList::onAddManyLine()
         AddOneLine(QJsonValue::fromVariant(mWindow->ComCtrl->mVariantLayout));
     }
     mReadJson = false;
+    if(childlist.isEmpty()) return;
     ((NewList*)childlist.last())->onSelectMe();
 }
 
@@ -2731,14 +2735,12 @@ void NewList::pasteOneLine(const QJsonValue &value)
 NewLayout * NewList::AddOneLine(const QJsonValue &value)
 {
     onSelectMe();
-
     NewLayout *newlayout = CreateNewLayout(value,mainWidget,mCreateFlag,true);
     onSelectMe();
 
     newlayout->onSelectMe();
     childlist.append(newlayout);
     //    newlayout->container = this;
-
     listLayout->addWidget(newlayout);
     if(sliderOrientation == Qt::Horizontal)
     {
@@ -2767,7 +2769,6 @@ void NewList::onDeleteMe()
         //qDebug() << " QMessageBox result " << ret;
         if(ret == QMessageBox::Yes)
         {
-
             DeleteMe();
         }
     }else
@@ -2817,8 +2818,6 @@ bool NewList::eventFilter(QObject *obj, QEvent *event)
 
     if(obj->inherits(CN_NEWLAYOUT) && event->type() == QEvent::Wheel)
     {
-
-        // wheelEvent(&evt);
         QWheelEvent* w = static_cast<QWheelEvent*>(event);
 
         if(sliderOrientation == Qt::Horizontal)
