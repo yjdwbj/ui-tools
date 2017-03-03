@@ -323,6 +323,12 @@ QJsonObject  ScenesScreen::writeToJson()
 
 void ScenesScreen::dragEnterEvent(QDragEnterEvent *e)
 {
+    e->acceptProposedAction();
+    QByteArray itemData = e->mimeData()->data("application/x-dnditemdata");
+    QDataStream dataStream(&itemData, QIODevice::ReadOnly);
+    QSize s ;
+    dataStream  >> s;
+    CanvasManager::setSliderSize(s);
     mXYLine->setHidden(false);
     e->accept();
 }
@@ -335,8 +341,7 @@ void ScenesScreen::dragLeaveEvent(QDragLeaveEvent *e)
 void ScenesScreen::dragMoveEvent(QDragMoveEvent *e)
 {
     mXYLine->setPos(e->pos());
-//    CanvasManager::setSliderPos(e->pos());
-//    CanvasManager::setSliderSize(((QDrag*)e->source())->pixmap().size());
+    CanvasManager::setSliderPos(e->pos());
     e->accept();
 }
 
@@ -350,10 +355,11 @@ void ScenesScreen::dropEvent(QDropEvent *e)
 
     QPixmap pixmap;
     QPoint offset;
-
+    QSize s ;
     QVariant qv;
     int flag ;
-    dataStream >> flag  >> qv >> pixmap >> offset;
+    dataStream >> s >> flag  >> qv >> pixmap >> offset ;
+
 
     QJsonValue val = QJsonValue::fromVariant(qv);
 
@@ -458,6 +464,13 @@ void HVLineWidget::mouseMoveEvent(QMouseEvent *e)
 }
 
 
+void HVLineWidget::setPos(const QPoint &p,const QSize &s)
+{
+
+    CanvasManager::setSliderPos(QPoint(p.x()-s.width(),p.y()-s.height()));
+    CanvasManager::setSliderSize(s);
+}
+
 void HVLineWidget::setPos(const QPoint &p)
 {
     mVLine.setP1(QPoint(p.x(),height()));
@@ -466,7 +479,7 @@ void HVLineWidget::setPos(const QPoint &p)
     mHLine.setP1(QPoint(0,p.y()));
     mHLine.setP2(QPoint(width(),p.y()));
     CanvasManager::setSliderPos(p);
-    mPos = p;
+    mPos =  QPoint(mVLine.p1().x(),mHLine.p1().y());
     update();
 }
 
@@ -483,7 +496,9 @@ void HVLineWidget::paintEvent(QPaintEvent *)
     painter.drawLine(mHLine);
     QString hstr;
     hstr.sprintf("x:%d,y:%d",mPos.x(),mPos.y());
+
     painter.drawText(mPos,hstr);
+//    qDebug() << " text pos " << mPos;
 }
 
 void HVLineWidget::mouseReleaseEvent(QMouseEvent *)

@@ -121,6 +121,7 @@ static const char DKEY_OWERJSON[] = "OwerJsonClassName";
 static const char DKEY_CBLIST[] = "CbList";
 static const char DKEY_OLDPOS[] = "OldPosition";
 static const char DKEY_SEQENAME[] = "EnameSequence";
+static const char DKEY_DRAGSIZE[] = "DragSize";
 //static const char DKEY_PARENTPOS[] = "ParentPos";
 
 static const char DKEY_ROW[] = "gridrow";

@@ -125,7 +125,8 @@ void SizeHandleRect::mouseMoveEvent(QMouseEvent *e)
     QPoint mp = mapTo(CanvasManager::mActiveSS,e->pos()) - e->pos();
     QPoint gp = QPoint(mp.x() + SELECTION_MARGIN,
                        mp.y() + SELECTION_MARGIN);
-    CanvasManager::mActiveSS->mXYLine->setPos(gp);
+//    CanvasManager::mActiveSS->mXYLine->setPos(gp);
+    CanvasManager::mActiveSS->mXYLine->setPos(gp,m_resizable->size());
     ((BaseForm*)m_resizable)->posWidget->updateSize(m_resizable);
 }
 

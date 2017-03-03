@@ -723,14 +723,13 @@ void BaseForm::mouseMoveToPos(const QPoint &p)
 {
     onSelectMe();
     move(this->pos() + p);
-    changeJsonValue( posWidget,
-                     KEY_RECT,
-                     QString("%1:%2").arg(LX,
-                                          QString::number(x())));
-    changeJsonValue( posWidget,
-                     KEY_RECT,
-                     QString("%1:%2").arg(LY,
-                                          QString::number(y())));
+
+
+    QString xywhstr;
+    xywhstr.sprintf("%s:%d,%s:%d",
+                    LX.toLocal8Bit().data(),x(),
+                    LY.toLocal8Bit().data(),y());
+    changeJsonValue(posWidget,KEY_RECT,xywhstr);
 }
 
 
@@ -1154,6 +1153,7 @@ void BaseForm::createContextMenu(QWidget *parent,QPoint pos)
         QAction *adjustsize = new QAction(QIcon(":/icon/icons/resize-full.png"),"匹配背景尺寸",this);
         connect(adjustsize,&QAction::triggered,[=](){
             resize(mbkPixmap.size());
+            updateObjectSize();
         });
         contextMenu->addAction(adjustsize);
         contextMenu->addSeparator();
@@ -1226,19 +1226,17 @@ void BaseForm::updateObjectSize()
 
     posWidget->updateSize(this);
     posWidget->updatePosition(this);
-    changeJsonValue(posWidget,
-                    KEY_RECT,
-                    QString("%1:%2").arg(LX,QString::number(this->x())));
-    changeJsonValue(posWidget,
-                    KEY_RECT,
-                    QString("%1:%2").arg(LY,QString::number(this->y())));
 
-    changeJsonValue(posWidget,
-                    KEY_RECT,
-                    QString("%1:%2").arg(WIDTH,QString::number(this->width())));
-    changeJsonValue(posWidget,
-                    KEY_RECT,
-                    QString("%1:%2").arg(HEIGHT,QString::number(this->height())));
+
+
+    QString xywhstr;
+    xywhstr.sprintf("%s:%d,%s:%d,%s:%d,%s:%d",
+                    LX.toLocal8Bit().data(),x(),
+                    LY.toLocal8Bit().data(),y(),
+                    WIDTH.toLocal8Bit().data(),width(),
+                    HEIGHT.toLocal8Bit().data(),height());
+
+    changeJsonValue(posWidget,KEY_RECT,xywhstr);
 }
 
 void BaseForm::mouseReleaseEvent(QMouseEvent *event)

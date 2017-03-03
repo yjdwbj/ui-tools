@@ -41,7 +41,7 @@ PageView::PageView(MainWindow *mw)
     //    vb->addWidget(mImgList);
     //    vb->addWidget(BaseForm::mUndoView);
     vb->addWidget(gblist);
-//    vb->addWidget(gbundo);
+    //    vb->addWidget(gbundo);
     setWidget(w);
     w->setLayout(vb);
     //    setWidget(mImgList);
@@ -123,7 +123,7 @@ void PageView::PressItem(int index)
     emit mImgList->itemPressed(item);
 }
 
-void PageView::onItemChanged(QListWidgetItem *it)
-{
-    qDebug() << " now change to index " << it->text() << " row is " << mImgList->row(it);
-}
+//void PageView::onItemChanged(QListWidgetItem *it)
+//{
+//    qDebug() << " now change to index " << it->text() << " row is " << mImgList->row(it);
+//}

@@ -22,6 +22,7 @@ class HVLineWidget: public QWidget
 public:
     explicit HVLineWidget(QWidget *parent =0);
     void setPos(const QPoint &p);
+    void setPos(const QPoint &p,const QSize &s);
 
 
 protected:

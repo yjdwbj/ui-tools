@@ -1469,14 +1469,12 @@ void DragButton::mousePressEvent(QMouseEvent *event)
 
     QByteArray itemData;
     QDataStream dataStream(&itemData, QIODevice::WriteOnly);
-    dataStream << mFlag << mValue.toVariant() << pixmap <<  event->pos() ;
-
+    dataStream << pixmap.size() << mFlag << mValue.toVariant() << pixmap <<  event->pos() ;
     QMimeData *mimeData = new QMimeData;
     mimeData->setData("application/x-dnditemdata", itemData);
     drag->setMimeData(mimeData);
     drag->setPixmap(pixmap);
     drag->setHotSpot(QPoint(0,0));
-
     drag->exec();
 }
 

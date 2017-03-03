@@ -93,8 +93,6 @@ ImageFileDialog::ImageFileDialog(const QVariantList &old, QString imgpath, QWidg
         p.setMask(p.createMaskFromColor(Qt::white));
         btn->setIcon(QIcon(p));
 
-
-
         btn->setObjectName(itmap.key());
         btn->setFixedSize(btn->iconSize());
         v->addWidget(btn);

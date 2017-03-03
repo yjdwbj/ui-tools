@@ -28,7 +28,7 @@ public:
 public slots:
     //  void onClickedItem(QModelIndex);
     void onClickedItem(QListWidgetItem * );
-    void onItemChanged(QListWidgetItem*);
+//    void onItemChanged(QListWidgetItem*);
 
 private:
     QListWidget *mImgList;
