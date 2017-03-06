@@ -34,7 +34,7 @@ BaseDialog::BaseDialog(QWidget *parent):
 void BaseDialog::UpdateStyle()
 {
     setStyleSheet( QString("BaseDialog#%1 {background-color: #FFFFBF;}").arg(objectName()));
-//    qDebug() << " basedialog stylesheet " << styleSheet();
+    //    qDebug() << " basedialog stylesheet " << styleSheet();
 }
 
 ImageFileDialog::ImageFileDialog(const QVariantList &old, QString imgpath, QWidget *parent)
@@ -78,7 +78,6 @@ ImageFileDialog::ImageFileDialog(const QVariantList &old, QString imgpath, QWidg
     this->setLayout(mainLayout);
     mainLayout->addLayout(mh);
     this->setWindowTitle(tr("图片编辑"));
-    //    QColor white(255,255,255);
     QVBoxLayout *v = new QVBoxLayout();
     v->setSizeConstraint(QLayout::SetFixedSize);
 
@@ -352,7 +351,6 @@ void ImageFileDialog::onDown()
 void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
 {
     /* 双击从右框删除 */
-    // sellist->takeItem(index.row())->text();
     QString selstr = sellist->takeItem(index.row())->text();
     delete sellist->takeItem(index.row());
     foreach(QListWidgetItem *fitem,flistview->findItems(selstr,
@@ -366,7 +364,6 @@ void ImageFileDialog::onSelListViewDoubleClicked(QModelIndex index)
 
     statusBar->setText(QString::number(sellist->count()));
     sellist->clearSelection();
-    //   statusBar->repaint();
 }
 
 void ImageFileDialog::onDelSelectedItems()
@@ -421,7 +418,6 @@ void ImageFileDialog::onTreeViewClicked(QModelIndex index)
 
 ProjectDialog::ProjectDialog(QWidget *parent)
     :BaseDialog(parent),
-      //:QDialog(parent),
       ui(new Ui::ProjectDialog),
       defaultXLS(QDir::currentPath().replace(SLASH,BACKSLASH) + BACKSLASH + "行车记录仪.xls")
 {
@@ -497,9 +493,6 @@ void ProjectDialog::on_pushButton_clicked()
                                                    definfo.absolutePath(),
                                                    //tr("xls files (*.xls);;CSV UTF-8 (*.csv)"));
                                                    tr("xls files , CSV UTF-8 file (*.xls *.csv )"));
-    //                                                  Q_NULLPTR,
-    //                                                  QFileDialog::ExistingFile
-    //                                                  );
     if(!xlsfile.isEmpty() || CheckLangFile(xlsfile))
     {
         mWindow->mGlobalSet->setValue(INI_PRJMLANG, xlsfile.toUtf8().mid(mWindow->mRootPathLen) );
@@ -836,9 +829,6 @@ void ConfigProject::on_openfile_clicked()
                                                    tr("打开多国语言文件"),
                                                    definfo.absolutePath(),
                                                    tr("xls files , CSV UTF-8 file (*.xls *.csv )"));
-    //                                                  Q_NULLPTR,
-    //                                                  QFileDialog::ExistingFile
-    //                                                  );
     if(!xlsfile.isEmpty() || CheckLangFile(xlsfile))
     {
 
@@ -1253,7 +1243,7 @@ ActionList::ActionList(QWidget *parent)
             mTypeMap[i] = qobj[NAME].toString();
             mDefaultVals.append(qobj[DEFAULT].toString());
         }else{
-//            qDebug() << " values is " << qobj[VALUES].toArray();
+            //            qDebug() << " values is " << qobj[VALUES].toArray();
             QJsonArray arr =  qobj[VALUES].toArray();
             int asize = arr.size();
             for(int i = 0 ; i < asize;i++)
@@ -1562,13 +1552,11 @@ ProgressDlg::ProgressDlg(QString fname, const QWidgetList &list, QWidget *parent
     setFixedSize(200,100);
     this->setLayout(vb);
     connect(this,SIGNAL(accepted()),SLOT(deleteLater()));
-    //    setWindowModality(Qt::ApplicationModal);
-
-     setModal(true);
+    setModal(true);
 
 }
 
 void ProgressDlg::mousePressEvent(QMouseEvent *e)
 {
-//   this->accept();
+    //   this->accept();
 }

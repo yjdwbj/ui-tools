@@ -1227,8 +1227,6 @@ void BaseForm::updateObjectSize()
     posWidget->updateSize(this);
     posWidget->updatePosition(this);
 
-
-
     QString xywhstr;
     xywhstr.sprintf("%s:%d,%s:%d,%s:%d,%s:%d",
                     LX.toLocal8Bit().data(),x(),
@@ -1236,7 +1234,7 @@ void BaseForm::updateObjectSize()
                     WIDTH.toLocal8Bit().data(),width(),
                     HEIGHT.toLocal8Bit().data(),height());
 
-    changeJsonValue(posWidget,KEY_RECT,xywhstr);
+    changeJsonValue(KEY_RECT,xywhstr);
 }
 
 void BaseForm::mouseReleaseEvent(QMouseEvent *event)
@@ -1295,8 +1293,7 @@ void BaseForm::moveNewPos(QPoint pos)
 
         if(this->x() < 0)
         {
-            pos.setX(0 /*- MARGIN_SIZE.width() /2*/);
-            //this->move(pos);
+            pos.setX(0);
         }
 
         if(this->x() > ms.width() )
@@ -1310,8 +1307,7 @@ void BaseForm::moveNewPos(QPoint pos)
 
         if(this->y() < 0 )
         {
-            pos.setY(0 /*-MARGIN_SIZE.width() /2*/);
-            //      this->move(pos);
+            pos.setY(0);
         }
 
         if(this->y() > ms.height())
@@ -1343,12 +1339,10 @@ void BaseForm::onXYWHChangedValue(int v)
     /* 绑定坐标控件的更新 */
 
     QWidget *sender =(QWidget *)(QObject::sender());
-    // bool isFirst = !sender->property(DKEY_ARRIDX).toInt();
     QPoint pos = this->pos();
     QString xywhstr ;
     if(!sender->objectName().compare(X))
     {
-
         pos.setX(v);
         moveNewPos(pos);
         xywhstr.sprintf("%s:%d",LX.toLocal8Bit().data(),v);
@@ -1411,10 +1405,8 @@ void BaseForm::onTextChanged(QString str)
         QString old = obj[ENAME].toString();
         if (!old.compare(str))
             return;
-        //        mWindow->ComCtrl->mEnameSeq.removeOne(old);
         mEnameStr = getEnameSeq(str,this);
         mWindow->tree->updateSeq(mEnameStr);
-        //        mWindow->ComCtrl->mEnameSeq.append(nstr);
         changeJsonValue(txt,txt->objectName(),mEnameStr);
     }else{
         changeJsonValue(txt,txt->objectName(),str);
@@ -1440,8 +1432,6 @@ void BaseForm::onBorderChangedValue(int v)
     QString name = w->objectName();
     changeJsonValue(w,BORDER,
                     QString("%1:%2").arg(name,QString::number(v)));
-    //     if(!w->property(DKEY_ARRIDX).toInt())  // 只有第一全CSS属性可以与界面互动.
-    //     {
     if(!name.compare(LEFT))
     {
         mBorder.setLeft(v);
@@ -1574,9 +1564,6 @@ void BaseForm::updateStyleSheets()
     }
     else if(inherits(CN_NEWLIST))
     {
-        //       ((NewList*)this)->mainScroll->setStyleSheet(QString("%1#%2 { %3 }").arg(clsname,
-        //                                                 this->objectName(),
-        //                                                 str));
         ((NewList*)this)->mainScroll->setStyleSheet(QString("QScrollArea#%1 { %2 }").arg(
                                                         this->objectName(),
                                                         str));
@@ -1584,8 +1571,6 @@ void BaseForm::updateStyleSheets()
     }else{
         setStyleSheet(QString("BaseForm#%1 { %2 }").arg(this->objectName(),str));
     }
-
-    //    qDebug() << " base form stylesheet " << this->styleSheet();
     update();
     repaint();
 
@@ -1611,9 +1596,6 @@ void BaseScrollArea::paintEvent(QPaintEvent *)
     QStyleOption option;
     option.init(this);
     QPainter painter(this);
-
-    //  painter.setPen(QColor(0,0,0,0));
-
     style()->drawPrimitive(QStyle::PE_Widget,
                            &option, &painter, this);
 }
@@ -1643,7 +1625,6 @@ void BaseForm::onColorButtonClicked()
 {
     QPushButton *btn = (QPushButton*)QObject::sender();
     QColor c = QColor(btn->property(DKEY_COLOR).toString());
-    // qDebug() << "old color " << c.name(QColor::HexArgb);
     QColorDialog *color =new  QColorDialog(c,this);
     color->setCurrentColor(c);
 
@@ -1660,7 +1641,7 @@ void BaseForm::onColorButtonClicked()
         btn->setIcon(p);
         btn->update();
         QString objname = btn->objectName();
-        //   bool isFirst = !btn->property(DKEY_ARRIDX).toInt();
+
         if(!objname.compare(BAKCOLOR) ||
                 !objname.compare(COLOR))
         {
@@ -1671,7 +1652,6 @@ void BaseForm::onColorButtonClicked()
             btn->setProperty(DKEY_COLOR,curcolor);
 
             changeJsonValue(btn,objname,curcolor);
-            //  if(isFirst)
         }
         else if(!objname.compare(BORDER))
         {
@@ -1724,7 +1704,6 @@ void BaseForm::onSelectMe()
     CanvasManager::mActiveSS->setSelectObject(this);
     if(mReadJson) return;
 
-//    CanvasManager::setSliderPos(getGlobalPos(this->pos()));
     CanvasManager::setSliderSize(this->size());
 
     mWindow->propertyWidget->createPropertyBox(this);
@@ -1782,8 +1761,6 @@ void BaseForm::initJsonValue()
     c = QColor(getJsonValue(GRAYCOLOR).toString());
     if(c.isValid())
         mBorderColor = c.name(QColor::HexArgb);
-
-    //    mBorder =  getRectFromStruct(mOwerJson[PROPERTY].toArray(),BORDER);
 
     QString img = getJsonValue(BAKIMAGE).toString();
     if(!img.isEmpty())
@@ -2221,7 +2198,6 @@ void BaseForm::updateNewPageSize()
 
     if(!cmpf(mHeightRate,1.0f,0.0001))
     {
-        //        this->setFixedHeight(this->height() * mHeightRate);
         nh = nh * mHeightRate;
         ny = float(ny) * mHeightRate;
     }

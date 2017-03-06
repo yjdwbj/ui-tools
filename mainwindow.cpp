@@ -33,7 +33,6 @@ using namespace xls;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    //out(stdout, QIODevice::WriteOnly),
     ui(new Ui::MainWindow),
     mGlobalIniFile(QStandardPaths::displayName(QStandardPaths::DataLocation) + "/ui-config")
 {
@@ -445,7 +444,6 @@ void MainWindow::onChangeBackgroud()
     connect(imglist,SIGNAL(itemClicked(QListWidgetItem*)),SLOT(onDobuleClickedImage(QListWidgetItem*)));
     v->addWidget(imglist);
     foreach (QString path, bakimageList) {
-        // int len = path.lastIndexOf(BACKSLASH)+1;
         imglist->addItem(new QListWidgetItem(QIcon(mImgMap[path]),
                                              bimgPath.key(path)));
     }
@@ -456,7 +454,6 @@ void MainWindow::onChangeBackgroud()
 
 void MainWindow::onDobuleClickedImage(QListWidgetItem *item)
 {
-//    bk->backImage = mImgMap[bimgPath.value(item->text())];
     QString imgpath = bimgPath.value(item->text()).toUtf8().mid(mRootPathLen);
     if(imgpath.isEmpty()) imgpath=".";
     mGlobalSet->setValue(INI_PRJBAKIMG,imgpath);
@@ -498,7 +495,6 @@ void MainWindow::closeEvent(QCloseEvent *e)
                 //　需要保存
                 cManager->onSaveProject();
             }
-            //        cManager->closeCurrentProject();
         }
     }else{
         e->ignore();
